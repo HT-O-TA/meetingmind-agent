@@ -1,0 +1,38 @@
+from fastapi import Depends, Header
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from typing import Optional
+from app.db.database import get_db
+from app.core.security import decode_access_token
+from app.core.exceptions import AppException
+from app.models.user import User
+
+
+async def get_current_user(
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    if not authorization or not authorization.startswith("Bearer "):
+        raise AppException("未提供认证令牌", 401)
+    token = authorization.split(" ", 1)[1]
+    payload = decode_access_token(token)
+    if not payload:
+        raise AppException("令牌无效或已过期", 401)
+    user_id = int(payload.get("sub", 0))
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user or not user.is_active:
+        raise AppException("用户不存在或已禁用", 401)
+    return user
+
+
+async def get_optional_user(
+    authorization: Optional[str] = Header(None),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    try:
+        return await get_current_user(authorization, db)
+    except AppException:
+        return None
