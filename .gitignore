@@ -1,0 +1,37 @@
+# Model files (too large)
+backend/model/
+
+# Uploaded files
+backend/uploads/
+
+# Database
+backend/meetingmind.db
+
+# Environment variables
+backend/.env
+
+# Scripts
+backend/scripts/
+
+# Tests
+backend/tests/
+
+# Documentation
+docs/
+
+# Frontend
+frontend/
+
+# VSCode
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+
+# Logs
+*.log

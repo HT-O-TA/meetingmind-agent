@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x9762;&#x8bd5;&#x95ee;&#x7b54;&#x624b;&#x518c; - &#x4f55;&#x6d9b;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<hr>
+<h1 id="面试问答手册---何涛">面试问答手册 - 何涛</h1>
+<h2 id="面向-agentrag-开发岗位">面向 Agent/RAG 开发岗位</h2>
+<hr>
+<h2 id="一自我介绍类问题">一、自我介绍类问题</h2>
+<h3 id="q1请做一下自我介绍">Q1：请做一下自我介绍</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>您好，我叫何涛，本科就读于湖北经济学院人工智能专业，目前已被武汉大学人工智能硕士拟录取。我专注于 Agent 和 RAG 技术方向，独立开发了一个基于 LangGraph + RAG 的会议智能 Agent 系统，实现了会议问答、纪要生成、待办抽取等功能。通过优化检索策略，将 Recall 从 59.6%提升至 86.1%。熟悉 Python、FastAPI、PostgreSQL 等技术栈，具备从文档解析到 Agent 推理的全链路开发能力。</p>
+</blockquote>
+<hr>
+<h2 id="二项目经历类问题">二、项目经历类问题</h2>
+<h3 id="q2请介绍一下你做的会议智能-agent-系统">Q2：请介绍一下你做的会议智能 Agent 系统</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>这是一个面向会议场景的智能助手系统，核心功能包括会议问答、纪要生成、待办抽取和争议点分析。技术上采用 LangGraph 构建 Plan-Execute-Reflect 工作流，结合 RAG 实现检索增强。整个系统从文档解析、知识检索到 Agent 推理形成完整链路。</p>
+</blockquote>
+<h3 id="q3你在项目中主要负责哪些工作">Q3：你在项目中主要负责哪些工作？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>作为独立开发者，我负责了整个项目的设计与实现：</p>
+<ol>
+<li>设计 Speaker Chunking 策略优化会议文档切片</li>
+<li>实现 BM25 + 向量检索 + BGE-Reranker 多路召回链路</li>
+<li>基于 LangGraph 搭建 Agent 工作流</li>
+<li>开发会议问答、纪要生成、待办抽取等工具模块</li>
+<li>通过 SSE 实现流式输出</li>
+<li>构建异步后端服务，实现统一异常处理与配置化管理</li>
+</ol>
+</blockquote>
+<h3 id="q4你是如何将检索-recall-从-596提升到-861的">Q4：你是如何将检索 Recall 从 59.6%提升到 86.1%的？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>主要通过三个方面的优化：</p>
+<ol>
+<li><strong>Chunking 策略优化</strong>：设计了 Speaker Chunking 策略，针对会议场景中短发言多的特点，实现短发言自动合并，避免碎片化导致的检索效果下降</li>
+<li><strong>多路召回</strong>：采用 BM25 + 向量检索的组合方式，覆盖不同类型的检索需求</li>
+<li><strong>重排序</strong>：引入 BGE-Reranker 对召回结果进行精排，提升最终结果的相关性</li>
+</ol>
+</blockquote>
+<h3 id="q5你的项目中有哪些亮点">Q5：你的项目中有哪些亮点？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>我认为有几个亮点：</p>
+<ol>
+<li><strong>场景化优化</strong>：针对会议场景专门设计了 Speaker Chunking 策略，相比通用切分效果更优</li>
+<li><strong>完整评估体系</strong>：自建了 200+ 条评估数据集，集成 RAGAS 指标体系，通过 Recall、MRR 等指标持续优化</li>
+<li><strong>拒答机制</strong>：实现了对无答案问题的准确识别和友好回复，避免产生幻觉</li>
+<li><strong>工程化能力</strong>：采用异步架构、统一异常处理、配置化管理，具备生产环境部署能力</li>
+</ol>
+</blockquote>
+<h3 id="q6项目中遇到过什么困难如何解决的">Q6：项目中遇到过什么困难？如何解决的？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>在开发过程中遇到的主要挑战是检索效果不佳的问题。一开始单纯使用向量检索，Recall 只有 59.6%。后来分析了 bad case，发现主要原因是会议文档碎片化严重，短发言太多。</p>
+<p>解决方案：</p>
+<ol>
+<li>设计了 Speaker Chunking 策略，按说话人合并短发言</li>
+<li>引入 BM25 作为补充检索方式</li>
+<li>添加 BGE-Reranker 进行重排序</li>
+</ol>
+<p>通过这些优化，Recall 提升到了 86.1%。</p>
+</blockquote>
+<hr>
+<h2 id="三技术栈类问题">三、技术栈类问题</h2>
+<h3 id="q7你熟悉哪些-agent-框架它们有什么区别">Q7：你熟悉哪些 Agent 框架？它们有什么区别？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>我主要熟悉 LangGraph 和 LangChain：</p>
+<ul>
+<li><strong>LangGraph</strong>：更专注于构建多步骤、有状态的 Agent 工作流，支持 Plan-Execute-Reflect 等模式，状态管理更清晰，适合复杂任务</li>
+<li><strong>LangChain</strong>：功能更全面，包含大量工具和集成，适合快速原型开发</li>
+</ul>
+<p>在我的项目中选择了 LangGraph，因为它更适合构建需要长期记忆和多步骤推理的 Agent 系统。</p>
+</blockquote>
+<h3 id="q8什么是-rag它的核心流程是什么">Q8：什么是 RAG？它的核心流程是什么？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>RAG（Retrieval-Augmented Generation）是检索增强生成，核心流程包括：</p>
+<ol>
+<li><strong>文档处理</strong>：将文档切分为 chunks，向量化后存储到向量数据库</li>
+<li><strong>检索</strong>：根据用户查询，从向量数据库中检索相关文档</li>
+<li><strong>生成</strong>：将检索到的文档作为上下文，输入到大语言模型中生成回答</li>
+</ol>
+<p>这样可以让模型回答更准确、更具时效性，减少幻觉。</p>
+</blockquote>
+<h3 id="q9什么是-chunking你用过哪些策略">Q9：什么是 Chunking？你用过哪些策略？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>Chunking 是将文档切分为更小片段的过程。我用过以下策略：</p>
+<ul>
+<li><strong>固定长度切分</strong>：按固定 token 数切分，简单但可能切断语义</li>
+<li><strong>段落切分</strong>：按段落边界切分，保持语义完整性</li>
+<li><strong>Speaker Chunking</strong>：针对会议场景，按说话人合并短发言</li>
+</ul>
+<p>在项目中我设计了 Speaker Chunking 策略，特别适合会议记录这类多说话人场景。</p>
+</blockquote>
+<h3 id="q10bm25-和向量检索有什么区别为什么要结合使用">Q10：BM25 和向量检索有什么区别？为什么要结合使用？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<ul>
+<li><strong>BM25</strong>：基于词频的传统检索，擅长关键词匹配，对字面相似度敏感</li>
+<li><strong>向量检索</strong>：基于语义相似度，擅长理解语义，对同义词和语义变化更鲁棒</li>
+</ul>
+<p>结合使用可以互补：BM25 保证关键词匹配的召回率，向量检索保证语义理解的准确性，再通过 Reranker 精排，整体效果更好。</p>
+</blockquote>
+<h3 id="q11什么是-function-callingtool-calling">Q11：什么是 Function Calling/Tool Calling？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>是让大语言模型根据用户需求，自动选择并调用外部工具（如数据库查询、API 调用等）的能力。在 Agent 系统中非常重要，可以扩展模型的能力边界。</p>
+<p>在我的项目中，我实现了会议问答、纪要生成、待办抽取等工具，并让 Agent 根据用户问题自动选择调用。</p>
+</blockquote>
+<h3 id="q12为什么选择-fastapi它的优势是什么">Q12：为什么选择 FastAPI？它的优势是什么？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>选择 FastAPI 主要因为：</p>
+<ol>
+<li><strong>高性能</strong>：基于 Starlette，支持异步，性能接近 Node.js</li>
+<li><strong>类型提示</strong>：支持 Python 类型提示，自动生成文档和参数校验</li>
+<li><strong>快速开发</strong>：代码简洁，开发效率高</li>
+<li><strong>生态完善</strong>：支持依赖注入、中间件等，适合构建生产级服务</li>
+</ol>
+</blockquote>
+<h3 id="q13你了解-react-和-plan-and-execute-吗">Q13：你了解 ReAct 和 Plan-and-Execute 吗？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<ul>
+<li><strong>ReAct</strong>：让模型在思考过程中产生&quot;动作&quot;，通过&quot;思考-动作-观察&quot;循环解决问题</li>
+<li><strong>Plan-and-Execute</strong>：先规划执行步骤，再按计划执行，适合复杂任务拆解</li>
+</ul>
+<p>在我的项目中，基于 LangGraph 实现了 Plan-Execute-Reflect 的变体，支持任务拆解、工具调用和结果反思。</p>
+</blockquote>
+<hr>
+<h2 id="四行为类问题">四、行为类问题</h2>
+<h3 id="q14为什么想做-agentrag-方向">Q14：为什么想做 Agent/RAG 方向？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>我对 AI 应用落地很感兴趣，Agent 和 RAG 是当前 AI 应用的核心技术。RAG 解决了大模型知识时效性和准确性的问题，Agent 则让 AI 具备了工具使用和复杂推理的能力。这两个技术结合可以创造出非常有价值的应用，比如我的会议智能 Agent 系统。</p>
+</blockquote>
+<h3 id="q15如何学习新技术">Q15：如何学习新技术？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>我通常通过以下方式学习：</p>
+<ol>
+<li><strong>官方文档</strong>：先阅读官方文档了解核心概念</li>
+<li><strong>实践项目</strong>：通过实际项目加深理解</li>
+<li><strong>源码阅读</strong>：深入理解底层实现</li>
+<li><strong>社区交流</strong>：关注技术社区，学习最新动态</li>
+</ol>
+<p>比如学习 LangGraph 时，我先看官方文档和教程，然后通过自己的项目实践，遇到问题再深入看源码。</p>
+</blockquote>
+<h3 id="q16你的优点和缺点是什么">Q16：你的优点和缺点是什么？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p><strong>优点</strong>：</p>
+<ol>
+<li>学习能力强，能够快速掌握新技术</li>
+<li>工程思维强，注重代码质量和项目架构</li>
+<li>有独立开发完整项目的经验</li>
+</ol>
+<p><strong>缺点</strong>：</p>
+<ol>
+<li>大型团队协作经验相对较少</li>
+<li>某些技术深度还需要进一步提升</li>
+</ol>
+</blockquote>
+<h3 id="q17未来的职业规划是什么">Q17：未来的职业规划是什么？</h3>
+<p><strong>推荐回答</strong>：</p>
+<blockquote>
+<p>短期目标是加入一家专注于 AI 应用的公司，在实际项目中积累经验，提升技术能力。长期目标是成为一名优秀的 AI 应用架构师，能够设计和实现复杂的 AI 系统。</p>
+</blockquote>
+<hr>
+<h2 id="五反问面试官">五、反问面试官</h2>
+<h3 id="推荐反问问题">推荐反问问题：</h3>
+<ol>
+<li>团队目前在 Agent/RAG 方向有哪些正在进行的项目？</li>
+<li>团队的技术栈是什么？</li>
+<li>团队希望候选人在入职后 3 个月内达成什么目标？</li>
+<li>团队的工作节奏和协作方式是怎样的？</li>
+<li>团队在 Agent/RAG 方向未来有什么规划？</li>
+</ol>
+<hr>
+<h2 id="六项目演示准备">六、项目演示准备</h2>
+<h3 id="演示要点">演示要点：</h3>
+<ol>
+<li><strong>核心功能展示</strong>：会议问答、纪要生成、待办抽取</li>
+<li><strong>技术亮点</strong>：检索效果对比、流式输出、拒答机制</li>
+<li><strong>代码结构</strong>：展示项目架构和核心模块</li>
+<li><strong>评估结果</strong>：展示 RAGAS 评估指标</li>
+</ol>
+<h3 id="准备材料">准备材料：</h3>
+<ul>
+<li>GitHub 仓库链接（确保可访问）</li>
+<li>项目演示视频或截图</li>
+<li>评估报告截图</li>
+</ul>
+<hr>
+<p><strong>祝面试顺利！🚀</strong></p>
+
+            
+            
+        </body>
+        </html>
