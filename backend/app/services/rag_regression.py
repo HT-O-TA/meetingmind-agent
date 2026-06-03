@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from app.core.logger import app_logger
+from app.core.config import settings
 
 
 class TestType(str, Enum):
@@ -300,14 +301,40 @@ class RAGRegressionTester:
     
     def __init__(
         self,
-        rag_pipeline: Callable,
+        rag_pipeline: Callable = None,
         evaluator = None,
         baseline: Dict[str, float] = None
     ):
-        self._pipeline = rag_pipeline
-        self._evaluator = evaluator
+        self._pipeline = rag_pipeline or self._get_default_pipeline()
+        self._evaluator = evaluator or self._get_default_evaluator()
         self._baseline = baseline or {}
         self._dataset = RAGBenchmarkDataset()
+    
+    def _get_default_pipeline(self) -> Callable:
+        """获取默认的 RAG pipeline"""
+        from app.services.rag_service import RAGService
+        from app.services.vector_search_service import VectorSearchService
+        
+        async def rag_pipeline(query: str) -> Dict[str, Any]:
+            """默认的 RAG pipeline 执行函数"""
+            vector_service = VectorSearchService()
+            rag_service = RAGService(vector_service)
+            result = await rag_service.ask(question=query, top_k=settings.TOP_K_DEFAULT)
+            return {
+                "answer": result.get("answer", ""),
+                "contexts": [c.get("chunk_text", "") for c in result.get("chunks", [])]
+            }
+        
+        return rag_pipeline
+    
+    def _get_default_evaluator(self):
+        """获取默认的评估器"""
+        try:
+            from app.services.ragas_evaluator import get_ragas_evaluator
+            return get_ragas_evaluator()
+        except Exception as e:
+            app_logger.warning(f"无法加载 RAGAS 评估器: {e}")
+            return None
     
     def set_baseline(self, metrics: Dict[str, float]):
         """设置基准指标"""
@@ -544,6 +571,7 @@ class ContinuousMonitor:
 
 
 _rag_benchmark_dataset: Optional[RAGBenchmarkDataset] = None
+_rag_regression_tester: Optional[RAGRegressionTester] = None
 
 
 def get_rag_benchmark_dataset() -> RAGBenchmarkDataset:
@@ -552,3 +580,77 @@ def get_rag_benchmark_dataset() -> RAGBenchmarkDataset:
     if _rag_benchmark_dataset is None:
         _rag_benchmark_dataset = RAGBenchmarkDataset()
     return _rag_benchmark_dataset
+
+
+def get_rag_regression_tester() -> RAGRegressionTester:
+    """获取RAG回归测试器"""
+    global _rag_regression_tester
+    if _rag_regression_tester is None:
+        _rag_regression_tester = RAGRegressionTester()
+    return _rag_regression_tester
+
+
+async def run_regression_test(test_types: List[TestType] = None) -> Dict[str, Any]:
+    """
+    便捷函数：运行回归测试
+    
+    Args:
+        test_types: 测试类型列表（可选）
+        
+    Returns:
+        回归测试报告（字典格式）
+    """
+    tester = get_rag_regression_tester()
+    report = await tester.run_regression(test_types=test_types)
+    return report.to_dict()
+
+
+async def run_single_test(case_id: str) -> Dict[str, Any]:
+    """
+    便捷函数：运行单个测试用例
+    
+    Args:
+        case_id: 测试用例ID
+        
+    Returns:
+        测试结果（字典格式）
+    """
+    tester = get_rag_regression_tester()
+    dataset = get_rag_benchmark_dataset()
+    cases = dataset.get_cases()
+    case = next((c for c in cases if c.case_id == case_id), None)
+    
+    if not case:
+        return {"error": f"测试用例 {case_id} 不存在"}
+    
+    result = await tester.run_test(case)
+    return {
+        "case": case.to_dict(),
+        "result": {
+            "status": result.status.value,
+            "execution_time_ms": result.execution_time_ms,
+            "answer": result.answer,
+            "actual_metrics": result.actual_metrics,
+            "error": result.error
+        }
+    }
+
+
+async def establish_baseline() -> Dict[str, Any]:
+    """
+    建立基准指标
+    
+    Returns:
+        基准指标字典
+    """
+    tester = get_rag_regression_tester()
+    report = await tester.run_regression()
+    baseline = report.current_metrics
+    tester.set_baseline(baseline)
+    
+    # 保存基准到文件
+    baseline_path = settings.BASELINE_FILE or "rag_baseline.json"
+    tester.save_baseline(baseline_path)
+    
+    app_logger.info(f"基准已建立并保存到 {baseline_path}")
+    return {"baseline": baseline, "report": report.to_dict()}

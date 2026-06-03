@@ -102,6 +102,11 @@ class Settings(BaseSettings):
     TEMPLATE_MATCH_THRESHOLD: float = 0.2  # 模板匹配阈值（0-1）
     MAX_TASKS_IN_PLAN: int = 10  # 计划中最大任务数量
     
+    # ==================== 知识图谱配置 ====================
+    ENABLE_KNOWLEDGE_GRAPH: bool = True  # 是否启用知识图谱增强检索
+    KNOWLEDGE_GRAPH_DEPTH: int = 2  # 图谱扩展深度
+    KNOWLEDGE_GRAPH_MIN_SCORE: float = 0.3  # 图谱扩展结果的最低分数阈值
+    
     @property
     def LOCAL_EMBEDDING_MODEL_PATH(self) -> str:
         """动态计算当前模型的本地路径"""

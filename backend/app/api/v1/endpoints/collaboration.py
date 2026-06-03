@@ -8,14 +8,14 @@ from app.agents.agent_communication import (
 router = APIRouter(tags=["Agent协作"])
 
 
-@router.get("/agent-messages")
+@router.get("/messages")
 async def get_messages(limit: int = 50):
     """获取消息历史"""
     message_bus = get_message_bus()
     return {"messages": message_bus.get_message_history(limit)}
 
 
-@router.post("/agent-messages/broadcast")
+@router.post("/messages/broadcast")
 async def broadcast_message(sender_id: str, content: Dict[str, Any]):
     """广播消息"""
     message_bus = get_message_bus()
@@ -23,7 +23,7 @@ async def broadcast_message(sender_id: str, content: Dict[str, Any]):
     return {"message": "消息已广播"}
 
 
-@router.post("/agent-messages/send")
+@router.post("/messages/send")
 async def send_message(
     sender_id: str,
     receiver_id: str,
@@ -54,7 +54,7 @@ async def send_message(
     return {"message": "消息已发送"}
 
 
-@router.post("/agent-messages/clear")
+@router.post("/messages/clear")
 async def clear_messages():
     """清空消息历史"""
     message_bus = get_message_bus()

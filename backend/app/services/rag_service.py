@@ -1,16 +1,31 @@
-"""RAG 服务：整合向量检索 + LLM 生成"""
+"""RAG 服务：整合向量检索 + LLM 生成 + 知识图谱增强"""
 from typing import List, Optional, Dict
 from app.services.vector_search_service import VectorSearchService
 from app.services.llm_service import LLMService
+from app.services.knowledge_graph import enhance_search_results
 from app.core.logger import app_logger
+from app.core.config import settings
 
 
 class RAGService:
     """RAG 服务类，整合检索与生成"""
 
-    def __init__(self, vector_service: VectorSearchService, llm_service: LLMService = None):
+    def __init__(self, vector_service: VectorSearchService, llm_service: LLMService = None, enable_evaluation: bool = False):
         self.vector_service = vector_service
         self.llm_service = llm_service or LLMService()
+        self.enable_evaluation = enable_evaluation
+        self._evaluator = None
+    
+    def _get_evaluator(self):
+        """延迟加载评估器"""
+        if self._evaluator is None and self.enable_evaluation:
+            try:
+                from app.services.ragas_evaluator import get_ragas_evaluator
+                self._evaluator = get_ragas_evaluator()
+            except Exception as e:
+                app_logger.warning(f"无法加载评估器: {e}")
+                self.enable_evaluation = False
+        return self._evaluator
 
     async def ask(
         self,
@@ -44,10 +59,18 @@ class RAGService:
             similarity_threshold=similarity_threshold,
         )
 
-        # 2. 提取文本片段
+        # 2. 使用知识图谱增强检索结果
+        if settings.ENABLE_KNOWLEDGE_GRAPH:
+            try:
+                search_results = await enhance_search_results(question, search_results, depth=2)
+                app_logger.info(f"[RAG] 知识图谱增强完成，结果数: {len(search_results)}")
+            except Exception as e:
+                app_logger.warning(f"[RAG] 知识图谱增强失败: {e}")
+
+        # 3. 提取文本片段
         chunks = [r["chunk_text"] for r in search_results if r.get("chunk_text")]
 
-        # 3. 如果没有检索到结果
+        # 4. 如果没有检索到结果
         if not chunks:
             return {
                 "answer": "抱歉，我在知识库中没有找到与您问题相关的内容。",
@@ -56,7 +79,7 @@ class RAGService:
                 "mode": self.vector_service.use_pgvector if hasattr(self.vector_service, 'use_pgvector') else "unknown",
             }
 
-        # 4. LLM 生成回答
+        # 5. LLM 生成回答
         if use_llm:
             try:
                 answer = await self.llm_service.generate_answer(
@@ -75,9 +98,27 @@ class RAGService:
                 [f"[{i+1}] {c}" for i, c in enumerate(chunks[:3])]
             )
 
-        return {
+        result = {
             "answer": answer,
             "chunks": search_results,
             "count": len(search_results),
             "mode": self.vector_service.use_pgvector if hasattr(self.vector_service, 'use_pgvector') else "unknown",
         }
+
+        # 如果启用评估，添加评估指标
+        if self.enable_evaluation and self._get_evaluator():
+            contexts = [r["chunk_text"] for r in search_results if r.get("chunk_text")]
+            try:
+                metrics = await self._evaluator.evaluate(
+                    query=question,
+                    answer=answer,
+                    contexts=contexts
+                )
+                result["evaluation"] = {
+                    "metrics": metrics.to_dict(),
+                    "avg_score": metrics.avg_score()
+                }
+            except Exception as e:
+                app_logger.warning(f"评估失败: {e}")
+
+        return result

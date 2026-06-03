@@ -7,14 +7,14 @@ from app.core.logger import app_logger
 router = APIRouter(tags=["配置管理"])
 
 
-@router.get("/config/all")
+@router.get("/all")
 async def get_all_configs():
     """获取所有配置"""
     config_center = get_config_center()
     return {"configs": config_center.get_full_configs()}
 
 
-@router.get("/config")
+@router.get("/{key}")
 async def get_config_by_key(key: str):
     """根据key获取配置"""
     config_center = get_config_center()
@@ -26,7 +26,7 @@ async def get_config_by_key(key: str):
     return item
 
 
-@router.get("/config/category/{category}")
+@router.get("/category/{category}")
 async def get_configs_by_category(category: str):
     """按分类获取配置"""
     try:
@@ -40,14 +40,14 @@ async def get_configs_by_category(category: str):
     return {"category": category, "configs": configs}
 
 
-@router.get("/config/summary")
+@router.get("/summary")
 async def get_config_summary():
     """获取配置摘要（脱敏）"""
     config_center = get_config_center()
     return config_center.get_all()
 
 
-@router.post("/config/{key}")
+@router.post("/{key}")
 async def update_config(key: str, value: Any):
     """更新配置值"""
     config_center = get_config_center()
@@ -61,7 +61,7 @@ async def update_config(key: str, value: Any):
     return {"message": "配置更新成功", "key": key, "value": value}
 
 
-@router.post("/config/batch")
+@router.post("/batch")
 async def update_config_batch(configs: Dict[str, Any]):
     """批量更新配置"""
     config_center = get_config_center()
@@ -83,7 +83,7 @@ async def update_config_batch(configs: Dict[str, Any]):
     }
 
 
-@router.post("/config/reload")
+@router.post("/reload")
 async def reload_config():
     """重新加载配置"""
     config_center = get_config_center()
@@ -93,7 +93,7 @@ async def reload_config():
     return {"message": "配置已重新加载"}
 
 
-@router.get("/config/categories")
+@router.get("/categories")
 async def get_categories():
     """获取所有配置分类"""
     return {"categories": [cat.value for cat in ConfigCategory]}

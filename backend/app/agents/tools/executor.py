@@ -5,7 +5,13 @@ import asyncio
 from app.core.logger import app_logger
 from app.agents.tools.registry import get_tool_registry
 from app.agents.tools.tool_metadata import ToolExecutionResult
-from app.agents.tools.builtin import execute_builtin_tool
+from app.agents.tools.meeting_tools import (
+    MeetingSearchTool,
+    TodoExtractionTool,
+    MinutesGenerationTool,
+    ControversyDetectionTool,
+    QAAnswerTool
+)
 
 class ToolExecutor:
     """
@@ -24,11 +30,15 @@ class ToolExecutor:
         self._cache: Dict[str, Any] = {}
         self._execution_history: List[Dict[str, Any]] = []
         self._max_history = 1000
+        # 工具实例缓存
+        self._tool_instances: Dict[str, Any] = {}
     
     async def execute(
         self,
         tool_id: str,
         params: Dict[str, Any],
+        llm_service=None,
+        vector_search_service=None,
         context: Optional[Dict[str, Any]] = None,
         enable_cache: bool = True,
         retry_count: int = 3,
@@ -39,6 +49,8 @@ class ToolExecutor:
         Args:
             tool_id: 工具ID
             params: 参数
+            llm_service: LLM服务
+            vector_search_service: 向量搜索服务
             context: 上下文
             enable_cache: 是否启用缓存
             retry_count: 重试次数
@@ -46,6 +58,8 @@ class ToolExecutor:
         Returns:
             执行结果
         """
+        start_time = time.time()
+        
         # 获取工具
         tool = self.registry.get(tool_id)
         if not tool:
@@ -81,10 +95,12 @@ class ToolExecutor:
         # 执行工具（带重试）
         for attempt in range(retry_count):
             try:
-                # 首先尝试内置工具执行器
-                result = await self._execute_with_builtin(tool_id, params, context)
+                # 获取工具实例并执行
+                result = await self._execute_tool(tool_id, params, llm_service, vector_search_service)
                 
                 if result is not None:
+                    execution_time = time.time() - start_time
+                    
                     # 更新缓存
                     if enable_cache and tool.metadata.cacheable:
                         self._cache[cache_key] = result
@@ -96,29 +112,20 @@ class ToolExecutor:
                         tool_id=tool_id,
                         success=True,
                         result=result,
-                        execution_time=0,
+                        execution_time=execution_time,
+                        cached=False,
                     )
-                
-                # 使用工具的execute方法
-                result = await tool.execute(params, context)
-                
-                # 更新缓存
-                if enable_cache and tool.metadata.cacheable and result.success:
-                    self._cache[cache_key] = result.result
-                
-                # 记录执行历史
-                self._record_execution(tool_id, params, result.result if result.success else None, result.success)
-                
-                return result
             
             except Exception as e:
                 app_logger.error(f"[Executor] 工具 {tool_id} 执行失败 (尝试 {attempt + 1}/{retry_count}): {e}")
                 if attempt == retry_count - 1:
+                    execution_time = time.time() - start_time
                     self._record_execution(tool_id, params, None, False, str(e))
                     return ToolExecutionResult(
                         tool_id=tool_id,
                         success=False,
                         error=f"执行失败: {str(e)}",
+                        execution_time=execution_time,
                     )
                 
                 # 等待后重试
@@ -129,6 +136,102 @@ class ToolExecutor:
             success=False,
             error="执行失败",
         )
+    
+    async def _execute_tool(
+        self,
+        tool_id: str,
+        params: Dict[str, Any],
+        llm_service=None,
+        vector_search_service=None
+    ) -> Any:
+        """
+        执行具体的工具
+        
+        Args:
+            tool_id: 工具ID
+            params: 参数
+            llm_service: LLM服务
+            vector_search_service: 向量搜索服务
+            
+        Returns:
+            执行结果
+        """
+        # 根据工具ID创建并执行对应的工具实例
+        tool_instance = await self._get_tool_instance(tool_id, llm_service, vector_search_service)
+        
+        if tool_instance:
+            app_logger.info(f"[Executor] 执行工具: {tool_id}")
+            
+            # 转换参数为工具期望的格式
+            result = await tool_instance.execute(**params)
+            
+            # 统一返回格式
+            if hasattr(result, 'result'):
+                return result.result
+            return result
+        
+        app_logger.warning(f"[Executor] 未找到工具实现: {tool_id}")
+        return None
+    
+    async def _get_tool_instance(
+        self,
+        tool_id: str,
+        llm_service=None,
+        vector_search_service=None
+    ):
+        """
+        获取或创建工具实例
+        
+        Args:
+            tool_id: 工具ID
+            llm_service: LLM服务
+            vector_search_service: 向量搜索服务
+            
+        Returns:
+            工具实例
+        """
+        # 检查缓存
+        if tool_id in self._tool_instances:
+            return self._tool_instances[tool_id]
+        
+        # 根据工具ID创建实例
+        try:
+            if tool_id == "search_meeting":
+                if not vector_search_service:
+                    app_logger.warning("[Executor] search_meeting 需要 vector_search_service")
+                    return None
+                instance = MeetingSearchTool(vector_search_service)
+            elif tool_id == "extract_todos":
+                if not llm_service:
+                    app_logger.warning("[Executor] extract_todos 需要 llm_service")
+                    return None
+                instance = TodoExtractionTool(llm_service)
+            elif tool_id == "generate_minutes":
+                if not llm_service:
+                    app_logger.warning("[Executor] generate_minutes 需要 llm_service")
+                    return None
+                instance = MinutesGenerationTool(llm_service)
+            elif tool_id == "detect_controversies":
+                if not llm_service:
+                    app_logger.warning("[Executor] detect_controversies 需要 llm_service")
+                    return None
+                instance = ControversyDetectionTool(llm_service)
+            elif tool_id == "answer_question":
+                if not llm_service:
+                    app_logger.warning("[Executor] answer_question 需要 llm_service")
+                    return None
+                instance = QAAnswerTool(llm_service)
+            else:
+                app_logger.warning(f"[Executor] 未知工具: {tool_id}")
+                return None
+            
+            # 缓存实例
+            self._tool_instances[tool_id] = instance
+            return instance
+            
+        except Exception as e:
+            app_logger.error(f"[Executor] 创建工具实例失败 {tool_id}: {e}")
+            return None
     
     async def execute_batch(
         self,

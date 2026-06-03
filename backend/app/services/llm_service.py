@@ -115,3 +115,19 @@ class LLMService:
             temperature=temperature,
             max_tokens=max_tokens,
         )
+
+    async def _call(self, prompt: str, **kwargs) -> str:
+        """
+        简单的文本调用接口（兼容旧版调用方式）
+        
+        Args:
+            prompt: 提示文本
+            **kwargs: 额外参数
+        
+        Returns:
+            生成的文本
+        """
+        messages = [
+            {"role": "user", "content": prompt}
+        ]
+        return await self.chat(messages=messages, **kwargs)

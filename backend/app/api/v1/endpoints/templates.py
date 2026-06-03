@@ -8,7 +8,7 @@ from app.agents.prompt_market import (
 router = APIRouter(tags=["Prompt模板"])
 
 
-@router.get("/templates")
+@router.get("/")
 async def get_templates(category: Optional[str] = None):
     """获取所有模板"""
     market = get_prompt_market()
@@ -25,7 +25,7 @@ async def get_templates(category: Optional[str] = None):
     return {"templates": templates}
 
 
-@router.get("/templates/{template_id}")
+@router.get("/{template_id}")
 async def get_template(template_id: str):
     """获取模板详情"""
     market = get_prompt_market()
@@ -52,7 +52,7 @@ async def get_template(template_id: str):
     }
 
 
-@router.post("/templates")
+@router.post("/")
 async def create_template(
     name: str,
     description: str,
@@ -84,7 +84,7 @@ async def create_template(
     return {"template_id": template.template_id, "message": "模板创建成功"}
 
 
-@router.put("/templates/{template_id}")
+@router.put("/{template_id}")
 async def update_template(
     template_id: str,
     name: Optional[str] = None,
@@ -119,7 +119,7 @@ async def update_template(
     return {"message": "模板更新成功"}
 
 
-@router.delete("/templates/{template_id}")
+@router.delete("/{template_id}")
 async def delete_template(template_id: str):
     """删除模板"""
     market = get_prompt_market()
@@ -131,7 +131,7 @@ async def delete_template(template_id: str):
     return {"message": "模板删除成功"}
 
 
-@router.post("/templates/{template_id}/render")
+@router.post("/{template_id}/render")
 async def render_template(template_id: str, **variables):
     """渲染模板"""
     market = get_prompt_market()
@@ -143,7 +143,7 @@ async def render_template(template_id: str, **variables):
     return {"rendered_content": result}
 
 
-@router.get("/templates/categories")
+@router.get("/categories")
 async def get_categories():
     """获取所有模板分类"""
     categories = [

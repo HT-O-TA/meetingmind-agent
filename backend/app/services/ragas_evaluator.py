@@ -583,3 +583,107 @@ def get_rag_monitor() -> RAGMonitor:
     if _rag_monitor is None:
         _rag_monitor = RAGMonitor()
     return _rag_monitor
+
+
+async def evaluate_rag_response(
+    query: str,
+    answer: str,
+    contexts: List[str],
+    ground_truth: str = None,
+    record: bool = True
+) -> Dict[str, Any]:
+    """
+    便捷函数：评估 RAG 响应质量
+    
+    Args:
+        query: 用户问题
+        answer: 生成的答案
+        contexts: 检索到的上下文
+        ground_truth: 标准答案（可选）
+        record: 是否记录评估结果
+        
+    Returns:
+        评估结果字典
+    """
+    evaluator = get_ragas_evaluator()
+    monitor = get_rag_monitor()
+    
+    start_time = time.time()
+    metrics = await evaluator.evaluate(
+        query=query,
+        answer=answer,
+        contexts=contexts,
+        ground_truth=ground_truth
+    )
+    latency_ms = (time.time() - start_time) * 1000
+    
+    # 记录评估结果
+    if record:
+        evaluator.record_evaluation(
+            query=query,
+            answer=answer,
+            contexts=contexts,
+            ground_truth=ground_truth or "",
+            metrics=metrics,
+            latency_ms=latency_ms
+        )
+    
+    # 更新监控指标
+    monitor.record_request(
+        success=True,
+        latency_ms=latency_ms,
+        metrics=metrics
+    )
+    
+    return {
+        "query": query,
+        "answer": answer,
+        "metrics": metrics.to_dict(),
+        "avg_score": metrics.avg_score(),
+        "latency_ms": latency_ms,
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+async def evaluate_batch(
+    items: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """
+    批量评估
+    
+    Args:
+        items: 待评估的项目列表，每个项目包含 query, answer, contexts, ground_truth
+        
+    Returns:
+        评估结果列表
+    """
+    results = []
+    for item in items:
+        result = await evaluate_rag_response(
+            query=item["query"],
+            answer=item["answer"],
+            contexts=item["contexts"],
+            ground_truth=item.get("ground_truth"),
+            record=item.get("record", True)
+        )
+        results.append(result)
+    return results
+
+
+def get_evaluation_statistics(limit: int = 100) -> Dict[str, Any]:
+    """
+    获取评估统计信息
+    
+    Args:
+        limit: 最近记录数限制
+        
+    Returns:
+        统计信息字典
+    """
+    evaluator = get_ragas_evaluator()
+    monitor = get_rag_monitor()
+    
+    return {
+        "statistics": evaluator.get_statistics(limit=limit),
+        "monitor_status": monitor.get_status()
+    }

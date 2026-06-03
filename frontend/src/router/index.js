@@ -20,6 +20,7 @@ const routes = [
       { path: 'agent', component: () => import('@/views/AgentDemo.vue') },
       { path: 'users', component: () => import('@/views/UserList.vue') },
       { path: 'evaluation', component: () => import('@/views/EvaluationPage.vue') },
+      { path: 'confirmation', component: () => import('@/views/ConfirmationPage.vue') },
       { path: 'profile', component: () => import('@/views/ProfilePage.vue') },
       { path: 'tests', component: () => import('@/views/TestPage.vue') },
       { path: 'config', component: () => import('@/views/ConfigPage.vue') },

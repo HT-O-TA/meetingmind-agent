@@ -662,3 +662,72 @@ def get_knowledge_graph_index() -> KnowledgeGraphIndex:
     if _knowledge_graph_index is None:
         _knowledge_graph_index = KnowledgeGraphIndex()
     return _knowledge_graph_index
+
+
+async def build_graph_from_chunks(chunks: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    从文档块构建知识图谱
+    
+    Args:
+        chunks: 文档块列表，每个包含 chunk_id, chunk_text 等字段
+        
+    Returns:
+        图谱统计信息
+    """
+    index = get_knowledge_graph_index()
+    graph = await index.build_index(chunks)
+    return graph.get_statistics()
+
+
+async def enhance_search_results(
+    query: str,
+    vector_results: List[Dict[str, Any]],
+    depth: int = 2
+) -> List[Dict[str, Any]]:
+    """
+    使用知识图谱增强检索结果
+    
+    Args:
+        query: 查询文本
+        vector_results: 向量检索结果
+        depth: 图谱扩展深度
+        
+    Returns:
+        增强后的检索结果
+    """
+    index = get_knowledge_graph_index()
+    return index.search_with_graph(query, vector_results, depth=depth)
+
+
+def get_entity_subgraph(entity_name: str, depth: int = 2) -> Dict[str, Any]:
+    """
+    获取实体的子图信息
+    
+    Args:
+        entity_name: 实体名称
+        depth: 扩展深度
+        
+    Returns:
+        子图信息（节点和边）
+    """
+    index = get_knowledge_graph_index()
+    return index.get_subgraph(entity_name, depth=depth)
+
+
+def get_graph_statistics() -> Dict[str, Any]:
+    """
+    获取图谱统计信息
+    
+    Returns:
+        统计信息
+    """
+    index = get_knowledge_graph_index()
+    return index.get_graph().get_statistics()
+
+
+def clear_graph():
+    """
+    清空知识图谱
+    """
+    global _knowledge_graph_index
+    _knowledge_graph_index = None

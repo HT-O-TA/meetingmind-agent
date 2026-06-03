@@ -346,8 +346,8 @@ class QAAnswerTool(BaseTool):
             )
 
 
-class ToolManager:
-    """工具管理器"""
+class MeetingToolManager:
+    """会议工具管理器"""
     
     def __init__(
         self,
@@ -387,7 +387,7 @@ class ToolManager:
         qa_tool = QAAnswerTool(self.llm_service)
         self.registry.register(qa_tool)
         
-        app_logger.info(f"[ToolManager] 已注册 {len(self.registry._tools)} 个工具")
+        app_logger.info(f"[MeetingToolManager] 已注册 {len(self.registry._tools)} 个工具")
     
     def get_tools_info(self) -> Dict[str, Any]:
         """获取工具信息"""
@@ -402,3 +402,106 @@ class ToolManager:
             ],
             "openai_format": self.registry.get_openai_tools()
         }
+
+
+def register_meeting_tools(
+    llm_service: LLMService,
+    vector_search_service: VectorSearchService = None
+):
+    """
+    将会议工具注册到全局工具注册表
+    
+    Args:
+        llm_service: LLM服务
+        vector_search_service: 向量搜索服务
+    """
+    from app.agents.tools.registry import get_tool_registry
+    from app.agents.tools.tool_metadata import Tool, ToolMetadata, ToolCategory, ToolParameter
+    
+    registry = get_tool_registry()
+    
+    # 注册搜索工具
+    search_tool = Tool(
+        metadata=ToolMetadata(
+            tool_id="search_meeting",
+            name="搜索会议",
+            description="搜索会议相关内容，根据查询检索相关文档片段",
+            category=ToolCategory.SEARCH,
+            tags=["meeting", "search", "会议", "检索"],
+            parameters=[
+                ToolParameter(name="query", type="string", description="搜索查询", required=True),
+                ToolParameter(name="meeting_id", type="integer", description="会议ID（可选）", required=False),
+                ToolParameter(name="top_k", type="integer", description="返回结果数量", required=False, default=5),
+            ],
+            is_async=True,
+        )
+    )
+    registry.register(search_tool)
+    
+    # 注册待办抽取工具
+    todo_tool = Tool(
+        metadata=ToolMetadata(
+            tool_id="extract_todos",
+            name="提取待办事项",
+            description="从会议内容中抽取待办事项，返回负责人和截止时间",
+            category=ToolCategory.EXTRACT,
+            tags=["todo", "task", "待办", "任务"],
+            parameters=[
+                ToolParameter(name="context", type="string", description="会议上下文内容", required=True),
+            ],
+            is_async=True,
+        )
+    )
+    registry.register(todo_tool)
+    
+    # 注册纪要生成工具
+    minutes_tool = Tool(
+        metadata=ToolMetadata(
+            tool_id="generate_minutes",
+            name="生成会议纪要",
+            description="生成结构化的会议纪要",
+            category=ToolCategory.GENERATE,
+            tags=["minutes", "summary", "纪要", "总结"],
+            parameters=[
+                ToolParameter(name="context", type="string", description="会议内容", required=True),
+                ToolParameter(name="format", type="string", description="输出格式（简略/详细）", required=False, default="详细"),
+            ],
+            is_async=True,
+        )
+    )
+    registry.register(minutes_tool)
+    
+    # 注册争议点检测工具
+    controversy_tool = Tool(
+        metadata=ToolMetadata(
+            tool_id="detect_controversies",
+            name="检测争议点",
+            description="从会议内容中识别争议点和分歧",
+            category=ToolCategory.EXTRACT,
+            tags=["controversy", "dispute", "争议", "分歧"],
+            parameters=[
+                ToolParameter(name="context", type="string", description="会议内容", required=True),
+            ],
+            is_async=True,
+        )
+    )
+    registry.register(controversy_tool)
+    
+    # 注册问答工具
+    qa_tool = Tool(
+        metadata=ToolMetadata(
+            tool_id="answer_question",
+            name="回答问题",
+            description="根据上下文回答用户问题",
+            category=ToolCategory.GENERATE,
+            tags=["qa", "question", "问答", "回答"],
+            parameters=[
+                ToolParameter(name="question", type="string", description="用户问题", required=True),
+                ToolParameter(name="context", type="string", description="相关上下文", required=True),
+            ],
+            is_async=True,
+        )
+    )
+    registry.register(qa_tool)
+    
+    app_logger.info(f"[register_meeting_tools] 已注册会议工具到全局注册表")

@@ -64,7 +64,7 @@ class AgentQueryRequest(BaseModel):
     document_ids: Optional[List[int]] = None
     session_id: Optional[str] = None
     enable_memory: bool = True
-    enable_tool_calling: bool = False
+    enable_tool_calling: bool = True
     enable_human_in_the_loop: bool = False
 
 
