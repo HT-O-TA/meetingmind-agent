@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     # ==================== Redis缓存配置 ====================
     REDIS_URL: str = "redis://localhost:6379/0"  # Redis连接字符串
     CACHE_TTL: int = 300  # 缓存默认过期时间（秒，5分钟）
-    CACHE_ENABLED: bool = False  # 是否启用Redis缓存
+    CACHE_ENABLED: bool = True  # 是否启用Redis缓存
 
     # ==================== 向量化配置 ====================
     EMBEDDING_MODEL: str = "BAAI/bge-m3"  # HuggingFace模型标识（用于远程下载）

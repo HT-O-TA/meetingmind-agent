@@ -8,6 +8,7 @@ from app.models.vector import VectorChunk
 from app.models.document import Document
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.core.cache import cache_get, cache_set
 
 
 class VectorSearchService:
@@ -56,7 +57,7 @@ class VectorSearchService:
         similarity_threshold: float = 0.0,
     ) -> List[dict]:
         """
-        根据文本进行向量检索
+        根据文本进行向量检索（带Redis缓存）
         
         Args:
             query_text: 查询文本
@@ -69,6 +70,17 @@ class VectorSearchService:
         Returns:
             检索结果列表
         """
+        # 构建缓存key
+        cache_key = f"vector_search:{query_text}:{top_k}:{meeting_id or 'all'}"
+        if document_ids:
+            cache_key += f":{','.join(map(str, sorted(document_ids)))}"
+        
+        # 尝试从缓存获取结果
+        cached_result = await cache_get(cache_key)
+        if cached_result is not None:
+            app_logger.debug(f"Cache hit for query: {query_text[:50]}...")
+            return cached_result
+        
         try:
             from app.services.embedding_service import EmbeddingService
             embedding_service = EmbeddingService()
@@ -78,7 +90,7 @@ class VectorSearchService:
                 app_logger.warning("Failed to encode query text")
                 return []
             
-            return await self.search_by_vector(
+            result = await self.search_by_vector(
                 query_vector=query_vector,
                 top_k=top_k,
                 document_ids=document_ids,
@@ -86,6 +98,10 @@ class VectorSearchService:
                 department=department,
                 similarity_threshold=similarity_threshold,
             )
+            
+            # 将结果存入缓存
+            await cache_set(cache_key, result, ttl=settings.CACHE_TTL)
+            return result
         except Exception as e:
             app_logger.error(f"Error in search_by_text: {e}")
             # 尝试使用轻量模式回退
@@ -96,7 +112,7 @@ class VectorSearchService:
                 
                 if query_vector:
                     app_logger.warning("Falling back to lightweight mode")
-                    return await self._search_lightweight(
+                    result = await self._search_lightweight(
                         query_vector=query_vector,
                         top_k=top_k,
                         document_ids=document_ids,
@@ -104,6 +120,9 @@ class VectorSearchService:
                         department=department,
                         similarity_threshold=similarity_threshold,
                     )
+                    # 将结果存入缓存
+                    await cache_set(cache_key, result, ttl=settings.CACHE_TTL)
+                    return result
             except Exception as fallback_e:
                 app_logger.error(f"Failed to fallback to lightweight mode: {fallback_e}")
             return []

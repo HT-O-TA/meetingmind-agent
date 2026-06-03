@@ -1,4 +1,4 @@
-"""记忆系统 - 支持短期记忆、长期记忆和记忆网络"""
+"""记忆系统 - 支持短期记忆、长期记忆和记忆网络（带Redis持久化）"""
 import json
 from typing import Dict, List, Any, Optional, Tuple
 from enum import Enum
@@ -6,6 +6,7 @@ from datetime import datetime
 from dataclasses import dataclass, asdict
 from app.core.logger import app_logger
 from app.core.config_center import get_config
+from app.core.cache import cache_get, cache_set, cache_delete
 
 
 class MemoryType(str, Enum):
@@ -60,15 +61,81 @@ class Entity:
 
 
 class MemorySystem:
-    """记忆系统"""
+    """记忆系统（带Redis持久化）"""
     
-    def __init__(self):
+    def __init__(self, session_id: Optional[str] = None):
+        self._session_id = session_id
         self._short_term_memory: List[MemoryItem] = []
         self._long_term_memory: Dict[str, MemoryItem] = {}
         self._entities: Dict[str, Entity] = {}
         self._entity_relations: Dict[str, List[Tuple[str, str]]] = {}  # entity_id -> [(target_id, relation)]
         self._max_short_term = get_config("agent.max_short_term_memory", 100)
         self._memory_index = {}  # 关键词索引
+    
+    async def load_from_cache(self):
+        """从Redis加载记忆数据"""
+        if not self._session_id:
+            return
+        
+        # 加载短期记忆
+        short_term_data = await cache_get(f"memory:{self._session_id}:short_term")
+        if short_term_data:
+            self._short_term_memory = [self._deserialize_memory_item(item) for item in short_term_data]
+        
+        # 加载长期记忆
+        long_term_data = await cache_get(f"memory:{self._session_id}:long_term")
+        if long_term_data:
+            self._long_term_memory = {item["memory_id"]: self._deserialize_memory_item(item) for item in long_term_data}
+        
+        app_logger.info(f"[Memory] 从缓存加载会话 {self._session_id} 的记忆数据")
+    
+    async def save_to_cache(self):
+        """保存记忆数据到Redis"""
+        if not self._session_id:
+            return
+        
+        # 保存短期记忆
+        short_term_data = [self._serialize_memory_item(item) for item in self._short_term_memory]
+        await cache_set(f"memory:{self._session_id}:short_term", short_term_data, ttl=3600)  # 1小时
+        
+        # 保存长期记忆
+        long_term_data = [self._serialize_memory_item(item) for item in self._long_term_memory.values()]
+        await cache_set(f"memory:{self._session_id}:long_term", long_term_data, ttl=86400)  # 24小时
+        
+        app_logger.info(f"[Memory] 会话 {self._session_id} 的记忆数据已保存到缓存")
+    
+    async def clear_cache(self):
+        """清除会话的缓存数据"""
+        if not self._session_id:
+            return
+        
+        await cache_delete(f"memory:{self._session_id}:short_term")
+        await cache_delete(f"memory:{self._session_id}:long_term")
+        app_logger.info(f"[Memory] 会话 {self._session_id} 的缓存已清除")
+    
+    def _serialize_memory_item(self, item: MemoryItem) -> Dict[str, Any]:
+        """序列化记忆项"""
+        data = asdict(item)
+        data["type"] = item.type.value
+        data["status"] = item.status.value
+        data["created_at"] = item.created_at.isoformat()
+        data["updated_at"] = item.updated_at.isoformat()
+        data["expires_at"] = item.expires_at.isoformat() if item.expires_at else None
+        return data
+    
+    def _deserialize_memory_item(self, data: Dict[str, Any]) -> MemoryItem:
+        """反序列化记忆项"""
+        return MemoryItem(
+            memory_id=data["memory_id"],
+            type=MemoryType(data["type"]),
+            content=data["content"],
+            metadata=data.get("metadata", {}),
+            created_at=datetime.fromisoformat(data["created_at"]),
+            updated_at=datetime.fromisoformat(data["updated_at"]),
+            expires_at=datetime.fromisoformat(data["expires_at"]) if data.get("expires_at") else None,
+            status=MemoryStatus(data.get("status", "active")),
+            relevance_score=data.get("relevance_score", 1.0)
+        )
     
     def add_short_term_memory(self, content: str, metadata: Optional[Dict[str, Any]] = None):
         """添加短期记忆"""
