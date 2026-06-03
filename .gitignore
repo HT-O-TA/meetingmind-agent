@@ -13,8 +13,9 @@ backend/.env
 # Scripts
 backend/scripts/
 
-# Tests
+# Tests (app/tests is tracked, root tests/ is ignored)
 backend/tests/
+!backend/app/tests/
 
 # Documentation (now tracked)
 # docs/
