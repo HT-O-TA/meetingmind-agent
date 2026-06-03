@@ -17,6 +17,9 @@ greenlet==3.1.1
 redis[hiredis]==5.0.8
 jieba==0.42.1
 
+# 缓存相关
+fastapi-cache2==0.2.2  # FastAPI 响应缓存
+# langchain-community>=0.0.20  # LangChain Redis 缓存（可选，已移除避免版本冲突）
 
 sentence-transformers==2.2.2
 faiss-cpu==1.7.4  # 或 faiss-gpu

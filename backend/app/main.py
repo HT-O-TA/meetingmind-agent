@@ -13,7 +13,7 @@ from app.core.exceptions import (
     global_exception_handler,
 )
 from app.db.database import init_db
-from app.core.cache import init_redis, close_redis, redis_health
+from app.core.cache_init import init_all_caches, close_redis, redis_health
 from app.core.middleware import AccessLogMiddleware
 from app.api.v1.router import api_router
 
@@ -46,7 +46,10 @@ async def startup():
     app_logger.info(f"Starting {settings.APP_NAME} in {settings.APP_ENV} mode")
     await init_db()
     app_logger.info("Database initialized")
-    await init_redis()
+    
+    # 初始化混合缓存系统（原生Redis + LLM缓存 + FastAPI-Cache）
+    cache_results = await init_all_caches()
+    app_logger.info(f"Cache systems initialized: {cache_results}")
 
 
 @app.on_event("shutdown")

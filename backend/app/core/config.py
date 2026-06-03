@@ -43,10 +43,17 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"  # 日志级别：DEBUG / INFO / WARNING / ERROR / CRITICAL
     LOG_DIR: str = "./logs"  # 日志文件存储目录
 
-    # ==================== Redis缓存配置 ====================
+    # ==================== Redis缓存配置（混合方案） ====================
     REDIS_URL: str = "redis://localhost:6379/0"  # Redis连接字符串
     CACHE_TTL: int = 300  # 缓存默认过期时间（秒，5分钟）
     CACHE_ENABLED: bool = True  # 是否启用Redis缓存
+    
+    # LLM 缓存配置（原生Redis实现）
+    LLM_CACHE_TTL: int = 3600  # LLM 缓存过期时间（秒，1小时）
+    
+    # FastAPI-Cache 配置
+    ENABLE_API_CACHE: bool = True  # 是否启用 API 响应缓存
+    API_CACHE_TTL: int = 60  # API 缓存默认过期时间（秒，1分钟）
 
     # ==================== 向量化配置 ====================
     EMBEDDING_MODEL: str = "BAAI/bge-m3"  # HuggingFace模型标识（用于远程下载）
