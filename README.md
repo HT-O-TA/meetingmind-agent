@@ -284,3 +284,14 @@ MIT License
 ---
 
 *项目已完成核心功能开发，包含完整的 RAG 系统、Agent 框架、评估体系和前后端实现，适合作为 AI 应用开发学习和实践项目。*
+
+```bash
+# 后端
+cd backend
+conda activate meetingmind
+python run.py
+
+# 前端
+cd frontend
+npm run dev
+```
