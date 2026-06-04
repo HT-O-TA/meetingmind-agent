@@ -132,6 +132,7 @@ meetingmind/
 | **知识库管理** | 多格式文档解析与向量化存储 | PDF/DOCX/TXT + BGE-M3 |
 | **RAG评估** | 6项 RAGAS 指标评估 | Faithfulness、Relevancy、Precision 等 |
 | **回归测试** | 性能基准测试和回归检测 | 基准建立 + 差异对比 |
+| **混合缓存** | 三级缓存方案优化性能 | 原生 Redis + FastAPI-Cache + LLM响应缓存 |
 
 ---
 
