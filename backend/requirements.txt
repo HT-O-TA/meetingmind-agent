@@ -29,3 +29,7 @@ pdfplumber==0.11.4
 pypdf==5.1.0
 python-docx==1.1.2
 openpyxl==3.1.5
+
+# 实验与评估依赖
+tqdm==4.66.1
+scikit-learn>=1.0.0

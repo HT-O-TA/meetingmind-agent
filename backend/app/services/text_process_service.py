@@ -8,6 +8,14 @@ from app.core.config import settings
 class TextProcessService:
     """文本预处理服务"""
 
+    # 语气词列表（用于过滤无意义内容）
+    TONE_WORDS = {
+        '嗯', '啊', '哦', '唉', '对', '好', '是', '呃', '哎', '额', '行',
+        '嗯哼', '啊哈', '对对对', '嗯嗯', '嗯嗯嗯', '是吧', '好的', '是的',
+        '对对', '嗯哪', '哎呀', '哎哟', '哇', '哈', '哈哈哈', '嘿嘿',
+        '那个', '然后', '就是说', '就是', '这个', '什么', '怎么', '为什么'
+    }
+
     def __init__(self):
         # 从配置中获取切片参数
         self.chunk_size = settings.CHUNK_SIZE
@@ -26,6 +34,42 @@ class TextProcessService:
             '表示', '认为', '指出', '说明', '提到', '强调', '建议', '要求',
             '会议', '讨论', '决定', '同意', '反对', '问题', '意见', '建议'
         ])
+
+    def is_tone_only(self, content: str) -> bool:
+        """
+        判断内容是否为纯语气词（无实质信息）
+        用于2x3因子实验的最佳实践：过滤纯语气词内容
+        """
+        if not content or len(content) < 3:
+            return True
+
+        # 去除标点
+        content_clean = re.sub(r'[。！？，、；：""''（）()【】\\s]+', '', content)
+        if not content_clean:
+            return True
+
+        # 去除语气词
+        for tone in self.TONE_WORDS:
+            content_clean = content_clean.replace(tone, '')
+
+        return len(content_clean) == 0
+
+    def filter_tone_speeches(self, speeches: List[Dict[str, any]]) -> List[Dict[str, any]]:
+        """
+        过滤纯语气词和无意义发言
+        基于2x3因子实验结果：过滤后chunk质量显著提升
+        """
+        filtered = []
+        for speech in speeches:
+            content = speech.get('content', '')
+            # 跳过纯语气词
+            if self.is_tone_only(content):
+                continue
+            # 跳过太短的内容（<3字符）
+            if len(content.strip()) < 3:
+                continue
+            filtered.append(speech)
+        return filtered
 
     def clean_text(self, text: str) -> str:
         """

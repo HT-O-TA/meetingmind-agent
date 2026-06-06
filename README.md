@@ -29,6 +29,7 @@
 
 - **BM25 + 向量检索 + Reranker**：三层检索链路
 - **知识图谱增强**：实体/关系抽取，图谱扩展检索结果
+- **SPEAKER_AWARE_HYBRID 分块**：说话人感知的混合分块策略，自动检测说话人信息，无则降级为纯语义分块
 - **RAGAS 评估**：Faithfulness、Answer Relevancy、Context Precision 等 6 项指标
 - **回归测试框架**：完整的性能基准测试和回归检测
 
@@ -97,10 +98,11 @@ meetingmind/
 │   │   ├── schemas/                 # 数据模式
 │   │   └── db/                      # 数据库配置
 │   ├── tests/                       # 测试目录
-│   │   ├── agents/                  # Agent测试
+│   │   ├── agent/                   # Agent测试
+│   │   ├── chunking/                # 分块测试
 │   │   ├── services/                # 服务测试
-│   │   ├── unit/                    # 单元测试
-│   │   └── integration/             # 集成测试
+│   │   ├── rag/                     # RAG评估测试
+│   │   └── unit/                    # 单元测试
 │   └── requirements.txt
 │
 ├── frontend/                        # Vue 3 前端
@@ -266,8 +268,14 @@ pytest
 # 运行指定测试
 pytest tests/services/test_rag_regression.py -v
 
-# 运行集成测试
-pytest tests/integration/ -v
+# 运行单元测试
+pytest tests/unit/ -v
+
+# 运行 Agent 测试
+pytest tests/agent/ -v
+
+# 运行分块测试
+pytest tests/chunking/ -v
 ```
 
 ---

@@ -4,22 +4,14 @@ backend/model/
 # Uploaded files
 backend/uploads/
 
-
 # Environment variables
 backend/.env
 
 # Scripts
 backend/scripts/
 
-# Tests (app/tests is tracked, root tests/ is ignored)
-backend/tests/
-!backend/app/tests/
-
-# Documentation (now tracked)
-# docs/
-
-# Frontend (now tracked)
-# frontend/
+# Evaluation datasets (large files)
+backend/evaluate/chunking/data/
 
 # VSCode
 .vscode/
@@ -65,3 +57,10 @@ docker-compose.override.yml
 *.pem
 *.key
 *.crt
+
+# Old test directories (now moved to evaluate)
+# backend/tests/
+
+# Temporary evaluation files
+backend/evaluate/*/results/
+backend/evaluate/*/*.log

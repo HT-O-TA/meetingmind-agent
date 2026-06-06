@@ -192,100 +192,57 @@ class DocumentService:
         content: str,
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
-        speech_records: Optional[List[dict]] = None,
     ) -> None:
         """
         为文档内容创建向量块
-        
+
         Args:
             document_id: 文档ID
             content: 文档内容
-            meeting_id: 会议ID（可选）
+            meeting_id: 会议ID（可选，用于关联）
             department: 部门（可选）
-            speech_records: 预解析的发言记录列表（可选）
         """
-        from app.models.meeting import SpeechRecord
-        
         try:
+            # 使用统一的 SPEAKER_AWARE_HYBRID 分块策略
+            chunks, chunk_metadatas = await self._split_document_chunks(
+                content=content,
+                document_id=document_id,
+            )
+
+            if not chunks:
+                return
+
+            # 向量化
+            embeddings = self.embedding_service.encode_batch(chunks)
+
             vector_chunks = []
-            speech_record_objects = []
-            
-            if settings.CHUNK_MODE == "speaker" and not speech_records:
-                speech_records = self.text_process_service.parse_speech_text(content)
-            
-            if speech_records and len(speech_records) > 0:
-                # 按说话人发言切分
-                chunks = [speech['content'] for speech in speech_records]
-                embeddings = self.embedding_service.encode_batch(chunks)
-                
-                for idx, (speech, embedding) in enumerate(zip(speech_records, embeddings)):
-                    metadata = {
-                        'speaker_name': speech.get('speaker_name'),
-                        'timestamp': speech.get('timestamp'),
-                        'start_time_offset': speech.get('start_time_offset'),
-                    }
-                    vector_chunk = VectorChunk(
-                        document_id=document_id,
-                        meeting_id=meeting_id,
-                        chunk_text=speech['content'],
-                        chunk_index=idx,
-                        speaker_name=speech.get('speaker_name'),
-                        time_offset=speech.get('start_time_offset'),
-                        embedding=json.dumps(embedding),
-                        embedding_array=embedding,
-                        embedding_model=settings.EMBEDDING_MODEL,
-                        department=department,
-                        metadata_json=json.dumps(metadata),
-                    )
-                    vector_chunks.append(vector_chunk)
-                    
-                    # 创建发言记录（无论是否有会议ID）
-                    speech_record = SpeechRecord(
-                        meeting_id=meeting_id,  # 允许为 None
-                        speaker_name=speech.get('speaker_name', ''),
-                        content=speech['content'],
-                        start_time_offset=speech.get('start_time_offset'),
-                        sequence=idx,
-                    )
-                    speech_record_objects.append(speech_record)
-            else:
-                # 普通文档切分：配置启用时使用语义/层级分块，否则使用基础固定长度切分。
-                chunks, chunk_metadatas = await self._split_document_chunks(
-                    content=content,
+            for idx, (chunk_text, embedding) in enumerate(zip(chunks, embeddings)):
+                metadata = chunk_metadatas[idx] if idx < len(chunk_metadatas) else {}
+
+                # 从 metadata 中提取说话人信息
+                speaker_name = metadata.get('speaker_name')
+                time_offset = metadata.get('start_time_offset')
+
+                vector_chunk = VectorChunk(
                     document_id=document_id,
+                    meeting_id=meeting_id,
+                    chunk_text=chunk_text,
+                    chunk_index=idx,
+                    speaker_name=speaker_name,
+                    time_offset=time_offset,
+                    embedding=json.dumps(embedding),
+                    embedding_array=embedding,
+                    embedding_model=settings.EMBEDDING_MODEL,
+                    department=department,
+                    metadata_json=json.dumps(metadata, ensure_ascii=False) if metadata else None,
                 )
-                
-                if not chunks:
-                    return
-                
-                embeddings = self.embedding_service.encode_batch(chunks)
-                
-                for idx, (chunk_text, embedding) in enumerate(zip(chunks, embeddings)):
-                    metadata = chunk_metadatas[idx] if idx < len(chunk_metadatas) else {}
-                    vector_chunk = VectorChunk(
-                        document_id=document_id,
-                        meeting_id=meeting_id,
-                        chunk_text=chunk_text,
-                        chunk_index=idx,
-                        embedding=json.dumps(embedding),
-                        embedding_array=embedding,
-                        embedding_model=settings.EMBEDDING_MODEL,
-                        department=department,
-                        metadata_json=json.dumps(metadata, ensure_ascii=False) if metadata else None,
-                    )
-                    vector_chunks.append(vector_chunk)
-            
+                vector_chunks.append(vector_chunk)
+
             if vector_chunks:
                 self.db.add_all(vector_chunks)
-                
-            if speech_record_objects:
-                self.db.add_all(speech_record_objects)
-                
-            if vector_chunks or speech_record_objects:
                 await self.db.commit()
-            
+
         except Exception as e:
-            # 向量存储失败不影响文档上传，但记录日志
             import logging
             logging.error(f"Failed to create vector chunks for document {document_id}: {e}")
 
@@ -294,103 +251,54 @@ class DocumentService:
         content: str,
         document_id: int,
     ) -> Tuple[List[str], List[Dict[str, Any]]]:
-        """根据配置选择普通文档切分策略"""
-        enable_semantic_chunking = self._get_runtime_config(
-            "processing.enable_semantic_chunking",
-            settings.ENABLE_SEMANTIC_CHUNKING,
-        )
+        """
+        统一使用 SPEAKER_AWARE_HYBRID 分块策略
 
-        if not enable_semantic_chunking:
-            chunks = self.text_process_service.split_chunks(content)
-            return chunks, [{} for _ in chunks]
-
+        策略特性：
+        - 说话人感知 + 语义连贯性混合分块
+        - 语气词过滤
+        - 无说话人信息时自动回退为纯语义分块
+        """
         try:
             from app.services.semantic_chunker import (
                 ChunkingConfig,
                 ChunkingStrategy,
-                HierarchicalChunker,
                 SemanticChunker,
             )
 
-            strategy_value = self._get_runtime_config(
-                "processing.semantic_chunk_strategy",
-                settings.SEMANTIC_CHUNK_STRATEGY,
-            )
-            try:
-                strategy = ChunkingStrategy(strategy_value)
-            except ValueError:
-                strategy = ChunkingStrategy.SEMANTIC_HYBRID
-
-            use_llm = self._get_runtime_config(
-                "processing.semantic_chunk_use_llm",
-                settings.SEMANTIC_CHUNK_USE_LLM,
-            )
-            preserve_structure = self._get_runtime_config(
-                "processing.semantic_chunk_preserve_structure",
-                settings.SEMANTIC_CHUNK_PRESERVE_STRUCTURE,
-            )
-
+            # 统一使用 SPEAKER_AWARE_HYBRID 策略
             chunking_config = ChunkingConfig(
-                strategy=strategy,
-                min_chunk_size=self._get_runtime_config(
-                    "processing.semantic_chunk_min_size",
-                    settings.SEMANTIC_CHUNK_MIN_SIZE,
-                ),
-                max_chunk_size=self._get_runtime_config(
-                    "processing.semantic_chunk_max_size",
-                    settings.SEMANTIC_CHUNK_MAX_SIZE,
-                ),
-                chunk_overlap=self._get_runtime_config(
-                    "processing.semantic_chunk_overlap",
-                    settings.SEMANTIC_CHUNK_OVERLAP,
-                ),
-                use_llm_split=use_llm,
-                preserve_structure=preserve_structure,
-                build_hierarchy=self._get_runtime_config(
-                    "processing.semantic_chunk_build_hierarchy",
-                    settings.SEMANTIC_CHUNK_BUILD_HIERARCHY,
-                ),
+                strategy=ChunkingStrategy.SPEAKER_AWARE_HYBRID,
+                min_chunk_size=settings.SEMANTIC_CHUNK_MIN_SIZE,
+                max_chunk_size=settings.SEMANTIC_CHUNK_MAX_SIZE,
+                chunk_overlap=settings.SEMANTIC_CHUNK_OVERLAP,
+                semantic_threshold=settings.SEMANTIC_CHUNK_THRESHOLD,
+                use_llm_split=False,
+                preserve_structure=False,
+                build_hierarchy=False,
             )
+
             semantic_chunker = SemanticChunker(config=chunking_config)
-
-            metadata = {
-                "chunking": "semantic",
-                "strategy": strategy.value,
-                "use_llm": use_llm,
-            }
-
-            if preserve_structure:
-                semantic_chunks = await HierarchicalChunker(semantic_chunker).chunk_with_hierarchy(
-                    content,
-                    doc_id=str(document_id),
-                    metadata=metadata,
-                )
-            else:
-                semantic_chunks = await semantic_chunker.chunk_document(
-                    content,
-                    doc_id=str(document_id),
-                    metadata=metadata,
-                )
+            semantic_chunks = await semantic_chunker.chunk_document(
+                content,
+                doc_id=str(document_id),
+            )
 
             chunks = [chunk.content for chunk in semantic_chunks if chunk.content and chunk.content.strip()]
             metadatas = [
-                {
-                    **chunk.metadata,
-                    "chunk_id": chunk.chunk_id,
-                    "parent_id": chunk.parent_id,
-                    "child_ids": chunk.child_ids,
-                    "level": chunk.level,
-                }
+                {**chunk.metadata, "chunk_id": chunk.chunk_id}
                 for chunk in semantic_chunks
                 if chunk.content and chunk.content.strip()
             ]
 
             if chunks:
                 return chunks, metadatas
+
         except Exception as e:
             from app.core.logger import app_logger
-            app_logger.warning(f"语义分块失败，回退基础切分: document_id={document_id}, error={e}")
+            app_logger.warning(f"SPEAKER_AWARE_HYBRID分块失败，回退基础切分: document_id={document_id}, error={e}")
 
+        # 回退到基础固定长度切分
         chunks = self.text_process_service.split_chunks(content)
         return chunks, [{"chunking": "fixed_fallback"} for _ in chunks]
 

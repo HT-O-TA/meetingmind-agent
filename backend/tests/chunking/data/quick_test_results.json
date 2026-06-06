@@ -1,0 +1,106 @@
+[
+  {
+    "config": {
+      "min": 50,
+      "max": 300,
+      "overlap": 30,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 1002,
+    "avg_size": 101.29640718562874,
+    "info_density": 0.9195794176462804,
+    "time": 0.5202555656433105
+  },
+  {
+    "config": {
+      "min": 50,
+      "max": 300,
+      "overlap": 50,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 1002,
+    "avg_size": 121.19660678642714,
+    "info_density": 0.9195908087595974,
+    "time": 0.6241157054901123
+  },
+  {
+    "config": {
+      "min": 50,
+      "max": 400,
+      "overlap": 30,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 1002,
+    "avg_size": 101.29640718562874,
+    "info_density": 0.9195794176462804,
+    "time": 0.6344869136810303
+  },
+  {
+    "config": {
+      "min": 50,
+      "max": 400,
+      "overlap": 50,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 1002,
+    "avg_size": 121.19660678642714,
+    "info_density": 0.9195908087595974,
+    "time": 0.6637833118438721
+  },
+  {
+    "config": {
+      "min": 80,
+      "max": 300,
+      "overlap": 30,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 693,
+    "avg_size": 133.08658008658008,
+    "info_density": 0.9186509000287247,
+    "time": 0.7565803527832031
+  },
+  {
+    "config": {
+      "min": 80,
+      "max": 300,
+      "overlap": 50,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 693,
+    "avg_size": 152.94227994227995,
+    "info_density": 0.9197679880750376,
+    "time": 0.7993068695068359
+  },
+  {
+    "config": {
+      "min": 80,
+      "max": 400,
+      "overlap": 30,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 693,
+    "avg_size": 133.08658008658008,
+    "info_density": 0.9186509000287247,
+    "time": 0.7801740169525146
+  },
+  {
+    "config": {
+      "min": 80,
+      "max": 400,
+      "overlap": 50,
+      "threshold": 0.6,
+      "bonus": 0.2
+    },
+    "chunk_count": 693,
+    "avg_size": 152.94227994227995,
+    "info_density": 0.9197679880750376,
+    "time": 0.7196645736694336
+  }
+]

@@ -38,15 +38,16 @@ class ChunkingStrategy(str, Enum):
     SEMANTIC_HYBRID = "semantic_hybrid"  # 混合策略
     PARAGRAPH = "paragraph"           # 段落分块
     RECURSIVE = "recursive"           # 递归分块
+    SPEAKER_AWARE_HYBRID = "speaker_aware_hybrid"  # 说话人感知混合分块（实验最佳）
 
 
 @dataclass
 class ChunkingConfig:
-    """分块配置"""
+    """分块配置（基于SPEAKER_AWARE_HYBRID参数调优实验）"""
     strategy: ChunkingStrategy = ChunkingStrategy.SEMANTIC_HYBRID
-    min_chunk_size: int = 100
-    max_chunk_size: int = 1000
-    chunk_overlap: int = 50
+    min_chunk_size: int = 50
+    max_chunk_size: int = 300
+    chunk_overlap: int = 30
     semantic_threshold: float = 0.7
     use_llm_split: bool = True
     preserve_structure: bool = True
@@ -525,6 +526,210 @@ class SemanticChunker:
             {"semantic_threshold": self._config.semantic_threshold},
         )
 
+    # ==================== SPEAKER_AWARE_HYBRID 分块器 ====================
+
+    # 语气词集合（来自2x3实验）
+    _TONE_WORDS = {
+        '嗯', '啊', '哦', '唉', '对', '好', '是', '呃', '哎', '额', '行',
+        '嗯哼', '啊哈', '对对对', '嗯嗯', '嗯嗯嗯', '对对对', '是是是',
+        '啊啊', '嗯嗯嗯嗯', '对对对', '行行行', '可以可以', '好好好'
+    }
+
+    def _is_tone_only(self, content: str) -> bool:
+        """判断是否为纯语气词内容"""
+        if len(content) < 3:
+            return True
+
+        content_clean = re.sub(r'[。！？，、；：\s]+', '', content)
+        if not content_clean:
+            return True
+
+        for tone in self._TONE_WORDS:
+            content_clean = content_clean.replace(tone, '')
+
+        return len(content_clean) == 0
+
+    def _filter_tone_words(self, text: str) -> str:
+        """从文本中移除语气词"""
+        result = text
+        for tone in self._TONE_WORDS:
+            result = result.replace(tone, '')
+        result = re.sub(r'\s+', ' ', result).strip()
+        return result
+
+    def _parse_speaker_document(self, content: str) -> List[Tuple[str, str]]:
+        """解析带说话人标记的会议文档，并过滤噪音"""
+        lines = content.strip().split('\n')
+        utterances = []
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            # 匹配格式：[时间] 说话人ID: 内容
+            match = re.match(r'\[([^\]]+)\]\s*(\d+)\s*[:：]\s*(.*)', line)
+            if match:
+                speaker = match.group(2)
+                text = match.group(3).strip()
+
+                # 过滤纯语气词和短内容
+                if len(text) < 3:
+                    continue
+                if self._is_tone_only(text):
+                    continue
+
+                utterances.append((speaker, text))
+
+        return utterances
+
+    def _tokenize_for_similarity(self, text: str) -> List[str]:
+        """轻量语义相似度分词（已过滤语气词）"""
+        text = self._filter_tone_words(text)
+
+        tokens = re.findall(r'[\u4e00-\u9fa5]{2,}|[a-zA-Z0-9_]{2,}', text)
+
+        cleaned_tokens = []
+        for token in tokens:
+            token = token.lower().strip()
+            if not token or token in self._SIMILARITY_STOPWORDS:
+                continue
+            if len(token) == 1 and re.match(r'[\u4e00-\u9fa5a-zA-Z]', token):
+                continue
+            cleaned_tokens.append(token)
+        return cleaned_tokens
+
+    def _speaker_aware_similarity(self, text1: str, text2: str) -> float:
+        """基于词频余弦相似度的语义近似"""
+        tokens1 = self._tokenize_for_similarity(text1)
+        tokens2 = self._tokenize_for_similarity(text2)
+
+        if not tokens1 or not tokens2:
+            return 0.0
+
+        count1 = Counter(tokens1)
+        count2 = Counter(tokens2)
+        common = set(count1.keys()) & set(count2.keys())
+
+        dot = sum(count1[token] * count2[token] for token in common)
+        norm1 = math.sqrt(sum(v * v for v in count1.values()))
+        norm2 = math.sqrt(sum(v * v for v in count2.values()))
+
+        if norm1 == 0 or norm2 == 0:
+            return 0.0
+        return dot / (norm1 * norm2)
+
+    def _speaker_aware_hybrid_chunking(self, text: str, doc_id: str) -> List[Chunk]:
+        """
+        说话人感知的混合分块（带语气词过滤 + 失败回退）
+
+        策略：
+        - 优先保持语义连贯性
+        - 说话人切换 = "加分项"（接近块大小限制时优先切分）
+        - 说话人切换 ≠ "强制项"（内容连贯且块还小时合并）
+        - 无说话人信息时回退为纯语义分块
+        """
+        # 尝试解析说话人文档
+        utterances = self._parse_speaker_document(text)
+
+        # 回退机制：无说话人信息时使用纯语义分块
+        if not utterances:
+            app_logger.info(f"[SpeakerAware] 文档 {doc_id} 无说话人信息，回退为纯语义分块")
+            return self._local_semantic_chunking(text, doc_id)
+
+        # 第一阶段：按语义分块
+        raw_chunks = []
+        current_speaker = utterances[0][0]
+        current_content = [utterances[0][1]]
+        current_length = len(utterances[0][1])
+        speaker_switches_in_chunk = 0
+
+        # 从配置获取参数
+        min_size = self._config.min_chunk_size
+        max_size = self._config.max_chunk_size
+        threshold = self._config.semantic_threshold
+        speaker_switch_bonus = 0.1  # 轻微惩罚说话人切换
+
+        for i in range(1, len(utterances)):
+            speaker, content = utterances[i]
+            content_len = len(content)
+
+            # 计算语义相似度
+            current_text = ' '.join(current_content)
+            similarity = self._speaker_aware_similarity(current_text, content)
+
+            # 说话人切换检测，降低相似度
+            speaker_switched = (speaker != current_speaker)
+            if speaker_switched:
+                similarity -= speaker_switch_bonus
+
+            # 切分决策
+            would_exceed = (current_length + content_len) > max_size
+            has_min_size = current_length >= min_size
+            low_similarity = similarity < threshold
+
+            should_split = False
+            if has_min_size and (would_exceed or low_similarity):
+                should_split = True
+            elif would_exceed and not has_min_size:
+                should_split = True
+
+            if should_split:
+                # 保存当前 chunk
+                chunk_text = ' '.join(current_content).strip()
+                if chunk_text:
+                    raw_chunks.append(chunk_text)
+
+                # 开始新 chunk
+                current_speaker = speaker
+                current_content = [content]
+                current_length = content_len
+                speaker_switches_in_chunk = 0
+            else:
+                # 合并
+                current_content.append(content)
+                current_length += content_len
+                if speaker_switched:
+                    speaker_switches_in_chunk += 1
+                    current_speaker = speaker
+
+        # 处理最后一个 chunk
+        if current_content:
+            chunk_text = ' '.join(current_content).strip()
+            if chunk_text:
+                raw_chunks.append(chunk_text)
+
+        # 第二阶段：添加块间重叠
+        overlap = self._config.chunk_overlap
+        if overlap > 0 and len(raw_chunks) > 1:
+            chunks_with_overlap = []
+            for i, chunk in enumerate(raw_chunks):
+                if i > 0:
+                    prev_chunk = raw_chunks[i - 1]
+                    overlap_text = prev_chunk[-overlap:] if len(prev_chunk) > overlap else prev_chunk
+                    chunk = overlap_text + " " + chunk
+                chunks_with_overlap.append(chunk)
+        else:
+            chunks_with_overlap = raw_chunks
+
+        # 计算元数据
+        info_densities = []
+        for chunk in chunks_with_overlap:
+            cleaned = self._filter_tone_words(chunk)
+            info_densities.append(len(cleaned) / max(len(chunk), 1))
+
+        return self._make_chunks(
+            doc_id,
+            chunks_with_overlap,
+            "speaker_aware_hybrid",
+            {
+                "semantic_threshold": threshold,
+                "speaker_switch_bonus": speaker_switch_bonus,
+                "avg_info_density": sum(info_densities) / len(info_densities) if info_densities else 0,
+                "has_speaker_info": True,
+            },
+        )
+
     def _merge_tiny_chunks(self, chunks: List[str]) -> List[str]:
         """合并过小块，减少碎片化。"""
         if not chunks:
@@ -610,6 +815,8 @@ class SemanticChunker:
             chunks = self._recursive_chunking(text, doc_id)
         elif self._config.strategy == ChunkingStrategy.SEMANTIC:
             chunks = await self.semantic_split(text, doc_id)
+        elif self._config.strategy == ChunkingStrategy.SPEAKER_AWARE_HYBRID:
+            chunks = self._speaker_aware_hybrid_chunking(text, doc_id)
         else:
             chunks = self._hybrid_chunking(text, doc_id)
         
@@ -713,23 +920,16 @@ _semantic_chunker: Optional[SemanticChunker] = None
 
 
 def build_chunking_config_from_settings() -> ChunkingConfig:
-    """从全局配置构建语义分块配置"""
-    try:
-        strategy = ChunkingStrategy(settings.SEMANTIC_CHUNK_STRATEGY)
-    except ValueError:
-        app_logger.warning(
-            f"Invalid SEMANTIC_CHUNK_STRATEGY={settings.SEMANTIC_CHUNK_STRATEGY}, fallback to semantic_hybrid"
-        )
-        strategy = ChunkingStrategy.SEMANTIC_HYBRID
-
+    """从全局配置构建语义分块配置（统一使用SPEAKER_AWARE_HYBRID策略）"""
     return ChunkingConfig(
-        strategy=strategy,
+        strategy=ChunkingStrategy.SPEAKER_AWARE_HYBRID,
         min_chunk_size=settings.SEMANTIC_CHUNK_MIN_SIZE,
         max_chunk_size=settings.SEMANTIC_CHUNK_MAX_SIZE,
         chunk_overlap=settings.SEMANTIC_CHUNK_OVERLAP,
-        use_llm_split=settings.SEMANTIC_CHUNK_USE_LLM,
-        preserve_structure=settings.SEMANTIC_CHUNK_PRESERVE_STRUCTURE,
-        build_hierarchy=settings.SEMANTIC_CHUNK_BUILD_HIERARCHY,
+        semantic_threshold=settings.SEMANTIC_CHUNK_THRESHOLD,
+        use_llm_split=False,
+        preserve_structure=False,
+        build_hierarchy=False,
     )
 
 

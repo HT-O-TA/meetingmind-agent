@@ -1,0 +1,6109 @@
+{
+  "experiment_name": "SPEAKER_AWARE_HYBRID 参数调优",
+  "timestamp": "2026-06-05 22:11:02",
+  "param_grid": {
+    "min_chunk_size": [
+      50,
+      80,
+      100
+    ],
+    "max_chunk_size": [
+      300,
+      400,
+      500
+    ],
+    "chunk_overlap": [
+      30,
+      50,
+      80
+    ],
+    "semantic_threshold": [
+      0.5,
+      0.6,
+      0.7
+    ],
+    "speaker_switch_bonus": [
+      0.1,
+      0.2,
+      0.3
+    ]
+  },
+  "total_combinations": 243,
+  "results": [
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 189.1,
+        "avg_chunk_size": 109.22942720872791,
+        "chunk_size_std": 28.278978993877654,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176682095713456
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4111111111111111
+      },
+      "performance": {
+        "processing_time": 2.4517366886138916,
+        "docs_per_second": 4.07874142702232
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 104.14732111854562,
+        "chunk_size_std": 20.75072139122721,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.917525794458866
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44166666666666665
+      },
+      "performance": {
+        "processing_time": 1.8930425643920898,
+        "docs_per_second": 5.2825014017639305
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 103.19403770756796,
+        "chunk_size_std": 19.288017050907968,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9175811449626469
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44
+      },
+      "performance": {
+        "processing_time": 1.9140827655792236,
+        "docs_per_second": 5.224434481010483
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 103.31666303398137,
+        "chunk_size_std": 19.644089451511547,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9177411681143987
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 1.914560079574585,
+        "docs_per_second": 5.223131990834155
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 102.41739131095403,
+        "chunk_size_std": 18.194468944381,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9177841560599804
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 1.8946621417999268,
+        "docs_per_second": 5.277985863220981
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 102.1040911613521,
+        "chunk_size_std": 17.658945145153194,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178023678311218
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 1.8958473205566406,
+        "docs_per_second": 5.274686358743222
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 101.96745522563951,
+        "chunk_size_std": 17.73479249113523,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178537091254159
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 1.8608453273773193,
+        "docs_per_second": 5.373901770811886
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 101.69088235273804,
+        "chunk_size_std": 17.31284533944028,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178962635424582
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 1.8979098796844482,
+        "docs_per_second": 5.268954077873618
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 101.69088235273804,
+        "chunk_size_std": 17.31284533944028,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178962635424582
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 1.8863565921783447,
+        "docs_per_second": 5.301224615464728
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 189.1,
+        "avg_chunk_size": 129.12281630255552,
+        "chunk_size_std": 28.27787794994818,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181588852091455
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4111111111111111
+      },
+      "performance": {
+        "processing_time": 2.036188840866089,
+        "docs_per_second": 4.911135843248468
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 124.04750858989948,
+        "chunk_size_std": 20.763374978873024,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9180454131400577
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4472222222222222
+      },
+      "performance": {
+        "processing_time": 2.273153305053711,
+        "docs_per_second": 4.3991753559990165
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 123.09545449974455,
+        "chunk_size_std": 19.298649672881375,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9180546573992066
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44277777777777777
+      },
+      "performance": {
+        "processing_time": 2.5424842834472656,
+        "docs_per_second": 3.9331609894718205
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 123.21800647054037,
+        "chunk_size_std": 19.779708496575886,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182267822497325
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4944444444444444
+      },
+      "performance": {
+        "processing_time": 2.111884593963623,
+        "docs_per_second": 4.735107225358285
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 122.31988879112207,
+        "chunk_size_std": 18.335527450880182,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182179448116731
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 2.0209240913391113,
+        "docs_per_second": 4.948231377346671
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 122.00700272688064,
+        "chunk_size_std": 17.803225907706,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182469498901533
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 2.068429708480835,
+        "docs_per_second": 4.8345853663765705
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 121.87057283275351,
+        "chunk_size_std": 17.95038832390146,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182101483520286
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.0274460315704346,
+        "docs_per_second": 4.932313780137528
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 121.59436536609844,
+        "chunk_size_std": 17.53136972108995,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182480691139088
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.0240044593811035,
+        "docs_per_second": 4.940700576844471
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 121.59436536609844,
+        "chunk_size_std": 17.53136972108995,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182480691139088
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.0384016036987305,
+        "docs_per_second": 4.905804617625276
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 189.1,
+        "avg_chunk_size": 147.9419493919964,
+        "chunk_size_std": 30.068907162597576,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174317765054665
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.45
+      },
+      "performance": {
+        "processing_time": 2.1518709659576416,
+        "docs_per_second": 4.647118790205771
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 141.6897317980469,
+        "chunk_size_std": 23.430202648788526,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9168002179829197
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.475
+      },
+      "performance": {
+        "processing_time": 2.0914721488952637,
+        "docs_per_second": 4.781321140366177
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 140.50574950969835,
+        "chunk_size_std": 22.30143514179967,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.916505968106787
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.475
+      },
+      "performance": {
+        "processing_time": 2.1459298133850098,
+        "docs_per_second": 4.659984654496181
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 140.63752464128223,
+        "chunk_size_std": 22.68767549199634,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9169969102323712
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.1112399101257324,
+        "docs_per_second": 4.736553127874729
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 139.5108541599412,
+        "chunk_size_std": 21.59895834738847,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9166997830907231
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.200079917907715,
+        "docs_per_second": 4.545289431808478
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 139.15767434394553,
+        "chunk_size_std": 21.113586691054827,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9165176249778071
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.257446765899658,
+        "docs_per_second": 4.4297833069896155
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 138.8824617226397,
+        "chunk_size_std": 21.37814271330171,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9166301482603529
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.16271710395813,
+        "docs_per_second": 4.623813249406659
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 138.56174807677806,
+        "chunk_size_std": 21.00493939266655,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9164582772252123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.295025110244751,
+        "docs_per_second": 4.357250801030912
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 138.56174807677806,
+        "chunk_size_std": 21.00493939266655,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9164582772252123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.211240291595459,
+        "docs_per_second": 4.522348854626187
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 188.9,
+        "avg_chunk_size": 109.34367629737912,
+        "chunk_size_std": 28.588728185673723,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176855588338363
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4111111111111111
+      },
+      "performance": {
+        "processing_time": 2.009929895401001,
+        "docs_per_second": 4.975297906101795
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 104.14732111854562,
+        "chunk_size_std": 20.75072139122721,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.917525794458866
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44166666666666665
+      },
+      "performance": {
+        "processing_time": 1.977264642715454,
+        "docs_per_second": 5.057491943145563
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 103.19403770756796,
+        "chunk_size_std": 19.288017050907968,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9175811449626469
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44
+      },
+      "performance": {
+        "processing_time": 1.9537224769592285,
+        "docs_per_second": 5.118434228982198
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 103.31666303398137,
+        "chunk_size_std": 19.644089451511547,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9177411681143987
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.0078256130218506,
+        "docs_per_second": 4.980512219360344
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 102.41739131095403,
+        "chunk_size_std": 18.194468944381,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9177841560599804
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 1.8943686485290527,
+        "docs_per_second": 5.278803578049522
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 102.1040911613521,
+        "chunk_size_std": 17.658945145153194,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178023678311218
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 1.898481845855713,
+        "docs_per_second": 5.267366670810932
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 101.96745522563951,
+        "chunk_size_std": 17.73479249113523,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178537091254159
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 1.9136378765106201,
+        "docs_per_second": 5.225649075380069
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 101.69088235273804,
+        "chunk_size_std": 17.31284533944028,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178962635424582
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 1.918959140777588,
+        "docs_per_second": 5.211158376174631
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 101.69088235273804,
+        "chunk_size_std": 17.31284533944028,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178962635424582
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 1.9568355083465576,
+        "docs_per_second": 5.110291568885916
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 188.9,
+        "avg_chunk_size": 129.23690515405573,
+        "chunk_size_std": 28.58726814477921,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181876681379453
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4111111111111111
+      },
+      "performance": {
+        "processing_time": 2.101698875427246,
+        "docs_per_second": 4.758055550639784
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 124.04750858989948,
+        "chunk_size_std": 20.763374978873024,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9180454131400577
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4472222222222222
+      },
+      "performance": {
+        "processing_time": 2.138916015625,
+        "docs_per_second": 4.675265380664308
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 123.09545449974455,
+        "chunk_size_std": 19.298649672881375,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9180546573992066
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44277777777777777
+      },
+      "performance": {
+        "processing_time": 2.1133575439453125,
+        "docs_per_second": 4.731806990563245
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 123.21800647054037,
+        "chunk_size_std": 19.779708496575886,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182267822497325
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4944444444444444
+      },
+      "performance": {
+        "processing_time": 2.077788829803467,
+        "docs_per_second": 4.812808624515455
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 122.31988879112207,
+        "chunk_size_std": 18.335527450880182,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182179448116731
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 2.106858491897583,
+        "docs_per_second": 4.746403253211993
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 122.00700272688064,
+        "chunk_size_std": 17.803225907706,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182469498901533
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 2.091191053390503,
+        "docs_per_second": 4.781963840074171
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 121.87057283275351,
+        "chunk_size_std": 17.95038832390146,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182101483520286
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.155691385269165,
+        "docs_per_second": 4.638882944161033
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 121.59436536609844,
+        "chunk_size_std": 17.53136972108995,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182480691139088
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.153735876083374,
+        "docs_per_second": 4.643094871124711
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 121.59436536609844,
+        "chunk_size_std": 17.53136972108995,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182480691139088
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.107367753982544,
+        "docs_per_second": 4.745256247326461
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 188.9,
+        "avg_chunk_size": 148.06990676891422,
+        "chunk_size_std": 30.410273288472116,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174499934425253
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.45
+      },
+      "performance": {
+        "processing_time": 2.290513277053833,
+        "docs_per_second": 4.365833675874813
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 141.6897317980469,
+        "chunk_size_std": 23.430202648788526,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9168002179829197
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.475
+      },
+      "performance": {
+        "processing_time": 2.5356037616729736,
+        "docs_per_second": 3.9438338715044616
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 140.50574950969835,
+        "chunk_size_std": 22.30143514179967,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.916505968106787
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.475
+      },
+      "performance": {
+        "processing_time": 2.4641966819763184,
+        "docs_per_second": 4.058117630440062
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 140.63752464128223,
+        "chunk_size_std": 22.68767549199634,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9169969102323712
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.153078317642212,
+        "docs_per_second": 4.644512890246731
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 139.5108541599412,
+        "chunk_size_std": 21.59895834738847,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9166997830907231
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.1917006969451904,
+        "docs_per_second": 4.562666797495697
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 139.15767434394553,
+        "chunk_size_std": 21.113586691054827,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9165176249778071
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.1974594593048096,
+        "docs_per_second": 4.550709665043654
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 138.8824617226397,
+        "chunk_size_std": 21.37814271330171,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9166301482603529
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.5785837173461914,
+        "docs_per_second": 3.878097861523662
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 138.56174807677806,
+        "chunk_size_std": 21.00493939266655,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9164582772252123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.4853262901306152,
+        "docs_per_second": 4.023616552768391
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 138.56174807677806,
+        "chunk_size_std": 21.00493939266655,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9164582772252123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.44707989692688,
+        "docs_per_second": 4.08650326969639
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 188.9,
+        "avg_chunk_size": 109.34367629737912,
+        "chunk_size_std": 28.588728185673723,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176855588338363
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4111111111111111
+      },
+      "performance": {
+        "processing_time": 2.0998268127441406,
+        "docs_per_second": 4.76229750916057
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 104.14732111854562,
+        "chunk_size_std": 20.75072139122721,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.917525794458866
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44166666666666665
+      },
+      "performance": {
+        "processing_time": 1.9661157131195068,
+        "docs_per_second": 5.086170632415961
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 103.19403770756796,
+        "chunk_size_std": 19.288017050907968,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9175811449626469
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44
+      },
+      "performance": {
+        "processing_time": 1.9550409317016602,
+        "docs_per_second": 5.114982422028391
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 103.31666303398137,
+        "chunk_size_std": 19.644089451511547,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9177411681143987
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 1.9177143573760986,
+        "docs_per_second": 5.214540925522631
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 102.41739131095403,
+        "chunk_size_std": 18.194468944381,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9177841560599804
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 2.00679349899292,
+        "docs_per_second": 4.983073746759871
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 102.1040911613521,
+        "chunk_size_std": 17.658945145153194,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178023678311218
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 1.9223246574401855,
+        "docs_per_second": 5.20203492229884
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 101.96745522563951,
+        "chunk_size_std": 17.73479249113523,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178537091254159
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.0879194736480713,
+        "docs_per_second": 4.7894567420877205
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 101.69088235273804,
+        "chunk_size_std": 17.31284533944028,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178962635424582
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 1.945754051208496,
+        "docs_per_second": 5.139395697924442
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 101.69088235273804,
+        "chunk_size_std": 17.31284533944028,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178962635424582
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.015585422515869,
+        "docs_per_second": 4.96133772763544
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 188.9,
+        "avg_chunk_size": 129.23690515405573,
+        "chunk_size_std": 28.58726814477921,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181876681379453
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4111111111111111
+      },
+      "performance": {
+        "processing_time": 2.1403675079345703,
+        "docs_per_second": 4.672094844894129
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 124.04750858989948,
+        "chunk_size_std": 20.763374978873024,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9180454131400577
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4472222222222222
+      },
+      "performance": {
+        "processing_time": 2.1489322185516357,
+        "docs_per_second": 4.653473903769718
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 123.09545449974455,
+        "chunk_size_std": 19.298649672881375,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9180546573992066
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44277777777777777
+      },
+      "performance": {
+        "processing_time": 2.3444716930389404,
+        "docs_per_second": 4.265353269007845
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 123.21800647054037,
+        "chunk_size_std": 19.779708496575886,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182267822497325
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4944444444444444
+      },
+      "performance": {
+        "processing_time": 2.0671403408050537,
+        "docs_per_second": 4.8376009130108075
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 122.31988879112207,
+        "chunk_size_std": 18.335527450880182,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182179448116731
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 2.0743184089660645,
+        "docs_per_second": 4.82086065320341
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 122.00700272688064,
+        "chunk_size_std": 17.803225907706,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182469498901533
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49
+      },
+      "performance": {
+        "processing_time": 2.031496047973633,
+        "docs_per_second": 4.922480656546073
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 121.87057283275351,
+        "chunk_size_std": 17.95038832390146,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182101483520286
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.0682733058929443,
+        "docs_per_second": 4.8349509571621425
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 121.59436536609844,
+        "chunk_size_std": 17.53136972108995,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182480691139088
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.0689330101013184,
+        "docs_per_second": 4.833409274817597
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 121.59436536609844,
+        "chunk_size_std": 17.53136972108995,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182480691139088
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5
+      },
+      "performance": {
+        "processing_time": 2.185025930404663,
+        "docs_per_second": 4.57660472621852
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 188.9,
+        "avg_chunk_size": 148.06990676891422,
+        "chunk_size_std": 30.410273288472116,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174499934425253
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.45
+      },
+      "performance": {
+        "processing_time": 2.2393686771392822,
+        "docs_per_second": 4.465544285800524
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 201.8,
+        "avg_chunk_size": 141.6897317980469,
+        "chunk_size_std": 23.430202648788526,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9168002179829197
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.475
+      },
+      "performance": {
+        "processing_time": 2.2937259674072266,
+        "docs_per_second": 4.359718703147335
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 204.5,
+        "avg_chunk_size": 140.50574950969835,
+        "chunk_size_std": 22.30143514179967,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.916505968106787
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.475
+      },
+      "performance": {
+        "processing_time": 2.1704201698303223,
+        "docs_per_second": 4.607402814903703
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 204.0,
+        "avg_chunk_size": 140.63752464128223,
+        "chunk_size_std": 22.68767549199634,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9169969102323712
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.2175798416137695,
+        "docs_per_second": 4.509420500829785
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 206.6,
+        "avg_chunk_size": 139.5108541599412,
+        "chunk_size_std": 21.59895834738847,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9166997830907231
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.1882760524749756,
+        "docs_per_second": 4.569807355287665
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 207.5,
+        "avg_chunk_size": 139.15767434394553,
+        "chunk_size_std": 21.113586691054827,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9165176249778071
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.49166666666666664
+      },
+      "performance": {
+        "processing_time": 2.1971471309661865,
+        "docs_per_second": 4.55135655644624
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 207.9,
+        "avg_chunk_size": 138.8824617226397,
+        "chunk_size_std": 21.37814271330171,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9166301482603529
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.151350975036621,
+        "docs_per_second": 4.648242019101405
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 138.56174807677806,
+        "chunk_size_std": 21.00493939266655,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9164582772252123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.1531577110290527,
+        "docs_per_second": 4.644341633117403
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 50,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 208.7,
+        "avg_chunk_size": 138.56174807677806,
+        "chunk_size_std": 21.00493939266655,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9164582772252123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.5166666666666667
+      },
+      "performance": {
+        "processing_time": 2.220362901687622,
+        "docs_per_second": 4.50376827697821
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.9,
+        "avg_chunk_size": 142.90091253916614,
+        "chunk_size_std": 30.624171125424056,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.916381719630323
+      },
+      "retrieval": {
+        "recall_at_5": 0.4666666666666667,
+        "precision_at_5": 0.09333333333333335,
+        "mrr": 0.38611111111111107
+      },
+      "performance": {
+        "processing_time": 2.197057008743286,
+        "docs_per_second": 4.551543250905441
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 136.85601207723872,
+        "chunk_size_std": 23.96080667188716,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9168784491560883
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44
+      },
+      "performance": {
+        "processing_time": 2.1143810749053955,
+        "docs_per_second": 4.729516414370779
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 134.77446454828015,
+        "chunk_size_std": 21.527232198290836,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174960882701241
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4444444444444445
+      },
+      "performance": {
+        "processing_time": 2.0547170639038086,
+        "docs_per_second": 4.866850125340736
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 135.63033871373798,
+        "chunk_size_std": 22.4965275350206,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9171117198240518
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46499999999999997
+      },
+      "performance": {
+        "processing_time": 2.0648791790008545,
+        "docs_per_second": 4.842898365045629
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 133.74196621818723,
+        "chunk_size_std": 20.139036863427194,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9175726071978139
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46944444444444444
+      },
+      "performance": {
+        "processing_time": 2.0660197734832764,
+        "docs_per_second": 4.840224729863142
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 133.38295608289724,
+        "chunk_size_std": 19.395522606268905,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178000730601532
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46944444444444444
+      },
+      "performance": {
+        "processing_time": 2.1851632595062256,
+        "docs_per_second": 4.5763171042239055
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 132.70782608442784,
+        "chunk_size_std": 18.51144438056108,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176619968937697
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.0509305000305176,
+        "docs_per_second": 4.8758356267319645
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 132.4412307851145,
+        "chunk_size_std": 18.14208501002792,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179430845119818
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4677777777777778
+      },
+      "performance": {
+        "processing_time": 2.0678951740264893,
+        "docs_per_second": 4.835835068239248
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 132.4412307851145,
+        "chunk_size_std": 18.14208501002792,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179430845119818
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4677777777777778
+      },
+      "performance": {
+        "processing_time": 2.0402462482452393,
+        "docs_per_second": 4.901369140416619
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.9,
+        "avg_chunk_size": 162.74882089754126,
+        "chunk_size_std": 30.713569551452252,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174701233658153
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.39444444444444443
+      },
+      "performance": {
+        "processing_time": 2.206888437271118,
+        "docs_per_second": 4.531266660840043
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 156.71185513524725,
+        "chunk_size_std": 24.10616860486403,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178910780849121
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.43611111111111106
+      },
+      "performance": {
+        "processing_time": 2.120112419128418,
+        "docs_per_second": 4.716731013778514
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 154.63312691370345,
+        "chunk_size_std": 21.662422314498425,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9183266129692658
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4388888888888889
+      },
+      "performance": {
+        "processing_time": 2.181150197982788,
+        "docs_per_second": 4.584736993008728
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 155.4879002122626,
+        "chunk_size_std": 22.744023363002647,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181032812163075
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4583333333333333
+      },
+      "performance": {
+        "processing_time": 2.1077651977539062,
+        "docs_per_second": 4.744361473780989
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 153.60208059242277,
+        "chunk_size_std": 20.393205935004268,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9184195194670133
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.0748214721679688,
+        "docs_per_second": 4.819691782710856
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 153.2435411368264,
+        "chunk_size_std": 19.656832575730114,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9186936973311752
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.147277355194092,
+        "docs_per_second": 4.657060242269496
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 152.56936341779152,
+        "chunk_size_std": 18.81002371660912,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9183970943898556
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.1268701553344727,
+        "docs_per_second": 4.701744474113134
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 152.30311062251977,
+        "chunk_size_std": 18.4433143453023,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9187190921597181
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.254148483276367,
+        "docs_per_second": 4.436264990611962
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 152.30311062251977,
+        "chunk_size_std": 18.4433143453023,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9187190921597181
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.1364495754241943,
+        "docs_per_second": 4.6806627757711015
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.9,
+        "avg_chunk_size": 192.5206834351039,
+        "chunk_size_std": 31.036173074062617,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179492944682682
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.39722222222222225
+      },
+      "performance": {
+        "processing_time": 2.361567258834839,
+        "docs_per_second": 4.234476050846778
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 186.49561972226005,
+        "chunk_size_std": 24.543696113852253,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179546307103624
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.415098190307617,
+        "docs_per_second": 4.140618398097625
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 184.42112046183846,
+        "chunk_size_std": 22.10152022412612,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181901067228967
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.2526097297668457,
+        "docs_per_second": 4.439295394961754
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 185.2742424600495,
+        "chunk_size_std": 23.345057900479826,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181262721362753
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.45
+      },
+      "performance": {
+        "processing_time": 2.2979929447174072,
+        "docs_per_second": 4.351623456019678
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 183.392252153776,
+        "chunk_size_std": 21.022627480523255,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182097832693235
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.3462042808532715,
+        "docs_per_second": 4.26220345841462
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 183.03441871772014,
+        "chunk_size_std": 20.30208871810177,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182927223952673
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.4625356197357178,
+        "docs_per_second": 4.060854965855564
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 182.36166941783708,
+        "chunk_size_std": 19.51842040453187,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181736275834458
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.222142457962036,
+        "docs_per_second": 4.500161528424765
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 182.09593037862754,
+        "chunk_size_std": 19.158791156314862,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182972746362574
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.251471757888794,
+        "docs_per_second": 4.441539168751112
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 182.09593037862754,
+        "chunk_size_std": 19.158791156314862,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182972746362574
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.172574758529663,
+        "docs_per_second": 4.602833555319273
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.8,
+        "avg_chunk_size": 142.9991012444003,
+        "chunk_size_std": 31.197863717720146,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9164057654378948
+      },
+      "retrieval": {
+        "recall_at_5": 0.4666666666666667,
+        "precision_at_5": 0.09333333333333335,
+        "mrr": 0.38611111111111107
+      },
+      "performance": {
+        "processing_time": 2.215750217437744,
+        "docs_per_second": 4.513144090566232
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 136.85601207723872,
+        "chunk_size_std": 23.96080667188716,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9168784491560883
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44
+      },
+      "performance": {
+        "processing_time": 2.4602601528167725,
+        "docs_per_second": 4.064610804898383
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 134.77446454828015,
+        "chunk_size_std": 21.527232198290836,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174960882701241
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4444444444444445
+      },
+      "performance": {
+        "processing_time": 2.0901265144348145,
+        "docs_per_second": 4.784399380103588
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 135.63033871373798,
+        "chunk_size_std": 22.4965275350206,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9171117198240518
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46499999999999997
+      },
+      "performance": {
+        "processing_time": 2.2199437618255615,
+        "docs_per_second": 4.504618617805228
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 133.74196621818723,
+        "chunk_size_std": 20.139036863427194,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9175726071978139
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46944444444444444
+      },
+      "performance": {
+        "processing_time": 2.0666098594665527,
+        "docs_per_second": 4.838842684405496
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 133.38295608289724,
+        "chunk_size_std": 19.395522606268905,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178000730601532
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46944444444444444
+      },
+      "performance": {
+        "processing_time": 2.0399560928344727,
+        "docs_per_second": 4.902066292076525
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 132.70782608442784,
+        "chunk_size_std": 18.51144438056108,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176619968937697
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.096728563308716,
+        "docs_per_second": 4.769334560034622
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 132.4412307851145,
+        "chunk_size_std": 18.14208501002792,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179430845119818
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4677777777777778
+      },
+      "performance": {
+        "processing_time": 2.0140130519866943,
+        "docs_per_second": 4.965211119230654
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 132.4412307851145,
+        "chunk_size_std": 18.14208501002792,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179430845119818
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4677777777777778
+      },
+      "performance": {
+        "processing_time": 2.0471866130828857,
+        "docs_per_second": 4.884752536038161
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.8,
+        "avg_chunk_size": 162.8468718617286,
+        "chunk_size_std": 31.28338724826586,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174990149350208
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.39444444444444443
+      },
+      "performance": {
+        "processing_time": 2.177567481994629,
+        "docs_per_second": 4.5922801854297095
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 156.71185513524725,
+        "chunk_size_std": 24.10616860486403,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178910780849121
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.43611111111111106
+      },
+      "performance": {
+        "processing_time": 2.103480815887451,
+        "docs_per_second": 4.754024816613806
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 154.63312691370345,
+        "chunk_size_std": 21.662422314498425,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9183266129692658
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4388888888888889
+      },
+      "performance": {
+        "processing_time": 2.1115503311157227,
+        "docs_per_second": 4.735856802767328
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 155.4879002122626,
+        "chunk_size_std": 22.744023363002647,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181032812163075
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4583333333333333
+      },
+      "performance": {
+        "processing_time": 2.1982340812683105,
+        "docs_per_second": 4.5491060689179745
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 153.60208059242277,
+        "chunk_size_std": 20.393205935004268,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9184195194670133
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.1198012828826904,
+        "docs_per_second": 4.71742331734092
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 153.2435411368264,
+        "chunk_size_std": 19.656832575730114,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9186936973311752
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.1590988636016846,
+        "docs_per_second": 4.6315618837937675
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 152.56936341779152,
+        "chunk_size_std": 18.81002371660912,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9183970943898556
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.172037124633789,
+        "docs_per_second": 4.603972872556691
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 152.30311062251977,
+        "chunk_size_std": 18.4433143453023,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9187190921597181
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.099088430404663,
+        "docs_per_second": 4.76397271079818
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 152.30311062251977,
+        "chunk_size_std": 18.4433143453023,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9187190921597181
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.062222480773926,
+        "docs_per_second": 4.8491373230724975
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.8,
+        "avg_chunk_size": 192.618527787721,
+        "chunk_size_std": 31.598123202663828,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179628544174451
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.39722222222222225
+      },
+      "performance": {
+        "processing_time": 2.2684128284454346,
+        "docs_per_second": 4.408368650803785
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 186.49561972226005,
+        "chunk_size_std": 24.543696113852253,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179546307103624
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.238955020904541,
+        "docs_per_second": 4.46636931364525
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 184.42112046183846,
+        "chunk_size_std": 22.10152022412612,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181901067228967
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.2282865047454834,
+        "docs_per_second": 4.487753248383204
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 185.2742424600495,
+        "chunk_size_std": 23.345057900479826,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181262721362753
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.45
+      },
+      "performance": {
+        "processing_time": 2.2342967987060547,
+        "docs_per_second": 4.475681120695911
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 183.392252153776,
+        "chunk_size_std": 21.022627480523255,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182097832693235
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.1663451194763184,
+        "docs_per_second": 4.616069669645874
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 183.03441871772014,
+        "chunk_size_std": 20.30208871810177,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182927223952673
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.22371244430542,
+        "docs_per_second": 4.496984322594604
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 182.36166941783708,
+        "chunk_size_std": 19.51842040453187,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181736275834458
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.2575387954711914,
+        "docs_per_second": 4.429602724905912
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 182.09593037862754,
+        "chunk_size_std": 19.158791156314862,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182972746362574
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.1516969203948975,
+        "docs_per_second": 4.647494684411556
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 182.09593037862754,
+        "chunk_size_std": 19.158791156314862,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182972746362574
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.1323740482330322,
+        "docs_per_second": 4.689608752407387
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.8,
+        "avg_chunk_size": 142.9991012444003,
+        "chunk_size_std": 31.561201950667066,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9163910141650409
+      },
+      "retrieval": {
+        "recall_at_5": 0.4666666666666667,
+        "precision_at_5": 0.09333333333333335,
+        "mrr": 0.38611111111111107
+      },
+      "performance": {
+        "processing_time": 2.0700442790985107,
+        "docs_per_second": 4.830814539075912
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 136.85601207723872,
+        "chunk_size_std": 23.96080667188716,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9168784491560883
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.44
+      },
+      "performance": {
+        "processing_time": 2.065032482147217,
+        "docs_per_second": 4.842538839680633
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 134.77446454828015,
+        "chunk_size_std": 21.527232198290836,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174960882701241
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4444444444444445
+      },
+      "performance": {
+        "processing_time": 2.063474178314209,
+        "docs_per_second": 4.846195850228508
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 135.63033871373798,
+        "chunk_size_std": 22.4965275350206,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9171117198240518
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46499999999999997
+      },
+      "performance": {
+        "processing_time": 2.0780811309814453,
+        "docs_per_second": 4.812131658823713
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 133.74196621818723,
+        "chunk_size_std": 20.139036863427194,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9175726071978139
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46944444444444444
+      },
+      "performance": {
+        "processing_time": 2.035630464553833,
+        "docs_per_second": 4.912482974748459
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 133.38295608289724,
+        "chunk_size_std": 19.395522606268905,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178000730601532
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.46944444444444444
+      },
+      "performance": {
+        "processing_time": 2.065001964569092,
+        "docs_per_second": 4.84261040501563
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 132.70782608442784,
+        "chunk_size_std": 18.51144438056108,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176619968937697
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.0528135299682617,
+        "docs_per_second": 4.871363060508768
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 132.4412307851145,
+        "chunk_size_std": 18.14208501002792,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179430845119818
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4677777777777778
+      },
+      "performance": {
+        "processing_time": 1.9738388061523438,
+        "docs_per_second": 5.06626983360068
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 132.4412307851145,
+        "chunk_size_std": 18.14208501002792,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179430845119818
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4677777777777778
+      },
+      "performance": {
+        "processing_time": 2.0235848426818848,
+        "docs_per_second": 4.94172509552249
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.8,
+        "avg_chunk_size": 162.8468718617286,
+        "chunk_size_std": 31.644356627534812,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.91750218804609
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.39444444444444443
+      },
+      "performance": {
+        "processing_time": 2.146681547164917,
+        "docs_per_second": 4.658352801889417
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 156.71185513524725,
+        "chunk_size_std": 24.10616860486403,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178910780849121
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.43611111111111106
+      },
+      "performance": {
+        "processing_time": 2.1583428382873535,
+        "docs_per_second": 4.633184229403984
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 154.63312691370345,
+        "chunk_size_std": 21.662422314498425,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9183266129692658
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4388888888888889
+      },
+      "performance": {
+        "processing_time": 2.1291940212249756,
+        "docs_per_second": 4.696612849892732
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 155.4879002122626,
+        "chunk_size_std": 22.744023363002647,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181032812163075
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4583333333333333
+      },
+      "performance": {
+        "processing_time": 2.0976290702819824,
+        "docs_per_second": 4.767287096500674
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 153.60208059242277,
+        "chunk_size_std": 20.393205935004268,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9184195194670133
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.078981399536133,
+        "docs_per_second": 4.81004784469511
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 153.2435411368264,
+        "chunk_size_std": 19.656832575730114,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9186936973311752
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.0958073139190674,
+        "docs_per_second": 4.771431005887865
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 152.56936341779152,
+        "chunk_size_std": 18.81002371660912,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9183970943898556
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.1129133701324463,
+        "docs_per_second": 4.732801704678105
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 152.30311062251977,
+        "chunk_size_std": 18.4433143453023,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9187190921597181
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.1007325649261475,
+        "docs_per_second": 4.760244196219977
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 152.30311062251977,
+        "chunk_size_std": 18.4433143453023,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9187190921597181
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.46111111111111114
+      },
+      "performance": {
+        "processing_time": 2.1157495975494385,
+        "docs_per_second": 4.726457238409722
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 132.8,
+        "avg_chunk_size": 192.618527787721,
+        "chunk_size_std": 31.95438020501312,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179816491109651
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.39722222222222225
+      },
+      "performance": {
+        "processing_time": 2.242241859436035,
+        "docs_per_second": 4.459822189973379
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 140.4,
+        "avg_chunk_size": 186.49561972226005,
+        "chunk_size_std": 24.543696113852253,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9179546307103624
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.232422351837158,
+        "docs_per_second": 4.479439113199418
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 143.1,
+        "avg_chunk_size": 184.42112046183846,
+        "chunk_size_std": 22.10152022412612,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181901067228967
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.2492575645446777,
+        "docs_per_second": 4.445911467691039
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 141.9,
+        "avg_chunk_size": 185.2742424600495,
+        "chunk_size_std": 23.345057900479826,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181262721362753
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.45
+      },
+      "performance": {
+        "processing_time": 2.202975034713745,
+        "docs_per_second": 4.53931608049267
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 144.4,
+        "avg_chunk_size": 183.392252153776,
+        "chunk_size_std": 21.022627480523255,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182097832693235
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.1661081314086914,
+        "docs_per_second": 4.616574701419301
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 144.9,
+        "avg_chunk_size": 183.03441871772014,
+        "chunk_size_std": 20.30208871810177,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182927223952673
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.1968390941619873,
+        "docs_per_second": 4.551994739430213
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 145.8,
+        "avg_chunk_size": 182.36166941783708,
+        "chunk_size_std": 19.51842040453187,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9181736275834458
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.20450496673584,
+        "docs_per_second": 4.536165783652904
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 182.09593037862754,
+        "chunk_size_std": 19.158791156314862,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182972746362574
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.311823606491089,
+        "docs_per_second": 4.32558953543091
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 80,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 146.2,
+        "avg_chunk_size": 182.09593037862754,
+        "chunk_size_std": 19.158791156314862,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9182972746362574
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.2043848037719727,
+        "docs_per_second": 4.53641305405879
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 111.1,
+        "avg_chunk_size": 164.95049888548633,
+        "chunk_size_std": 30.345139290376814,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9162505529551698
+      },
+      "retrieval": {
+        "recall_at_5": 0.4666666666666667,
+        "precision_at_5": 0.09333333333333335,
+        "mrr": 0.3888888888888889
+      },
+      "performance": {
+        "processing_time": 2.176992416381836,
+        "docs_per_second": 4.593493263802918
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 158.19386304894385,
+        "chunk_size_std": 23.89381435552458,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9163956337955792
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.142946720123291,
+        "docs_per_second": 4.666471595441564
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 155.67290877310086,
+        "chunk_size_std": 20.930300028598477,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9167937800064824
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.114858627319336,
+        "docs_per_second": 4.728448450795684
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 156.95375956186783,
+        "chunk_size_std": 22.661779630730962,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9165943291519698
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.1179022789001465,
+        "docs_per_second": 4.72165316578871
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 154.4717175174296,
+        "chunk_size_std": 19.695946310485716,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.916715928008468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4861111111111111
+      },
+      "performance": {
+        "processing_time": 2.126526355743408,
+        "docs_per_second": 4.702504614152369
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 154.13634704732243,
+        "chunk_size_std": 19.448657643630888,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9170537494373837
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4861111111111111
+      },
+      "performance": {
+        "processing_time": 2.1232106685638428,
+        "docs_per_second": 4.709848225642198
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 153.9240909281031,
+        "chunk_size_std": 18.86352798715582,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9167772629041047
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.1129724979400635,
+        "docs_per_second": 4.732669265572079
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 153.70537705029588,
+        "chunk_size_std": 18.51065342497896,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9170965857831123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.113435983657837,
+        "docs_per_second": 4.731631370585668
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 153.70537705029588,
+        "chunk_size_std": 18.51065342497896,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9170965857831123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.09916353225708,
+        "docs_per_second": 4.763802269967846
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 111.1,
+        "avg_chunk_size": 184.76875947261016,
+        "chunk_size_std": 30.459411171940417,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9165981062543528
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.2692673206329346,
+        "docs_per_second": 4.406708680408284
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 178.02111751541378,
+        "chunk_size_std": 24.05545191727173,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9169824102939236
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4055555555555556
+      },
+      "performance": {
+        "processing_time": 2.4072458744049072,
+        "docs_per_second": 4.15412488866435
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 175.50344706163918,
+        "chunk_size_std": 21.08825295122877,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9174121560128494
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.39722222222222225
+      },
+      "performance": {
+        "processing_time": 2.220973014831543,
+        "docs_per_second": 4.50253106778899
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 176.7827421546614,
+        "chunk_size_std": 22.937094434345074,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9171856587426639
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4361111111111111
+      },
+      "performance": {
+        "processing_time": 2.5112273693084717,
+        "docs_per_second": 3.9821165228673605
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 174.3039392440963,
+        "chunk_size_std": 19.983956077014103,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174313795210823
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4277777777777778
+      },
+      "performance": {
+        "processing_time": 2.2329518795013428,
+        "docs_per_second": 4.4783768480640855
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 173.9690402322642,
+        "chunk_size_std": 19.7400387283297,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176974263915302
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4277777777777778
+      },
+      "performance": {
+        "processing_time": 2.451545000076294,
+        "docs_per_second": 4.07906034753137
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 173.75706841268368,
+        "chunk_size_std": 19.16520178719501,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9175601469100112
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.2065203189849854,
+        "docs_per_second": 4.532022621300886
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 173.53866234557285,
+        "chunk_size_std": 18.817875735197468,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177808480631404
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.1755590438842773,
+        "docs_per_second": 4.596519698286764
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 173.53866234557285,
+        "chunk_size_std": 18.817875735197468,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177808480631404
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.145184278488159,
+        "docs_per_second": 4.661604180246745
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 111.1,
+        "avg_chunk_size": 214.4961503532958,
+        "chunk_size_std": 30.855900854149603,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9171188712134223
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.42444444444444446
+      },
+      "performance": {
+        "processing_time": 2.613457441329956,
+        "docs_per_second": 3.8263488977693565
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 207.76199921511866,
+        "chunk_size_std": 24.561458737365143,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9172984702498415
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.38888888888888895
+      },
+      "performance": {
+        "processing_time": 2.5130727291107178,
+        "docs_per_second": 3.979192438071072
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 205.2492544944467,
+        "chunk_size_std": 21.61674155868048,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9176557093599979
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41666666666666674
+      },
+      "performance": {
+        "processing_time": 2.315410614013672,
+        "docs_per_second": 4.318888381817254
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 206.52621604385178,
+        "chunk_size_std": 23.62151122381348,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9173640316875119
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.3777777777777778
+      },
+      "performance": {
+        "processing_time": 2.280345916748047,
+        "docs_per_second": 4.3852995839599584
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 204.05227183409642,
+        "chunk_size_std": 20.716313039960227,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176994627340701
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4083333333333333
+      },
+      "performance": {
+        "processing_time": 2.252593994140625,
+        "docs_per_second": 4.439326405917657
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 203.7180800096769,
+        "chunk_size_std": 20.481214789859724,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178329945115238
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4083333333333333
+      },
+      "performance": {
+        "processing_time": 2.2255403995513916,
+        "docs_per_second": 4.493290709086084
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 203.50653463955456,
+        "chunk_size_std": 19.925464093493428,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177119380378205
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.2214088439941406,
+        "docs_per_second": 4.501647694001157
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 203.28859028848834,
+        "chunk_size_std": 19.59207350371451,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9178210185660468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.2683985233306885,
+        "docs_per_second": 4.408396451130203
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 300,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 203.28859028848834,
+        "chunk_size_std": 19.59207350371451,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9178210185660468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 3.2289462089538574,
+        "docs_per_second": 3.0969856271591123
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 110.8,
+        "avg_chunk_size": 165.4286536383243,
+        "chunk_size_std": 31.634340879175728,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.916343094800052
+      },
+      "retrieval": {
+        "recall_at_5": 0.4666666666666667,
+        "precision_at_5": 0.09333333333333335,
+        "mrr": 0.3888888888888889
+      },
+      "performance": {
+        "processing_time": 2.7694051265716553,
+        "docs_per_second": 3.6108837613005194
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 158.19386304894385,
+        "chunk_size_std": 23.89381435552458,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9163956337955792
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.6893975734710693,
+        "docs_per_second": 3.7183048347491092
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 155.67290877310086,
+        "chunk_size_std": 20.930300028598477,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9167937800064824
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.5122742652893066,
+        "docs_per_second": 3.980457125308501
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 156.95375956186783,
+        "chunk_size_std": 22.661779630730962,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9165943291519698
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.9086315631866455,
+        "docs_per_second": 3.4380428675002674
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 154.4717175174296,
+        "chunk_size_std": 19.695946310485716,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.916715928008468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4861111111111111
+      },
+      "performance": {
+        "processing_time": 2.5243959426879883,
+        "docs_per_second": 3.9613437143112957
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 154.13634704732243,
+        "chunk_size_std": 19.448657643630888,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9170537494373837
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4861111111111111
+      },
+      "performance": {
+        "processing_time": 2.427760601043701,
+        "docs_per_second": 4.119022277444066
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 153.9240909281031,
+        "chunk_size_std": 18.86352798715582,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9167772629041047
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.404317855834961,
+        "docs_per_second": 4.159183851557449
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 153.70537705029588,
+        "chunk_size_std": 18.51065342497896,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9170965857831123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.4094431400299072,
+        "docs_per_second": 4.150336579379032
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 153.70537705029588,
+        "chunk_size_std": 18.51065342497896,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9170965857831123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.4242372512817383,
+        "docs_per_second": 4.125008802134699
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 110.8,
+        "avg_chunk_size": 185.24624356001215,
+        "chunk_size_std": 31.746833413845586,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9166432715599584
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.5531485080718994,
+        "docs_per_second": 3.916732602269131
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 178.02111751541378,
+        "chunk_size_std": 24.05545191727173,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9169824102939236
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4055555555555556
+      },
+      "performance": {
+        "processing_time": 2.4570932388305664,
+        "docs_per_second": 4.069849626365591
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 175.50344706163918,
+        "chunk_size_std": 21.08825295122877,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9174121560128494
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.39722222222222225
+      },
+      "performance": {
+        "processing_time": 2.466202974319458,
+        "docs_per_second": 4.0548162921421635
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 176.7827421546614,
+        "chunk_size_std": 22.937094434345074,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9171856587426639
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4361111111111111
+      },
+      "performance": {
+        "processing_time": 2.381098508834839,
+        "docs_per_second": 4.199742246234649
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 174.3039392440963,
+        "chunk_size_std": 19.983956077014103,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174313795210823
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4277777777777778
+      },
+      "performance": {
+        "processing_time": 2.618870735168457,
+        "docs_per_second": 3.8184397059814246
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 173.9690402322642,
+        "chunk_size_std": 19.7400387283297,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176974263915302
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4277777777777778
+      },
+      "performance": {
+        "processing_time": 2.3809239864349365,
+        "docs_per_second": 4.200050088526113
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 173.75706841268368,
+        "chunk_size_std": 19.16520178719501,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9175601469100112
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.46091890335083,
+        "docs_per_second": 4.063522770451243
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 173.53866234557285,
+        "chunk_size_std": 18.817875735197468,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177808480631404
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.4636876583099365,
+        "docs_per_second": 4.058956080033251
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 173.53866234557285,
+        "chunk_size_std": 18.817875735197468,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177808480631404
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.3968188762664795,
+        "docs_per_second": 4.172196780916956
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 110.8,
+        "avg_chunk_size": 214.97262844254396,
+        "chunk_size_std": 32.1353606049429,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9171903890318376
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.42444444444444446
+      },
+      "performance": {
+        "processing_time": 2.567378282546997,
+        "docs_per_second": 3.8950239892499927
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 207.76199921511866,
+        "chunk_size_std": 24.561458737365143,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9172984702498415
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.38888888888888895
+      },
+      "performance": {
+        "processing_time": 2.4540202617645264,
+        "docs_per_second": 4.074945979789772
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 205.2492544944467,
+        "chunk_size_std": 21.61674155868048,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9176557093599979
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41666666666666674
+      },
+      "performance": {
+        "processing_time": 2.541055917739868,
+        "docs_per_second": 3.9353718783545935
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 206.52621604385178,
+        "chunk_size_std": 23.62151122381348,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9173640316875119
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.3777777777777778
+      },
+      "performance": {
+        "processing_time": 2.5039660930633545,
+        "docs_per_second": 3.9936643022853358
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 204.05227183409642,
+        "chunk_size_std": 20.716313039960227,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176994627340701
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4083333333333333
+      },
+      "performance": {
+        "processing_time": 2.421975612640381,
+        "docs_per_second": 4.1288607316314945
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 203.7180800096769,
+        "chunk_size_std": 20.481214789859724,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178329945115238
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4083333333333333
+      },
+      "performance": {
+        "processing_time": 2.5298569202423096,
+        "docs_per_second": 3.9527927132899676
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 203.50653463955456,
+        "chunk_size_std": 19.925464093493428,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177119380378205
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.5181784629821777,
+        "docs_per_second": 3.9711244246594823
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 203.28859028848834,
+        "chunk_size_std": 19.59207350371451,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9178210185660468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.4347798824310303,
+        "docs_per_second": 4.107147455980867
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 400,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 203.28859028848834,
+        "chunk_size_std": 19.59207350371451,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9178210185660468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.5413408279418945,
+        "docs_per_second": 3.934930683067215
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 110.7,
+        "avg_chunk_size": 165.5726637393344,
+        "chunk_size_std": 32.17540371112116,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9163422075286911
+      },
+      "retrieval": {
+        "recall_at_5": 0.4666666666666667,
+        "precision_at_5": 0.09333333333333335,
+        "mrr": 0.3888888888888889
+      },
+      "performance": {
+        "processing_time": 2.3954014778137207,
+        "docs_per_second": 4.174665538374379
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 158.19386304894385,
+        "chunk_size_std": 23.89381435552458,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9163956337955792
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.4323575496673584,
+        "docs_per_second": 4.111237676125193
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 155.67290877310086,
+        "chunk_size_std": 20.930300028598477,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9167937800064824
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.8388795852661133,
+        "docs_per_second": 3.5225164363787593
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 156.95375956186783,
+        "chunk_size_std": 22.661779630730962,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9165943291519698
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.4180216789245605,
+        "docs_per_second": 4.135612218517247
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 154.4717175174296,
+        "chunk_size_std": 19.695946310485716,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.916715928008468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4861111111111111
+      },
+      "performance": {
+        "processing_time": 2.3704872131347656,
+        "docs_per_second": 4.218542055232544
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 154.13634704732243,
+        "chunk_size_std": 19.448657643630888,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9170537494373837
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4861111111111111
+      },
+      "performance": {
+        "processing_time": 2.3277790546417236,
+        "docs_per_second": 4.295940364296788
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 153.9240909281031,
+        "chunk_size_std": 18.86352798715582,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9167772629041047
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.294560670852661,
+        "docs_per_second": 4.3581327471650555
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 153.70537705029588,
+        "chunk_size_std": 18.51065342497896,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9170965857831123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.297194242477417,
+        "docs_per_second": 4.35313645450176
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 30,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 153.70537705029588,
+        "chunk_size_std": 18.51065342497896,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9170965857831123
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4527777777777778
+      },
+      "performance": {
+        "processing_time": 2.278822898864746,
+        "docs_per_second": 4.3882304346606995
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 110.7,
+        "avg_chunk_size": 185.39005164082022,
+        "chunk_size_std": 32.287283886896724,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9166582119338642
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4166666666666667
+      },
+      "performance": {
+        "processing_time": 2.564323663711548,
+        "docs_per_second": 3.899663736490351
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 178.02111751541378,
+        "chunk_size_std": 24.05545191727173,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9169824102939236
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4055555555555556
+      },
+      "performance": {
+        "processing_time": 2.3657753467559814,
+        "docs_per_second": 4.226944039176114
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 175.50344706163918,
+        "chunk_size_std": 21.08825295122877,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9174121560128494
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.39722222222222225
+      },
+      "performance": {
+        "processing_time": 2.3294677734375,
+        "docs_per_second": 4.292826075564639
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 176.7827421546614,
+        "chunk_size_std": 22.937094434345074,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9171856587426639
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.4361111111111111
+      },
+      "performance": {
+        "processing_time": 2.4674415588378906,
+        "docs_per_second": 4.052780891276621
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 174.3039392440963,
+        "chunk_size_std": 19.983956077014103,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9174313795210823
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4277777777777778
+      },
+      "performance": {
+        "processing_time": 2.312440872192383,
+        "docs_per_second": 4.324434894856007
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 173.9690402322642,
+        "chunk_size_std": 19.7400387283297,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176974263915302
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4277777777777778
+      },
+      "performance": {
+        "processing_time": 2.455253839492798,
+        "docs_per_second": 4.0728986303370505
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 173.75706841268368,
+        "chunk_size_std": 19.16520178719501,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9175601469100112
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.3545892238616943,
+        "docs_per_second": 4.247025297941051
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 173.53866234557285,
+        "chunk_size_std": 18.817875735197468,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177808480631404
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.39792537689209,
+        "docs_per_second": 4.170271559059453
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 50,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 173.53866234557285,
+        "chunk_size_std": 18.817875735197468,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177808480631404
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41944444444444445
+      },
+      "performance": {
+        "processing_time": 2.405402660369873,
+        "docs_per_second": 4.157308115083868
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 110.7,
+        "avg_chunk_size": 215.11613349304898,
+        "chunk_size_std": 32.67260676832255,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9172214718550705
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.42444444444444446
+      },
+      "performance": {
+        "processing_time": 2.550161361694336,
+        "docs_per_second": 3.921320489835971
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 116.8,
+        "avg_chunk_size": 207.76199921511866,
+        "chunk_size_std": 24.561458737365143,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9172984702498415
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.38888888888888895
+      },
+      "performance": {
+        "processing_time": 2.5013723373413086,
+        "docs_per_second": 3.9978054649108863
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.5,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 119.2,
+        "avg_chunk_size": 205.2492544944467,
+        "chunk_size_std": 21.61674155868048,
+        "semantic_completeness": 0.9998571428571429,
+        "avg_info_density": 0.9176557093599979
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.41666666666666674
+      },
+      "performance": {
+        "processing_time": 2.4890096187591553,
+        "docs_per_second": 4.017662255955964
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 117.9,
+        "avg_chunk_size": 206.52621604385178,
+        "chunk_size_std": 23.62151122381348,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9173640316875119
+      },
+      "retrieval": {
+        "recall_at_5": 0.5,
+        "precision_at_5": 0.10000000000000002,
+        "mrr": 0.3777777777777778
+      },
+      "performance": {
+        "processing_time": 2.4717748165130615,
+        "docs_per_second": 4.0456759787313565
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 120.3,
+        "avg_chunk_size": 204.05227183409642,
+        "chunk_size_std": 20.716313039960227,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9176994627340701
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4083333333333333
+      },
+      "performance": {
+        "processing_time": 2.5598602294921875,
+        "docs_per_second": 3.906463284514464
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.6,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 120.6,
+        "avg_chunk_size": 203.7180800096769,
+        "chunk_size_std": 20.481214789859724,
+        "semantic_completeness": 1.0,
+        "avg_info_density": 0.9178329945115238
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.4083333333333333
+      },
+      "performance": {
+        "processing_time": 2.4569857120513916,
+        "docs_per_second": 4.070027738033031
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.1
+      },
+      "chunking": {
+        "avg_chunk_count": 120.8,
+        "avg_chunk_size": 203.50653463955456,
+        "chunk_size_std": 19.925464093493428,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9177119380378205
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.491621494293213,
+        "docs_per_second": 4.013450687796645
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.2
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 203.28859028848834,
+        "chunk_size_std": 19.59207350371451,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9178210185660468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.454798936843872,
+        "docs_per_second": 4.073653385583167
+      }
+    },
+    {
+      "config": {
+        "min_chunk_size": 100,
+        "max_chunk_size": 500,
+        "chunk_overlap": 80,
+        "semantic_threshold": 0.7,
+        "speaker_switch_bonus": 0.3
+      },
+      "chunking": {
+        "avg_chunk_count": 121.0,
+        "avg_chunk_size": 203.28859028848834,
+        "chunk_size_std": 19.59207350371451,
+        "semantic_completeness": 0.9998655913978494,
+        "avg_info_density": 0.9178210185660468
+      },
+      "retrieval": {
+        "recall_at_5": 0.5333333333333333,
+        "precision_at_5": 0.10666666666666667,
+        "mrr": 0.425
+      },
+      "performance": {
+        "processing_time": 2.5467660427093506,
+        "docs_per_second": 3.926548348886262
+      }
+    }
+  ]
+}

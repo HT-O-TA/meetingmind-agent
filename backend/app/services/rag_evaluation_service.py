@@ -67,6 +67,8 @@ class RAGEvaluationService:
                             context=context,
                             model=settings.EVAL_LLM_MODEL or None,
                             max_tokens=settings.EVAL_LLM_MAX_TOKENS,
+                            api_key=settings.EVAL_LLM_API_KEY or None,
+                            api_base=settings.EVAL_LLM_API_BASE or None,
                         )
                         generation_metrics = self._calculate_generation_metrics(
                             answer, expected_answer, context

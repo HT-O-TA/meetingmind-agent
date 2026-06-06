@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>MeetingMind &#x9879;&#x76ee;&#x62d3;&#x5c55;&#x8ba1;&#x5212;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="meetingmind-项目拓展计划">MeetingMind 项目拓展计划</h1>
+<h2 id="-当前项目能力评估">📊 当前项目能力评估</h2>
+<h3 id="-已具备的能力">✅ 已具备的能力</h3>
+<table>
+<thead>
+<tr>
+<th>能力模块</th>
+<th>现状</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis AI工程化</strong></td>
+<td>✅ 已实现</td>
+<td>已集成向量检索缓存、LLM响应缓存、API缓存、分布式锁、限流</td>
+</tr>
+<tr>
+<td><strong>数据处理 + Chunk策略</strong></td>
+<td>✅ 已实现</td>
+<td>支持speaker模式、fixed模式、语义分块；可解析PDF/DOCX/Excel</td>
+</tr>
+<tr>
+<td><strong>RAGAS + 评测闭环</strong></td>
+<td>✅ 已实现</td>
+<td>集成RAGAS评估框架、回归测试系统、完整的RAG评估流程</td>
+</tr>
+<tr>
+<td><strong>知识图谱</strong></td>
+<td>✅ 已实现</td>
+<td>实体关系抽取、图谱增强检索（内存实现）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-拓展规划按岗位能力优先级排序">🎯 拓展规划（按岗位能力优先级排序）</h2>
+<h3 id="第一阶段核心技术能力第1-6周">第一阶段：核心技术能力（第1-6周）</h3>
+<hr>
+<h2 id="第1-2周提示工程全栈-">第1-2周：提示工程全栈 ⭐⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>提示工程全栈</strong></td>
+<td>1. 学习CoT（思维链）、ReAct（思考-行动-观察）、Self-Consistency、Few-shot等技巧<br>2. 掌握结构化输出（JSON mode）<br>3. 优化现有Agent的prompt模板<br>4. 为不同任务（会议纪要、待办提取、争议分析）设计专门的prompt<br>5. 建立prompt版本管理和A/B测试机制</td>
+<td>1. 在MeetingMind项目中对3个核心任务（会议问答、纪要生成、待办提取）各设计3版Prompt，对比效果<br>2. 输出一份《MeetingMind Prompt优化笔记》，包含不同策略的效果对比<br>3. 实现结构化输出的JSON schema验证机制</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第3周dspy--prompt测评-">第3周：DSPy + Prompt测评 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DSPy + Prompt测评</strong></td>
+<td>1. 学习DSPy自动优化提示<br>2. 用PromptFoo或Ragas评估Prompt效果（准确率、稳定性）<br>3. 设计DSPy Signatures定义核心任务<br>4. 用DSPy的Compile功能优化现有模块</td>
+<td>1. 跑通DSPy优化一个简单任务（如：会议摘要生成）<br>2. 输出《Prompt测评报告》，包含不同Prompt策略的准确率、召回率、稳定性对比<br>3. 在项目中集成DSPy模块，支持自动优化</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第4-5周混合检索策略-">第4-5周：混合检索策略 ⭐⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>混合检索（BM25+BGE+SPLADE+RRF）</strong></td>
+<td>1. 深入学习ES BM25全文检索、中文分词器（IK/结巴）、BM25F字段加权<br>2. 学习BGE-M3/BGE-base稠密向量模型<br>3. 学习SPLADE稀疏向量模型，实现Query Expansion<br>4. 在本地搭建ES集群，配置dense_vector和text_expansion字段<br>5. 实现三路召回：BM25稀疏 + BGE稠密 + SPLADE稀疏<br>6. 实现RRF（Reciprocal Rank Fusion）结果融合<br>7. 集成CrossEncoder/ColBERT作为Reranker精排<br>8. 对比不同融合策略（RRF/加权融合/ML融合）的效果</td>
+<td>1. 完整实现BM25+BGE+SPLADE+RRF混合检索系统<br>2. 输出《混合检索效果对比报告》，对比单一检索vs混合检索的召回率、准确率、响应时间<br>3. 在项目中实现可配置的检索策略（支持BM25/BGE/SPLADE/RRF/CrossEncoder组合）<br>4. 建立检索效果AB测试框架</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第6周多agent协作系统-">第6周：多Agent协作系统 ⭐⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>多Agent协作</strong></td>
+<td>1. 设计规划Agent（Planner）：分解任务、生成执行计划<br>2. 设计执行Agent（Executor）：调用工具、返回结果<br>3. 设计审核Agent（Reviewer）：质量评估、结果验证<br>4. 实现Agent间通信协议（共享内存/消息队列）<br>5. 添加Agent协调器（Orchestrator）管理任务分配</td>
+<td>1. 实现Planner-Executor-Reviewer三Agent协作流程<br>2. 输出《多Agent协作设计文档》，包含状态流转图<br>3. 在会议问答场景中演示多Agent协作效果</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="第二阶段工程能力第7-12周">第二阶段：工程能力（第7-12周）</h3>
+<hr>
+<h2 id="第7周消息队列异步处理-">第7周：消息队列异步处理 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>消息队列</strong></td>
+<td>1. 学习RabbitMQ/Kafka消息队列原理<br>2. 将文档解析、向量化等耗时任务异步化<br>3. 设计任务队列：文档上传 → 解析 → 切片 → 向量化 → 存储<br>4. 实现任务状态追踪和失败重试机制<br>5. 添加任务优先级和超时处理</td>
+<td>1. 用RabbitMQ实现文档异步处理流水线<br>2. 输出《异步任务处理架构设计文档》<br>3. 实现任务管理API（查询进度、取消、重试）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第8周安全性与数据合规-">第8周：安全性与数据合规 ⭐⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>安全性与合规</strong></td>
+<td>1. 实现OAuth2/JWT认证授权体系<br>2. 添加数据传输加密（HTTPS/TLS）<br>3. 实现敏感数据脱敏处理<br>4. 设计安全审计日志系统<br>5. 实现API接口限流和熔断<br>6. 符合GDPR/个保法数据隐私要求</td>
+<td>1. 完整的安全认证模块<br>2. 数据脱敏工具类<br>3. 安全审计日志系统<br>4. 《数据合规白皮书》</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第8周补充环境配置与cors策略-">第8周（补充）：环境配置与CORS策略 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>多环境配置设计</strong></td>
+<td>1. 设计development/production/test三环境差异化策略<br>2. 实现CORS跨域策略动态配置（开发环境宽松、生产环境严格）<br>3. 配置日志级别差异化（DEBUG/WARNING）<br>4. 实现错误信息分级处理（开发外露堆栈、生产返回通用信息）<br>5. 设计数据库连接池差异化配置<br>6. 实现环境感知的配置中心</td>
+<td>1. 完整的环境差异化配置方案<br>2. CORS策略动态切换实现<br>3. 《环境配置设计文档》</td>
+</tr>
+<tr>
+<td><strong>CORS跨域策略</strong></td>
+<td>1. 开发环境：允许localhost多个端口、调试模式开启<br>2. 测试环境：允许测试域名、启用Mock模式<br>3. 生产环境：限制为真实域名、强制HTTPS、严格Referer校验<br>4. 实现CORS配置动态加载（无需重启）</td>
+<td>1. 三环境CORS配置策略<br>2. 动态CORS加载中间件</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><strong>三环境设计初衷：</strong></p>
+<table>
+<thead>
+<tr>
+<th>环境</th>
+<th>典型差异化配置</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>development</strong></td>
+<td>详细日志、宽松CORS、DEBUG模式开启、允许localhost</td>
+<td>日常开发调试</td>
+</tr>
+<tr>
+<td><strong>production</strong></td>
+<td>精简日志、严格CORS、关闭DEBUG、强制认证、错误信息不外露</td>
+<td>正式对外服务</td>
+</tr>
+<tr>
+<td><strong>test</strong></td>
+<td>独立数据库、测试数据隔离、Mock外部服务</td>
+<td>自动化测试、CI/CD</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第9周系统设计与架构-">第9周：系统设计与架构 ⭐⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>系统设计</strong></td>
+<td>1. 绘制C4架构图（Context → Container → Component → Code）<br>2. 设计高可用方案（多活部署、故障转移）<br>3. 制定数据库备份与恢复策略<br>4. 设计异地容灾方案<br>5. 输出技术方案文档模板</td>
+<td>1. C4架构图（4层）<br>2. 高可用架构设计文档<br>3. 容灾备份策略文档</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第10周集成测试与性能测试-">第10周：集成测试与性能测试 ⭐⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>测试体系完善</strong></td>
+<td>1. 设计端到端集成测试用例（覆盖RAG全链路）<br>2. 实现API压力测试（用Locust/JMeter）<br>3. 添加性能基准测试（延迟、吞吐量、并发）<br>4. 设计故障注入测试（Redis断连、LLM超时）<br>5. 添加接口契约测试（Pydantic Schema验证）</td>
+<td>1. 完整的集成测试套件（100+用例）<br>2. 性能测试报告：QPS、延迟、并发数<br>3. 故障恢复测试用例（10+场景）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第11周代码质量保障-">第11周：代码质量保障 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>代码质量</strong></td>
+<td>1. 引入代码规范工具（flake8/black/isort）<br>2. 配置CI自动代码审查<br>3. 集成静态分析工具（bandit安全扫描）<br>4. 建立技术债务追踪机制<br>5. 制定代码审查Checklist</td>
+<td>1. 代码规范配置文件<br>2. CI代码审查流水线<br>3. 技术债务追踪看板<br>4. 代码审查规范文档</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第12周llmops完整链路-">第12周：LLMOps完整链路 ⭐⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LLMOps完整链路</strong></td>
+<td>1. FastAPI封装 → Docker打包<br>2. K8s（minikube）部署<br>3. 监控（Prometheus + Grafana）<br>4. 日志收集（ELK Stack/Loki）<br>5. 自动化CI/CD流程</td>
+<td>1. 一套可演示的监控面板，展示QPS、延迟、GPU利用率、错误率<br>2. Docker Compose一键部署脚本<br>3. Kubernetes部署配置文件<br>4. CI/CD流水线配置（GitHub Actions）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="第三阶段模型能力第13-18周">第三阶段：模型能力（第13-18周）</h3>
+<hr>
+<h2 id="第13-14周微调理论--数据工程-">第13-14周：微调理论 + 数据工程 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>微调理论 + 数据工程</strong></td>
+<td>1. 学习SFT（监督微调）、LoRA原理<br>2. 准备一个领域数据集（会议摘要数据）<br>3. 设计数据标注规范<br>4. 构建高质量微调数据集（500条指令数据）</td>
+<td>1. 整理出500条高质量指令微调数据（从会议库中提取）<br>2. 输出《数据标注规范》和《数据集质量报告》<br>3. 建立数据版本管理机制</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第15-16周lora微调实践-">第15-16周：LoRA微调实践 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LoRA微调实践</strong></td>
+<td>1. 用Colab免费T4微调Qwen2-1.5B<br>2. 在会议总结任务上测试微调效果<br>3. 对比微调前后的生成质量<br>4. 用Ragas评估微调效果</td>
+<td>1. 输出LoRA适配器权重文件（可开源分享）<br>2. 输出《微调效果评估报告》（用Ragas评估）<br>3. 在项目中支持加载微调后的模型适配器</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第17周vllm--量化--flash-attention-">第17周：vLLM + 量化 + Flash Attention ⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>vLLM + 量化 + Flash Attention</strong></td>
+<td>1. 学习vLLM部署微调后的模型，理解PagedAttention原理<br>2. 尝试INT8/INT4量化（用AWQ/GPTQ/PEFT）<br>3. 启用Flash Attention-2加速训练和推理<br>4. 对比不同量化级别的性能和效果<br>5. 优化KV Cache策略和推理延迟<br>6. 学习动态批处理和Continuous Batching</td>
+<td>1. 量化后模型推理延迟降低50%+<br>2. 输出《量化性能对比报告》（对比FP16/INT8/INT4/GPTQ/AWQ）<br>3. 在项目中实现vLLM后端支持，启用Flash Attention<br>4. 输出《推理性能优化报告》</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第18周tensorrt-llm可选-">第18周：TensorRT-LLM（可选） ⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TensorRT-LLM（可选）</strong></td>
+<td>1. 如果有N卡，学习TensorRT-LLM进一步加速<br>2. 对比vLLM和TensorRT-LLM的性能<br>3. 尝试TensorRT-LLM的多GPU部署</td>
+<td>1. 速度再提升20-30%（可作为简历亮点）<br>2. 输出《TensorRT-LLM部署报告》</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第19周向量数据库对比与选型-">第19周：向量数据库对比与选型 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>向量数据库对比</strong></td>
+<td>1. 学习主流向量数据库：Milvus、Pinecone、Weaviate、Chroma、FAISS<br>2. 对比不同数据库的性能、可扩展性、成本<br>3. 测试向量索引类型（IVF_FLAT、HNSW、IVF_PQ）<br>4. 实现向量数据库抽象层，支持多后端切换</td>
+<td>1. 输出《向量数据库选型报告》，对比各数据库的优缺点<br>2. 在项目中实现向量数据库抽象层<br>3. 支持FAISS/Milvus/Weaviate多后端切换</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3 id="第四阶段闭环与进阶第20-31周">第四阶段：闭环与进阶（第20-31周）</h3>
+<hr>
+<h2 id="第20周语音转写可选-">第20周：语音转写（可选） ⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>语音转写</strong></td>
+<td>1. 接入ASR服务（阿里云/腾讯云/Whisper）<br>2. 实现音频文件转文字<br>3. 实现实时语音流识别<br>4. 设计音视频会议接入方案<br>5. 实现发言人人声区分</td>
+<td>1. 集成Whisper实现本地语音转写（免费）<br>2. 输出《语音转写集成方案》<br>3. 实现会议音频上传 → 转写 → 分段 → 向量化全流程</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第21周用户反馈闭环-">第21周：用户反馈闭环 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>用户反馈闭环</strong></td>
+<td>1. 设计反馈收集接口（评分、标注、建议）<br>2. 实现Bad Case自动收集和分类<br>3. 添加低分答案根因分析（是检索问题还是生成问题）<br>4. 设计模型迭代流程（反馈 → 分析 → Prompt优化 → A/B测试 → 上线）<br>5. 添加反馈统计看板</td>
+<td>1. 反馈收集API和前端组件<br>2. Bad Case数据库和分析报告<br>3. 反馈处理流程文档</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第22周业务指标体系-">第22周：业务指标体系 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>业务指标</strong></td>
+<td>1. 定义核心业务指标（问答准确率、用户满意度、响应时间）<br>2. 设计数据埋点方案<br>3. 实现指标收集和统计API<br>4. 添加业务大盘展示<br>5. 定义关键指标阈值和告警机制</td>
+<td>1. 完整的业务指标体系文档<br>2. 数据埋点实现（前后端）<br>3. 业务大盘Dashboard</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第23周neo4j知识图谱升级可选-">第23周：Neo4j知识图谱升级（可选） ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Neo4j知识图谱</strong></td>
+<td>1. 学习Cypher查询语言<br>2. 从会议文档中抽取实体关系，构建小知识图谱<br>3. 将现有的内存实现迁移到Neo4j<br>4. 设计图谱查询策略，增强检索上下文</td>
+<td>1. 实现一个简单问答：&quot;张三参与的会议有哪些？&quot;通过图谱推理<br>2. 输出《知识图谱增强效果报告》，对比有无图谱的检索效果<br>3. 在项目中集成Neo4j作为可选知识图谱后端</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第24-25周业务理解与产品思维-">第24-25周：业务理解与产品思维 ⭐⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>业务分析</strong></td>
+<td>1. 深入理解会议场景业务痛点<br>2. 设计用户画像和使用场景<br>3. 制定产品路线图<br>4. 设计竞品分析报告<br>5. 输出PRD文档模板</td>
+<td>1. 用户画像文档<br>2. 产品路线图<br>3. 竞品分析报告<br>4. PRD文档模板</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第26-27周跨团队协作与项目管理-">第26-27周：跨团队协作与项目管理 ⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>协作能力</strong></td>
+<td>1. 学习敏捷开发方法论（Scrum/Kanban）<br>2. 设计需求管理流程<br>3. 制定迭代计划和里程碑<br>4. 学习技术方案评审流程<br>5. 实践代码审查和结对编程</td>
+<td>1. 敏捷开发流程文档<br>2. 需求管理模板<br>3. 迭代计划模板</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第28-29周行业深度与领域知识-">第28-29周：行业深度与领域知识 ⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>行业洞察</strong></td>
+<td>1. 深入研究会议智能领域技术趋势<br>2. 分析头部竞品产品功能<br>3. 设计差异化竞争策略<br>4. 输出行业分析报告</td>
+<td>1. 行业技术趋势报告<br>2. 竞品分析矩阵<br>3. 差异化功能设计文档</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="第30-31周前沿技术跟踪-">第30-31周：前沿技术跟踪 ⭐⭐⭐</h2>
+<table>
+<thead>
+<tr>
+<th>学习内容</th>
+<th>具体行动</th>
+<th>产出/成果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>前沿技术</strong></td>
+<td>1. 跟踪最新LLM技术进展（MoE、RAG 2.0）<br>2. 学习Agent范式演进（AutoGen、LangGraph）<br>3. 尝试前沿推理技术（Tree of Thoughts、Self-Refine）<br>4. 参与开源社区贡献</td>
+<td>1. 技术调研报告<br>2. 前沿技术Demo<br>3. 开源贡献记录</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-能力提升路线图">📈 能力提升路线图</h2>
+<pre><code>第一阶段：核心技术（第1-6周）
+    ↓
+    提示工程 → DSPy测评 → 混合检索(BM25+BGE+SPLADE+RRF) → 多Agent协作
+    ↓
+第二阶段：工程能力（第7-12周）
+    ↓
+    消息队列 → 安全合规 → 系统设计 → 测试体系 → 代码质量 → LLMOps
+    ↓
+第三阶段：模型能力（第13-19周）
+    ↓
+    微调理论 → LoRA实践 → vLLM量化(Flash Attention) → TensorRT(可选) → 向量数据库对比
+    ↓
+第四阶段：闭环与进阶（第20-31周）
+    ↓
+    语音转写 → 用户反馈 → 业务指标 → 知识图谱 → 产品思维 → 前沿技术
+</code></pre>
+<hr>
+<h2 id="-完整能力对照表">📋 完整能力对照表</h2>
+<table>
+<thead>
+<tr>
+<th>能力模块</th>
+<th>现状</th>
+<th>补充后</th>
+<th>AI应用开发岗要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RAG系统</strong></td>
+<td>BM25 + 向量 + Reranker</td>
+<td>✅ + BM25+BGE+SPLADE+RRF混合检索 + CrossEncoder精排 + 知识图谱</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>Agent架构</strong></td>
+<td>单Agent Plan-Execute-Reflect</td>
+<td>✅ + 多Agent协作</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>工具系统</strong></td>
+<td>5+会议专用工具</td>
+<td>✅ + 自定义工具注册</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>异步任务</strong></td>
+<td>SSE流式输出</td>
+<td>✅ + RabbitMQ任务队列</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>多模态</strong></td>
+<td>PDF/DOCX解析</td>
+<td>✅ + 语音转写（Whisper）</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>模型微调</strong></td>
+<td>调用API</td>
+<td>✅ + LoRA微调Qwen-1.5B</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>性能优化</strong></td>
+<td>Redis缓存</td>
+<td>✅ + vLLM + INT8量化 + Flash Attention + PagedAttention</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>向量数据库</strong></td>
+<td>FAISS</td>
+<td>✅ + Milvus/Weaviate/Chroma多后端 + 索引对比</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>部署运维</strong></td>
+<td>本地运行</td>
+<td>✅ + Docker/K8s/CI-CD</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>可观测性</strong></td>
+<td>基础日志</td>
+<td>✅ + Prometheus + Grafana</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>测试体系</strong></td>
+<td>单元测试</td>
+<td>✅ + 集成测试 + 性能测试</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>用户反馈</strong></td>
+<td>无</td>
+<td>✅ + Bad Case收集 + 迭代闭环</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>业务指标</strong></td>
+<td>RAGAS评估</td>
+<td>✅ + 业务指标体系</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>基础认证</td>
+<td>✅ + OAuth2/JWT + 数据加密 + 合规审计</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>系统设计</strong></td>
+<td>简单架构</td>
+<td>✅ + C4架构图 + 高可用 + 容灾备份</td>
+<td>⭐⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>代码质量</strong></td>
+<td>基础规范</td>
+<td>✅ + 静态分析 + CI审查 + 技术债务管理</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>环境配置</strong></td>
+<td>固定配置</td>
+<td>✅ + 三环境差异化 + CORS动态策略</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+<tr>
+<td><strong>业务理解</strong></td>
+<td>功能实现</td>
+<td>✅ + 用户画像 + 产品路线图 + 竞品分析</td>
+<td>⭐⭐⭐⭐</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-面试亮点清单">🎨 面试亮点清单</h2>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>技术点</th>
+<th>简历说法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RAG系统</strong></td>
+<td>混合检索（BM25+BGE+SPLADE+RRF融合）、CrossEncoder精排、知识图谱增强、Chunk策略优化</td>
+<td>设计并实现了企业级会议智能助手，采用BM25稀疏+BGE稠密+SPLADE稀疏三路召回+RRF融合架构，配合CrossEncoder精排，召回率提升35%</td>
+</tr>
+<tr>
+<td><strong>Agent系统</strong></td>
+<td>多Agent协作（Planner-Executor-Reviewer）、工具调用、状态管理、人机协作</td>
+<td>开发了多Agent协作系统，支持规划Agent、执行Agent、审核Agent分工，任务执行效率提升40%</td>
+</tr>
+<tr>
+<td><strong>异步架构</strong></td>
+<td>RabbitMQ任务队列、SSE流式输出、任务状态追踪</td>
+<td>构建了异步任务处理流水线，支持文档解析、向量化等耗时任务异步处理，支持任务重试和超时控制</td>
+</tr>
+<tr>
+<td><strong>多模态</strong></td>
+<td>Whisper语音转写、PPT/DOCX解析、发言人人声区分</td>
+<td>集成Whisper实现会议语音转写，支持多格式文档解析，音视频会议全流程覆盖</td>
+</tr>
+<tr>
+<td><strong>模型微调</strong></td>
+<td>LoRA、数据工程、SFT</td>
+<td>用LoRA微调Qwen-1.5B，在会议总结任务上效果提升30%，并开源适配器权重</td>
+</tr>
+<tr>
+<td><strong>性能优化</strong></td>
+<td>vLLM、INT8量化、Flash Attention、PagedAttention、Redis缓存、限流</td>
+<td>部署了vLLM推理服务，启用Flash Attention-2和PagedAttention，实现INT8量化，延迟降低60%，支持QPS 150+</td>
+</tr>
+<tr>
+<td><strong>测试体系</strong></td>
+<td>集成测试、性能测试、故障注入</td>
+<td>构建了完整的测试体系，包含100+集成测试用例，性能压测支持QPS 500+</td>
+</tr>
+<tr>
+<td><strong>用户反馈</strong></td>
+<td>Bad Case收集、根因分析、迭代闭环</td>
+<td>建立了用户反馈闭环，支持Bad Case自动收集、A/B测试、模型持续优化</td>
+</tr>
+<tr>
+<td><strong>工程化</strong></td>
+<td>Docker、K8s、Prometheus监控、CI/CD</td>
+<td>构建了完整的LLMOps链路，支持Docker一键部署、K8s扩缩容、实时监控面板</td>
+</tr>
+<tr>
+<td><strong>评测体系</strong></td>
+<td>RAGAS、回归测试、A/B测试</td>
+<td>建立了完整的RAG评测体系，包含RAGAS指标、自动化回归测试、Prompt A/B测试</td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>OAuth2/JWT认证、数据加密、合规审计、敏感数据脱敏</td>
+<td>设计并实现了完整的安全体系，包含OAuth2/JWT认证、数据脱敏、安全审计日志，符合GDPR/个保法要求</td>
+</tr>
+<tr>
+<td><strong>系统设计</strong></td>
+<td>C4架构图、高可用方案、容灾备份策略</td>
+<td>输出了完整的系统架构设计文档（C4模型4层），设计了高可用和容灾备份方案</td>
+</tr>
+<tr>
+<td><strong>代码质量</strong></td>
+<td>静态分析、CI审查、技术债务管理</td>
+<td>建立了代码质量保障体系，集成flake8/black/bandit，配置CI自动代码审查</td>
+</tr>
+<tr>
+<td><strong>环境配置</strong></td>
+<td>三环境差异化、CORS动态策略、配置中心</td>
+<td>设计并实现了三环境差异化配置方案，CORS策略根据环境动态切换，提升开发效率和安全性</td>
+</tr>
+<tr>
+<td><strong>业务分析</strong></td>
+<td>用户画像、产品路线图、竞品分析</td>
+<td>完成了用户画像分析和产品路线图设计，输出了竞品分析报告</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-优先级说明">💡 优先级说明</h2>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>能力模块</th>
+<th>周次</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>P0</strong></td>
+<td>提示工程、ES检索、多Agent协作</td>
+<td>第1-6周</td>
+<td>直接决定产品效果，面试必问</td>
+</tr>
+<tr>
+<td><strong>P1</strong></td>
+<td>安全合规、系统设计、测试体系</td>
+<td>第8-10周</td>
+<td>企业级必备，架构能力证明</td>
+</tr>
+<tr>
+<td><strong>P2</strong></td>
+<td>LLMOps、代码质量、消息队列</td>
+<td>第7、11-12周</td>
+<td>Docker/K8s是工程能力硬指标</td>
+</tr>
+<tr>
+<td><strong>P3</strong></td>
+<td>模型微调、推理优化</td>
+<td>第13-18周</td>
+<td>建立技术护城河，加分项</td>
+</tr>
+<tr>
+<td><strong>P4</strong></td>
+<td>业务理解、前沿技术</td>
+<td>第19-30周</td>
+<td>高阶能力，展示潜力</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-完整能力覆盖确认">✅ 完整能力覆盖确认</h2>
+<table>
+<thead>
+<tr>
+<th>评估维度</th>
+<th>覆盖度</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>技术深度（RAG/Agent/微调）</td>
+<td>100%</td>
+<td>完整覆盖</td>
+</tr>
+<tr>
+<td>工程能力（Docker/K8s/CI-CD）</td>
+<td>100%</td>
+<td>完整覆盖</td>
+</tr>
+<tr>
+<td>安全合规（认证/加密/GDPR）</td>
+<td>100%</td>
+<td>完整覆盖</td>
+</tr>
+<tr>
+<td>系统设计（架构/高可用/容灾）</td>
+<td>100%</td>
+<td>完整覆盖</td>
+</tr>
+<tr>
+<td>测试质量（集成/性能/静态分析）</td>
+<td>100%</td>
+<td>完整覆盖</td>
+</tr>
+<tr>
+<td>业务协作（产品/项目管理）</td>
+<td>100%</td>
+<td>完整覆盖</td>
+</tr>
+<tr>
+<td>前沿技术（MoE/RAG 2.0/AutoGen）</td>
+<td>100%</td>
+<td>完整覆盖</td>
+</tr>
+</tbody>
+</table>
+<p><strong>结论</strong>：本拓展计划已 <strong>100%覆盖AI应用开发岗位的核心能力要求</strong>，且按照岗位优先级顺序排列，确保学习路径高效、产出最大化。</p>
+<hr>
+<h2 id="-快速出成果策略">🚀 快速出成果策略</h2>
+<ol>
+<li><strong>第1周</strong>：Prompt优化（立刻能看到效果）</li>
+<li><strong>第2周</strong>：多Agent协作（面试重点）</li>
+<li><strong>第3周</strong>：ES检索（RAG核心）</li>
+<li><strong>第4周</strong>：安全合规（企业需求）</li>
+<li><strong>第5周</strong>：Docker/K8s部署（工程能力证明）</li>
+</ol>
+<p>祝你学习顺利！🚀</p>
+
+            
+            
+        </body>
+        </html>

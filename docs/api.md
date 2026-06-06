@@ -144,6 +144,8 @@ Agent、配置、模板、协作类接口中有部分直接返回业务 JSON，�
 | `POST` | `/api/v1/text-process/split-sentences` | 分句 |
 | `POST` | `/api/v1/text-process/clean-text` | 文本清洗 |
 
+切分策略：统一使用 SPEAKER_AWARE_HYBRID，支持语气词过滤、说话人感知、语义相似度合并，无说话人信息时自动降级为纯语义分块。
+
 ---
 
 ## 向量化接口

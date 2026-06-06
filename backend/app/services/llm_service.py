@@ -28,6 +28,8 @@ class LLMService:
         model: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
     ) -> str:
         """
         调用 LLM 对话接口
@@ -37,10 +39,36 @@ class LLMService:
             model: 模型名称（可选，默认使用配置）
             temperature: 温度（可选，默认使用配置）
             max_tokens: 最大 token 数（可选，默认使用配置）
+            api_key: API密钥（可选，默认使用配置）
+            api_base: API地址（可选，默认使用配置）
 
         Returns:
             LLM 生成的文本
         """
+        # 如果传入了不同的api_key或api_base，创建一个临时的client
+        if api_key or api_base:
+            temp_client = AsyncOpenAI(
+                api_key=api_key or settings.LLM_API_KEY,
+                base_url=api_base or settings.LLM_API_BASE,
+                timeout=Timeout(
+                    connect=10,
+                    read=settings.LLM_TIMEOUT,
+                    write=10,
+                    pool=5,
+                ),
+                max_retries=0,
+            )
+            try:
+                response = await temp_client.chat.completions.create(
+                    model=model or settings.LLM_MODEL,
+                    messages=messages,
+                    temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
+                    max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
+                )
+                return response.choices[0].message.content
+            finally:
+                await temp_client.close()
+
         try:
             response = await self.client.chat.completions.create(
                 model=model or settings.LLM_MODEL,
@@ -60,6 +88,8 @@ class LLMService:
         model: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
     ) -> str:
         """
         基于上下文生成回答（RAG 问答）
@@ -69,6 +99,8 @@ class LLMService:
             context: 检索到的上下文片段
             model: 模型名称（可选）
             temperature: 温度（可选）
+            api_key: API密钥（可选）
+            api_base: API地址（可选）
 
         Returns:
             生成的回答
@@ -114,6 +146,8 @@ class LLMService:
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
+            api_key=api_key,
+            api_base=api_base,
         )
 
     async def _call(self, prompt: str, **kwargs) -> str:

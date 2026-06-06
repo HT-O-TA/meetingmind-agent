@@ -194,7 +194,7 @@ class ConfigCenter:
             ),
             ConfigItem(
                 key="llm.timeout",
-                value=20,
+                value=120,
                 description="超时时间(秒)",
                 category=ConfigCategory.LLM,
                 source=ConfigSource.DEFAULT,
@@ -305,11 +305,11 @@ class ConfigCenter:
                 data_type="bool"
             ),
             
-            # 文本处理配置
+            # 文本处理配置（基于SPEAKER_AWARE_HYBRID参数调优实验）
             ConfigItem(
                 key="processing.chunk_size",
-                value=512,
-                description="切片大小",
+                value=300,
+                description="切片大小（实验调优后）",
                 category=ConfigCategory.PROCESSING,
                 source=ConfigSource.DEFAULT,
                 data_type="int",
@@ -317,42 +317,17 @@ class ConfigCenter:
             ),
             ConfigItem(
                 key="processing.chunk_overlap",
-                value=64,
-                description="切片重叠",
+                value=30,
+                description="切片重叠（实验调优后）",
                 category=ConfigCategory.PROCESSING,
                 source=ConfigSource.DEFAULT,
                 data_type="int",
                 min_value=0
             ),
             ConfigItem(
-                key="processing.enable_semantic_chunking",
-                value=False,
-                description="文档上传流程启用语义分块",
-                category=ConfigCategory.PROCESSING,
-                source=ConfigSource.DEFAULT,
-                data_type="bool"
-            ),
-            ConfigItem(
-                key="processing.semantic_chunk_strategy",
-                value="semantic_hybrid",
-                description="语义分块策略",
-                category=ConfigCategory.PROCESSING,
-                source=ConfigSource.DEFAULT,
-                data_type="str",
-                enum_values=["semantic", "semantic_hybrid", "paragraph", "fixed_size"]
-            ),
-            ConfigItem(
-                key="processing.semantic_chunk_use_llm",
-                value=False,
-                description="语义分块允许调用LLM",
-                category=ConfigCategory.PROCESSING,
-                source=ConfigSource.DEFAULT,
-                data_type="bool"
-            ),
-            ConfigItem(
                 key="processing.semantic_chunk_min_size",
-                value=100,
-                description="语义块最小大小",
+                value=50,
+                description="语义块最小大小（SPEAKER_AWARE_HYBRID实验调优后）",
                 category=ConfigCategory.PROCESSING,
                 source=ConfigSource.DEFAULT,
                 data_type="int",
@@ -360,8 +335,8 @@ class ConfigCenter:
             ),
             ConfigItem(
                 key="processing.semantic_chunk_max_size",
-                value=1000,
-                description="语义块最大大小",
+                value=300,
+                description="语义块最大大小（SPEAKER_AWARE_HYBRID实验调优后）",
                 category=ConfigCategory.PROCESSING,
                 source=ConfigSource.DEFAULT,
                 data_type="int",
@@ -369,28 +344,22 @@ class ConfigCenter:
             ),
             ConfigItem(
                 key="processing.semantic_chunk_overlap",
-                value=50,
-                description="语义分块降级固定切分重叠",
+                value=30,
+                description="语义块重叠大小（SPEAKER_AWARE_HYBRID实验调优后）",
                 category=ConfigCategory.PROCESSING,
                 source=ConfigSource.DEFAULT,
                 data_type="int",
                 min_value=0
             ),
             ConfigItem(
-                key="processing.semantic_chunk_build_hierarchy",
-                value=True,
-                description="语义分块构建父子层级",
+                key="processing.semantic_chunk_threshold",
+                value=0.7,
+                description="语义相似度阈值（SPEAKER_AWARE_HYBRID实验调优后）",
                 category=ConfigCategory.PROCESSING,
                 source=ConfigSource.DEFAULT,
-                data_type="bool"
-            ),
-            ConfigItem(
-                key="processing.semantic_chunk_preserve_structure",
-                value=True,
-                description="语义分块保留标题结构",
-                category=ConfigCategory.PROCESSING,
-                source=ConfigSource.DEFAULT,
-                data_type="bool"
+                data_type="float",
+                min_value=0.0,
+                max_value=1.0
             ),
         ]
         
@@ -411,16 +380,14 @@ class ConfigCenter:
             "LLM_MODEL": "llm.model",
             "LLM_TEMPERATURE": "llm.temperature",
             "LLM_MAX_TOKENS": "llm.max_tokens",
+            "LLM_TIMEOUT": "llm.timeout",
             "EMBEDDING_MODEL": "embedding.model",
             "EMBEDDING_DEVICE": "embedding.device",
-            "ENABLE_SEMANTIC_CHUNKING": "processing.enable_semantic_chunking",
-            "SEMANTIC_CHUNK_STRATEGY": "processing.semantic_chunk_strategy",
-            "SEMANTIC_CHUNK_USE_LLM": "processing.semantic_chunk_use_llm",
+            # 语义分块配置（统一使用 SPEAKER_AWARE_HYBRID）
             "SEMANTIC_CHUNK_MIN_SIZE": "processing.semantic_chunk_min_size",
             "SEMANTIC_CHUNK_MAX_SIZE": "processing.semantic_chunk_max_size",
             "SEMANTIC_CHUNK_OVERLAP": "processing.semantic_chunk_overlap",
-            "SEMANTIC_CHUNK_BUILD_HIERARCHY": "processing.semantic_chunk_build_hierarchy",
-            "SEMANTIC_CHUNK_PRESERVE_STRUCTURE": "processing.semantic_chunk_preserve_structure",
+            "SEMANTIC_CHUNK_THRESHOLD": "processing.semantic_chunk_threshold",
         }
         
         for env_key, config_key in env_mappings.items():

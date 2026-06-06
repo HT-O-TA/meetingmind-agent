@@ -26,22 +26,20 @@ class Settings(BaseSettings):
     ALLOWED_FILE_EXTENSIONS: str = '["txt", "pdf", "docx", "doc", "md", "csv", "xlsx", "xlsm"]'  # 允许上传的文件格式列表（JSON格式）
     
     # ==================== 文本处理配置 ====================
-    CHUNK_SIZE: int = 512  # 固定长度切分模式下的切片大小（字符数）
-    CHUNK_OVERLAP: int = 64  # 固定长度切分模式下的切片重叠大小（字符数）
-    CHUNK_MODE: str = "speaker"  # 切分模式："speaker"（按说话人发言切分）或 "fixed"（固定长度切分）
-    SPEAKER_MIN_CHUNK_SIZE: int = 100  # speaker模式下合并短发言的最小字符阈值
-    ENABLE_SEMANTIC_CHUNKING: bool = False  # 是否在文档向量化流程中启用语义分块（默认关闭，保持兼容）
-    SEMANTIC_CHUNK_STRATEGY: str = "semantic_hybrid"  # 语义分块策略：semantic/semantic_hybrid/paragraph/fixed_size
-    SEMANTIC_CHUNK_USE_LLM: bool = False  # 是否允许语义分块器调用LLM；关闭时使用规则化hybrid降级策略
-    SEMANTIC_CHUNK_MIN_SIZE: int = 100  # 语义块最小字符/近似token阈值
-    SEMANTIC_CHUNK_MAX_SIZE: int = 1000  # 语义块最大字符/近似token阈值
-    SEMANTIC_CHUNK_OVERLAP: int = 50  # 语义分块固定切分降级时的重叠大小
-    SEMANTIC_CHUNK_BUILD_HIERARCHY: bool = True  # 是否构建父子块层级关系
-    SEMANTIC_CHUNK_PRESERVE_STRUCTURE: bool = True  # 是否优先使用标题层级结构分块
+    # SPEAKER_AWARE_HYBRID 参数调优实验结论（基于会议文档数据集）：
+    # 最佳配置: min=50, max=300, overlap=30, threshold=0.7, MRR=0.517
+    # 策略: 说话人感知+语义连贯性混合分块，无说话人信息时回退为纯语义分块
+    CHUNK_SIZE: int = 300  # 基础切片大小（字符数）
+    CHUNK_OVERLAP: int = 30  # 切片重叠大小（字符数）
+    SPEAKER_MIN_CHUNK_SIZE: int = 50  # 合并短发言的最小字符阈值
+    # 语义分块配置（统一使用 SPEAKER_AWARE_HYBRID）
+    SEMANTIC_CHUNK_MIN_SIZE: int = 50  # 语义块最小字符阈值（实验调优后）
+    SEMANTIC_CHUNK_MAX_SIZE: int = 300  # 语义块最大字符阈值（实验调优后）
+    SEMANTIC_CHUNK_OVERLAP: int = 30  # 语义块重叠大小（实验调优后）
+    SEMANTIC_CHUNK_THRESHOLD: float = 0.7  # 语义相似度阈值（实验调优后）
 
     # ==================== 日志配置 ====================
     LOG_LEVEL: str = "INFO"  # 日志级别：DEBUG / INFO / WARNING / ERROR / CRITICAL
-    LOG_DIR: str = "./logs"  # 日志文件存储目录
 
     # ==================== Redis缓存配置（混合方案） ====================
     REDIS_URL: str = "redis://localhost:6379/0"  # Redis连接字符串
@@ -58,9 +56,7 @@ class Settings(BaseSettings):
     # ==================== 向量化配置 ====================
     EMBEDDING_MODEL: str = "BAAI/bge-m3"  # HuggingFace模型标识（用于远程下载）
     EMBEDDING_MODEL_NAME: str = "bge-m3"  # 当前使用的本地模型文件夹名称（不带前缀）
-    VECTOR_DIMENSION: int = 1024  # 向量维度（bge-m3为1024维，预留配置，暂未使用）
     EMBEDDING_DEVICE: str = "cuda"  # 向量化计算设备："cpu" 或 "cuda"
-    VECTOR_INDEX_DIR: str = "./vector_index"  # 向量索引存储目录（预留配置，暂未使用）
     TOP_K_DEFAULT: int = 5  # 默认返回的检索结果数量
     SIMILARITY_THRESHOLD: float = 0.7  # 相似度阈值，低于此值的结果将被过滤（0.0表示不过滤）
     
@@ -73,14 +69,17 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "qwen3.6-plus"  # 默认使用的LLM模型名称
     LLM_TEMPERATURE: float = 0.7  # LLM温度参数，控制输出随机性（0-1）
     LLM_MAX_TOKENS: int = 1000  # LLM生成的最大token数
-    LLM_TIMEOUT: int = 20  # LLM API请求超时时间（秒）
+    LLM_TIMEOUT: int = 120  # LLM API请求超时时间（秒）
     LLM_MAX_CONTEXT_CHARS: int = 5000  # 传入LLM的最大上下文字符数
 
     # ==================== RAG评估配置 ====================
     EVAL_LLM_MODEL: str = "qwen-turbo"  # 评估专用轻量模型，空字符串则复用 LLM_MODEL
+    EVAL_LLM_API_KEY: str = ""  # 评估专用API密钥（空字符串则复用 LLM_API_KEY）
+    EVAL_LLM_API_BASE: str = ""  # 评估专用API地址（空字符串则复用 LLM_API_BASE）
     EVAL_LLM_MAX_TOKENS: int = 300  # 评估时答案不需要太长，节省token
     EVAL_SKIP_LLM: bool = True  # 是否跳过LLM生成，只计算检索指标；日常调参建议设为 True
     EVAL_TOP_K: int = 5  # 评估时的检索返回数量，覆盖 TOP_K_DEFAULT
+    BASELINE_FILE: str = "rag_baseline.json"  # RAG回归测试基准文件路径
     
     # ==================== 多路召回与重排序配置 ====================
     BM25_WEIGHT: float = 0.3  # BM25检索权重（与向量检索权重相加应为1.0）
