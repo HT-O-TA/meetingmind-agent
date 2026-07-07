@@ -10,6 +10,9 @@ backend/model/
 backend/uploads/
 !backend/uploads/.gitkeep
 
+# Python wheels (binary packages)
+backend/wheels/
+
 # Environment variables
 backend/.env
 .env
@@ -59,11 +62,15 @@ backend/logs/
 
 # Node.js
 node_modules/
+frontend/node_modules/
 package-lock.json
 yarn.lock
 dist/
+frontend/dist/
 build/
+frontend/build/
 test-report/
+frontend/test-report/
 
 # OS files
 .DS_Store
