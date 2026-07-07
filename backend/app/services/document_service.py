@@ -23,8 +23,14 @@ class DocumentService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.text_process_service = TextProcessService()
-        self.embedding_service = EmbeddingService()
+        self._embedding_service = None  # 懒加载
         self.document_parser = DocumentParser()
+    
+    @property
+    def embedding_service(self):
+        if self._embedding_service is None:
+            self._embedding_service = EmbeddingService()
+        return self._embedding_service
 
     def _get_runtime_config(self, key: str, fallback: Any) -> Any:
         """读取配置中心运行时配置，失败时回退到 settings。"""
@@ -90,15 +96,16 @@ class DocumentService:
             app_logger.error(f"文件类型错误: {filename} -> {error_msg}")
             raise AppException(error_msg, 400)
 
-        # 创建上传目录
-        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+        # 创建上传目录（使用绝对路径）
+        upload_dir = settings.UPLOAD_DIR_ABSOLUTE
+        os.makedirs(upload_dir, exist_ok=True)
         
         # 安全处理文件名
         safe_original_name = secure_filename(filename) if filename else "unnamed"
         if not safe_original_name:
             safe_original_name = "unnamed"
         safe_name = f"{os.urandom(8).hex()}_{safe_original_name}"
-        file_path = os.path.join(settings.UPLOAD_DIR, safe_name)
+        file_path = os.path.join(upload_dir, safe_name)
 
         # 读取文件内容
         try:
@@ -259,6 +266,19 @@ class DocumentService:
         - 语气词过滤
         - 无说话人信息时自动回退为纯语义分块
         """
+        enable_semantic = self._get_runtime_config("processing.enable_semantic_chunking", False)
+        if not enable_semantic:
+            chunks = self.text_process_service.split_chunks(content)
+            return chunks, [{} for _ in chunks]
+
+        strategy_name = self._get_runtime_config("processing.semantic_chunk_strategy", "speaker_aware_hybrid")
+        use_llm = self._get_runtime_config("processing.semantic_chunk_use_llm", False)
+        preserve_structure = self._get_runtime_config("processing.semantic_chunk_preserve_structure", False)
+        min_size = self._get_runtime_config("processing.semantic_chunk_min_size", settings.SEMANTIC_CHUNK_MIN_SIZE)
+        max_size = self._get_runtime_config("processing.semantic_chunk_max_size", settings.SEMANTIC_CHUNK_MAX_SIZE)
+        overlap = self._get_runtime_config("processing.semantic_chunk_overlap", settings.SEMANTIC_CHUNK_OVERLAP)
+        build_hierarchy = self._get_runtime_config("processing.semantic_chunk_build_hierarchy", False)
+
         try:
             from app.services.semantic_chunker import (
                 ChunkingConfig,
@@ -266,16 +286,16 @@ class DocumentService:
                 SemanticChunker,
             )
 
-            # 统一使用 SPEAKER_AWARE_HYBRID 策略
+            strategy = getattr(ChunkingStrategy, strategy_name.upper(), ChunkingStrategy.SPEAKER_AWARE_HYBRID)
             chunking_config = ChunkingConfig(
-                strategy=ChunkingStrategy.SPEAKER_AWARE_HYBRID,
-                min_chunk_size=settings.SEMANTIC_CHUNK_MIN_SIZE,
-                max_chunk_size=settings.SEMANTIC_CHUNK_MAX_SIZE,
-                chunk_overlap=settings.SEMANTIC_CHUNK_OVERLAP,
+                strategy=strategy,
+                min_chunk_size=min_size,
+                max_chunk_size=max_size,
+                chunk_overlap=overlap,
                 semantic_threshold=settings.SEMANTIC_CHUNK_THRESHOLD,
-                use_llm_split=False,
-                preserve_structure=False,
-                build_hierarchy=False,
+                use_llm_split=use_llm,
+                preserve_structure=preserve_structure,
+                build_hierarchy=build_hierarchy,
             )
 
             semantic_chunker = SemanticChunker(config=chunking_config)
@@ -286,7 +306,13 @@ class DocumentService:
 
             chunks = [chunk.content for chunk in semantic_chunks if chunk.content and chunk.content.strip()]
             metadatas = [
-                {**chunk.metadata, "chunk_id": chunk.chunk_id}
+                {
+                    **chunk.metadata,
+                    "chunk_id": chunk.chunk_id,
+                    "chunking": "semantic",
+                    "strategy": strategy_name,
+                    "use_llm": use_llm,
+                }
                 for chunk in semantic_chunks
                 if chunk.content and chunk.content.strip()
             ]
@@ -416,3 +442,23 @@ class DocumentService:
             select(VectorChunk).where(VectorChunk.document_id == doc_id).order_by(VectorChunk.chunk_index)
         )
         return result.scalars().all()
+
+
+async def get_all_document_chunks(db: AsyncSession) -> List[Dict[str, Any]]:
+    """获取所有文档块（用于知识图谱构建等场景）"""
+    result = await db.execute(
+        select(VectorChunk).order_by(VectorChunk.document_id, VectorChunk.chunk_index)
+    )
+    chunks = result.scalars().all()
+    
+    return [
+        {
+            "chunk_text": chunk.chunk_text,
+            "document_id": chunk.document_id,
+            "meeting_id": chunk.meeting_id,
+            "speaker_name": chunk.speaker_name,
+            "time_offset": chunk.time_offset,
+            "metadata": chunk.metadata_json or {},
+        }
+        for chunk in chunks
+    ]

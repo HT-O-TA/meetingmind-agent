@@ -60,6 +60,15 @@
             style="margin-bottom:12px"
           />
 
+          <div style="margin-bottom:12px;display:flex;align-items:center;gap:8px">
+            <el-switch
+              v-model="enableHumanInTheLoop"
+              active-text="已启用人机交互"
+              inactive-text="已禁用人机交互"
+            />
+            <el-tag v-if="enableHumanInTheLoop" type="danger" size="small">⚠️ 高风险操作将需要人工确认</el-tag>
+          </div>
+
           <div style="display:flex;gap:8px;margin-bottom:16px">
             <el-button type="primary" :loading="loading" @click="handleQuery">
               <template #icon><Lightning /></template>
@@ -69,10 +78,22 @@
             <el-button @click="resetState">重置</el-button>
           </div>
 
-          <!-- 实时思维链展示 -->
-          <div v-if="isExecuting && streamingThoughts.length" style="margin-bottom:16px">
-            <el-card title="💬 实时思维链" shadow="never" style="background:#f8fafc;border:1px solid #e2e8f0">
-              <div style="max-height:300px;overflow-y:auto">
+          <!-- 实时思维链展示（执行中和执行后都显示） -->
+          <div v-if="streamingThoughts.length" style="margin-bottom:16px">
+            <el-card shadow="never" style="background:#f8fafc;border:1px solid #e2e8f0">
+              <template #header>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-weight:600">💬 思考过程</span>
+                  <div style="display:flex;gap:8px">
+                    <el-tag v-if="isExecuting" type="success" size="small">
+                      <el-icon class="animate-spin"><Loading /></el-icon>
+                      实时更新中...
+                    </el-tag>
+                    <el-tag v-else type="info" size="small">执行完成</el-tag>
+                  </div>
+                </div>
+              </template>
+              <div style="max-height:400px;overflow-y:auto">
                 <el-timeline mode="left">
                   <el-timeline-item
                     v-for="(thought, index) in streamingThoughts"
@@ -147,11 +168,147 @@
             </el-card>
           </div>
 
+          <el-alert
+            v-if="hasActiveConfirmation && !result"
+            style="margin-bottom:16px"
+            type="error"
+            title="等待人工确认"
+            :closable="false"
+          >
+            <template #default>
+              <div>来源：{{ pendingConfirmationDetails.source || 'intent' }}</div>
+              <div>原因：{{ pendingConfirmationDetails.reason || pendingConfirmation.message || '高风险操作需要确认' }}</div>
+              <div v-if="pendingConfirmationDetails.tool_name">
+                工具：{{ pendingConfirmationDetails.tool_name }}
+              </div>
+              <div v-else-if="pendingConfirmationDetails.tool_calls && pendingConfirmationDetails.tool_calls.length">
+                工具：{{ pendingConfirmationDetails.tool_calls.map(t => t.tool_name).join(', ') }}
+              </div>
+              <div style="margin-top:10px;display:flex;gap:8px">
+                <el-button
+                  size="small"
+                  type="primary"
+                  :loading="confirmationLoading"
+                  :disabled="!pendingConfirmationId"
+                  @click="handleContinue()"
+                >
+                  确认并继续
+                </el-button>
+                <el-button
+                  size="small"
+                  :loading="confirmationLoading"
+                  :disabled="!pendingConfirmationId"
+                  @click="handleReject()"
+                >
+                  拒绝
+                </el-button>
+              </div>
+            </template>
+          </el-alert>
+
           <!-- 最终结果 -->
           <div v-if="result">
-            <el-divider>📋 执行计划（PLAN 阶段）</el-divider>
+            <div style="margin-bottom:16px">
+              <el-alert
+                :title="`工作流：${getWorkflowName(result.workflow_type || result.task_type)}${result.route_reason ? ' - ' + result.route_reason : ''}`"
+                type="info"
+                :closable="false"
+              >
+                <template #default>
+                  <span v-if="typeof result.retrieval_confidence === 'number'">
+                    检索置信度：{{ Math.round(result.retrieval_confidence * 100) }}%
+                  </span>
+                  <span v-if="result.citations && result.citations.length" style="margin-left:12px">
+                    引用来源：{{ result.citations.length }} 条
+                  </span>
+                  <span v-if="result.risk_level" style="margin-left:12px">
+                    风险等级：{{ getRiskName(result.risk_level) }}
+                  </span>
+                  <span v-if="result.confirmation_status && result.confirmation_status !== 'not_required'" style="margin-left:12px">
+                    确认状态：{{ getConfirmationStatusName(result.confirmation_status) }}
+                  </span>
+                </template>
+              </el-alert>
+              <el-alert
+                v-if="result.validation_errors && result.validation_errors.length"
+                style="margin-top:8px"
+                type="warning"
+                title="输出校验发现问题"
+                :closable="false"
+              >
+                <template #default>
+                  <div v-for="(error, idx) in result.validation_errors" :key="idx">
+                    {{ error }}
+                  </div>
+                </template>
+              </el-alert>
+              <el-alert
+                v-if="hasActiveConfirmation"
+                style="margin-top:8px"
+                type="error"
+                title="等待人工确认"
+                :closable="false"
+              >
+                <template #default>
+          <div>来源：{{ pendingConfirmationDetails.source || result.pending_action?.source || 'intent' }}</div>
+          <div>原因：{{ pendingConfirmationDetails.reason || result.pending_action?.reason || '高风险操作需要确认' }}</div>
+          <div v-if="pendingConfirmationDetails.tool_name">
+            工具：{{ pendingConfirmationDetails.tool_name }}
+          </div>
+          <div v-else-if="result.pending_action?.tool_calls && result.pending_action.tool_calls.length">
+            工具：{{ result.pending_action.tool_calls.map(t => t.tool_name).join(', ') }}
+          </div>
+          <div style="margin-top: 10px;display:flex;gap:8px">
+            <el-button
+              size="small"
+              type="primary"
+              :loading="confirmationLoading"
+              @click="handleContinue()"
+            >
+              确认并继续
+            </el-button>
+            <el-button
+              size="small"
+              :loading="confirmationLoading"
+              @click="handleReject()"
+            >
+              拒绝
+            </el-button>
+          </div>
+        </template>
+              </el-alert>
+              <el-card
+                v-if="result.policy_results && result.policy_results.length"
+                shadow="never"
+                style="margin-top:8px"
+              >
+                <template #header>工具策略结果</template>
+                <el-table :data="result.policy_results" border size="small">
+                  <el-table-column prop="tool_name" label="工具" width="160" />
+                  <el-table-column prop="code" label="策略" width="170">
+                    <template #default="{ row }">
+                      <el-tag :type="row.allowed ? 'success' : 'danger'" size="small">
+                        {{ getPolicyCodeName(row.code) }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="risk_level" label="风险" width="90">
+                    <template #default="{ row }">
+                      {{ getRiskName(row.risk_level) }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="confirmation_status" label="确认状态" width="130">
+                    <template #default="{ row }">
+                      {{ getConfirmationStatusName(row.confirmation_status) }}
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="reason" label="原因" />
+                </el-table>
+              </el-card>
+            </div>
             
             <div v-if="result.plan" style="margin-bottom:16px">
+              <el-divider>📋 执行计划（PLAN 阶段）</el-divider>
               <el-alert :title="result.plan.analysis" type="info" :closable="false" style="margin-bottom:12px" />
               
               <div style="margin-bottom:12px">
@@ -194,7 +351,7 @@
               </el-table>
             </div>
 
-            <el-divider>⚡ 执行结果（EXECUTE 阶段）</el-divider>
+            <el-divider>⚡ 执行结果</el-divider>
             <div v-if="result.answer">
               <div style="font-weight:600;margin-bottom:8px;color:#409eff">💬 AI 回答</div>
               <el-card style="background:#e8f4ff;border:1px solid #409eff" shadow="never">
@@ -232,16 +389,104 @@
               </el-table>
             </div>
 
-            <el-divider>🔍 质量评估（REFLECT 阶段）</el-divider>
             <el-card v-if="result.reflection" shadow="never">
+              <template #header>🔍 质量评估（REPLAN 阶段）</template>
               <div style="display:flex;align-items:center;margin-bottom:16px">
                 <span style="font-weight:600;margin-right:12px">质量评分：</span>
                 <el-progress
-                  :percentage="Math.round(result.reflection.quality_score * 100)"
-                  :color="getScoreColor(result.reflection.quality_score)"
+                  :percentage="Math.round(getQualityScore(result.reflection) * 100)"
+                  :color="getScoreColor(getQualityScore(result.reflection))"
                   style="width:200px"
                 />
-                <span style="margin-left:12px;font-size:18px">{{ (result.reflection.quality_score * 100).toFixed(0) }}%</span>
+                <span style="margin-left:12px;font-size:18px">{{ (getQualityScore(result.reflection) * 100).toFixed(0) }}%</span>
+              </div>
+
+              <!-- 评估参数明细 -->
+              <div style="margin-bottom:16px;padding:12px;background:#f8fafc;border-radius:8px">
+                <div style="font-weight:600;margin-bottom:12px;color:#409eff">📊 评估参数明细</div>
+                
+                <!-- 5个通用指标展示 -->
+                <div style="margin-bottom:12px">
+                  <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+                    <div v-if="result.reflection.metrics.task_completion != null" style="flex:1;min-width:150px">
+                      <div style="font-size:12px;color:#666;margin-bottom:4px">任务达成度 (35%)</div>
+                      <el-progress 
+                        :percentage="Math.round(result.reflection.metrics.task_completion * 100)" 
+                        :color="getScoreColor(result.reflection.metrics.task_completion)"
+                        :stroke-width="8"
+                        :show-text="false"
+                      />
+                      <div style="text-align:center;font-size:12px;margin-top:2px">{{ (result.reflection.metrics.task_completion * 100).toFixed(0) }}%</div>
+                    </div>
+                    <div v-if="result.reflection.metrics.correctness != null" style="flex:1;min-width:150px">
+                      <div style="font-size:12px;color:#666;margin-bottom:4px">正确性 (25%)</div>
+                      <el-progress 
+                        :percentage="Math.round(result.reflection.metrics.correctness * 100)" 
+                        :color="getScoreColor(result.reflection.metrics.correctness)"
+                        :stroke-width="8"
+                        :show-text="false"
+                      />
+                      <div style="text-align:center;font-size:12px;margin-top:2px">{{ (result.reflection.metrics.correctness * 100).toFixed(0) }}%</div>
+                    </div>
+                    <div v-if="result.reflection.metrics.process_efficiency != null" style="flex:1;min-width:150px">
+                      <div style="font-size:12px;color:#666;margin-bottom:4px">流程效率 (15%)</div>
+                      <el-progress 
+                        :percentage="Math.round(result.reflection.metrics.process_efficiency * 100)" 
+                        :color="getScoreColor(result.reflection.metrics.process_efficiency)"
+                        :stroke-width="8"
+                        :show-text="false"
+                      />
+                      <div style="text-align:center;font-size:12px;margin-top:2px">{{ (result.reflection.metrics.process_efficiency * 100).toFixed(0) }}%</div>
+                    </div>
+                    <div v-if="result.reflection.metrics.expression != null" style="flex:1;min-width:150px">
+                      <div style="font-size:12px;color:#666;margin-bottom:4px">表达 (15%)</div>
+                      <el-progress 
+                        :percentage="Math.round(result.reflection.metrics.expression * 100)" 
+                        :color="getScoreColor(result.reflection.metrics.expression)"
+                        :stroke-width="8"
+                        :show-text="false"
+                      />
+                      <div style="text-align:center;font-size:12px;margin-top:2px">{{ (result.reflection.metrics.expression * 100).toFixed(0) }}%</div>
+                    </div>
+                    <div v-if="result.reflection.metrics.risk != null" style="flex:1;min-width:150px">
+                      <div style="font-size:12px;color:#666;margin-bottom:4px">风险 (10%)</div>
+                      <el-progress 
+                        :percentage="Math.round(result.reflection.metrics.risk * 100)" 
+                        :color="getScoreColor(result.reflection.metrics.risk)"
+                        :stroke-width="8"
+                        :show-text="false"
+                      />
+                      <div style="text-align:center;font-size:12px;margin-top:2px">{{ (result.reflection.metrics.risk * 100).toFixed(0) }}%</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <el-descriptions :column="2" border>
+                  <el-descriptions-item label="用户问题">
+                    <span :title="query" style="color:#666">{{ query.length > 50 ? query.slice(0, 50) + '...' : query }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="回答内容">
+                    <span :title="result.answer" style="color:#666">{{ result.answer ? (result.answer.length > 50 ? result.answer.slice(0, 50) + '...' : result.answer) : '无' }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="会议纪要">
+                    <span :title="result.minutes" style="color:#666">{{ result.minutes ? (result.minutes.length > 50 ? result.minutes.slice(0, 50) + '...' : result.minutes) : '无' }}</span>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="待办事项">
+                    <el-tag :type="result.todos && result.todos.length > 0 ? 'success' : 'info'" size="small">
+                      {{ result.todos ? result.todos.length : 0 }} 个
+                    </el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="争议点">
+                    <el-tag :type="result.controversies && result.controversies.length > 0 ? 'danger' : 'info'" size="small">
+                      {{ result.controversies ? result.controversies.length : 0 }} 个
+                    </el-tag>
+                  </el-descriptions-item>
+                  <el-descriptions-item label="需要重试">
+                    <el-tag :type="result.reflection.needs_retry ? 'warning' : 'success'" size="small">
+                      {{ result.reflection.needs_retry ? '是' : '否' }}
+                    </el-tag>
+                  </el-descriptions-item>
+                </el-descriptions>
               </div>
 
               <div v-if="result.reflection.issues && result.reflection.issues.length">
@@ -266,7 +511,7 @@
         <el-tab-pane label="执行过程" name="process">
           <div style="margin-bottom:16px">
             <p style="color:#666;font-size:13px">
-              查看 Agent 的完整执行过程，包括规划、执行、反思三个阶段的思维链
+              查看 Agent 的完整执行过程，包括规划、执行、重新规划三个阶段的思维链
             </p>
           </div>
 
@@ -333,9 +578,9 @@
               <el-icon style="margin:8px;font-size:20px"><ArrowDown /></el-icon>
 
               <div style="margin-bottom:24px;padding:16px;background:#fef0f0;border-radius:8px">
-                <div style="font-weight:600;color:#f56c6c;margin-bottom:8px">🔍 REFLECT 阶段</div>
+                <div style="font-weight:600;color:#f56c6c;margin-bottom:8px">🔍 REPLAN 阶段</div>
                 <div style="font-size:14px;color:#666">
-                  质量评估 → 缺陷检测 → 改进建议
+                  质量评估 → 缺陷检测 → 重新规划决策 → 循环改进
                 </div>
               </div>
               <el-icon style="margin:8px;font-size:20px"><ArrowDown /></el-icon>
@@ -397,7 +642,7 @@ import { ref, onMounted, computed } from 'vue'
 import { agentApi } from '@/api/agents'
 import { documentApi } from '@/api/documents'
 import { ElMessage } from 'element-plus'
-import { ArrowDown, Loading, Lightning, CircleCheck, Warning } from '@element-plus/icons-vue'
+import { ArrowDown, Loading, Promotion, CircleCheck, Warning } from '@element-plus/icons-vue'
 
 const activeTab = ref('qa')
 const query = ref('')
@@ -407,6 +652,27 @@ const result = ref(null)
 const thoughts = ref([])
 const documents = ref([])
 const selectedDocumentIds = ref([])
+const enableHumanInTheLoop = ref(false)
+const pendingConfirmation = ref(null)
+const confirmationLoading = ref(false)
+const sseController = ref(null)
+const pendingConfirmationId = computed(() => pendingConfirmation.value?.request_id || null)
+const pendingConfirmationDetails = computed(() => pendingConfirmation.value?.details || pendingConfirmation.value || {})
+const hasFinalOutput = computed(() => {
+  const data = result.value
+  if (!data) return false
+  return Boolean(data.answer || data.minutes || (data.todos && data.todos.length) || (data.controversies && data.controversies.length))
+})
+const hasActiveConfirmation = computed(() => {
+  const data = result.value
+  if (data?.confirmation_status === 'approved' || data?.confirmation_status === 'rejected' || data?.confirmation_status === 'not_required') {
+    return false
+  }
+  if (data?.pending_action && (data.confirmation_status === 'required' || data.requires_confirmation)) {
+    return true
+  }
+  return Boolean(pendingConfirmation.value && !hasFinalOutput.value)
+})
 
 // 实时执行状态
 const isExecuting = ref(false)
@@ -416,11 +682,17 @@ const intermediateResults = ref([])
 const currentPhase = ref('初始化')
 const progressPercent = ref(0)
 
-const phaseNames = { plan: '规划', execute: '执行', reflect: '反思' }
+const phaseNames = { plan: '规划', execute: '执行', reflect: '反思', replan: '重新规划' }
 const agentNames = {
+  route_agent: '路由 Agent',
+  simple_qa_node: '问答工作流',
+  minutes_node: '纪要工作流',
+  todos_node: '待办工作流',
+  controversy_node: '争议分析工作流',
   plan_agent: '规划 Agent',
   execute_agent: '执行 Agent',
   reflect_agent: '反思 Agent',
+  replan_agent: '重新规划 Agent',
   qa_sub_agent: '问答子 Agent',
   minutes_sub_agent: '纪要子 Agent',
   todo_sub_agent: '待办子 Agent',
@@ -430,17 +702,28 @@ const agentNames = {
 const progressColor = computed(() => {
   if (currentPhase.value === '规划') return '#409eff'
   if (currentPhase.value === '执行') return '#67c23a'
-  if (currentPhase.value === '反思') return '#f56c6c'
+  if (currentPhase.value === '反思' || currentPhase.value === '重新规划') return '#f56c6c'
   return '#909399'
 })
+
+function getQualityScore(reflection) {
+  if (!reflection) return 0
+  if (typeof reflection.overall_score === 'number' && !isNaN(reflection.overall_score)) {
+    return reflection.overall_score
+  }
+  if (typeof reflection.quality_score === 'number' && !isNaN(reflection.quality_score)) {
+    return reflection.quality_score
+  }
+  return 0
+}
 
 function getPhaseName(phase) { return phaseNames[phase] || phase }
 function getAgentName(agentId) { return agentNames[agentId] || agentId }
 function getPhaseColor(phase) {
-  return { plan: '#409eff', execute: '#67c23a', reflect: '#f56c6c' }[phase] || '#909399'
+  return { plan: '#409eff', execute: '#67c23a', reflect: '#f56c6c', replan: '#f56c6c' }[phase] || '#909399'
 }
 function getPhaseTagType(phase) {
-  return { plan: 'info', execute: 'success', reflect: 'danger' }[phase] || 'info'
+  return { plan: 'info', execute: 'success', reflect: 'danger', replan: 'danger' }[phase] || 'info'
 }
 function getScoreColor(score) {
   if (score >= 0.8) return '#67c23a'
@@ -460,6 +743,47 @@ function getStatusTag(status) {
   }[status] || 'info'
 }
 
+function getWorkflowName(type) {
+  return {
+    simple_qa: '简单问答',
+    minutes: '会议纪要',
+    todo: '待办提取',
+    controversy: '争议分析',
+    complex: '复杂规划',
+    qa: '问答',
+    multi: '复杂任务',
+  }[type] || type || '未知'
+}
+
+function getRiskName(level) {
+  return {
+    low: '低',
+    medium: '中',
+    high: '高',
+    critical: '严重',
+  }[level] || level
+}
+
+function getConfirmationStatusName(status) {
+  return {
+    not_required: '无需确认',
+    required: '需要确认',
+    required_but_disabled: '需要确认但未启用',
+    approved: '已确认',
+    rejected: '已拒绝',
+  }[status] || status
+}
+
+function getPolicyCodeName(code) {
+  return {
+    allowed: '已放行',
+    policy_denied: '策略拒绝',
+    confirmation_required: '需要确认',
+    tool_not_found: '工具不存在',
+    non_idempotent_limited: '限制重试',
+  }[code] || code
+}
+
 async function loadDocuments() {
   try {
     const res = await documentApi.list({ limit: 100 })
@@ -475,10 +799,21 @@ onMounted(() => {
 
 function resetState() {
   query.value = ''
+  resetExecutionState()
+}
+
+function resetExecutionState() {
+  // 取消正在进行的 SSE 连接
+  if (sseController.value) {
+    sseController.value.abort()
+    sseController.value = null
+  }
+  
   result.value = null
   thoughts.value = []
   streamingThoughts.value = []
   intermediateResults.value = []
+  pendingConfirmation.value = null
   executed.value = false
   isExecuting.value = false
   isStreaming.value = false
@@ -487,41 +822,54 @@ function resetState() {
 }
 
 async function handleQuery() {
-  if (!query.value.trim()) {
+  const question = query.value.trim()
+  if (!question) {
     ElMessage.warning('请输入问题')
     return
   }
 
-  resetState()
+  resetExecutionState()
   loading.value = true
   isExecuting.value = true
 
   try {
     const payload = {
-      question: query.value,
+      question,
+      enable_human_in_the_loop: enableHumanInTheLoop.value,
+      enable_tool_calling: true
     }
     if (selectedDocumentIds.value.length > 0) {
       payload.document_ids = selectedDocumentIds.value
     }
 
+    // 创建 AbortController 用于取消 SSE 连接
+    sseController.value = new AbortController()
+
     // 尝试使用流式API
     try {
-      const stream = await agentApi.queryStream(payload)
-      await handleStreamResponse(stream)
+      await agentApi.queryStream(payload, (data) => {
+        handleStreamEvent(data)
+      }, sseController.value.signal)
     } catch (streamErr) {
-      console.log('流式API不可用，使用普通API')
+      if (streamErr.name === 'AbortError') {
+        return
+      }
+      console.warn('流式API不可用，使用普通API', streamErr)
       const res = await agentApi.query(payload)
       await handleNonStreamResponse(res)
     }
 
     executed.value = true
-    ElMessage.success('Agent 执行成功')
+    if (!pendingConfirmation.value) {
+      ElMessage.success('Agent 执行成功')
+    }
   } catch (e) {
     ElMessage.error('Agent 执行失败: ' + (e.message || '未知错误'))
   } finally {
     loading.value = false
     isExecuting.value = false
     isStreaming.value = false
+    sseController.value = null
   }
 }
 
@@ -531,31 +879,41 @@ async function handleStreamResponse(stream) {
   let buffer = ''
   isStreaming.value = true
 
+  const parseBufferedEvents = () => {
+    const lines = buffer.split('\n')
+    buffer = lines.pop() || ''
+
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (!trimmed.startsWith('data: ')) continue
+
+      const dataStr = trimmed.slice(6)
+      if (dataStr === '[DONE]') {
+        progressPercent.value = 100
+        return true
+      }
+
+      const data = JSON.parse(dataStr)
+      handleStreamEvent(data)
+    }
+
+    return false
+  }
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) {
       buffer += decoder.decode()
+      if (buffer.trim()) {
+        buffer += '\n'
+        parseBufferedEvents()
+      }
       break
     }
 
     try {
       buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-      
-      for (const line of lines) {
-        const trimmed = line.trim()
-        if (!trimmed.startsWith('data: ')) continue
-
-        const dataStr = trimmed.slice(6)
-        if (dataStr === '[DONE]') {
-          progressPercent.value = 100
-          return
-        }
-        
-        const data = JSON.parse(dataStr)
-        handleStreamEvent(data)
-      }
+      if (parseBufferedEvents()) return
     } catch (e) {
       console.error('解析流式数据失败', e)
     }
@@ -576,6 +934,26 @@ function handleStreamEvent(data) {
     result.value = data.data
     thoughts.value = data.data.thoughts || streamingThoughts.value
     progressPercent.value = 100
+    currentPhase.value = '完成'
+    if (!data.data?.pending_action || data.data?.confirmation_status !== 'required') {
+      pendingConfirmation.value = null
+    } else {
+      if (data.data.pending_action.request_id) {
+        pendingConfirmation.value = {
+          request_id: data.data.pending_action.request_id,
+          details: data.data.pending_action
+        }
+      } else {
+        loadPendingConfirmation()
+      }
+    }
+  } else if (data.type === 'confirmation_required') {
+    pendingConfirmation.value = data.data
+    loading.value = false
+    currentPhase.value = '等待确认'
+    ElMessage.warning('高风险操作需要人工确认')
+  } else if (data.type === 'error') {
+    throw new Error(data.data?.message || 'Agent 流式执行失败')
   }
 }
 
@@ -586,8 +964,8 @@ function updateProgress(phase) {
   } else if (phase === 'execute') {
     currentPhase.value = '执行'
     progressPercent.value = Math.min(progressPercent.value + 10, 66)
-  } else if (phase === 'reflect') {
-    currentPhase.value = '反思'
+  } else if (phase === 'reflect' || phase === 'replan') {
+    currentPhase.value = phase === 'replan' ? '重新规划' : '反思'
     progressPercent.value = Math.min(progressPercent.value + 15, 95)
   }
 }
@@ -608,9 +986,106 @@ async function handleNonStreamResponse(res) {
     progressPercent.value = 66
   }
   if (data?.reflection) {
-    currentPhase.value = '反思'
+    currentPhase.value = '重新规划'
     progressPercent.value = 100
   }
+  if (data?.pending_action) {
+    // 直接使用 pending_action 中的数据
+    if (data.confirmation_status !== 'required') {
+      pendingConfirmation.value = null
+    } else if (data.pending_action.request_id) {
+      pendingConfirmation.value = {
+        request_id: data.pending_action.request_id,
+        details: data.pending_action
+      }
+    } else {
+      await loadPendingConfirmation()
+    }
+  } else {
+    pendingConfirmation.value = null
+  }
+}
+
+async function loadPendingConfirmation() {
+  try {
+    const res = await agentApi.getPendingConfirmations()
+    const requests = res?.data?.pending_requests || res?.pending_requests || []
+    const questionText = result.value?.pending_action?.question || query.value
+    pendingConfirmation.value = requests.find(req => req.details?.question === questionText) || requests[0] || null
+  } catch (err) {
+    console.warn('加载待确认请求失败', err)
+  }
+}
+
+async function handleContinue() {
+  confirmationLoading.value = true
+  try {
+    if (pendingConfirmationId.value) {
+      const res = await agentApi.resumeConfirmation(pendingConfirmationId.value, 'approved')
+      const data = res?.data || res
+      
+      if (data.success) {
+        // live_request 模式：原 SSE 连接会继续返回结果，只需清空确认状态
+        if (data.mode === 'live_request') {
+          pendingConfirmation.value = null
+          loading.value = true
+          isExecuting.value = true
+          currentPhase.value = '执行'
+          ElMessage.success('已确认，Agent 将继续执行')
+          
+          // 添加超时处理：如果30秒内没有收到数据，自动重新执行
+          setTimeout(() => {
+            if (loading.value && currentPhase.value === '执行' && !pendingConfirmation.value) {
+              ElMessage.warning('连接超时，正在重新执行...')
+              handleQuery()
+            }
+          }, 30000)
+          
+          return
+        }
+        
+        // snapshot 模式：直接使用返回的结果
+        if (data.mode === 'snapshot' && data.result) {
+          result.value = data.result
+          thoughts.value = data.result.thoughts || []
+          streamingThoughts.value = data.result.thoughts || []
+          pendingConfirmation.value = null
+          ElMessage.success('已从确认点恢复执行')
+          return
+        }
+      }
+    }
+    
+    // 回退：直接重新执行，禁用确认
+    const question = result.value?.pending_action?.question || query.value
+    const newPayload = {
+      question,
+      document_ids: selectedDocumentIds.value.length > 0 ? selectedDocumentIds.value : undefined,
+      enable_human_in_the_loop: false,
+      enable_tool_calling: true
+    }
+    const newRes = await agentApi.query(newPayload)
+    await handleNonStreamResponse(newRes)
+    pendingConfirmation.value = null
+    ElMessage.success('已继续执行')
+  } catch (err) {
+    ElMessage.error('处理失败: ' + (err.message || '未知错误'))
+  } finally {
+    confirmationLoading.value = false
+  }
+}
+
+function handleReject() {
+  if (pendingConfirmationId.value) {
+    agentApi.resumeConfirmation(pendingConfirmationId.value, 'rejected').catch(() => {})
+  }
+  pendingConfirmation.value = null
+  if (result.value?.pending_action) {
+    result.value.pending_action = null
+  }
+  loading.value = false
+  isExecuting.value = false
+  ElMessage.info('已拒绝')
 }
 </script>
 

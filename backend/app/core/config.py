@@ -1,3 +1,4 @@
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import json
@@ -17,7 +18,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://postgres:123456@localhost:5432/meetingmind"  # PostgreSQL数据库连接字符串
 
     # ==================== CORS跨域配置 ====================
-    CORS_ORIGINS: str = '["http://localhost:5173","http://localhost:3000"]'  # 允许的前端跨域地址列表（JSON格式）
+    CORS_ORIGINS: str = '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:3000","http://127.0.0.1:3000"]'  # 允许的前端跨域地址列表（JSON格式）
 
     # ==================== 文件上传配置 ====================
     UPLOAD_DIR: str = "./uploads"  # 文件上传存储目录
@@ -53,6 +54,19 @@ class Settings(BaseSettings):
     ENABLE_API_CACHE: bool = True  # 是否启用 API 响应缓存
     API_CACHE_TTL: int = 60  # API 缓存默认过期时间（秒，1分钟）
 
+    # ==================== RabbitMQ消息队列配置 ====================
+    RABBITMQ_URL: str = "amqp://admin:admin123@localhost:5672"  # RabbitMQ连接字符串
+    RABBITMQ_POOL_SIZE: int = 10  # RabbitMQ连接池大小
+    RABBITMQ_MAX_RETRIES: int = 3  # 最大重试次数
+    RABBITMQ_RETRY_DELAY: int = 5  # 重试延迟（秒）
+    
+    # 任务队列配置
+    QUEUE_DOCUMENT_PROCESS: str = "document_process"  # 文档处理队列
+    QUEUE_VECTOR_EMBED: str = "vector_embed"  # 向量化队列
+    QUEUE_KNOWLEDGE_GRAPH: str = "knowledge_graph"  # 知识图谱构建队列
+    QUEUE_TASK_TIMEOUT: int = 3600  # 任务默认超时时间（秒）
+    QUEUE_PREFETCH_COUNT: int = 1  # 消费者预取消息数量
+
     # ==================== 向量化配置 ====================
     EMBEDDING_MODEL: str = "BAAI/bge-m3"  # HuggingFace模型标识（用于远程下载）
     EMBEDDING_MODEL_NAME: str = "bge-m3"  # 当前使用的本地模型文件夹名称（不带前缀）
@@ -62,6 +76,7 @@ class Settings(BaseSettings):
     
     # ==================== 本地模型配置 ====================
     LOCAL_MODELS_ROOT: str = "./model"  # 本地模型根目录，每个模型一个子文件夹
+    COMPLEXITY_MODEL_NAME: str = "qwen3-0.6B"  # 复杂度分类器使用的本地模型名称
     
     # ==================== LLM配置（OpenAI兼容接口） ====================
     LLM_API_BASE: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"  # LLM API基础URL
@@ -91,6 +106,11 @@ class Settings(BaseSettings):
     ENABLE_BM25: bool = True  # 是否启用BM25检索
     ENABLE_RERANK: bool = True  # 是否启用重排序
     
+    # ==================== 检索策略配置 ====================
+    RETRIEVAL_STRATEGY: str = "B"  # 检索策略：A-当前策略(BM25+dense+加权融合)，B-目标策略(BM25+dense+sparse+RRF融合)
+    RRF_K: int = 60  # RRF融合参数（经典值为60）
+    ENABLE_SPARSE_RETRIEVAL: bool = True  # 是否启用稀疏向量检索（策略B时生效）
+    
     # ==================== 多模态服务配置 ====================
     VISION_API_BASE: str = "https://api.openai.com/v1"  # 视觉API基础URL
     VISION_API_KEY: str = ""  # Vision API密钥
@@ -113,10 +133,116 @@ class Settings(BaseSettings):
     KNOWLEDGE_GRAPH_DEPTH: int = 2  # 图谱扩展深度
     KNOWLEDGE_GRAPH_MIN_SCORE: float = 0.3  # 图谱扩展结果的最低分数阈值
     
+    # ==================== Neo4j 图数据库配置 ====================
+    NEO4J_URI: str = "bolt://neo4j:7687"  # Neo4j Bolt 连接地址
+    NEO4J_USER: str = "neo4j"  # Neo4j 用户名
+    NEO4J_PASSWORD: str = "password"  # Neo4j 密码
+    NEO4J_DATABASE: str = "neo4j"  # 数据库名称
+    ENABLE_NEO4J_PERSISTENCE: bool = True  # 是否启用 Neo4j 持久化
+
+    # ==================== MCP Server 配置 ====================
+    ENABLE_MCP_SERVER: bool = True  # 是否启用 MCP Server
+    MCP_SERVER_PATH: str = "/mcp"  # MCP Server 挂载路径
+
+    # 飞书 MCP 配置
+    FEISHU_MCP_ENABLED: bool = False  # 是否启用飞书 MCP
+    FEISHU_MCP_URL: str = ""  # 飞书 MCP 服务器地址
+    FEISHU_MCP_APP_ID: str = ""  # 飞书应用 ID
+    FEISHU_MCP_APP_SECRET: str = ""  # 飞书应用密钥
+
+    # GitHub MCP 配置
+    GITHUB_MCP_ENABLED: bool = False  # 是否启用 GitHub MCP
+    GITHUB_MCP_URL: str = ""  # GitHub MCP 服务器地址
+    GITHUB_MCP_TOKEN: str = ""  # GitHub Access Token
+
+    # Jira MCP 配置
+    JIRA_MCP_ENABLED: bool = False  # 是否启用 Jira MCP
+    JIRA_MCP_URL: str = ""  # Jira MCP 服务器地址
+    JIRA_MCP_USERNAME: str = ""  # Jira 用户名
+    JIRA_MCP_API_TOKEN: str = ""  # Jira API Token
+
+    # Notion MCP 配置
+    NOTION_MCP_ENABLED: bool = False  # 是否启用 Notion MCP
+    NOTION_MCP_URL: str = ""  # Notion MCP 服务器地址
+    NOTION_MCP_API_KEY: str = ""  # Notion API Key
+
+    # 邮件发送配置
+    SMTP_SERVER: str = "smtp.example.com"  # SMTP服务器地址
+    SMTP_PORT: int = 587  # SMTP端口
+    SMTP_USER: str = ""  # SMTP用户名
+    SMTP_PASSWORD: str = ""  # SMTP密码
+    SMTP_FROM_EMAIL: str = "meetingmind@example.com"  # 发件人邮箱
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self):
+        if self.APP_ENV.lower() == "production":
+            if self.SECRET_KEY == "meetingmind-secret-key-change-in-production":
+                raise ValueError("生产环境必须通过环境变量配置安全的 SECRET_KEY")
+        return self
+    
+    def _get_backend_dir(self) -> str:
+        """获取 backend 目录的绝对路径"""
+        import os
+        # config.py 在 app/core/ 下，所以需要向上2级
+        backend_dir = os.path.dirname(os.path.abspath(__file__))  # core
+        backend_dir = os.path.dirname(backend_dir)  # app
+        backend_dir = os.path.dirname(backend_dir)  # backend
+        return backend_dir
+    
     @property
     def LOCAL_EMBEDDING_MODEL_PATH(self) -> str:
-        """动态计算当前模型的本地路径"""
-        return f"{self.LOCAL_MODELS_ROOT}/{self.EMBEDDING_MODEL_NAME}"
+        """动态计算当前嵌入模型的本地路径（使用绝对路径）"""
+        import os
+        backend_dir = self._get_backend_dir()
+        # 拼接本地模型根目录（支持相对路径和绝对路径）
+        base_path = os.path.join(backend_dir, self.LOCAL_MODELS_ROOT)
+        base_path = os.path.normpath(base_path)
+        return os.path.join(base_path, self.EMBEDDING_MODEL_NAME)
+    
+    @property
+    def COMPLEXITY_MODEL_PATH(self) -> str:
+        """动态计算复杂度分类器模型的本地路径（使用绝对路径）"""
+        import os
+        backend_dir = self._get_backend_dir()
+        base_path = os.path.join(backend_dir, self.LOCAL_MODELS_ROOT)
+        base_path = os.path.normpath(base_path)
+        return os.path.join(base_path, self.COMPLEXITY_MODEL_NAME)
+    
+    @property
+    def RERANKER_MODEL_PATH(self) -> str:
+        """动态计算重排序模型的本地路径（使用绝对路径）"""
+        import os
+        backend_dir = self._get_backend_dir()
+        # 如果是相对路径，转换为绝对路径
+        reranker_path = self.RERANKER_LOCAL_PATH
+        if not os.path.isabs(reranker_path):
+            reranker_path = os.path.join(backend_dir, reranker_path)
+            reranker_path = os.path.normpath(reranker_path)
+        return reranker_path
+    
+    @property
+    def UPLOAD_DIR_ABSOLUTE(self) -> str:
+        """获取上传目录的绝对路径"""
+        import os
+        backend_dir = self._get_backend_dir()
+        # 如果是相对路径，转换为绝对路径
+        upload_dir = self.UPLOAD_DIR
+        if not os.path.isabs(upload_dir):
+            upload_dir = os.path.join(backend_dir, upload_dir)
+            upload_dir = os.path.normpath(upload_dir)
+        return upload_dir
+    
+    @property
+    def BASELINE_FILE_ABSOLUTE(self) -> str:
+        """获取RAG回归测试基准文件的绝对路径"""
+        import os
+        backend_dir = self._get_backend_dir()
+        # 如果是相对路径，转换为绝对路径
+        baseline_file = self.BASELINE_FILE
+        if not os.path.isabs(baseline_file):
+            baseline_file = os.path.join(backend_dir, baseline_file)
+            baseline_file = os.path.normpath(baseline_file)
+        return baseline_file
 
     @property
     def cors_origins_list(self) -> List[str]:

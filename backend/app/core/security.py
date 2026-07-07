@@ -10,16 +10,35 @@ from jose import jwt, JWTError
 from app.core.logger import app_logger
 from app.core.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+try:
+    import bcrypt
+    HAS_BCRYPT = True
+except ImportError:
+    HAS_BCRYPT = False
 
 
 def get_password_hash(password: str) -> str:
     """生成密码哈希"""
-    return pwd_context.hash(password)
+    password = password[:72]
+    if HAS_BCRYPT:
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+    else:
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["pbkdf2_sha256"], default="pbkdf2_sha256")
+        return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码"""
+    plain_password = plain_password[:72]
+    if HAS_BCRYPT and hashed_password.startswith('$2'):
+        try:
+            return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+        except Exception:
+            pass
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], default="pbkdf2_sha256")
     return pwd_context.verify(plain_password, hashed_password)
 
 
@@ -248,6 +267,10 @@ class DataMasking:
         """脱敏手机号"""
         phone = match.group()
         return f"{phone[:3]}****{phone[-4:]}"
+
+    def mask_phone(self, phone: str) -> str:
+        """脱敏单个手机号。"""
+        return self._patterns["phone"].sub(self._mask_phone, phone)
     
     def _mask_email(self, match):
         """脱敏邮箱"""
@@ -419,6 +442,30 @@ class SecuritySystem:
         """记录访问日志"""
         status = AuditStatus.SUCCESS if success else AuditStatus.FAILURE
         self._audit_logger.log(user_id, action, resource_type, resource_id, status, details, ip_address)
+
+    def log_action(
+        self,
+        user_id: str,
+        action: Union[AuditAction, str],
+        resource_type: Union[ResourceType, str],
+        resource_id: str,
+        success: bool = True,
+        details: Optional[Dict[str, Any]] = None,
+        ip_address: Optional[str] = None,
+    ):
+        """兼容旧接口：记录审计动作。"""
+        action_value = action if isinstance(action, AuditAction) else AuditAction(action)
+        resource_value = resource_type if isinstance(resource_type, ResourceType) else ResourceType(resource_type)
+        self.log_access(user_id, action_value, resource_value, resource_id, success, details, ip_address)
+
+    def get_audit_logs(self, limit: int = 50, **filters) -> List[AuditLog]:
+        """兼容旧接口：获取审计日志。"""
+        return self._audit_logger.get_logs(
+            user_id=filters.get("user_id"),
+            action=filters.get("action"),
+            resource_type=filters.get("resource_type"),
+            limit=limit,
+        )
     
     def sanitize_output(self, data: Any) -> Any:
         """清理输出数据（脱敏）"""

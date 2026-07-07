@@ -390,6 +390,19 @@ class PromptMarket:
             data["updated_at"] = template.updated_at.isoformat()
             result.append(data)
         return result
+
+    def search_templates(self, query: str) -> List[PromptTemplate]:
+        """按名称、描述或内容搜索可用模板。"""
+        keyword = query.lower()
+        return [
+            template
+            for template in self._templates.values()
+            if template.is_active and (
+                keyword in template.name.lower()
+                or keyword in template.description.lower()
+                or keyword in template.content.lower()
+            )
+        ]
     
     def create_template(self, **kwargs) -> PromptTemplate:
         """创建模板"""

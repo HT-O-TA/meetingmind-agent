@@ -8,8 +8,13 @@ class ToolCategory(str, Enum):
     """工具分类"""
     # 基础工具
     SEARCH = "search"  # 搜索工具
+    RETRIEVE = "retrieve"  # 读取类
     RETRIEVAL = "retrieval"  # 检索工具
     COMPUTATION = "computation"  # 计算工具
+    GENERATE = "generate"  # 生成类
+    EXTRACT = "extract"  # 抽取类
+    FORMAT = "format"  # 格式化类
+    UTILITY = "utility"  # 工具类
     
     # 会议专用
     MEETING = "meeting"  # 会议相关
@@ -38,6 +43,13 @@ class ToolStatus(str, Enum):
     INACTIVE = "inactive"  # 停用
     DEPRECATED = "deprecated"  # 已废弃
     BETA = "beta"  # 测试中
+
+class ToolRiskLevel(str, Enum):
+    """工具风险等级"""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
 
 @dataclass
 class ToolParameter:
@@ -103,6 +115,56 @@ class ToolParameter:
         }
 
 @dataclass
+class ToolCondition:
+    """工具触发条件"""
+    type: str  # condition_type: keyword, entity, context, regex, semantic
+    value: str  # 条件值
+    operator: str = "contains"  # contains, equals, starts_with, ends_with, matches
+    weight: float = 1.0  # 条件权重
+    required: bool = False  # 是否必需
+    
+    def evaluate(self, context: Dict[str, Any]) -> bool:
+        """评估条件是否满足"""
+        if self.type == "keyword":
+            text = context.get("query", "") + " " + context.get("context", "")
+            text = text.lower()
+            value = self.value.lower()
+            if self.operator == "contains":
+                return value in text
+            elif self.operator == "equals":
+                return text == value
+            elif self.operator == "starts_with":
+                return text.startswith(value)
+            elif self.operator == "ends_with":
+                return text.endswith(value)
+        elif self.type == "entity":
+            entities = context.get("entities", [])
+            return self.value in entities
+        elif self.type == "context":
+            return context.get(self.value) is not None
+        elif self.type == "regex":
+            import re
+            text = context.get("query", "") + " " + context.get("context", "")
+            return bool(re.search(self.value, text))
+        elif self.type == "semantic":
+            return True
+        return False
+
+
+@dataclass
+class ToolCombinationRule:
+    """工具组合规则"""
+    rule_id: str
+    tool_ids: List[str]  # 组合的工具ID列表
+    execution_order: str = "sequential"  # sequential, parallel
+    condition: Optional[str] = None  # 触发条件
+    expected_input: Dict[str, Any] = field(default_factory=dict)
+    expected_output: Dict[str, Any] = field(default_factory=dict)
+    description: str = ""
+    priority: int = 0
+
+
+@dataclass
 class ToolMetadata:
     """工具元数据"""
     tool_id: str  # 工具唯一ID
@@ -120,6 +182,10 @@ class ToolMetadata:
     rate_limit: int = 100  # 速率限制（次/分钟）
     timeout: int = 30  # 超时时间（秒）
     cost: float = 0.0  # 每次调用成本
+    risk_level: ToolRiskLevel | str = ToolRiskLevel.LOW  # 工具风险等级
+    requires_confirmation: bool = False  # 执行前是否需要人工确认
+    idempotent: bool = True  # 重复执行是否不会产生额外副作用
+    allowed_workflows: List[str] = field(default_factory=list)  # 允许使用的工作流
     created_at: datetime = field(default_factory=datetime.now)  # 创建时间
     updated_at: datetime = field(default_factory=datetime.now)  # 更新时间
     
@@ -135,6 +201,14 @@ class ToolMetadata:
     is_async: bool = False  # 是否异步执行
     cacheable: bool = False  # 结果是否可缓存
     
+    # 动态工具选择相关
+    conditions: List[ToolCondition] = field(default_factory=list)  # 触发条件
+    combination_rules: List[ToolCombinationRule] = field(default_factory=list)  # 组合规则
+    input_schema: Dict[str, Any] = field(default_factory=dict)  # 输入数据schema
+    output_schema: Dict[str, Any] = field(default_factory=dict)  # 输出数据schema
+    compatibility_tags: List[str] = field(default_factory=list)  # 兼容性标签
+    exclusion_tags: List[str] = field(default_factory=list)  # 互斥标签
+    
     def __post_init__(self):
         if not self.tags:
             self.tags = []
@@ -144,6 +218,16 @@ class ToolMetadata:
             self.examples = []
         if not self.dependencies:
             self.dependencies = []
+        if not self.allowed_workflows:
+            self.allowed_workflows = []
+        if not self.conditions:
+            self.conditions = []
+        if not self.combination_rules:
+            self.combination_rules = []
+        if not self.compatibility_tags:
+            self.compatibility_tags = []
+        if not self.exclusion_tags:
+            self.exclusion_tags = []
     
     def to_dict(self) -> Dict[str, Any]:
         """转换为字典"""
@@ -163,6 +247,10 @@ class ToolMetadata:
             "rate_limit": self.rate_limit,
             "timeout": self.timeout,
             "cost": self.cost,
+            "risk_level": self.risk_level.value if isinstance(self.risk_level, ToolRiskLevel) else self.risk_level,
+            "requires_confirmation": self.requires_confirmation,
+            "idempotent": self.idempotent,
+            "allowed_workflows": self.allowed_workflows,
             "created_at": self.created_at.isoformat() if isinstance(self.created_at, datetime) else self.created_at,
             "updated_at": self.updated_at.isoformat() if isinstance(self.updated_at, datetime) else self.updated_at,
             "usage_stats": {
@@ -178,7 +266,30 @@ class ToolMetadata:
                 "is_async": self.is_async,
                 "cacheable": self.cacheable,
             },
+            "dynamic": {
+                "conditions": [{"type": c.type, "value": c.value, "operator": c.operator, "weight": c.weight, "required": c.required} for c in self.conditions],
+                "combination_rules": [{"rule_id": r.rule_id, "tool_ids": r.tool_ids, "execution_order": r.execution_order, "priority": r.priority} for r in self.combination_rules],
+                "compatibility_tags": self.compatibility_tags,
+                "exclusion_tags": self.exclusion_tags,
+            },
         }
+    
+    def evaluate_conditions(self, context: Dict[str, Any]) -> float:
+        """评估触发条件，返回匹配分数"""
+        if not self.conditions:
+            return 1.0
+        
+        total_weight = sum(c.weight for c in self.conditions)
+        matched_weight = 0.0
+        
+        for condition in self.conditions:
+            if condition.evaluate(context):
+                matched_weight += condition.weight
+        
+        if total_weight == 0:
+            return 1.0
+        
+        return matched_weight / total_weight
     
     def validate_parameters(self, params: Dict[str, Any]) -> tuple[bool, List[str]]:
         """验证参数列表"""

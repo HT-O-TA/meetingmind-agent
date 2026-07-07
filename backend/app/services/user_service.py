@@ -1,12 +1,13 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
-from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
+from app.models.user import User, UserRole
+from app.schemas.user import UserCreate, UserUpdate, UserUpdateByAdmin
 from app.core.security import get_password_hash, verify_password
 from app.core.exceptions import AppException
 from app.core.cache import cache_get, cache_set, cache_delete
 from app.utils.cache_utils import make_cache_key
+import json
 
 
 class UserService:
@@ -54,6 +55,10 @@ class UserService:
         if await self.get_by_email(data.email):
             raise AppException("邮箱已被注册", 400)
         
+        # 验证角色是否有效
+        valid_roles = [UserRole.admin, UserRole.user, UserRole.readonly]
+        role = data.role if data.role in [r.value for r in valid_roles] else UserRole.user.value
+        
         # passlib 限制密码长度最多72字节
         password = data.password[:72]
         
@@ -63,6 +68,7 @@ class UserService:
             hashed_password=get_password_hash(password),
             full_name=data.full_name,
             department=data.department,
+            role=role,
         )
         self.db.add(user)
         await self.db.commit()
@@ -88,6 +94,38 @@ class UserService:
         await self._invalidate_user(user_id)
         return user
 
+    async def update_by_admin(self, user_id: int, data: UserUpdateByAdmin) -> User:
+        """管理员更新用户信息（包括角色、状态、密码）"""
+        user = await self.get_by_id(user_id)
+        
+        update_data = data.model_dump(exclude_none=True)
+        
+        # 验证角色是否有效
+        if "role" in update_data:
+            valid_roles = [UserRole.admin, UserRole.user, UserRole.readonly]
+            if update_data["role"] not in [r.value for r in valid_roles]:
+                raise AppException("无效的角色", 400)
+        
+        # 如果更新密码，需要哈希
+        if "password" in update_data and update_data["password"]:
+            update_data["hashed_password"] = get_password_hash(update_data["password"][:72])
+            del update_data["password"]
+        
+        for field, value in update_data.items():
+            setattr(user, field, value)
+        
+        await self.db.commit()
+        await self.db.refresh(user)
+        await self._invalidate_user(user_id)
+        return user
+
+    async def delete(self, user_id: int) -> None:
+        """删除用户"""
+        user = await self.get_by_id(user_id)
+        await self.db.delete(user)
+        await self.db.commit()
+        await self._invalidate_user(user_id)
+
     async def list_users(self, page: int = 1, page_size: int = 20, keyword: Optional[str] = None):
         query = select(User)
         if keyword:
@@ -107,3 +145,51 @@ class UserService:
         await self.db.refresh(user)
         await self._invalidate_user(user_id)
         return user
+
+    async def update_permissions(self, user_id: int, permissions: List[str]) -> User:
+        """更新用户自定义权限"""
+        user = await self.get_by_id(user_id)
+        user.permissions = json.dumps(permissions) if permissions else None
+        await self.db.commit()
+        await self.db.refresh(user)
+        await self._invalidate_user(user_id)
+        return user
+
+    async def get_permissions(self, user_id: int) -> List[str]:
+        """获取用户权限列表（角色默认权限 + 自定义权限）"""
+        user = await self.get_by_id(user_id)
+        
+        # 角色默认权限
+        role_permissions = {
+            UserRole.admin: [
+                "meeting_view", "meeting_create", "meeting_edit", "meeting_delete", "meeting_ai",
+                "document_view", "document_upload", "document_edit", "document_delete",
+                "graph_view", "graph_build", "graph_manage",
+                "feedback_view", "feedback_analyze",
+                "user_view", "user_create", "user_edit", "user_delete", "user_permission"
+            ],
+            UserRole.user: [
+                "meeting_view", "meeting_create", "meeting_edit", "meeting_ai",
+                "document_view", "document_upload", "document_edit",
+                "graph_view",
+                "feedback_view"
+            ],
+            UserRole.readonly: [
+                "meeting_view",
+                "document_view",
+                "graph_view",
+                "feedback_view"
+            ]
+        }
+        
+        base_permissions = role_permissions.get(user.role, [])
+        
+        # 如果有自定义权限，覆盖默认权限
+        if user.permissions:
+            try:
+                custom_permissions = json.loads(user.permissions)
+                return custom_permissions
+            except json.JSONDecodeError:
+                pass
+        
+        return base_permissions

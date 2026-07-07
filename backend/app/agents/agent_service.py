@@ -1,10 +1,9 @@
 """Agent 服务封装 - 支持 Tool Calling
 """
-import re
 from typing import Optional, List, Dict, Any, TypedDict
-from app.agents.state import AgentState, AgentResult, ChunkMetadata, TaskType, Plan, ReflectionResult
+from app.agents.state import AgentState, AgentResult, ChunkMetadata, TaskType, RiskLevel, Plan, ReflectionResult
 from app.agents.graph import create_agent_graph, print_agent_architecture
-from app.agents.graph_toolcalling import create_tool_calling_graph, print_tool_calling_architecture
+from app.agents.nodes import AgentNodes
 from app.agents.memory import MemoryManager
 from app.agents.tools import ToolManager
 from app.agents.prompts import PromptManager
@@ -12,6 +11,7 @@ from app.agents.errors import ErrorRecoveryManager
 from app.agents.monitor import AgentMonitor
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
+from app.services.long_term_memory import add_meeting_memory, get_long_term_memory, get_context_prompt
 from app.core.logger import app_logger
 
 
@@ -38,9 +38,9 @@ class AgentService:
         vector_search_service: VectorSearchService,
         enable_checkpointer: bool = False,
         enable_memory: bool = True,
+        enable_human_in_the_loop: bool = True,
         enable_tool_calling: bool = True,
-        enable_human_in_the_loop: bool = False,
-        max_short_term_turns: int = 10,
+        max_short_term_turns: int = 20,
         max_long_term_items: int = 1000,
         enable_compression: bool = True,
         enable_monitoring: bool = True,
@@ -50,9 +50,9 @@ class AgentService:
         self.enable_checkpointer = enable_checkpointer
         self.enable_memory = enable_memory
         self.enable_compression = enable_compression
-        self.enable_tool_calling = enable_tool_calling
         self.enable_monitoring = enable_monitoring
         self.enable_human_in_the_loop = enable_human_in_the_loop
+        self.enable_tool_calling = enable_tool_calling
 
         # 初始化核心模块
         self.prompt_manager = PromptManager()
@@ -63,15 +63,10 @@ class AgentService:
         from app.agents.human_in_the_loop import get_hitl_service
         self.hitl_service = get_hitl_service()
 
-        # 工具管理器（如果启用 Tool Calling）
-        self.tool_manager: Optional[ToolManager] = None
-        if self.enable_tool_calling:
-            self.tool_manager = ToolManager(llm_service, vector_search_service)
-            self.graph = create_tool_calling_graph(llm_service, self.tool_manager)
-            print_tool_calling_architecture()
-        else:
-            self.graph = create_agent_graph(llm_service, vector_search_service)
-            print_agent_architecture()
+        # 工具管理器（默认启用 Tool Calling）
+        self.tool_manager = ToolManager(llm_service, vector_search_service)
+        self.graph = create_agent_graph(llm_service, self.tool_manager)
+        print_agent_architecture()
 
         self.app = self._compile_graph()
 
@@ -124,7 +119,7 @@ class AgentService:
         span_id = None
         if self.monitor:
             self.monitor.info(f"开始处理查询: {question}")
-            self.monitor.info(f"Tool Calling: {self.enable_tool_calling}")
+            self.monitor.info(f"Tool Calling: True (默认启用)")
             span_id = self.monitor.start_span("agent_process_query", attributes={"question": question[:50]})
 
         session_id = config.get("thread_id") if config else None
@@ -137,22 +132,22 @@ class AgentService:
         try:
             await emit_event("start", {"question": question, "phase": "初始化"})
 
-            # 获取记忆上下文
+            # 获取会话记忆上下文
             memory_context = ""
             if self.enable_memory:
                 memory_context = memory.get_context_for_query(question, n_recent=3)
 
-            # 检索上下文
-            await emit_event("phase", {"phase": "context", "message": "正在检索相关文档..."})
-            context_chunks = await self._retrieve_context(
-                question=question,
-                meeting_id=meeting_id,
-                document_ids=document_ids
-            )
-            await emit_event("context", {"chunks_count": len(context_chunks)})
+            # 获取长期记忆上下文
+            long_term_context = ""
+            try:
+                long_term_context = await get_context_prompt(question)
+            except Exception as e:
+                app_logger.warning(f"获取长期记忆上下文失败: {e}")
 
-            # 合并上下文
-            raw_context = self._format_chunks_to_text(context_chunks)
+            # 文档检索已迁移到图内 retrieve_node；这里仅注入会话记忆和长期记忆上下文。
+            raw_context = []
+            if long_term_context:
+                raw_context.insert(0, long_term_context)
             if memory_context and self.enable_memory:
                 raw_context.insert(0, f"【相关记忆】\n{memory_context}")
 
@@ -161,10 +156,24 @@ class AgentService:
                 "question": question,
                 "meeting_id": meeting_id,
                 "document_ids": document_ids,
-                "context": context_chunks,
+                "context": [],
                 "raw_context": raw_context,
                 "current_phase": "plan",
                 "task_type": TaskType.QA,
+                "workflow_type": None,
+                "complexity_score": 0.0,
+                "route_reason": "",
+                "retrieval_required": True,
+                "retrieval_confidence": 0.0,
+                "citations": [],
+                "validation_errors": [],
+                "policy_results": [],
+                "repair_count": 0,
+                "max_repair_attempts": 1,
+                "risk_level": RiskLevel.LOW,
+                "requires_confirmation": False,
+                "confirmation_status": "not_required",
+                "pending_action": None,
                 "plan": None,
                 "minutes": None,
                 "todos": None,
@@ -184,7 +193,30 @@ class AgentService:
             invoke_config = {"configurable": config} if config else None
             final_state = await self.app.ainvoke(initial_state, config=invoke_config)
 
-            # 构建结果
+            # 确保 final_state 中的关键字段类型正确
+            if not isinstance(final_state.get("cot_thoughts"), list):
+                final_state["cot_thoughts"] = []
+            if not isinstance(final_state.get("agents_involved"), list):
+                final_state["agents_involved"] = []
+                
+            # 构建结果 - 先全面清理状态
+            # 确保 final_state 中的所有字段都是可哈希的
+            safe_final_state = {}
+            for key, value in final_state.items():
+                if isinstance(value, slice):
+                    app_logger.warning(f"⚠️ 检测到 slice 对象在字段 {key}，已重置")
+                    if key == "cot_thoughts" or key == "agents_involved" or key == "human_confirmations":
+                        safe_final_state[key] = []
+                    elif key == "task_contexts":
+                        safe_final_state[key] = {}
+                    elif key == "todos" or key == "controversies":
+                        safe_final_state[key] = None
+                    else:
+                        safe_final_state[key] = None
+                else:
+                    safe_final_state[key] = value
+            final_state = safe_final_state
+            
             task_type = final_state.get("task_type") or TaskType.QA
             reflection = final_state.get("reflection")
 
@@ -196,9 +228,24 @@ class AgentService:
                     "tasks": plan.get("tasks", []),
                     "execution_order": plan.get("execution_order", []),
                     "parallel_groups": plan.get("parallel_groups", []),
-                    "tool_calls": plan.get("tool_calls", []) if self.enable_tool_calling else None
+                    "tool_calls": plan.get("tool_calls", [])
                 }
 
+            # 确保 reflection 包含 quality_score 字段（向后兼容）
+            if reflection and isinstance(reflection, dict):
+                reflection = reflection.copy()
+                # 确保所有数值字段都是 float 类型
+                if 'overall_score' in reflection:
+                    reflection['overall_score'] = float(reflection['overall_score'])
+                    reflection['quality_score'] = reflection['overall_score']  # 向后兼容
+                if 'confidence' in reflection:
+                    reflection['confidence'] = float(reflection['confidence'])
+                if 'metrics' in reflection and isinstance(reflection['metrics'], dict):
+                    metrics = reflection['metrics']
+                    for key in ['accuracy', 'relevance', 'completeness', 'coherence']:
+                        if key in metrics:
+                            metrics[key] = float(metrics[key])
+            
             result = AgentResult(
                 success=True,
                 task_type=task_type,
@@ -209,9 +256,19 @@ class AgentService:
                 thoughts=final_state.get("cot_thoughts"),
                 reflection=reflection,
                 plan=formatted_plan,
+                workflow_type=final_state.get("workflow_type"),
+                route_reason=final_state.get("route_reason"),
+                citations=final_state.get("citations"),
+                validation_errors=final_state.get("validation_errors"),
+                policy_results=final_state.get("policy_results"),
+                retrieval_confidence=final_state.get("retrieval_confidence"),
+                risk_level=final_state.get("risk_level"),
+                requires_confirmation=bool(final_state.get("requires_confirmation", False)),
+                confirmation_status=final_state.get("confirmation_status"),
+                pending_action=final_state.get("pending_action"),
             )
 
-            # 保存记忆
+            # 保存会话记忆
             if self.enable_memory:
                 memory.add_conversation(
                     question=question,
@@ -229,6 +286,32 @@ class AgentService:
                 stats = memory.short_term.get_summary()
                 self.monitor.info(f"[Agent] 记忆: {stats['raw_turns']} 原始 + {stats['summarized_turns']} 摘要") if self.monitor else app_logger.info(f"[Agent] 记忆: {stats['raw_turns']} 原始 + {stats['summarized_turns']} 摘要")
 
+            # 保存长期记忆（会议总结、决策、待办）
+            try:
+                long_term_memory = get_long_term_memory()
+                if result.minutes or result.todos:
+                    await long_term_memory.add_memory(
+                        content=result.minutes or result.answer or question,
+                        type="meeting_summary",
+                        scope="team",
+                        meeting_id=str(meeting_id) if meeting_id else None,
+                        meeting_topic=question,
+                    )
+                if result.todos:
+                    for todo in result.todos:
+                        content = todo.get("content", "")
+                        if content:
+                            await long_term_memory.add_memory(
+                                content=content,
+                                type="action_item",
+                                scope="team",
+                                meeting_id=str(meeting_id) if meeting_id else None,
+                                meeting_topic=question,
+                                entities=[todo.get("assignee", "")] if todo.get("assignee") else [],
+                            )
+            except Exception as e:
+                app_logger.warning(f"保存长期记忆失败: {e}")
+
             # 统计
             thoughts = final_state.get("cot_thoughts", [])
             phases = {}
@@ -238,7 +321,13 @@ class AgentService:
 
             self.monitor.info(f"[Agent] 处理完成 - 任务: {result.task_type.value}, 思维链: {len(thoughts)} 步") if self.monitor else app_logger.info(f"[Agent] 处理完成 - 任务: {result.task_type.value}, 思维链: {len(thoughts)} 步")
             if result.reflection:
-                self.monitor.info(f"[Agent] 质量评分: {result.reflection.get('quality_score', 0):.2f}") if self.monitor else app_logger.info(f"[Agent] 质量评分: {result.reflection.get('quality_score', 0):.2f}")
+                overall_score = result.reflection.get('overall_score', 0)
+                metrics = result.reflection.get('metrics', {})
+                confidence = result.reflection.get('confidence', 0)
+                self.monitor.info(f"[Agent] 综合评分: {overall_score:.2f} (置:{confidence:.2f})") if self.monitor else app_logger.info(f"[Agent] 综合评分: {overall_score:.2f} (置:{confidence:.2f})")
+                if metrics:
+                    metrics_str = f"  准:{metrics.get('accuracy',0):.2f} 相:{metrics.get('relevance',0):.2f} 完:{metrics.get('completeness',0):.2f} 贯:{metrics.get('coherence',0):.2f}"
+                    self.monitor.info(metrics_str) if self.monitor else app_logger.info(metrics_str)
 
             if span_id:
                 self.monitor.finish_span(span_id, {"success": True, "task_type": result.task_type.value})
@@ -246,7 +335,9 @@ class AgentService:
             return result
 
         except Exception as e:
-            self.monitor.error(f"[Agent] 处理失败: {e}") if self.monitor else app_logger.error(f"[Agent] 处理失败: {e}")
+            import traceback
+            stack_trace = traceback.format_exc()
+            self.monitor.error(f"[Agent] 处理失败: {e}\n{stack_trace}") if self.monitor else app_logger.error(f"[Agent] 处理失败: {e}\n{stack_trace}")
             
             # 记录错误
             error_info = self.error_manager.handle_error(e, {"question": question})
@@ -259,106 +350,6 @@ class AgentService:
                 task_type=TaskType.QA,
                 error=str(e),
             )
-
-    def _format_chunks_to_text(self, chunks: List[SearchResult]) -> List[str]:
-        texts = []
-        for chunk in chunks:
-            content = chunk.get("content", "")
-            speaker = chunk.get("speaker_name", "")
-            if speaker:
-                texts.append(f"[{speaker}]: {content}")
-            else:
-                texts.append(content)
-        return texts
-
-    def _extract_document_ids_from_question(self, question: str) -> List[int]:
-        """从问题中提取明确提及的 document_id，如「id为4」「文档4」「第4个文档」"""
-        patterns = [
-            r'(?:id|ID|编号|文档id|文档ID)\s*(?:为|是|=|：|:)?\s*(\d+)',
-            r'(?:文档|文件|第)\s*(\d+)\s*(?:号|个|篇)?(?:文档|文件)?',
-            r'#(\d+)',
-        ]
-        ids = []
-        for pattern in patterns:
-            for m in re.finditer(pattern, question):
-                ids.append(int(m.group(1)))
-        return list(dict.fromkeys(ids))  # 去重保序
-
-    def _is_document_summary_intent(self, question: str) -> bool:
-        """判断问题是否为「某文档内容是什么/主要讲了什么」类意图"""
-        keywords = ['主要讲', '讲了什么', '内容是什么', '内容有哪些', '说了什么',
-                    '介绍了什么', '包含什么', '包含哪些', '总结', '摘要', '概述']
-        return any(kw in question for kw in keywords)
-
-    def _raw_results_to_search_results(self, raw_list: List[dict]) -> List[SearchResult]:
-        return [
-            SearchResult(
-                chunk_id=r.get("chunk_id", 0),
-                document_id=r.get("document_id", 0),
-                meeting_id=r.get("meeting_id"),
-                content=r.get("content", r.get("chunk_text", "")),
-                chunk_index=r.get("chunk_index", 0),
-                similarity=r.get("similarity", 0.0),
-                department=r.get("department"),
-                speaker_name=r.get("speaker_name", ""),
-                time_offset=r.get("time_offset"),
-                metadata_json=r.get("metadata_json"),
-            )
-            for r in raw_list
-        ]
-
-    async def _retrieve_context(
-        self,
-        question: str,
-        meeting_id: Optional[int] = None,
-        document_ids: Optional[List[int]] = None,
-        top_k: int = 5,
-    ) -> List[SearchResult]:
-        from app.core.config import settings
-        
-        # 从问题中提取明确的 document_id
-        mentioned_ids = self._extract_document_ids_from_question(question)
-
-        # 「文档全文摘要」意图：问题中明确提到 document_id 且是内容类问题
-        if mentioned_ids and self._is_document_summary_intent(question):
-            app_logger.info(f"[RETRIEVE] 检测到文档全文摘要意图，document_ids={mentioned_ids}")
-            all_chunks: List[dict] = []
-            for doc_id in mentioned_ids:
-                chunks = await self.vector_search_service.get_document_chunks(doc_id)
-                all_chunks.extend(chunks)
-            if all_chunks:
-                return self._raw_results_to_search_results(all_chunks)
-            app_logger.warning(f"[RETRIEVE] 文档 {mentioned_ids} 无 chunk，回退向量检索")
-
-        # 若问题中提到了 document_id，将其合并到过滤条件，扩大 top_k 提高覆盖率
-        effective_doc_ids = document_ids or []
-        if mentioned_ids:
-            merged = list(dict.fromkeys(effective_doc_ids + mentioned_ids))
-            effective_doc_ids = merged
-            top_k = max(top_k, 10)
-
-        # 使用多路召回（BM25 + 向量检索 + 重排序）
-        if settings.ENABLE_MULTI_RETRIEVAL:
-            app_logger.info(f"[RETRIEVE] 使用多路召回模式（BM25 + 向量 + 重排序）")
-            search_results = await self.vector_search_service.search_with_multi_retrieval(
-                query_text=question,
-                top_k=top_k,
-                document_ids=effective_doc_ids if effective_doc_ids else None,
-                meeting_id=meeting_id,
-                enable_bm25=settings.ENABLE_BM25,
-                enable_vector=True,
-                enable_rerank=settings.ENABLE_RERANK,
-            )
-        else:
-            # 使用传统向量检索
-            search_results = await self.vector_search_service.search_by_text(
-                query_text=question,
-                top_k=top_k,
-                document_ids=effective_doc_ids if effective_doc_ids else None,
-                meeting_id=meeting_id,
-            )
-        
-        return self._raw_results_to_search_results(search_results)
 
     async def process_batch(
         self,
@@ -409,22 +400,19 @@ class AgentService:
         memory = self._get_session_memory(session_id)
         memory.load_checkpoint(checkpoint)
 
-    def get_tools_info(self) -> Optional[Dict[str, Any]]:
+    def get_tools_info(self) -> Dict[str, Any]:
         """获取工具信息"""
-        if self.tool_manager:
-            return self.tool_manager.get_tools_info()
-        return None
+        return self.tool_manager.get_tools_info()
 
     def get_tool_history(self) -> List[Dict[str, Any]]:
         """获取工具调用历史"""
-        if self.tool_manager:
-            return self.tool_manager.executor.get_history()
-        return []
+        return self.tool_manager.executor.get_history()
 
     def get_agent_architecture(self) -> Dict[str, Any]:
         return {
-            "pattern": "Plan-Execute-Reflect + Tool Calling" if self.enable_tool_calling else "Plan-Execute-Reflect",
-            "tool_calling_enabled": self.enable_tool_calling,
+            "pattern": "Plan-Execute-Replan + Tool Calling",
+            "recommended_pattern": "Intent Routing + Direct Workflows + Plan-Execute-Replan for complex tasks",
+            "tool_calling_enabled": True,
             "memory_enabled": self.enable_memory,
             "checkpointer_enabled": self.enable_checkpointer,
             "compression_enabled": self.enable_compression,
@@ -437,16 +425,16 @@ class AgentService:
                 },
                 {
                     "name": "Execute",
-                    "description": "根据计划执行任务",
+                    "description": "按计划执行任务",
                     "capabilities": ["任务执行", "工具调用", "并行处理"]
                 },
                 {
-                    "name": "Reflect",
-                    "description": "评估执行结果质量",
-                    "capabilities": ["质量评估", "缺陷检测"]
+                    "name": "Replan",
+                    "description": "评估执行结果质量，决定是否重新规划",
+                    "capabilities": ["质量评估", "缺陷检测", "重新规划", "循环改进"]
                 }
             ],
-            "tools": self.get_tools_info() if self.enable_tool_calling else None
+            "tools": self.get_tools_info()
         }
         
     def get_prompt_templates(self) -> List[Dict[str, Any]]:
@@ -501,6 +489,82 @@ class AgentService:
             False: 请求不存在或已处理
         """
         return self.hitl_service.respond_to_request(request_id, response)
+
+    async def resume_confirmation(self, request_id: str, response: str = "approved") -> Dict[str, Any]:
+        """
+        响应确认请求，并在没有原始运行请求可继续时从确认点快照恢复执行。
+        """
+        if response != "approved":
+            success = self.hitl_service.respond_to_request(request_id, response)
+            return {
+                "success": success,
+                "mode": "rejected",
+                "message": "确认请求已拒绝" if success else "确认请求不存在或已处理",
+            }
+
+        snapshot = self.hitl_service.get_resume_snapshot(request_id)
+        if self.hitl_service.has_pending_request(request_id):
+            success = self.hitl_service.respond_to_request(request_id, "approved")
+            return {
+                "success": success,
+                "mode": "live_request",
+                "message": "已确认，原 Agent 请求将继续执行" if success else "确认请求不存在或已处理",
+            }
+
+        request = self.hitl_service.get_request_by_id(request_id)
+        if not request:
+            return {"success": False, "mode": "not_found", "message": f"确认请求 {request_id} 不存在"}
+        if request.get("status") != "approved":
+            return {"success": False, "mode": "not_approved", "message": "确认请求尚未批准，无法恢复执行"}
+        if not snapshot:
+            return {"success": False, "mode": "snapshot_missing", "message": "确认点恢复快照不存在"}
+
+        pending_action = snapshot.get("pending_action") or {}
+        if pending_action.get("source") != "tool":
+            return {"success": False, "mode": "unsupported", "message": "当前仅支持从工具确认点恢复执行"}
+
+        nodes = AgentNodes(self.llm_service, self.tool_manager)
+        resumed_state = snapshot.copy()
+        resumed_state["confirmation_status"] = "approved"
+        resumed_state["requires_confirmation"] = False
+        resumed_state["enable_human_in_the_loop"] = False
+        resumed_state = await nodes.execute_agent(resumed_state)
+        resumed_state = await nodes.replan_agent(resumed_state)
+        resumed_state = await nodes.validate_node(resumed_state)
+
+        return {
+            "success": True,
+            "mode": "snapshot",
+            "message": "已从确认点恢复执行",
+            "result": self._state_to_result_payload(resumed_state),
+        }
+
+    def _state_to_result_payload(self, state: AgentState) -> Dict[str, Any]:
+        task_type = state.get("task_type") or TaskType.QA
+        workflow_type = state.get("workflow_type")
+        risk_level = state.get("risk_level")
+        return {
+            "success": True,
+            "task_type": task_type.value if hasattr(task_type, "value") else task_type,
+            "workflow_type": workflow_type.value if hasattr(workflow_type, "value") else workflow_type,
+            "route_reason": state.get("route_reason"),
+            "retrieval_confidence": state.get("retrieval_confidence"),
+            "citations": state.get("citations"),
+            "validation_errors": state.get("validation_errors"),
+            "policy_results": state.get("policy_results"),
+            "risk_level": risk_level.value if hasattr(risk_level, "value") else risk_level,
+            "requires_confirmation": bool(state.get("requires_confirmation", False)),
+            "confirmation_status": state.get("confirmation_status"),
+            "pending_action": state.get("pending_action"),
+            "answer": state.get("answer"),
+            "minutes": state.get("minutes"),
+            "todos": state.get("todos"),
+            "controversies": state.get("controversies"),
+            "error": state.get("error"),
+            "thoughts": state.get("cot_thoughts"),
+            "reflection": state.get("reflection"),
+            "plan": state.get("plan"),
+        }
     
     def get_pending_confirmations(self) -> List[Dict[str, Any]]:
         """

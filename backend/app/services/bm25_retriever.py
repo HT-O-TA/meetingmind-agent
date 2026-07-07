@@ -37,7 +37,7 @@ class BM25Retriever:
     
     def _tokenize(self, text: str) -> List[str]:
         """
-        简单的文本分词
+        中文文本分词，使用jieba
         
         Args:
             text: 输入文本
@@ -46,10 +46,16 @@ class BM25Retriever:
             分词后的词项列表
         """
         import re
-        # 去除标点，转为小写，按空白分词
-        text = re.sub(r'[^\w\s]', ' ', text.lower())
-        tokens = text.split()
-        # 过滤停用词
+        try:
+            import jieba
+            # 使用jieba进行中文分词
+            tokens = jieba.lcut(text.lower())
+        except ImportError:
+            # 如果没有jieba，使用简单分词
+            text = re.sub(r'[^\w\s]', ' ', text.lower())
+            tokens = text.split()
+        
+        # 过滤停用词和单字
         stop_words = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
                       'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
                       'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare',

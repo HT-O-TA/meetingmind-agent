@@ -41,18 +41,21 @@ class RetryRecord:
     status: RetryStatus
     last_error: Optional[str]
     start_time: datetime
-    end_time: Optional[datetime]
+    end_time: Optional[datetime] = None
     
     def __post_init__(self):
         if self.start_time is None:
             self.start_time = datetime.now()
 
 
+CircuitState = CircuitBreakerState
+
+
 @dataclass
-class CircuitBreakerState:
+class CircuitBreakerRecord:
     """熔断器状态记录"""
     name: str
-    state: CircuitBreakerState
+    state: CircuitState
     failure_count: int
     success_count: int
     last_failure_time: Optional[datetime]
@@ -62,7 +65,7 @@ class CircuitBreakerState:
     
     def __post_init__(self):
         if self.state is None:
-            self.state = CircuitBreakerState.CLOSED
+            self.state = CircuitState.CLOSED
 
 
 class RetryManager:
@@ -72,6 +75,19 @@ class RetryManager:
         self._records: Dict[str, RetryRecord] = {}
         self._default_max_retries = 3
         self._default_backoff_base = 1.0  # 指数退避基数
+        self._retry_stats = {
+            "total_operations": 0,
+            "total_retries": 0,
+            "successful_operations": 0,
+            "failed_operations": 0,
+            "retry_counts": [],
+            "by_component": defaultdict(lambda: {
+                "total": 0,
+                "retries": 0,
+                "success": 0,
+                "failed": 0
+            })
+        }
     
     async def execute_with_retry(
         self,
@@ -99,18 +115,25 @@ class RetryManager:
         )
         self._records[operation_id] = record
         
+        component = operation_id.split(':')[0] if ':' in operation_id else "unknown"
+        self._retry_stats["total_operations"] += 1
+        self._retry_stats["by_component"][component]["total"] += 1
+        
+        retries_used = 0
+        
         for attempt in range(max_retries + 1):
             try:
                 record.status = RetryStatus.RETRYING
                 record.current_retry = attempt
                 
                 if attempt > 0:
-                    # 指数退避等待
+                    retries_used += 1
+                    self._retry_stats["total_retries"] += 1
+                    self._retry_stats["by_component"][component]["retries"] += 1
                     delay = backoff_base * (2 ** (attempt - 1))
                     await asyncio.sleep(delay)
                     app_logger.debug(f"[Retry] 第 {attempt} 次重试 {operation_id}，等待 {delay:.2f}s")
                 
-                # 执行操作
                 if asyncio.iscoroutinefunction(func):
                     result = await func(*args, **kwargs)
                 else:
@@ -118,20 +141,24 @@ class RetryManager:
                 
                 record.status = RetryStatus.SUCCESS
                 record.end_time = datetime.now()
+                self._retry_stats["successful_operations"] += 1
+                self._retry_stats["by_component"][component]["success"] += 1
+                self._retry_stats["retry_counts"].append(retries_used)
                 app_logger.debug(f"[Retry] {operation_id} 成功，共重试 {attempt} 次")
                 return result
                 
             except Exception as e:
                 record.last_error = str(e)
                 
-                # 检查是否需要重试
                 if attempt >= max_retries:
                     record.status = RetryStatus.FAILED
                     record.end_time = datetime.now()
+                    self._retry_stats["failed_operations"] += 1
+                    self._retry_stats["by_component"][component]["failed"] += 1
+                    self._retry_stats["retry_counts"].append(retries_used)
                     app_logger.error(f"[Retry] {operation_id} 失败，已达最大重试次数 {max_retries}")
                     raise
                 
-                # 检查是否在重试异常列表中
                 if retry_on_exceptions and not isinstance(e, tuple(retry_on_exceptions)):
                     record.status = RetryStatus.FAILED
                     record.end_time = datetime.now()
@@ -150,6 +177,58 @@ class RetryManager:
         """获取所有重试记录"""
         return list(self._records.values())
     
+    def get_retry_statistics(self) -> Dict[str, Any]:
+        """获取重试统计信息"""
+        stats = self._retry_stats.copy()
+        
+        total_ops = stats["total_operations"]
+        total_retries = stats["total_retries"]
+        
+        stats["retry_rate"] = total_retries / total_ops if total_ops > 0 else 0.0
+        stats["success_rate"] = stats["successful_operations"] / total_ops if total_ops > 0 else 0.0
+        stats["failure_rate"] = stats["failed_operations"] / total_ops if total_ops > 0 else 0.0
+        
+        retry_counts = stats["retry_counts"]
+        if retry_counts:
+            stats["avg_retries_per_operation"] = sum(retry_counts) / len(retry_counts)
+            stats["max_retries_per_operation"] = max(retry_counts)
+            stats["min_retries_per_operation"] = min(retry_counts)
+        else:
+            stats["avg_retries_per_operation"] = 0.0
+            stats["max_retries_per_operation"] = 0
+            stats["min_retries_per_operation"] = 0
+        
+        by_component = {}
+        for component, comp_stats in stats["by_component"].items():
+            total = comp_stats["total"]
+            by_component[component] = {
+                "total": comp_stats["total"],
+                "retries": comp_stats["retries"],
+                "success": comp_stats["success"],
+                "failed": comp_stats["failed"],
+                "retry_rate": comp_stats["retries"] / total if total > 0 else 0.0,
+                "success_rate": comp_stats["success"] / total if total > 0 else 0.0
+            }
+        stats["by_component"] = by_component
+        
+        return stats
+    
+    def reset_retry_statistics(self):
+        """重置重试统计信息"""
+        self._retry_stats = {
+            "total_operations": 0,
+            "total_retries": 0,
+            "successful_operations": 0,
+            "failed_operations": 0,
+            "retry_counts": [],
+            "by_component": defaultdict(lambda: {
+                "total": 0,
+                "retries": 0,
+                "success": 0,
+                "failed": 0
+            })
+        }
+    
     def clean_old_records(self, hours: int = 24):
         """清理旧记录"""
         cutoff_time = datetime.now() - datetime.timedelta(hours=hours)
@@ -164,7 +243,7 @@ class CircuitBreaker:
     
     def __init__(self, name: str, failure_threshold: int = 5, success_threshold: int = 3, reset_timeout: int = 60):
         self._name = name
-        self._state = CircuitBreakerState.CLOSED
+        self._state = CircuitState.CLOSED
         self._failure_count = 0
         self._success_count = 0
         self._last_failure_time = None
@@ -186,9 +265,9 @@ class CircuitBreaker:
     
     def _try_acquire(self) -> bool:
         """尝试获取熔断器许可"""
-        if self._state == CircuitBreakerState.OPEN:
+        if self._state == CircuitState.OPEN:
             if self._should_reset():
-                self._state = CircuitBreakerState.HALF_OPEN
+                self._state = CircuitState.HALF_OPEN
                 self._success_count = 0
                 app_logger.info(f"[CircuitBreaker] {self._name} 进入半开状态")
             else:
@@ -199,25 +278,25 @@ class CircuitBreaker:
     
     def record_success(self):
         """记录成功"""
-        if self._state == CircuitBreakerState.HALF_OPEN:
+        if self._state == CircuitState.HALF_OPEN:
             self._success_count += 1
             if self._success_count >= self._success_threshold:
-                self._state = CircuitBreakerState.CLOSED
+                self._state = CircuitState.CLOSED
                 self._failure_count = 0
                 app_logger.info(f"[CircuitBreaker] {self._name} 恢复正常状态")
-        elif self._state == CircuitBreakerState.CLOSED:
+        elif self._state == CircuitState.CLOSED:
             self._failure_count = 0
     
     def record_failure(self):
         """记录失败"""
-        if self._state == CircuitBreakerState.HALF_OPEN:
-            self._state = CircuitBreakerState.OPEN
+        if self._state == CircuitState.HALF_OPEN:
+            self._state = CircuitState.OPEN
             self._last_failure_time = datetime.now()
             app_logger.info(f"[CircuitBreaker] {self._name} 进入熔断状态")
-        elif self._state == CircuitBreakerState.CLOSED:
+        elif self._state == CircuitState.CLOSED:
             self._failure_count += 1
             if self._should_trip():
-                self._state = CircuitBreakerState.OPEN
+                self._state = CircuitState.OPEN
                 self._last_failure_time = datetime.now()
                 app_logger.info(f"[CircuitBreaker] {self._name} 触发熔断")
     
@@ -237,6 +316,14 @@ class CircuitBreaker:
         except Exception as e:
             self.record_failure()
             raise
+
+    async def call(self, func: Callable, *args, **kwargs) -> Any:
+        """兼容旧接口。"""
+        return await self.execute(func, *args, **kwargs)
+
+    @property
+    def state(self) -> CircuitState:
+        return self._state
     
     def get_state(self) -> Dict[str, Any]:
         """获取熔断器状态"""
@@ -307,6 +394,35 @@ class FallbackManager:
                     return alternate_func(*args, **kwargs)
             else:
                 raise
+
+    async def execute_fallback(
+        self,
+        operation_id: str = "default",
+        strategy: Optional[FallbackStrategy] = None,
+        default_value: Optional[Any] = None,
+        alternate_func: Optional[Callable] = None,
+        *args,
+        **kwargs
+    ) -> Any:
+        """兼容旧接口：直接执行指定降级策略。"""
+        if strategy is None:
+            registered = self._strategies.get(operation_id)
+            if registered:
+                strategy, default_value, alternate_func = registered
+            else:
+                strategy = FallbackStrategy.RETURN_DEFAULT
+
+        if strategy == FallbackStrategy.RETURN_DEFAULT:
+            return default_value
+        if strategy == FallbackStrategy.RETURN_CACHE:
+            return self._get_cache_value(operation_id)
+        if strategy == FallbackStrategy.CALL_ALTERNATE and alternate_func:
+            if asyncio.iscoroutinefunction(alternate_func):
+                return await alternate_func(*args, **kwargs)
+            return alternate_func(*args, **kwargs)
+        if strategy == FallbackStrategy.THROW_EXCEPTION:
+            raise RuntimeError(f"Fallback for {operation_id} requested exception")
+        return default_value
     
     def _get_cache_value(self, operation_id: str) -> Any:
         """获取缓存值（简化实现）"""

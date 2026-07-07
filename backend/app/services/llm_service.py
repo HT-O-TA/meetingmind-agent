@@ -1,18 +1,28 @@
 """LLM 服务封装"""
+import time
 from typing import List, Dict, Optional
 from openai import AsyncOpenAI
 from httpx import Timeout
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.services.performance_metrics import get_performance_metrics
 
 
 class LLMService:
     """LLM 服务类，封装 OpenAI 兼容接口"""
 
     def __init__(self):
+        api_key = settings.LLM_API_KEY
+        base_url = settings.LLM_API_BASE
+        app_logger.info(f"[LLMService] Initializing with api_key length: {len(api_key) if api_key else 0}, base_url: {base_url}")
+        
+        if not api_key:
+            app_logger.error("[LLMService] LLM_API_KEY is empty!")
+            raise ValueError("LLM_API_KEY must be set")
+        
         self.client = AsyncOpenAI(
-            api_key=settings.LLM_API_KEY,
-            base_url=settings.LLM_API_BASE,
+            api_key=api_key,
+            base_url=base_url,
             timeout=Timeout(
                 connect=10,
                 read=settings.LLM_TIMEOUT,
@@ -70,12 +80,17 @@ class LLMService:
                 await temp_client.close()
 
         try:
+            llm_start_time = time.time()
             response = await self.client.chat.completions.create(
                 model=model or settings.LLM_MODEL,
                 messages=messages,
                 temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
                 max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
             )
+            llm_latency_ms = (time.time() - llm_start_time) * 1000
+            
+            get_performance_metrics().record_request(latency_ms=llm_latency_ms)
+            
             return response.choices[0].message.content
         except Exception as e:
             app_logger.error(f"LLM 调用失败: {e}")

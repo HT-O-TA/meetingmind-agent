@@ -522,6 +522,15 @@ class KnowledgeGraphIndex:
         self._graph = KnowledgeGraph()
         self._entity_extractor = EntityExtractor()
         self._relation_extractor = RelationExtractor()
+        self._neo4j_client = None
+        self._persistence_enabled = settings.ENABLE_NEO4J_PERSISTENCE
+    
+    async def _get_neo4j_client(self):
+        """延迟加载 Neo4j 客户端"""
+        if self._neo4j_client is None and self._persistence_enabled:
+            from app.services.neo4j_client import get_neo4j_client
+            self._neo4j_client = await get_neo4j_client()
+        return self._neo4j_client
     
     async def build_index(
         self,
@@ -651,6 +660,88 @@ class KnowledgeGraphIndex:
     def get_graph(self) -> KnowledgeGraph:
         """获取知识图谱"""
         return self._graph
+    
+    async def save_to_neo4j(self) -> Dict[str, int]:
+        """将内存中的图谱保存到 Neo4j"""
+        if not self._persistence_enabled:
+            return {"saved_entities": 0, "saved_relations": 0}
+        
+        client = await self._get_neo4j_client()
+        if not client or not client.is_initialized:
+            return {"saved_entities": 0, "saved_relations": 0}
+        
+        saved_entities = 0
+        saved_relations = 0
+        
+        for entity in self._graph.entities.values():
+            if await client.save_entity(entity):
+                saved_entities += 1
+        
+        for relation in self._graph.relations.values():
+            if await client.save_relation(relation):
+                saved_relations += 1
+        
+        app_logger.info(f"[Graph] 已保存 {saved_entities} 个实体和 {saved_relations} 个关系到 Neo4j")
+        return {"saved_entities": saved_entities, "saved_relations": saved_relations}
+    
+    async def load_from_neo4j(self) -> Dict[str, int]:
+        """从 Neo4j 加载图谱到内存"""
+        if not self._persistence_enabled:
+            return {"loaded_entities": 0, "loaded_relations": 0}
+        
+        client = await self._get_neo4j_client()
+        if not client or not client.is_initialized:
+            return {"loaded_entities": 0, "loaded_relations": 0}
+        
+        entities = await client.get_all_entities()
+        relations = await client.get_all_relations()
+        
+        for entity in entities:
+            self._graph.add_entity(entity)
+        
+        for relation in relations:
+            self._graph.add_relation(relation)
+        
+        app_logger.info(f"[Graph] 从 Neo4j 加载了 {len(entities)} 个实体和 {len(relations)} 个关系")
+        return {"loaded_entities": len(entities), "loaded_relations": len(relations)}
+    
+    async def sync_with_neo4j(self) -> Dict[str, int]:
+        """同步内存图谱与 Neo4j（双向同步）"""
+        stats = await self.load_from_neo4j()
+        save_stats = await self.save_to_neo4j()
+        return {**stats, **save_stats}
+    
+    async def clear_neo4j(self) -> bool:
+        """清空 Neo4j 中的图谱数据"""
+        if not self._persistence_enabled:
+            return False
+        
+        client = await self._get_neo4j_client()
+        if not client or not client.is_initialized:
+            return False
+        
+        result = await client.clear_all()
+        if result:
+            # 同时清空内存中的图谱
+            self._graph = KnowledgeGraph()
+            app_logger.info("[Graph] Neo4j 和内存图谱已清空")
+        return result
+    
+    async def get_neo4j_statistics(self) -> Dict[str, Any]:
+        """获取 Neo4j 中的统计信息"""
+        if not self._persistence_enabled:
+            return {"neo4j_enabled": False}
+        
+        client = await self._get_neo4j_client()
+        if not client or not client.is_initialized:
+            return {"neo4j_enabled": False, "connected": False}
+        
+        stats = await client.get_statistics()
+        return {
+            "neo4j_enabled": True,
+            "connected": True,
+            **stats
+        }
 
 
 _knowledge_graph_index: Optional[KnowledgeGraphIndex] = None
@@ -699,7 +790,7 @@ async def enhance_search_results(
     return index.search_with_graph(query, vector_results, depth=depth)
 
 
-def get_entity_subgraph(entity_name: str, depth: int = 2) -> Dict[str, Any]:
+async def get_entity_subgraph(entity_name: str, depth: int = 2) -> Dict[str, Any]:
     """
     获取实体的子图信息
     
@@ -727,7 +818,55 @@ def get_graph_statistics() -> Dict[str, Any]:
 
 def clear_graph():
     """
-    清空知识图谱
+    清空知识图谱（仅内存）
     """
     global _knowledge_graph_index
     _knowledge_graph_index = None
+
+
+async def save_graph_to_neo4j() -> Dict[str, int]:
+    """
+    将知识图谱保存到 Neo4j
+    """
+    index = get_knowledge_graph_index()
+    return await index.save_to_neo4j()
+
+
+async def load_graph_from_neo4j() -> Dict[str, int]:
+    """
+    从 Neo4j 加载知识图谱
+    """
+    index = get_knowledge_graph_index()
+    return await index.load_from_neo4j()
+
+
+async def sync_graph_with_neo4j() -> Dict[str, int]:
+    """
+    同步知识图谱与 Neo4j
+    """
+    index = get_knowledge_graph_index()
+    return await index.sync_with_neo4j()
+
+
+async def clear_graph_in_neo4j() -> bool:
+    """
+    清空 Neo4j 中的图谱数据
+    """
+    index = get_knowledge_graph_index()
+    return await index.clear_neo4j()
+
+
+async def get_graph_neo4j_statistics() -> Dict[str, Any]:
+    """
+    获取 Neo4j 图谱统计信息
+    """
+    index = get_knowledge_graph_index()
+    return await index.get_neo4j_statistics()
+
+
+async def init_graph_from_neo4j():
+    """
+    从 Neo4j 初始化知识图谱（应用启动时调用）
+    """
+    index = get_knowledge_graph_index()
+    await index.load_from_neo4j()

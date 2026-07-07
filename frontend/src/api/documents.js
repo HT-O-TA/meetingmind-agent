@@ -13,4 +13,5 @@ export const documentApi = {
     request.post('/documents/batch-upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
+  getContent: (id) => request.get(`/documents/${Number(id)}/content`),
 }

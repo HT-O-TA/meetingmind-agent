@@ -6,6 +6,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import zhCn from 'element-plus/es/locale/lang/zh-cn'
 import App from './App.vue'
 import router from './router'
+import { installFrontendActionLogger } from './utils/frontendLogger'
 
 const app = createApp(App)
 
@@ -16,5 +17,6 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(createPinia())
 app.use(router)
 app.use(ElementPlus, { locale: zhCn })
+installFrontendActionLogger(router)
 
 app.mount('#app')

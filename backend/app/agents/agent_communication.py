@@ -41,15 +41,17 @@ class TaskStatus(str, Enum):
 @dataclass
 class AgentMessage:
     """Agent消息结构"""
-    message_id: str
     sender_id: str
     receiver_id: str
     message_type: MessageType
     content: Dict[str, Any]
+    message_id: str = ""
     timestamp: datetime = None
     reply_to: Optional[str] = None
     
     def __post_init__(self):
+        if not self.message_id:
+            self.message_id = f"msg_{int(datetime.now().timestamp() * 1000)}_{id(self)}"
         if self.timestamp is None:
             self.timestamp = datetime.now()
 
@@ -58,12 +60,13 @@ class AgentMessage:
 class Task:
     """任务结构"""
     task_id: str
-    name: str
     description: str
-    task_type: str
     priority: TaskPriority
-    status: TaskStatus
+    name: str = ""
+    task_type: str = "general"
+    status: TaskStatus = TaskStatus.PENDING
     assignee_id: Optional[str] = None
+    assigned_agent: Optional[str] = None
     creator_id: Optional[str] = None
     input_data: Dict[str, Any] = None
     output_data: Dict[str, Any] = None
@@ -74,6 +77,14 @@ class Task:
     dependencies: List[str] = None
     
     def __post_init__(self):
+        if isinstance(self.priority, str):
+            self.priority = TaskPriority(self.priority)
+        if isinstance(self.status, str):
+            self.status = TaskStatus(self.status)
+        if self.assignee_id is None and self.assigned_agent is not None:
+            self.assignee_id = self.assigned_agent
+        if not self.name:
+            self.name = self.description
         if self.created_at is None:
             self.created_at = datetime.now()
         if self.updated_at is None:
@@ -126,15 +137,20 @@ class MessageBus:
                             except Exception as e:
                                 app_logger.error(f"[MessageBus] 广播消息处理失败: {e}")
     
-    async def broadcast(self, sender_id: str, content: Dict[str, Any]):
+    async def broadcast(self, sender_id, content: Optional[Dict[str, Any]] = None):
         """广播消息"""
-        message = AgentMessage(
-            message_id=self._generate_message_id(),
-            sender_id=sender_id,
-            receiver_id="*",
-            message_type=MessageType.BROADCAST,
-            content=content
-        )
+        if isinstance(sender_id, AgentMessage):
+            message = sender_id
+            message.message_type = MessageType.BROADCAST
+            message.receiver_id = "*"
+        else:
+            message = AgentMessage(
+                message_id=self._generate_message_id(),
+                sender_id=sender_id,
+                receiver_id="*",
+                message_type=MessageType.BROADCAST,
+                content=content or {}
+            )
         await self.send(message)
     
     def _generate_message_id(self) -> str:
@@ -158,8 +174,8 @@ class MessageBus:
 class TaskDispatcher:
     """任务分发器 - 负责任务分配和调度"""
     
-    def __init__(self, message_bus: MessageBus):
-        self.message_bus = message_bus
+    def __init__(self, message_bus: Optional[MessageBus] = None):
+        self.message_bus = message_bus or MessageBus()
         self._tasks: Dict[str, Task] = {}
         self._agent_capabilities: Dict[str, List[str]] = {}  # agent_id -> [capabilities]
         self._task_queue: List[Task] = []
@@ -298,6 +314,24 @@ class TaskDispatcher:
     def get_task(self, task_id: str) -> Optional[Task]:
         """获取任务"""
         return self._tasks.get(task_id)
+
+    async def submit_task(self, task: Task) -> bool:
+        """兼容旧接口：提交已构造的任务并尝试分发。"""
+        self._tasks[task.task_id] = task
+        if task.status == TaskStatus.PENDING and task not in self._task_queue:
+            self._task_queue.append(task)
+        return await self.dispatch_task(task.task_id)
+
+    async def cancel_task(self, task_id: str) -> bool:
+        """兼容旧接口：取消任务。"""
+        task = self._tasks.get(task_id)
+        if not task:
+            return False
+        task.status = TaskStatus.CANCELLED
+        task.updated_at = datetime.now()
+        if task in self._task_queue:
+            self._task_queue.remove(task)
+        return True
     
     def get_tasks_by_status(self, status: TaskStatus) -> List[Task]:
         """按状态获取任务"""

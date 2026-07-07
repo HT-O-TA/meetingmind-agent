@@ -7,9 +7,12 @@ from app.services.vector_search_service import VectorSearchService
 from app.services.llm_service import LLMService
 from app.services.embedding_service import EmbeddingService
 try:
-    from tests.rag_eval_dataset import get_eval_dataset, get_question_by_id
+    from tests.rag.rag_eval_dataset import get_eval_dataset, get_question_by_id
 except ImportError:
-    from app.tests.data.rag_eval_dataset import get_eval_dataset, get_question_by_id
+    try:
+        from tests.rag_eval_dataset import get_eval_dataset, get_question_by_id
+    except ImportError:
+        from app.tests.data.rag_eval_dataset import get_eval_dataset, get_question_by_id
 from app.core.logger import app_logger
 from app.core.config import settings
 

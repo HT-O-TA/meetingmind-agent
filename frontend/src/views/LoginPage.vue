@@ -40,11 +40,12 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const tab = ref('login')
 const loading = ref(false)
@@ -57,7 +58,23 @@ async function login() {
   loading.value = true
   try {
     await userStore.login(loginForm.username, loginForm.password)
-    router.push('/meetings')
+    loading.value = false
+    ElMessage.success('登录成功')
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/meetings'
+    console.log('=== 登录成功，准备跳转 ===')
+    console.log('跳转目标:', redirect)
+    console.log('当前token:', userStore.token?.substring(0, 20) + '...')
+    console.log('isTokenValidated:', userStore.isTokenValidated)
+    console.log('localStorage token:', localStorage.getItem('token')?.substring(0, 20) + '...')
+    
+    setTimeout(() => {
+      const fullUrl = `${window.location.protocol}//${window.location.host}${redirect}`
+      console.log('执行跳转:', fullUrl)
+      window.location.href = fullUrl
+    }, 500)
+  } catch (err) {
+    console.error('登录错误:', err)
+    ElMessage.error(err?.response?.data?.message || err?.message || '登录失败')
   } finally {
     loading.value = false
   }
@@ -70,6 +87,8 @@ async function register() {
     await userStore.register(regForm)
     tab.value = 'login'
     loginForm.username = regForm.username
+  } catch (err) {
+    ElMessage.error(err?.response?.data?.message || err?.message || '注册失败')
   } finally {
     loading.value = false
   }

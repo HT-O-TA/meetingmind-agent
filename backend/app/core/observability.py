@@ -8,6 +8,162 @@ from dataclasses import dataclass, asdict
 from collections import defaultdict
 from app.core.logger import app_logger
 
+# ============================================
+# Prometheus 指标定义（业务级自定义指标）
+# ============================================
+try:
+    from prometheus_client import Counter, Histogram, Gauge, REGISTRY
+
+    # RAG 请求总数，按复杂度分级标签
+    PROM_RAG_REQUESTS = Counter(
+        "meetingmind_rag_requests_total",
+        "Total number of RAG requests",
+        ["complexity_level"],  # S / R / C / A
+    )
+
+    # RAG 端到端延迟直方图（秒）
+    PROM_RAG_LATENCY = Histogram(
+        "meetingmind_rag_latency_seconds",
+        "RAG end-to-end latency in seconds",
+        ["complexity_level"],
+        buckets=(0.1, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0),
+    )
+
+    # Agent 工具调用次数
+    PROM_AGENT_TOOL_CALLS = Counter(
+        "meetingmind_agent_tool_calls_total",
+        "Total number of agent tool calls",
+        ["tool_name"],
+    )
+
+    # 检索召回率 Gauge（最近一次评估值）
+    PROM_RETRIEVAL_RECALL = Gauge(
+        "meetingmind_retrieval_recall",
+        "Latest retrieval recall rate",
+    )
+
+    # LLM 错误计数
+    PROM_LLM_ERRORS = Counter(
+        "meetingmind_llm_errors_total",
+        "Total number of LLM errors",
+        ["error_type"],
+    )
+
+    # ==================== Agent 执行链路指标 ====================
+    
+    # Agent 请求总数
+    PROM_AGENT_REQUESTS = Counter(
+        "meetingmind_agent_requests_total",
+        "Total number of agent requests",
+        ["task_type"],
+    )
+
+    # Agent 端到端延迟直方图（秒）
+    PROM_AGENT_LATENCY = Histogram(
+        "meetingmind_agent_latency_seconds",
+        "Agent end-to-end latency in seconds",
+        ["task_type"],
+        buckets=(0.1, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0, 15.0),
+    )
+
+    # Planner 执行指标
+    PROM_PLANNER_REQUESTS = Counter(
+        "meetingmind_planner_requests_total",
+        "Total number of planner requests",
+    )
+    
+    PROM_PLANNER_LATENCY = Histogram(
+        "meetingmind_planner_latency_seconds",
+        "Planner latency in seconds",
+        buckets=(0.1, 0.25, 0.5, 1.0, 2.0),
+    )
+
+    # Retriever 执行指标
+    PROM_RETRIEVER_REQUESTS = Counter(
+        "meetingmind_retriever_requests_total",
+        "Total number of retriever requests",
+        ["strategy"],
+    )
+    
+    PROM_RETRIEVER_LATENCY = Histogram(
+        "meetingmind_retriever_latency_seconds",
+        "Retriever latency in seconds",
+        ["strategy"],
+        buckets=(0.05, 0.1, 0.25, 0.5, 1.0),
+    )
+
+    # Tool 执行指标
+    PROM_TOOL_REQUESTS = Counter(
+        "meetingmind_tool_requests_total",
+        "Total number of tool requests",
+        ["tool_name", "success"],
+    )
+    
+    PROM_TOOL_LATENCY = Histogram(
+        "meetingmind_tool_latency_seconds",
+        "Tool execution latency in seconds",
+        ["tool_name"],
+        buckets=(0.1, 0.25, 0.5, 1.0, 2.0, 5.0),
+    )
+
+    # LLM 调用指标
+    PROM_LLM_REQUESTS = Counter(
+        "meetingmind_llm_requests_total",
+        "Total number of LLM requests",
+        ["model"],
+    )
+    
+    PROM_LLM_LATENCY = Histogram(
+        "meetingmind_llm_latency_seconds",
+        "LLM latency in seconds",
+        ["model"],
+        buckets=(0.5, 1.0, 2.0, 3.0, 5.0, 10.0),
+    )
+    
+    PROM_LLM_TOKENS = Counter(
+        "meetingmind_llm_tokens_total",
+        "Total LLM tokens used",
+        ["model", "type"],  # type: prompt, completion
+    )
+
+    # Reflection 执行指标
+    PROM_REFLECTION_REQUESTS = Counter(
+        "meetingmind_reflection_requests_total",
+        "Total number of reflection requests",
+        ["action"],  # continue, retry, replan
+    )
+    
+    PROM_REFLECTION_LATENCY = Histogram(
+        "meetingmind_reflection_latency_seconds",
+        "Reflection latency in seconds",
+        buckets=(0.1, 0.25, 0.5, 1.0, 2.0),
+    )
+
+    # Agent 成功率
+    PROM_AGENT_SUCCESS_RATE = Gauge(
+        "meetingmind_agent_success_rate",
+        "Agent success rate",
+        ["task_type"],
+    )
+
+    # 重试次数
+    PROM_RETRY_COUNT = Counter(
+        "meetingmind_retry_count_total",
+        "Total number of retries",
+        ["component"],  # planner, retriever, tool, llm, reflection
+    )
+
+    # Token 成本估算
+    PROM_TOKEN_COST = Gauge(
+        "meetingmind_token_cost_usd",
+        "Estimated token cost in USD",
+        ["model"],
+    )
+
+    _PROMETHEUS_AVAILABLE = True
+except Exception:
+    _PROMETHEUS_AVAILABLE = False
+
 
 class TraceStatus(str, Enum):
     """追踪状态"""
@@ -114,8 +270,30 @@ class Tracer:
         app_logger.debug(f"[Tracer] 开始追踪: {trace_id}")
         return trace_id
     
-    def start_span(self, name: str, trace_id: str, parent_span_id: Optional[str] = None) -> str:
+    class _SpanContext:
+        def __init__(self, tracer: "Tracer", span_id: str):
+            self._tracer = tracer
+            self.span_id = span_id
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            status = TraceStatus.FAILED if exc_type else TraceStatus.COMPLETED
+            self._tracer.end_span(self.span_id, status)
+            return False
+
+        def __str__(self) -> str:
+            return self.span_id
+
+        def set_attribute(self, key: str, value: Any):
+            self._tracer.add_span_attribute(self.span_id, key, value)
+
+    def start_span(self, name: str, trace_id: Optional[str] = None, parent_span_id: Optional[str] = None):
         """开始跨度"""
+        return_context = trace_id is None
+        if trace_id is None:
+            trace_id = self.start_trace()
         if trace_id not in self._traces:
             self.start_trace(trace_id)
         
@@ -136,6 +314,8 @@ class Tracer:
         self._current_span = span
         
         app_logger.debug(f"[Tracer] 开始跨度: {span_id} ({name})")
+        if return_context:
+            return Tracer._SpanContext(self, span_id)
         return span_id
     
     def end_span(self, span_id: str, status: TraceStatus = TraceStatus.COMPLETED):
@@ -181,8 +361,10 @@ class Tracer:
                     })
                     return
     
-    def get_trace(self, trace_id: str) -> Optional[Trace]:
+    def get_trace(self, trace_id: Optional[str] = None):
         """获取追踪"""
+        if trace_id is None:
+            return self.get_recent_traces()
         return self._traces.get(trace_id)
     
     def get_recent_traces(self, limit: int = 10) -> List[Trace]:
@@ -205,6 +387,10 @@ class MetricsCollector:
         """增加计数器"""
         self._counters[name] += 1
         self._record_metric(name, MetricType.COUNTER, self._counters[name], labels)
+
+    def increment(self, name: str, labels: Optional[Dict[str, str]] = None):
+        """兼容旧接口。"""
+        self.increment_counter(name, labels)
     
     def set_gauge(self, name: str, value: float, labels: Optional[Dict[str, str]] = None):
         """设置仪表盘值"""
@@ -215,11 +401,148 @@ class MetricsCollector:
         """记录直方图值"""
         self._histograms[name].append(value)
         self._record_metric(name, MetricType.HISTOGRAM, value, labels)
+
+    def record(self, name: str, value: float, labels: Optional[Dict[str, str]] = None):
+        """兼容旧接口。"""
+        self.record_histogram(name, value, labels)
     
     def record_timer(self, name: str, duration_ms: float, labels: Optional[Dict[str, str]] = None):
         """记录计时"""
         self._record_metric(name, MetricType.TIMER, duration_ms, labels)
-    
+
+    # ============================================
+    # Prometheus 桥接方法（业务事件 → Prometheus 指标）
+    # ============================================
+
+    def track_rag_request(self, complexity_level: str, latency_seconds: float):
+        """记录 RAG 请求（同步内部指标 + Prometheus）"""
+        self.increment_counter("rag_requests", {"complexity_level": complexity_level})
+        self.record_histogram("rag_latency_seconds", latency_seconds, {"complexity_level": complexity_level})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_RAG_REQUESTS.labels(complexity_level=complexity_level).inc()
+                PROM_RAG_LATENCY.labels(complexity_level=complexity_level).observe(latency_seconds)
+            except Exception:
+                pass
+
+    def track_agent_tool_call(self, tool_name: str):
+        """记录 Agent 工具调用（同步内部指标 + Prometheus）"""
+        self.increment_counter("agent_tool_calls", {"tool_name": tool_name})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_AGENT_TOOL_CALLS.labels(tool_name=tool_name).inc()
+            except Exception:
+                pass
+
+    def set_retrieval_recall(self, value: float):
+        """设置检索召回率（同步内部指标 + Prometheus）"""
+        self.set_gauge("retrieval_recall", value)
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_RETRIEVAL_RECALL.set(value)
+            except Exception:
+                pass
+
+    def track_llm_error(self, error_type: str):
+        """记录 LLM 错误（同步内部指标 + Prometheus）"""
+        self.increment_counter("llm_errors", {"error_type": error_type})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_LLM_ERRORS.labels(error_type=error_type).inc()
+            except Exception:
+                pass
+
+    # ==================== Agent 执行链路追踪方法 ====================
+
+    def track_agent_request(self, task_type: str, latency_seconds: float, success: bool = True):
+        """记录 Agent 请求"""
+        self.increment_counter("agent_requests", {"task_type": task_type})
+        self.record_histogram("agent_latency_seconds", latency_seconds, {"task_type": task_type})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_AGENT_REQUESTS.labels(task_type=task_type).inc()
+                PROM_AGENT_LATENCY.labels(task_type=task_type).observe(latency_seconds)
+                PROM_AGENT_SUCCESS_RATE.labels(task_type=task_type).set(1.0 if success else 0.0)
+            except Exception:
+                pass
+
+    def track_planner(self, latency_seconds: float):
+        """记录 Planner 执行"""
+        self.increment_counter("planner_requests")
+        self.record_histogram("planner_latency_seconds", latency_seconds)
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_PLANNER_REQUESTS.inc()
+                PROM_PLANNER_LATENCY.observe(latency_seconds)
+            except Exception:
+                pass
+
+    def track_retriever(self, strategy: str, latency_seconds: float):
+        """记录 Retriever 执行"""
+        self.increment_counter("retriever_requests", {"strategy": strategy})
+        self.record_histogram("retriever_latency_seconds", latency_seconds, {"strategy": strategy})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_RETRIEVER_REQUESTS.labels(strategy=strategy).inc()
+                PROM_RETRIEVER_LATENCY.labels(strategy=strategy).observe(latency_seconds)
+            except Exception:
+                pass
+
+    def track_tool(self, tool_name: str, latency_seconds: float, success: bool = True):
+        """记录 Tool 执行"""
+        self.increment_counter("tool_requests", {"tool_name": tool_name, "success": str(success)})
+        self.record_histogram("tool_latency_seconds", latency_seconds, {"tool_name": tool_name})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_TOOL_REQUESTS.labels(tool_name=tool_name, success=str(success)).inc()
+                PROM_TOOL_LATENCY.labels(tool_name=tool_name).observe(latency_seconds)
+            except Exception:
+                pass
+
+    def track_llm(self, model: str, latency_seconds: float, prompt_tokens: int = 0, completion_tokens: int = 0):
+        """记录 LLM 调用"""
+        self.increment_counter("llm_requests", {"model": model})
+        self.record_histogram("llm_latency_seconds", latency_seconds, {"model": model})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_LLM_REQUESTS.labels(model=model).inc()
+                PROM_LLM_LATENCY.labels(model=model).observe(latency_seconds)
+                if prompt_tokens > 0:
+                    PROM_LLM_TOKENS.labels(model=model, type="prompt").inc(prompt_tokens)
+                if completion_tokens > 0:
+                    PROM_LLM_TOKENS.labels(model=model, type="completion").inc(completion_tokens)
+            except Exception:
+                pass
+
+    def track_reflection(self, action: str, latency_seconds: float):
+        """记录 Reflection 执行"""
+        self.increment_counter("reflection_requests", {"action": action})
+        self.record_histogram("reflection_latency_seconds", latency_seconds)
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_REFLECTION_REQUESTS.labels(action=action).inc()
+                PROM_REFLECTION_LATENCY.observe(latency_seconds)
+            except Exception:
+                pass
+
+    def track_retry(self, component: str):
+        """记录重试"""
+        self.increment_counter("retry_count", {"component": component})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_RETRY_COUNT.labels(component=component).inc()
+            except Exception:
+                pass
+
+    def set_token_cost(self, model: str, cost_usd: float):
+        """设置 Token 成本"""
+        self.set_gauge("token_cost_usd", cost_usd, {"model": model})
+        if _PROMETHEUS_AVAILABLE:
+            try:
+                PROM_TOKEN_COST.labels(model=model).set(cost_usd)
+            except Exception:
+                pass
+
     def _record_metric(self, name: str, type: MetricType, value: float, labels: Optional[Dict[str, str]]):
         """记录指标"""
         metric = Metric(
@@ -236,11 +559,11 @@ class MetricsCollector:
         while len(self._metrics) > max_metrics:
             self._metrics.pop(0)
     
-    def get_metrics(self, name: Optional[str] = None) -> List[Metric]:
+    def get_metrics(self, name: Optional[str] = None):
         """获取指标"""
         if name:
             return [m for m in self._metrics if m.name == name]
-        return self._metrics
+        return self.get_metric_summary()
     
     def get_metric_summary(self) -> Dict[str, Any]:
         """获取指标摘要"""

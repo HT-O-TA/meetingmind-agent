@@ -35,7 +35,8 @@ const agentApi = {
 
   async queryStream(
     payload: AgentQueryRequest,
-    onMessage: (data: any) => void
+    onMessage: (data: any) => void,
+    signal?: AbortSignal
   ): Promise<void> {
     const token = localStorage.getItem('token')
     const response = await fetch(`${config.api.baseUrl}/agents/query-stream`, {
@@ -45,6 +46,7 @@ const agentApi = {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(payload),
+      signal,
     })
 
     if (!response.ok || !response.body) {
@@ -56,27 +58,34 @@ const agentApi = {
     let buffer = ''
 
     while (true) {
-      const { done, value } = await reader.read()
-      if (done) {
-        buffer += decoder.decode()
-        return
-      }
-
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-
-      for (const line of lines) {
-        const trimmed = line.trim()
-        if (!trimmed.startsWith('data: ')) continue
-        const dataStr = trimmed.slice(6)
-        if (dataStr === '[DONE]') return
-
-        try {
-          onMessage(JSON.parse(dataStr))
-        } catch (e) {
-          // Ignore malformed events; the UI can fall back to normal query.
+      try {
+        const { done, value } = await reader.read()
+        if (done) {
+          buffer += decoder.decode()
+          return
         }
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (!trimmed.startsWith('data: ')) continue
+          const dataStr = trimmed.slice(6)
+          if (dataStr === '[DONE]') return
+
+          try {
+            onMessage(JSON.parse(dataStr))
+          } catch (e) {
+            // Ignore malformed events; the UI can fall back to normal query.
+          }
+        }
+      } catch (e: any) {
+        if (e.name === 'AbortError') {
+          return
+        }
+        throw e
       }
     }
   },

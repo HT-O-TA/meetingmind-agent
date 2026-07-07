@@ -14,16 +14,10 @@ async def get_all_configs():
     return {"configs": config_center.get_full_configs()}
 
 
-@router.get("/{key}")
-async def get_config_by_key(key: str):
-    """根据key获取配置"""
-    config_center = get_config_center()
-    item = config_center.get_config_item(key)
-    
-    if not item:
-        raise HTTPException(status_code=404, detail=f"配置项不存在: {key}")
-    
-    return item
+@router.get("/categories")
+async def get_categories():
+    """获取所有配置分类"""
+    return {"categories": [cat.value for cat in ConfigCategory]}
 
 
 @router.get("/category/{category}")
@@ -45,20 +39,6 @@ async def get_config_summary():
     """获取配置摘要（脱敏）"""
     config_center = get_config_center()
     return config_center.get_all()
-
-
-@router.post("/{key}")
-async def update_config(key: str, value: Any):
-    """更新配置值"""
-    config_center = get_config_center()
-    
-    success = config_center.set(key, value, source=ConfigSource.DATABASE)
-    
-    if not success:
-        raise HTTPException(status_code=400, detail=f"配置更新失败: {key}")
-    
-    app_logger.info(f"[API] 配置已更新: {key}")
-    return {"message": "配置更新成功", "key": key, "value": value}
 
 
 @router.post("/batch")
@@ -93,7 +73,27 @@ async def reload_config():
     return {"message": "配置已重新加载"}
 
 
-@router.get("/categories")
-async def get_categories():
-    """获取所有配置分类"""
-    return {"categories": [cat.value for cat in ConfigCategory]}
+@router.get("/{key}")
+async def get_config_by_key(key: str):
+    """根据key获取配置"""
+    config_center = get_config_center()
+    item = config_center.get_config_item(key)
+
+    if not item:
+        raise HTTPException(status_code=404, detail=f"配置项不存在: {key}")
+
+    return item
+
+
+@router.post("/{key}")
+async def update_config(key: str, value: Any):
+    """更新配置值"""
+    config_center = get_config_center()
+
+    success = config_center.set(key, value, source=ConfigSource.DATABASE)
+
+    if not success:
+        raise HTTPException(status_code=400, detail=f"配置更新失败: {key}")
+
+    app_logger.info(f"[API] 配置已更新: {key}")
+    return {"message": "配置更新成功", "key": key, "value": value}

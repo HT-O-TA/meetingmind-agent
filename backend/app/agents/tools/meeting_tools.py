@@ -1,4 +1,5 @@
 """会议助手专用工具"""
+import json
 from typing import Optional, List, Dict, Any
 from app.agents.tools.base import (
     BaseTool, ToolDefinition, ToolParameter, ToolCategory,
@@ -416,7 +417,7 @@ def register_meeting_tools(
         vector_search_service: 向量搜索服务
     """
     from app.agents.tools.registry import get_tool_registry
-    from app.agents.tools.tool_metadata import Tool, ToolMetadata, ToolCategory, ToolParameter
+    from app.agents.tools.tool_metadata import Tool, ToolMetadata, ToolCategory, ToolParameter, ToolRiskLevel
     
     registry = get_tool_registry()
     
@@ -428,6 +429,9 @@ def register_meeting_tools(
             description="搜索会议相关内容，根据查询检索相关文档片段",
             category=ToolCategory.SEARCH,
             tags=["meeting", "search", "会议", "检索"],
+            risk_level=ToolRiskLevel.LOW,
+            requires_confirmation=False,
+            idempotent=True,
             parameters=[
                 ToolParameter(name="query", type="string", description="搜索查询", required=True),
                 ToolParameter(name="meeting_id", type="integer", description="会议ID（可选）", required=False),
@@ -446,6 +450,9 @@ def register_meeting_tools(
             description="从会议内容中抽取待办事项，返回负责人和截止时间",
             category=ToolCategory.EXTRACT,
             tags=["todo", "task", "待办", "任务"],
+            risk_level=ToolRiskLevel.LOW,
+            requires_confirmation=False,
+            idempotent=True,
             parameters=[
                 ToolParameter(name="context", type="string", description="会议上下文内容", required=True),
             ],
@@ -462,6 +469,9 @@ def register_meeting_tools(
             description="生成结构化的会议纪要",
             category=ToolCategory.GENERATE,
             tags=["minutes", "summary", "纪要", "总结"],
+            risk_level=ToolRiskLevel.LOW,
+            requires_confirmation=False,
+            idempotent=True,
             parameters=[
                 ToolParameter(name="context", type="string", description="会议内容", required=True),
                 ToolParameter(name="format", type="string", description="输出格式（简略/详细）", required=False, default="详细"),
@@ -479,6 +489,9 @@ def register_meeting_tools(
             description="从会议内容中识别争议点和分歧",
             category=ToolCategory.EXTRACT,
             tags=["controversy", "dispute", "争议", "分歧"],
+            risk_level=ToolRiskLevel.LOW,
+            requires_confirmation=False,
+            idempotent=True,
             parameters=[
                 ToolParameter(name="context", type="string", description="会议内容", required=True),
             ],
@@ -495,6 +508,9 @@ def register_meeting_tools(
             description="根据上下文回答用户问题",
             category=ToolCategory.GENERATE,
             tags=["qa", "question", "问答", "回答"],
+            risk_level=ToolRiskLevel.LOW,
+            requires_confirmation=False,
+            idempotent=True,
             parameters=[
                 ToolParameter(name="question", type="string", description="用户问题", required=True),
                 ToolParameter(name="context", type="string", description="相关上下文", required=True),
@@ -505,3 +521,226 @@ def register_meeting_tools(
     registry.register(qa_tool)
     
     app_logger.info(f"[register_meeting_tools] 已注册会议工具到全局注册表")
+
+
+class DocumentContentTool(BaseTool):
+    """文档内容获取工具"""
+    
+    def __init__(self):
+        super().__init__()
+    
+    def get_definition(self) -> ToolDefinition:
+        return ToolDefinition(
+            name="get_document_content",
+            description="根据文档ID获取文档的完整内容",
+            category=ToolCategory.SEARCH,
+            parameters=[
+                ToolParameter(
+                    name="document_id",
+                    description="文档ID",
+                    type="integer",
+                    required=True
+                )
+            ]
+        )
+    
+    async def execute(self, document_id: int) -> ToolResult:
+        try:
+            from app.db.database import AsyncSessionLocal
+            from app.models.document import Document
+            from sqlalchemy import select
+            
+            # 将document_id转换为整数，确保类型正确
+            document_id = int(document_id)
+            
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(select(Document).where(Document.id == document_id))
+                doc = result.scalar_one_or_none()
+                
+                if not doc:
+                    return ToolResult(
+                        success=False,
+                        tool_name=self.definition.name,
+                        result=None,
+                        error=f"文档ID {document_id} 不存在"
+                    )
+                
+                return ToolResult(
+                    success=True,
+                    tool_name=self.definition.name,
+                    result={
+                        "document_id": doc.id,
+                        "filename": doc.filename,
+                        "original_filename": doc.original_filename,
+                        "content": doc.content,
+                        "file_type": doc.file_type,
+                        "status": doc.status,
+                        "created_at": doc.created_at.isoformat() if doc.created_at else None
+                    },
+                    metadata={}
+                )
+        except Exception as e:
+            app_logger.error(f"[DocumentContentTool] 获取文档内容失败: {e}")
+            return ToolResult(
+                success=False,
+                tool_name=self.definition.name,
+                result=None,
+                error=str(e)
+            )
+
+
+class DocumentSearchTool(BaseTool):
+    """文档搜索工具"""
+    
+    def __init__(self, vector_search_service: VectorSearchService):
+        self.vector_search_service = vector_search_service
+        super().__init__()
+    
+    def get_definition(self) -> ToolDefinition:
+        return ToolDefinition(
+            name="search_document",
+            description="根据关键词搜索文档内容",
+            category=ToolCategory.SEARCH,
+            parameters=[
+                ToolParameter(
+                    name="query",
+                    description="搜索关键词",
+                    type="string",
+                    required=True
+                ),
+                ToolParameter(
+                    name="document_ids",
+                    description="文档ID列表（可选，限制搜索范围）",
+                    type="array",
+                    required=False
+                ),
+                ToolParameter(
+                    name="top_k",
+                    description="返回结果数量",
+                    type="integer",
+                    required=False,
+                    default=5
+                )
+            ]
+        )
+    
+    async def execute(self, query: str, document_ids: Optional[List[int]] = None, top_k: int = 5) -> ToolResult:
+        try:
+            results = await self.vector_search_service.search_by_text(
+                query_text=query,
+                top_k=top_k,
+                document_ids=document_ids
+            )
+            
+            formatted = []
+            for r in results:
+                formatted.append({
+                    "document_id": r.get("document_id"),
+                    "content": r.get("content", r.get("chunk_text", "")),
+                    "similarity": r.get("similarity", 0),
+                    "chunk_id": r.get("id")
+                })
+            
+            return ToolResult(
+                success=True,
+                tool_name=self.definition.name,
+                result=formatted,
+                metadata={"count": len(formatted)}
+            )
+        except Exception as e:
+            app_logger.error(f"[DocumentSearchTool] 搜索失败: {e}")
+            return ToolResult(
+                success=False,
+                tool_name=self.definition.name,
+                result=[],
+                error=str(e)
+            )
+
+
+class TextProcessorTool(BaseTool):
+    """文本处理工具"""
+    
+    def __init__(self):
+        super().__init__()
+    
+    def get_definition(self) -> ToolDefinition:
+        return ToolDefinition(
+            name="text_processor",
+            description="对文本进行处理，如统计字数、提取关键词、格式化等",
+            category=ToolCategory.INFO,
+            parameters=[
+                ToolParameter(
+                    name="operation",
+                    description="操作类型（count/keyword/format/extract）",
+                    type="string",
+                    required=True
+                ),
+                ToolParameter(
+                    name="text",
+                    description="要处理的文本",
+                    type="string",
+                    required=True
+                )
+            ]
+        )
+    
+    async def execute(self, operation: str, text: str) -> ToolResult:
+        """执行文本处理"""
+        try:
+            if not text:
+                return ToolResult(
+                    success=False,
+                    tool_name=self.definition.name,
+                    result=None,
+                    error="文本不能为空"
+                )
+            
+            if operation == "count":
+                # 统计字数
+                char_count = len(text)
+                word_count = len(text.split())
+                line_count = len(text.split('\n'))
+                result = {
+                    "char_count": char_count,
+                    "word_count": word_count,
+                    "line_count": line_count
+                }
+            elif operation == "keyword":
+                # 简单的关键词提取（按词频）
+                words = text.split()
+                word_freq = {}
+                for word in words:
+                    if len(word) > 1:  # 忽略单字
+                        word_freq[word] = word_freq.get(word, 0) + 1
+                # 取前10个高频词
+                keywords = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:10]
+                result = {"keywords": [k[0] for k in keywords]}
+            elif operation == "format":
+                # 格式化文本（去除多余空格和换行）
+                formatted = ' '.join(text.split())
+                result = {"formatted_text": formatted}
+            elif operation == "extract":
+                # 提取摘要（取前200字）
+                summary = text[:200] + "..." if len(text) > 200 else text
+                result = {"summary": summary}
+            else:
+                return ToolResult(
+                    success=False,
+                    tool_name=self.definition.name,
+                    result=None,
+                    error=f"不支持的操作类型: {operation}"
+                )
+            
+            return ToolResult(
+                success=True,
+                tool_name=self.definition.name,
+                result=result
+            )
+        except Exception as e:
+            app_logger.error(f"[TextProcessorTool] 处理失败: {e}")
+            return ToolResult(
+                success=False,
+                tool_name=self.definition.name,
+                result=None,
+                error=str(e)
+            )

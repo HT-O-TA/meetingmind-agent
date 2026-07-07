@@ -3,5 +3,6 @@ from app.models.meeting import Meeting, SpeechRecord
 from app.models.document import Document
 from app.models.todo import TodoItem
 from app.models.vector import VectorChunk
+from app.models.feedback import Feedback, BadCase, ImprovementRecord, PerformanceMetric, FeedbackType, BadCaseCategory, ResolutionStatus
 
-__all__ = ["User", "Meeting", "SpeechRecord", "Document", "TodoItem", "VectorChunk"]
+__all__ = ["User", "Meeting", "SpeechRecord", "Document", "TodoItem", "VectorChunk", "Feedback", "BadCase", "ImprovementRecord", "PerformanceMetric", "FeedbackType", "BadCaseCategory", "ResolutionStatus"]

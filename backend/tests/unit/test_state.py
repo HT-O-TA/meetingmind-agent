@@ -1,6 +1,6 @@
 """单元测试 - Agent 状态模块"""
 import pytest
-from app.agents.state import TaskType, AgentResult, create_initial_state
+from app.agents.state import TaskType, WorkflowType, RiskLevel, AgentResult, create_initial_state
 
 
 class TestTaskType:
@@ -20,6 +20,15 @@ class TestTaskType:
             TaskType("nonexistent")
 
 
+class TestWorkflowType:
+    def test_all_values_exist(self):
+        assert WorkflowType.SIMPLE_QA.value == "simple_qa"
+        assert WorkflowType.MINUTES.value == "minutes"
+        assert WorkflowType.TODO.value == "todo"
+        assert WorkflowType.CONTROVERSY.value == "controversy"
+        assert WorkflowType.COMPLEX.value == "complex"
+
+
 class TestAgentResult:
     def test_success_result(self):
         result = AgentResult(
@@ -30,6 +39,18 @@ class TestAgentResult:
         assert result.success is True
         assert result.answer == "这是回答"
         assert result.error is None
+
+    def test_result_with_workflow_metadata(self):
+        result = AgentResult(
+            success=True,
+            task_type=TaskType.QA,
+            workflow_type=WorkflowType.SIMPLE_QA,
+            route_reason="默认简单问答",
+            retrieval_confidence=0.8,
+        )
+        assert result.workflow_type == WorkflowType.SIMPLE_QA
+        assert result.route_reason == "默认简单问答"
+        assert result.retrieval_confidence == 0.8
 
     def test_failure_result(self):
         result = AgentResult(
@@ -49,6 +70,13 @@ class TestCreateInitialState:
         assert state["cot_thoughts"] == []
         assert state["task_contexts"] == {}
         assert state["agents_involved"] == []
+        assert state["workflow_type"] is None
+        assert state["validation_errors"] == []
+        assert state["repair_count"] == 0
+        assert state["max_repair_attempts"] == 1
+        assert state["risk_level"] == RiskLevel.LOW
+        assert state["requires_confirmation"] is False
+        assert state["confirmation_status"] == "not_required"
 
     def test_with_meeting_id(self):
         state = create_initial_state("问题", meeting_id=42)

@@ -87,6 +87,23 @@
       </template>
     </el-dialog>
 
+    <el-dialog v-model="showPreviewDialog" :title="previewDocumentData?.original_filename || '文档预览'" width="800px" top="5vh">
+      <div v-loading="previewLoading" style="max-height: 600px; overflow-y: auto;">
+        <div v-if="previewContent" class="document-preview">
+          <pre style="white-space: pre-wrap; font-size: 14px; line-height: 1.8; word-break: break-all;">{{ previewContent }}</pre>
+        </div>
+        <div v-else-if="previewDocumentData" style="text-align: center; padding: 40px; color: #999;">
+          <el-icon size="48" style="margin-bottom: 16px;"><Document /></el-icon>
+          <div>该文档内容无法预览</div>
+          <el-button type="primary" size="small" @click="downloadDocument(previewDocumentData)" style="margin-top: 16px;">下载文档</el-button>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showPreviewDialog = false">关闭</el-button>
+        <el-button v-if="previewDocumentData" type="primary" @click="downloadDocument(previewDocumentData)">下载</el-button>
+      </template>
+    </el-dialog>
+
     <el-table :data="store.documents" v-loading="store.loading" stripe border>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="original_filename" label="文件名" min-width="200" />
@@ -114,8 +131,9 @@
       <el-table-column prop="created_at" label="上传时间" width="160">
         <template #default="{ row }">{{ formatDate(row.created_at) }}</template>
       </el-table-column>
-      <el-table-column label="操作" width="140">
+      <el-table-column label="操作" width="180">
         <template #default="{ row }">
+          <el-button size="small" @click="previewDocument(row)">预览</el-button>
           <el-button size="small" @click="editDocument(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="remove(row.id)">删除</el-button>
         </template>
@@ -138,6 +156,7 @@ import { meetingApi } from '@/api/meetings'
 import { documentApi } from '@/api/documents'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { config } from '@/config'
+import { Document } from '@element-plus/icons-vue'
 
 const store = useDocumentStore()
 const page = ref(1)
@@ -160,6 +179,11 @@ const uploadForm = reactive({ meeting_id: null, department: '' })
 const showEditDialog = ref(false)
 const editingDocument = ref(null)
 const editForm = reactive({ meeting_id: null, department: '' })
+
+const showPreviewDialog = ref(false)
+const previewDocumentData = ref(null)
+const previewContent = ref('')
+const previewLoading = ref(false)
 
 const statusType = (s) => ({ uploaded: 'info', parsed: 'success', failed: 'danger' }[s] || '')
 const statusLabel = (s) => ({ uploaded: '已上传', parsed: '已解析', failed: '解析失败' }[s] || s)
@@ -298,6 +322,25 @@ async function handleEditConfirm() {
 async function remove(id) {
   await ElMessageBox.confirm('确认删除该文档？', '提示', { type: 'warning' })
   await store.removeDocument(id)
+}
+
+async function previewDocument(doc) {
+  previewDocumentData.value = doc
+  previewContent.value = ''
+  previewLoading.value = true
+  showPreviewDialog.value = true
+  try {
+    const response = await documentApi.getContent(doc.id)
+    previewContent.value = response.data.content || ''
+  } catch (e) {
+    previewContent.value = ''
+  } finally {
+    previewLoading.value = false
+  }
+}
+
+function downloadDocument(doc) {
+  window.open(`${config.api.baseUrl}/documents/${doc.id}/download`, '_blank')
 }
 
 onMounted(() => {

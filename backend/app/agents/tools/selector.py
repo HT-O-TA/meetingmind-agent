@@ -15,17 +15,24 @@ class ToolSelector:
     4. 依赖分析
     """
     
-    def __init__(self):
+    def __init__(self, allowed_tool_ids: Optional[List[str]] = None):
         self.registry = get_tool_registry()
+        self.allowed_tool_ids = set(allowed_tool_ids or [])
         # 关键词到工具ID的映射
         self._keyword_tool_mapping = self._build_keyword_mapping()
+
+    def _iter_allowed_tools(self) -> List[Tool]:
+        tools = self.registry.get_all()
+        if not self.allowed_tool_ids:
+            return tools
+        return [tool for tool in tools if tool.metadata.tool_id in self.allowed_tool_ids]
     
     def _build_keyword_mapping(self) -> Dict[str, List[str]]:
         """构建关键词到工具的映射"""
         mapping = {}
         
         # 从所有工具构建映射
-        for tool in self.registry.get_all():
+        for tool in self._iter_allowed_tools():
             # 从名称构建
             words = tool.metadata.name.split()
             for word in words:
@@ -128,7 +135,7 @@ class ToolSelector:
         query_lower = query.lower()
         query_words = set(query_lower.split())
         
-        for tool in self.registry.get_all():
+        for tool in self._iter_allowed_tools():
             score = 0.0
             tool_words = set()
             
@@ -169,7 +176,7 @@ class ToolSelector:
             ToolCategory.COMPUTATION: ["计算", "算", "数学", "统计"],
         }
         
-        for tool in self.registry.get_all():
+        for tool in self._iter_allowed_tools():
             score = 0.0
             category_keywords_list = category_keywords.get(tool.metadata.category, [])
             
@@ -193,13 +200,13 @@ class ToolSelector:
         # 根据上下文中提到的实体类型选择工具
         if "meeting_id" in context:
             # 提到了会议ID，优先选择会议相关工具
-            for tool in self.registry.get_all():
+            for tool in self._iter_allowed_tools():
                 if tool.metadata.category == ToolCategory.MEETING:
                     scores[tool.metadata.tool_id] = 0.6
         
         if "document_id" in context:
             # 提到了文档ID，优先选择文档相关工具
-            for tool in self.registry.get_all():
+            for tool in self._iter_allowed_tools():
                 if tool.metadata.category == ToolCategory.DOCUMENT:
                     scores[tool.metadata.tool_id] = 0.6
         
@@ -332,6 +339,32 @@ class ToolSelector:
             groups.append(other_tools)
         
         return groups
+    
+    def format_tools_for_prompt(self) -> str:
+        """格式化工具信息用于 prompt"""
+        tools = self._iter_allowed_tools()
+        lines = [
+            "可用工具（tool_name 必须严格使用下列 tool_id，不要使用中文名称）：",
+        ]
+        
+        for tool in tools:
+            required_params = []
+            optional_params = []
+            for param in tool.metadata.parameters:
+                target = required_params if getattr(param, "required", False) else optional_params
+                param_type = getattr(param, "type", "string")
+                default = getattr(param, "default", None)
+                default_text = f", default={default}" if default is not None else ""
+                target.append(f"{param.name}:{param_type}{default_text} - {param.description}")
+
+            lines.append(f"- tool_id: {tool.metadata.tool_id}")
+            lines.append(f"  name: {tool.metadata.name}")
+            lines.append(f"  description: {tool.metadata.description}")
+            lines.append(f"  required_args: {required_params or []}")
+            lines.append(f"  optional_args: {optional_params or []}")
+            lines.append(f"  example: {{\"tool_name\": \"{tool.metadata.tool_id}\", \"arguments\": {{...}}}}")
+        
+        return "\n".join(lines)
 
 
 # 全局选择器实例

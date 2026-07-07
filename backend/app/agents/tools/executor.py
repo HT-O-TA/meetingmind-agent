@@ -5,12 +5,16 @@ import asyncio
 from app.core.logger import app_logger
 from app.agents.tools.registry import get_tool_registry
 from app.agents.tools.tool_metadata import ToolExecutionResult
+from app.services.performance_metrics import get_performance_metrics
 from app.agents.tools.meeting_tools import (
     MeetingSearchTool,
     TodoExtractionTool,
     MinutesGenerationTool,
     ControversyDetectionTool,
-    QAAnswerTool
+    QAAnswerTool,
+    DocumentContentTool,
+    DocumentSearchTool,
+    TextProcessorTool
 )
 
 class ToolExecutor:
@@ -32,6 +36,31 @@ class ToolExecutor:
         self._max_history = 1000
         # 工具实例缓存
         self._tool_instances: Dict[str, Any] = {}
+        self.supported_tool_ids = {
+            "search_meeting",
+            "extract_todos",
+            "generate_minutes",
+            "detect_controversies",
+            "answer_question",
+            "get_document_content",
+            "search_document",
+            "text_processor",
+            "feishu_create_document",
+            "feishu_update_document",
+            "feishu_create_calendar",
+            "feishu_send_message",
+            "jira_create_issue",
+            "jira_get_issue",
+            "jira_update_issue",
+            "notion_create_page",
+            "notion_update_page",
+            "notion_query_database",
+            "send_email",
+        }
+
+    def get_supported_tool_ids(self) -> List[str]:
+        """获取执行器实际支持的工具ID"""
+        return sorted(self.supported_tool_ids)
     
     async def execute(
         self,
@@ -60,8 +89,12 @@ class ToolExecutor:
         """
         start_time = time.time()
         
-        # 获取工具
+        # 获取工具（先按ID查找，再按名称查找）
         tool = self.registry.get(tool_id)
+        if not tool:
+            # 尝试按名称查找（支持中文名称）
+            tool = self.registry.get_by_name(tool_id)
+        
         if not tool:
             return ToolExecutionResult(
                 tool_id=tool_id,
@@ -108,6 +141,14 @@ class ToolExecutor:
                     # 记录执行历史
                     self._record_execution(tool_id, params, result, True)
                     
+                    # 记录工具执行性能指标
+                    get_performance_metrics().record_tool_execution(
+                        tool_id=tool_id,
+                        success=True,
+                        latency_ms=execution_time * 1000,
+                        retry_count=attempt
+                    )
+                    
                     return ToolExecutionResult(
                         tool_id=tool_id,
                         success=True,
@@ -148,7 +189,7 @@ class ToolExecutor:
         执行具体的工具
         
         Args:
-            tool_id: 工具ID
+            tool_id: 工具ID或工具名称
             params: 参数
             llm_service: LLM服务
             vector_search_service: 向量搜索服务
@@ -156,11 +197,23 @@ class ToolExecutor:
         Returns:
             执行结果
         """
+        # 先获取工具，确定实际的工具ID
+        tool = self.registry.get(tool_id)
+        if not tool:
+            tool = self.registry.get_by_name(tool_id)
+        
+        if not tool:
+            app_logger.warning(f"[Executor] 未找到工具: {tool_id}")
+            return None
+        
+        # 使用实际的工具ID
+        actual_tool_id = tool.metadata.tool_id
+        
         # 根据工具ID创建并执行对应的工具实例
-        tool_instance = await self._get_tool_instance(tool_id, llm_service, vector_search_service)
+        tool_instance = await self._get_tool_instance(actual_tool_id, llm_service, vector_search_service)
         
         if tool_instance:
-            app_logger.info(f"[Executor] 执行工具: {tool_id}")
+            app_logger.info(f"[Executor] 执行工具: {tool_id} (实际ID: {actual_tool_id})")
             
             # 转换参数为工具期望的格式
             result = await tool_instance.execute(**params)
@@ -196,6 +249,10 @@ class ToolExecutor:
         
         # 根据工具ID创建实例
         try:
+            if tool_id not in self.supported_tool_ids:
+                app_logger.warning(f"[Executor] 工具未在执行器支持列表中: {tool_id}")
+                return None
+
             if tool_id == "search_meeting":
                 if not vector_search_service:
                     app_logger.warning("[Executor] search_meeting 需要 vector_search_service")
@@ -221,6 +278,35 @@ class ToolExecutor:
                     app_logger.warning("[Executor] answer_question 需要 llm_service")
                     return None
                 instance = QAAnswerTool(llm_service)
+            elif tool_id == "get_document_content":
+                instance = DocumentContentTool()
+            elif tool_id == "search_document":
+                if not vector_search_service:
+                    app_logger.warning("[Executor] search_document 需要 vector_search_service")
+                    return None
+                instance = DocumentSearchTool(vector_search_service)
+            elif tool_id == "text_processor":
+                instance = TextProcessorTool()
+            elif tool_id.startswith("feishu_"):
+                from app.agents.tools.enterprise_tools import execute_feishu_tool
+                async def feishu_executor(**kwargs):
+                    return await execute_feishu_tool(tool_id, kwargs)
+                instance = type('FeishuTool', (), {'execute': feishu_executor})()
+            elif tool_id.startswith("jira_"):
+                from app.agents.tools.enterprise_tools import execute_jira_tool
+                async def jira_executor(**kwargs):
+                    return await execute_jira_tool(tool_id, kwargs)
+                instance = type('JiraTool', (), {'execute': jira_executor})()
+            elif tool_id.startswith("notion_"):
+                from app.agents.tools.enterprise_tools import execute_notion_tool
+                async def notion_executor(**kwargs):
+                    return await execute_notion_tool(tool_id, kwargs)
+                instance = type('NotionTool', (), {'execute': notion_executor})()
+            elif tool_id == "send_email":
+                from app.agents.tools.enterprise_tools import execute_email_tool
+                async def email_executor(**kwargs):
+                    return await execute_email_tool(tool_id, kwargs)
+                instance = type('EmailTool', (), {'execute': email_executor})()
             else:
                 app_logger.warning(f"[Executor] 未知工具: {tool_id}")
                 return None

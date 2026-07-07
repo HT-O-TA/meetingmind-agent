@@ -1,10 +1,11 @@
-"""反思与自我改进系统 - 支持自我评估和迭代改进"""
+"""反思与自我改进系统 - 支持自我评估、重新规划和迭代改进"""
 import json
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Callable
 from enum import Enum
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from app.core.logger import app_logger
+from app.agents.tools.dynamic_tool_discovery import get_dynamic_tool_discovery, get_tool_combination_engine, DiscoveryStrategy
 
 
 class FeedbackType(str, Enum):
@@ -391,6 +392,28 @@ class ReflectionSystem:
         if feedback_type:
             return [f for f in self._feedbacks if f.type == feedback_type]
         return self._feedbacks
+
+    def collect_feedback(
+        self,
+        agent_id: str,
+        content: str,
+        rating: Optional[int] = None,
+        feedback_type: FeedbackType = FeedbackType.USER_COMMENT,
+        **kwargs
+    ) -> FeedbackItem:
+        """兼容旧接口：收集某个 Agent 的反馈。"""
+        return self.add_feedback(
+            type=feedback_type,
+            input_text=kwargs.get("input_text", ""),
+            output_text=content,
+            rating=rating,
+            comment=kwargs.get("comment"),
+            context={"agent_id": agent_id, **kwargs.get("context", {})},
+        )
+
+    def get_recent_feedbacks(self, limit: int = 10) -> List[FeedbackItem]:
+        """兼容旧接口：获取最近反馈。"""
+        return self._feedbacks[-limit:]
     
     def get_reflection_notes(self, priority: Optional[str] = None) -> List[ReflectionNote]:
         """获取反思笔记"""
@@ -410,6 +433,278 @@ class ReflectionSystem:
         self._improvement_rules.append(rule)
         app_logger.info(f"[Reflection] 添加改进规则: {rule.rule_id}")
         return rule
+
+    async def reflect_and_replan(
+        self,
+        input_text: str,
+        output_text: str,
+        context: Optional[Dict[str, Any]] = None,
+        tools_used: Optional[List[str]] = None,
+        max_iterations: int = 3,
+    ) -> Dict[str, Any]:
+        """
+        反思并重新规划
+        
+        Args:
+            input_text: 原始输入
+            output_text: 当前输出
+            context: 上下文信息
+            tools_used: 之前使用的工具
+            max_iterations: 最大迭代次数
+            
+        Returns:
+            重新规划结果，包含新的计划、工具选择和重新生成的答案
+        """
+        context = context or {}
+        iteration = 0
+        best_result = {
+            "output": output_text,
+            "plan": [],
+            "tools": tools_used or [],
+            "confidence": 0.0,
+            "iterations": 0,
+        }
+        
+        while iteration < max_iterations:
+            iteration += 1
+            app_logger.info(f"[Reflection] 反思迭代 {iteration}/{max_iterations}")
+            
+            evaluation = self.perform_self_evaluation(input_text, output_text, context)
+            evaluation_dict = {k.value if hasattr(k, 'value') else k: v for k, v in evaluation.items()}
+            confidence = evaluation_dict.get("confidence", 0.5)
+            
+            if confidence >= 0.7:
+                app_logger.info(f"[Reflection] 置信度 {confidence:.2f} 达到阈值，停止迭代")
+                best_result.update({
+                    "output": output_text,
+                    "confidence": confidence,
+                    "iterations": iteration,
+                    "evaluation": evaluation_dict,
+                })
+                break
+            
+            new_plan = self._generate_new_plan(input_text, output_text, evaluation_dict, tools_used)
+            new_tools = await self._select_new_tools(input_text, output_text, evaluation_dict, tools_used)
+            output_text = await self._regenerate_answer(input_text, output_text, evaluation_dict, new_plan, new_tools)
+            
+            best_result.update({
+                "output": output_text,
+                "plan": new_plan,
+                "tools": new_tools,
+                "confidence": confidence,
+                "iterations": iteration,
+                "evaluation": evaluation_dict,
+            })
+            
+            app_logger.info(f"[Reflection] 迭代 {iteration} 完成，置信度: {confidence:.2f}")
+        
+        return best_result
+
+    def _generate_new_plan(
+        self,
+        input_text: str,
+        output_text: str,
+        evaluation: Dict[str, float],
+        tools_used: Optional[List[str]] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        根据评估结果生成新的执行计划
+        
+        Args:
+            input_text: 原始输入
+            output_text: 当前输出
+            evaluation: 评估结果
+            tools_used: 之前使用的工具
+            
+        Returns:
+            新的执行计划步骤
+        """
+        plan = []
+        
+        if evaluation.get("accuracy", 0) < 0.5:
+            plan.append({
+                "step": "verify_facts",
+                "description": "验证事实准确性",
+                "priority": "high",
+            })
+        
+        if evaluation.get("completeness", 0) < 0.6:
+            plan.append({
+                "step": "gather_more_info",
+                "description": "收集更多信息",
+                "priority": "high",
+            })
+        
+        if evaluation.get("relevance", 0) < 0.5:
+            plan.append({
+                "step": "reanalyze_query",
+                "description": "重新分析查询意图",
+                "priority": "high",
+            })
+        
+        if evaluation.get("coherence", 0) < 0.6:
+            plan.append({
+                "step": "restructure_response",
+                "description": "重新组织回答结构",
+                "priority": "medium",
+            })
+        
+        plan.append({
+            "step": "final_generation",
+            "description": "生成最终回答",
+            "priority": "high",
+        })
+        
+        app_logger.info(f"[Reflection] 生成新计划: {[p['step'] for p in plan]}")
+        return plan
+
+    async def _select_new_tools(
+        self,
+        input_text: str,
+        output_text: str,
+        evaluation: Dict[str, float],
+        tools_used: Optional[List[str]] = None,
+    ) -> List[str]:
+        """
+        根据评估结果重新选择工具
+        
+        Args:
+            input_text: 原始输入
+            output_text: 当前输出
+            evaluation: 评估结果
+            tools_used: 之前使用的工具
+            
+        Returns:
+            新的工具ID列表
+        """
+        tools_used = tools_used or []
+        
+        discovery = get_dynamic_tool_discovery()
+        context = {
+            "query": input_text,
+            "current_output": output_text,
+            "evaluation": evaluation,
+            "tools_used": tools_used,
+        }
+        
+        results = await discovery.discover_tools(
+            query=input_text,
+            context=context,
+            strategy=DiscoveryStrategy.HYBRID,
+            max_tools=10,
+        )
+        
+        new_tools = []
+        for result in results:
+            tool_id = result.tool_id
+            if tool_id not in tools_used:
+                new_tools.append(tool_id)
+        
+        app_logger.info(f"[Reflection] 重新选择工具: {new_tools}")
+        return new_tools
+
+    async def _regenerate_answer(
+        self,
+        input_text: str,
+        output_text: str,
+        evaluation: Dict[str, float],
+        new_plan: List[Dict[str, Any]],
+        new_tools: List[str],
+    ) -> str:
+        """
+        根据新计划和工具重新生成答案
+        
+        Args:
+            input_text: 原始输入
+            output_text: 当前输出
+            evaluation: 评估结果
+            new_plan: 新的执行计划
+            new_tools: 新选择的工具
+            
+        Returns:
+            重新生成的答案
+        """
+        from app.services.llm_service import LLMService
+        
+        llm_service = LLMService()
+        
+        evaluation_feedback = []
+        for metric, score in evaluation.items():
+            metric_name = metric.value if hasattr(metric, 'value') else metric
+            if score < 0.6:
+                evaluation_feedback.append(f"- {metric_name}: {score:.2f} (需要改进)")
+        
+        plan_steps = "\n".join([f"{i+1}. {p['description']} (优先级: {p['priority']})" for i, p in enumerate(new_plan)])
+        
+        prompt = f"""你是一位专业的会议助手。请根据以下信息重新生成回答：
+
+【原始问题】
+{input_text}
+
+【当前回答】
+{output_text}
+
+【自我评估结果】
+{"\n".join(evaluation_feedback) if evaluation_feedback else "所有指标达标"}
+
+【评估指标】
+{json.dumps({k.value if hasattr(k, 'value') else k: v for k, v in evaluation.items()}, indent=2)}
+
+【新的执行计划】
+{plan_steps}
+
+【建议使用的新工具】
+{', '.join(new_tools) if new_tools else '无'}
+
+【要求】
+1. 根据评估反馈改进回答质量
+2. 提高准确性、完整性和相关性
+3. 如果有建议使用的工具，请考虑如何利用它们改进回答
+4. 输出格式保持专业、清晰
+
+请重新生成回答：
+"""
+        
+        try:
+            messages = [
+                {"role": "system", "content": "你是一位专业的会议助手，擅长分析会议内容并生成高质量的总结。"},
+                {"role": "user", "content": prompt},
+            ]
+            response = await llm_service.chat(messages)
+            app_logger.info("[Reflection] 答案重新生成成功")
+            return response
+        except Exception as e:
+            app_logger.warning(f"[Reflection] 答案重新生成失败: {e}")
+            return output_text
+
+    def should_reflect(self, evaluation: Dict[str, float]) -> bool:
+        """
+        判断是否需要进行反思
+        
+        Args:
+            evaluation: 评估结果
+            
+        Returns:
+            是否需要反思
+        """
+        confidence = evaluation.get("confidence", 0.5)
+        return confidence < 0.7
+
+    def get_reflection_stats(self) -> Dict[str, Any]:
+        """获取反思统计信息"""
+        notes = self._reflection_notes
+        high_priority = [n for n in notes if n.priority == "high"]
+        medium_priority = [n for n in notes if n.priority == "medium"]
+        low_priority = [n for n in notes if n.priority == "low"]
+        
+        return {
+            "total_reflection_notes": len(notes),
+            "high_priority_notes": len(high_priority),
+            "medium_priority_notes": len(medium_priority),
+            "low_priority_notes": len(low_priority),
+            "active_rules": sum(1 for r in self._improvement_rules if r.active),
+            "total_rules": len(self._improvement_rules),
+        }
 
 
 # 全局反思系统实例

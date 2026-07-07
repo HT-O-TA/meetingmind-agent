@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import users, meetings, documents, todos, text_process, embedding, vector_search, rag, evaluation, agents, tests, config, collaboration, templates
+from app.api.v1.endpoints import users, meetings, documents, todos, text_process, embedding, vector_search, rag, evaluation, agents, tests, config, collaboration, templates, frontend_events, graph, feedback, tasks, mcp, trace, performance, workflow, memory, multi_agent, dynamic_tool, reflection, cost
 
 api_router = APIRouter()
 
@@ -11,9 +11,22 @@ api_router.include_router(text_process.router, prefix="/text-process", tags=["�
 api_router.include_router(embedding.router, prefix="/embedding", tags=["向量化服务"])
 api_router.include_router(vector_search.router, prefix="/vector-search", tags=["向量检索"])
 api_router.include_router(rag.router, prefix="/rag", tags=["RAG 问答"])
-api_router.include_router(evaluation.router, prefix="/evaluation", tags=["RAG 评估"])
+api_router.include_router(evaluation.router, prefix="/evaluation", tags=["评估"])
 api_router.include_router(agents.router, prefix="/agents", tags=["Agent 智能助手"])
 api_router.include_router(tests.router, prefix="/tests", tags=["测试"])
 api_router.include_router(config.router, prefix="/config", tags=["配置管理"])
 api_router.include_router(collaboration.router, prefix="/collaboration", tags=["Agent协作"])
 api_router.include_router(templates.router, prefix="/templates", tags=["Prompt模板"])
+api_router.include_router(frontend_events.router, prefix="/frontend-events", tags=["前端事件"])
+api_router.include_router(graph.router, prefix="/graph", tags=["知识图谱"])
+api_router.include_router(feedback.router, prefix="", tags=["用户反馈"])
+api_router.include_router(tasks.router, prefix="/tasks", tags=["任务队列"])
+api_router.include_router(mcp.router, prefix="", tags=["MCP"])
+api_router.include_router(trace.router, prefix="", tags=["Agent Trace"])
+api_router.include_router(performance.router, prefix="/performance", tags=["性能指标"])
+api_router.include_router(workflow.router, prefix="/workflow", tags=["工作流"])
+api_router.include_router(memory.router, prefix="", tags=["长期记忆"])
+api_router.include_router(multi_agent.router, prefix="", tags=["多Agent"])
+api_router.include_router(dynamic_tool.router, prefix="", tags=["动态工具"])
+api_router.include_router(reflection.router, prefix="", tags=["反思系统"])
+api_router.include_router(cost.router, prefix="/cost", tags=["成本管理"])

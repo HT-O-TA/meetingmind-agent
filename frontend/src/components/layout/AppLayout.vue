@@ -24,26 +24,23 @@
         <el-menu-item index="/documents">
           <el-icon><Folder /></el-icon><span>文档库</span>
         </el-menu-item>
+        <el-menu-item index="/tasks">
+          <el-icon><Clock /></el-icon><span>任务队列</span>
+        </el-menu-item>
+        <el-menu-item index="/feedback">
+          <el-icon><ChatDotSquare /></el-icon><span>反馈管理</span>
+        </el-menu-item>
+        <el-menu-item index="/graph">
+          <el-icon><Share /></el-icon><span>知识图谱</span>
+        </el-menu-item>
         <el-menu-item index="/agent">
           <el-icon><Cpu /></el-icon><span>Agent演示</span>
         </el-menu-item>
+        <el-menu-item index="/trace">
+          <el-icon><Monitor /></el-icon><span>Trace监控</span>
+        </el-menu-item>
         <el-menu-item index="/query">
           <el-icon><Search /></el-icon><span>智能查询</span>
-        </el-menu-item>
-        <el-menu-item index="/embedding">
-          <el-icon><DataLine /></el-icon><span>向量化测试</span>
-        </el-menu-item>
-        <el-menu-item index="/vector-search">
-          <el-icon><Search /></el-icon><span>向量检索</span>
-        </el-menu-item>
-        <el-menu-item index="/evaluation">
-          <el-icon><DataAnalysis /></el-icon><span>RAG评估</span>
-        </el-menu-item>
-        <el-menu-item index="/tests">
-          <el-icon><VideoPlay /></el-icon><span>测试面板</span>
-        </el-menu-item>
-        <el-menu-item index="/config">
-          <el-icon><Setting /></el-icon><span>配置管理</span>
         </el-menu-item>
         <el-menu-item index="/users">
           <el-icon><User /></el-icon><span>用户管理</span>
@@ -79,7 +76,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { Cpu, List, Upload, Checked, Folder, Search, DataLine, DataAnalysis, User, VideoPlay, Setting } from '@element-plus/icons-vue'
+import { Cpu, List, Upload, Checked, Folder, Search, User, Clock, ChatDotSquare, Share, Monitor } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -90,21 +87,24 @@ const titleMap = {
   '/meetings/upload': '新建会议',
   '/todos': '待办事项',
   '/documents': '文档库',
+  '/tasks': '任务队列',
+  '/feedback': '反馈管理',
+  '/graph': '知识图谱',
   '/agent': 'Agent智能助手',
+  '/trace': 'Trace监控',
   '/query': '智能查询',
-  '/embedding': '向量化测试',
-  '/vector-search': '向量检索',
   '/users': '用户管理',
-  '/evaluation': 'RAG评估',
   '/profile': '个人信息',
-  '/tests': 'Agent测试',
-  '/config': '配置管理',
 }
 const pageTitle = computed(() => {
   if (route.path.match(/^\/meetings\/\d+\/edit$/)) return '编辑会议'
   if (route.path.match(/^\/meetings\/\d+$/)) return '会议详情'
   return titleMap[route.path] || 'MeetingMind'
 })
+
+function navigateTo(path) {
+  router.push(path)
+}
 
 function logout() {
   userStore.logout()

@@ -64,14 +64,24 @@ async def get_document(doc_id: int, db: AsyncSession = Depends(get_db), current_
 
 
 @router.put("/{doc_id}/content", response_model=Response)
-async def update_content(doc_id: int, data: ContentUpdate, db: AsyncSession = Depends(get_db)):
+async def update_content(
+    doc_id: int,
+    data: ContentUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = DocumentService(db)
     doc = await svc.update_content(doc_id, data.content)
     return Response.ok(DocumentOut.model_validate(doc))
 
 
 @router.put("/{doc_id}", response_model=Response)
-async def update_document(doc_id: int, data: DocumentUpdate, db: AsyncSession = Depends(get_db)):
+async def update_document(
+    doc_id: int,
+    data: DocumentUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = DocumentService(db)
     doc = await svc.update_document_metadata(
         doc_id,
@@ -82,7 +92,11 @@ async def update_document(doc_id: int, data: DocumentUpdate, db: AsyncSession = 
 
 
 @router.delete("/{doc_id}", response_model=Response)
-async def delete_document(doc_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_document(
+    doc_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = DocumentService(db)
     await svc.delete(doc_id)
     return Response.ok(message="删除成功")

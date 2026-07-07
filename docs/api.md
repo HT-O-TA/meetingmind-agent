@@ -239,10 +239,10 @@ Agent、配置、模板、协作类接口中有部分直接返回业务 JSON，�
 | `GET` | `/api/v1/agents/tools` | 工具列表 |
 | `GET` | `/api/v1/agents/errors/recent` | 最近错误 |
 | `GET` | `/api/v1/agents/monitor/status` | 监控状态 |
-| `GET` | `/api/v1/agents/confirmations/pending` | 待确认请求 |
-| `GET` | `/api/v1/agents/confirmations/history` | 确认历史 |
-| `GET` | `/api/v1/agents/confirmations/{request_id}` | 确认请求详情 |
-| `POST` | `/api/v1/agents/confirmations/respond` | 响应确认请求 |
+| `GET` | `/api/v1/agents/confirmations/pending` | 待确认请求（框架已实现） |
+| `GET` | `/api/v1/agents/confirmations/history` | 确认历史（框架已实现） |
+| `GET` | `/api/v1/agents/confirmations/{request_id}` | 确认请求详情（框架已实现） |
+| `POST` | `/api/v1/agents/confirmations/respond` | 响应确认请求（框架已实现） |
 
 查询请求：
 
@@ -276,20 +276,24 @@ data: [DONE]
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| `GET` | `/api/v1/agent-messages` | 获取 Agent 消息 |
-| `POST` | `/api/v1/agent-messages/broadcast` | 广播消息 |
-| `POST` | `/api/v1/agent-messages/send` | 发送点对点消息 |
-| `POST` | `/api/v1/agent-messages/clear` | 清空消息 |
-| `POST` | `/api/v1/agents/register` | 注册协作 Agent |
-| `POST` | `/api/v1/agents/unregister` | 注销协作 Agent |
-| `GET` | `/api/v1/agents/list` | 协作 Agent 列表 |
-| `POST` | `/api/v1/tasks/create` | 创建协作任务 |
-| `POST` | `/api/v1/tasks/{task_id}/dispatch` | 分发任务 |
-| `POST` | `/api/v1/tasks/{task_id}/update` | 更新任务 |
-| `GET` | `/api/v1/tasks` | 任务列表 |
-| `GET` | `/api/v1/tasks/{task_id}` | 任务详情 |
-| `GET` | `/api/v1/tasks/pending` | 待处理任务 |
-| `GET` | `/api/v1/tasks/agent/{agent_id}` | 指定 Agent 的任务 |
+| `GET` | `/api/v1/agent-messages` | 获取 Agent 消息（框架已实现） |
+| `POST` | `/api/v1/agent-messages/broadcast` | 广播消息（框架已实现） |
+| `POST` | `/api/v1/agent-messages/send` | 发送点对点消息（框架已实现） |
+| `POST` | `/api/v1/agent-messages/clear` | 清空消息（框架已实现） |
+| `POST` | `/api/v1/agents/register` | 注册协作 Agent（框架已实现） |
+| `POST` | `/api/v1/agents/unregister` | 注销协作 Agent（框架已实现） |
+| `GET` | `/api/v1/agents/list` | 协作 Agent 列表（框架已实现） |
+
+## 异步任务接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/v1/tasks/documents` | 创建文档处理任务 |
+| `GET` | `/api/v1/tasks/` | 任务列表 |
+| `GET` | `/api/v1/tasks/{task_id}` | 获取任务状态 |
+| `GET` | `/api/v1/tasks/{task_id}/wait` | 等待任务完成（长轮询） |
+| `DELETE` | `/api/v1/tasks/{task_id}` | 取消任务 |
+| `DELETE` | `/api/v1/tasks/{task_id}/purge` | 删除任务 |
 
 ---
 

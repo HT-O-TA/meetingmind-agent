@@ -7,13 +7,22 @@ const request = axios.create({
   timeout: config.api.timeout,
 })
 
+function normalizeApiUrl(url = '') {
+  if (!url.startsWith('/api/v1')) return url
+  const normalized = url.slice('/api/v1'.length)
+  return normalized || '/'
+}
+
 // 请求拦截器 - 添加日志
 request.interceptors.request.use((config) => {
+  config.url = normalizeApiUrl(config.url)
+
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   
   // 打印请求日志
   console.log(`%c[REQUEST] ${config.method?.toUpperCase()} ${config.url}`, 'color: #409eff; font-weight: bold')
+  console.log('请求基址:', config.baseURL)
   if (config.data) {
     console.log('请求体:', config.data)
   }
@@ -35,7 +44,9 @@ request.interceptors.response.use(
   (err) => {
     const config = err.config
     const status = err.response?.status || 500
-    const msg = err.response?.data?.message || '请求失败'
+    const msg = err.code === 'ECONNABORTED'
+      ? `请求超时：${config?.baseURL || ''}${config?.url || ''}`
+      : err.response?.data?.message || err.message || '请求失败'
     
     // 打印错误日志
     console.log(`%c[ERROR] ${config?.method?.toUpperCase()} ${config?.url} [${status}]`, 'color: #f56c6c; font-weight: bold')

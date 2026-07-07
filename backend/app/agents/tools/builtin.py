@@ -1,8 +1,42 @@
 """内置工具定义"""
+import ast
+import operator
 from typing import Dict, Any, List, Optional
 from app.agents.tools.tool_metadata import (
-    Tool, ToolMetadata, ToolCategory, ToolStatus, ToolParameter
+    Tool, ToolMetadata, ToolCategory, ToolStatus, ToolParameter, ToolRiskLevel
 )
+
+
+_ALLOWED_CALCULATOR_OPERATORS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos,
+}
+
+
+def _evaluate_math_expression(expression: str) -> float:
+    def eval_node(node):
+        if isinstance(node, ast.Expression):
+            return eval_node(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+            return node.value
+        if isinstance(node, ast.BinOp) and type(node.op) in _ALLOWED_CALCULATOR_OPERATORS:
+            return _ALLOWED_CALCULATOR_OPERATORS[type(node.op)](
+                eval_node(node.left),
+                eval_node(node.right),
+            )
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _ALLOWED_CALCULATOR_OPERATORS:
+            return _ALLOWED_CALCULATOR_OPERATORS[type(node.op)](eval_node(node.operand))
+        raise ValueError("unsupported expression")
+
+    tree = ast.parse(expression, mode="eval")
+    return eval_node(tree)
 
 def get_builtin_tools() -> List[Tool]:
     """获取所有内置工具"""
@@ -56,6 +90,9 @@ def get_builtin_tools() -> List[Tool]:
                 return_type="object",
                 supports_streaming=False,
                 is_async=True,
+                risk_level=ToolRiskLevel.HIGH,
+                requires_confirmation=True,
+                idempotent=False,
             )
         ),
         
@@ -186,6 +223,9 @@ def get_builtin_tools() -> List[Tool]:
                 return_type="object",
                 supports_streaming=False,
                 is_async=True,
+                risk_level=ToolRiskLevel.HIGH,
+                requires_confirmation=True,
+                idempotent=False,
             )
         ),
         
@@ -466,10 +506,8 @@ def execute_builtin_tool(tool_id: str, params: Dict[str, Any], context: Optional
     elif tool_id == "calculator":
         expression = params.get("expression", "")
         try:
-            # 安全评估数学表达式
-            result = eval(expression, {"__builtins__": {}}, {})
-            return result
-        except:
+            return _evaluate_math_expression(expression)
+        except Exception:
             return "计算错误"
     
     # 日期计算器

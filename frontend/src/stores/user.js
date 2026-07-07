@@ -6,25 +6,29 @@ import { ElMessage } from 'element-plus'
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || 'null'))
-  const isTokenValidated = ref(false)
+  const isTokenValidated = ref(localStorage.getItem('isTokenValidated') === 'true')
 
   const isLoggedIn = computed(() => !!token.value && isTokenValidated.value)
 
   async function login(username, password) {
     const res = await userApi.login({ username, password })
-    token.value = res.data.access_token
-    userInfo.value = res.data.user
+    const payload = res?.data || res
+    if (!payload?.access_token) {
+      throw new Error(res?.message || '登录响应缺少 access_token')
+    }
+    token.value = payload.access_token
+    userInfo.value = payload.user || null
     isTokenValidated.value = true
     localStorage.setItem('token', token.value)
     localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
-    ElMessage.success('登录成功')
-    return res.data
+    localStorage.setItem('isTokenValidated', 'true')
+    return payload
   }
 
   async function register(data) {
     const res = await userApi.register(data)
     ElMessage.success('注册成功，请登录')
-    return res.data
+    return res?.data || res
   }
 
   function logout() {
@@ -33,6 +37,7 @@ export const useUserStore = defineStore('user', () => {
     isTokenValidated.value = false
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
+    localStorage.removeItem('isTokenValidated')
   }
 
   async function fetchMe() {
@@ -42,7 +47,7 @@ export const useUserStore = defineStore('user', () => {
     }
     try {
       const res = await userApi.getMe()
-      userInfo.value = res.data
+      userInfo.value = res?.data || res
       isTokenValidated.value = true
       localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
     } catch {
@@ -56,7 +61,9 @@ export const useUserStore = defineStore('user', () => {
       return false
     }
     try {
-      await userApi.getMe()
+      const res = await userApi.getMe()
+      userInfo.value = res?.data || res
+      localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
       isTokenValidated.value = true
       return true
     } catch {

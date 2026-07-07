@@ -1,0 +1,31 @@
+# ============================================
+# MeetingMind 生产环境 Docker Compose 配置
+# 覆盖开发环境配置：关闭 DEBUG，限制 CORS，优化性能
+# ============================================
+
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      APP_ENV: production
+      DEBUG: "false"
+      CORS_ORIGINS: '["https://your-domain.com"]'
+      LOG_LEVEL: WARNING
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+
+  frontend:
+    environment:
+      NODE_ENV: production
+
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  redis:
+    command: ["redis-server", "--appendonly", "yes"]
+
+  neo4j:
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
+      NEO4J_dbms_security_procedures_unrestricted: ""

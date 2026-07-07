@@ -1,17 +1,30 @@
-# Model files (too large)
+# ============================================
+# MeetingMind - Git Ignore Configuration
+# ============================================
+
+# Model files (too large, should be downloaded separately)
 backend/model/
+!backend/model/.gitkeep
 
 # Uploaded files
 backend/uploads/
+!backend/uploads/.gitkeep
 
 # Environment variables
 backend/.env
-
-# Scripts
-backend/scripts/
+.env
 
 # Evaluation datasets (large files)
 backend/evaluate/chunking/data/
+backend/evaluate/*/results/
+backend/evaluate/*/*.log
+
+# Test results (Locust, pytest, etc.)
+backend/results/
+test_docs/
+
+# Generated HTML files from Markdown
+docs/*.html
 
 # VSCode
 .vscode/
@@ -23,18 +36,26 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+backend/.pytest_cache/
+.mypy_cache/
+backend/.mypy_cache/
 .coverage
+backend/.coverage
 htmlcov/
+backend/htmlcov/
 
 # Virtual environment
 venv/
 env/
 .env/
 .conda/
+meetingmind/
+backend/venv/
+backend/env/
 
 # Logs
-*.log
 logs/
+backend/logs/
 
 # Node.js
 node_modules/
@@ -42,6 +63,7 @@ package-lock.json
 yarn.lock
 dist/
 build/
+test-report/
 
 # OS files
 .DS_Store
@@ -58,9 +80,32 @@ docker-compose.override.yml
 *.key
 *.crt
 
-# Old test directories (now moved to evaluate)
-# backend/tests/
+# Benchmark files
+backend/rag_baseline.json
 
-# Temporary evaluation files
-backend/evaluate/*/results/
-backend/evaluate/*/*.log
+# Temporary files
+*.tmp
+*.temp
+test_async_document.py
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# TensorFlow/PyTorch cache
+.cache/
+huggingface/
+transformers/
+backend/.cache/
+backend/huggingface/
+
+# LangSmith traces
+.langsmith/
+backend/.langsmith/
+
+# Pre-commit hooks
+.pre-commit-config.yaml
+.pre-commit/
+
+# Local development files
+local/
+backend/local/

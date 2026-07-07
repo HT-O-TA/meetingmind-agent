@@ -27,8 +27,8 @@ class TodoOut(BaseModel):
     title: str
     description: Optional[str]
     assignee_name: Optional[str]
-    priority: str
-    status: str
+    priority: Optional[str] = None
+    status: Optional[str] = None
     due_date: Optional[datetime]
     completed_at: Optional[datetime]
     created_at: datetime

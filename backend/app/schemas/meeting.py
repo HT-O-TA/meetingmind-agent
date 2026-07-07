@@ -37,8 +37,8 @@ class MeetingOut(BaseModel):
     organizer_id: Optional[int]
     organizer_name: Optional[str]
     department: Optional[str]
-    meeting_type: str
-    status: str
+    meeting_type: Optional[str] = None
+    status: Optional[str] = None
     start_time: Optional[datetime]
     end_time: Optional[datetime]
     duration_minutes: Optional[int]
@@ -81,7 +81,7 @@ class SpeechRecordOut(BaseModel):
     end_time_offset: Optional[float]
     sequence: Optional[int]
     sentiment: Optional[str]
-    is_key_point: int
+    is_key_point: Optional[int] = None
     created_at: datetime
 
     class Config:

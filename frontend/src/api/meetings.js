@@ -12,4 +12,5 @@ export const meetingApi = {
   bulkCreateSpeeches: (id, data) => request.post(`/meetings/${Number(id)}/speeches/bulk`, data),
   updateSpeech: (meetingId, speechId, data) => request.put(`/meetings/${Number(meetingId)}/speeches/${Number(speechId)}`, data),
   deleteSpeech: (meetingId, speechId) => request.delete(`/meetings/${Number(meetingId)}/speeches/${Number(speechId)}`),
+  process: (id) => request.post(`/meetings/${Number(id)}/process`),
 }

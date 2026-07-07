@@ -29,17 +29,17 @@ class Reranker:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
             app_logger.info(f"[Reranker] 使用设备: {self.device}")
             
-            # 确定模型路径
-            local_path = settings.RERANKER_LOCAL_PATH
+            # 确定模型路径（使用绝对路径）
+            local_path = settings.RERANKER_MODEL_PATH
             model_name = settings.RERANKER_MODEL_NAME
             
             # 优先使用本地模型
             if os.path.exists(local_path):
                 app_logger.info(f"[Reranker] 使用本地模型: {local_path}")
-                self.model = FlagReranker(local_path, use_fp16=True)
+                self.model = FlagReranker(local_path, use_fp16=True if self.device == "cuda" else False, device=self.device)
             else:
                 app_logger.info(f"[Reranker] 使用HuggingFace模型: {model_name}")
-                self.model = FlagReranker(model_name, use_fp16=True)
+                self.model = FlagReranker(model_name, use_fp16=True if self.device == "cuda" else False, device=self.device)
             
             app_logger.info(f"[Reranker] 成功加载模型: {local_path if os.path.exists(local_path) else model_name}")
         except ImportError as e:

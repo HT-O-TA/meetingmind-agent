@@ -8,6 +8,22 @@
  * 3. 后端配置（通过API获取时）
  */
 
+function getDefaultApiBaseUrl() {
+  const envBaseUrl = import.meta.env.VITE_API_BASE_URL
+  if (envBaseUrl) return envBaseUrl
+
+  if (typeof window === 'undefined') return '/api/v1'
+
+  const { protocol, hostname, port } = window.location
+  if (protocol === 'file:') return 'http://127.0.0.1:8000/api/v1'
+
+  if ((hostname === 'localhost' || hostname === '127.0.0.1') && port === '5173') {
+    return 'http://127.0.0.1:8000/api/v1'
+  }
+
+  return '/api/v1'
+}
+
 export const config = {
   // 文件上传配置
   upload: {
@@ -18,7 +34,7 @@ export const config = {
   
   // API配置
   api: {
-    baseUrl: '/api/v1', // API基础路径
+    baseUrl: getDefaultApiBaseUrl(), // API基础路径
     timeout: 60000, // 请求超时时间（毫秒）
   },
   

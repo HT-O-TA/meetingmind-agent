@@ -17,9 +17,9 @@ class DocumentOut(BaseModel):
     original_filename: str
     file_size: Optional[int]
     file_type: Optional[str]
-    status: str
+    status: Optional[str] = None
     department: Optional[str]
-    is_public: bool
+    is_public: Optional[bool] = None
     created_at: datetime
 
     class Config:

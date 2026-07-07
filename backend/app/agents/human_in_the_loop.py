@@ -41,6 +41,9 @@ class HumanInTheLoopService:
     
     def __init__(self):
         self.pending_requests: Dict[str, asyncio.Future] = {}
+        self.pending_request_details: Dict[str, ConfirmationRequest] = {}
+        self.pending_execution_snapshots: Dict[str, Dict[str, Any]] = {}
+        self.completed_execution_snapshots: Dict[str, Dict[str, Any]] = {}
         self.request_history: List[ConfirmationRequest] = []
         self.default_timeout = 300  # 5分钟默认超时
         self._next_request_id = 0
@@ -56,6 +59,7 @@ class HumanInTheLoopService:
         title: str,
         message: str,
         details: Optional[Dict[str, Any]] = None,
+        resume_state: Optional[Dict[str, Any]] = None,
         timeout_seconds: Optional[int] = None,
         event_callback: Optional[Callable] = None
     ) -> bool:
@@ -94,18 +98,28 @@ class HumanInTheLoopService:
         loop = asyncio.get_event_loop()
         future = loop.create_future()
         self.pending_requests[request_id] = future
+        self.pending_request_details[request_id] = request
+        if resume_state:
+            self.pending_execution_snapshots[request_id] = resume_state
         
         # 触发确认事件
         if event_callback:
-            await event_callback("confirmation_required", {
-                "request_id": request_id,
-                "type": confirm_type.value,
-                "title": title,
-                "message": message,
-                "details": details,
-                "timestamp": request["timestamp"],
-                "timeout_seconds": timeout
-            })
+            app_logger.info(f"[HITL] 调用 event_callback 发送 confirmation_required 事件")
+            try:
+                await event_callback("confirmation_required", {
+                    "request_id": request_id,
+                    "type": confirm_type.value,
+                    "title": title,
+                    "message": message,
+                    "details": details,
+                    "timestamp": request["timestamp"],
+                    "timeout_seconds": timeout
+                })
+                app_logger.info(f"[HITL] event_callback 调用成功")
+            except Exception as e:
+                app_logger.error(f"[HITL] event_callback 调用失败: {e}")
+        else:
+            app_logger.error("[HITL] event_callback 为 None，无法发送确认事件！")
         
         app_logger.info(f"[HITL] 请求确认: {confirm_type.value} - {title}")
         
@@ -116,6 +130,8 @@ class HumanInTheLoopService:
             if response == "approved":
                 request["status"] = ConfirmationStatus.APPROVED
                 request["user_response"] = "approved"
+                if request_id in self.pending_execution_snapshots:
+                    self.completed_execution_snapshots[request_id] = self.pending_execution_snapshots[request_id]
                 app_logger.info(f"[HITL] 用户已确认: {request_id}")
                 return True
             else:
@@ -135,6 +151,10 @@ class HumanInTheLoopService:
             self.request_history.append(request)
             if request_id in self.pending_requests:
                 del self.pending_requests[request_id]
+            if request_id in self.pending_request_details:
+                del self.pending_request_details[request_id]
+            if request_id in self.pending_execution_snapshots:
+                del self.pending_execution_snapshots[request_id]
     
     def respond_to_request(self, request_id: str, response: str) -> bool:
         """
@@ -163,7 +183,7 @@ class HumanInTheLoopService:
     
     def get_pending_requests(self) -> List[ConfirmationRequest]:
         """获取所有待处理的确认请求"""
-        return [req for req in self.request_history if req["status"] == ConfirmationStatus.PENDING]
+        return list(self.pending_request_details.values())
     
     def get_request_history(self, limit: int = 50) -> List[ConfirmationRequest]:
         """获取确认请求历史"""
@@ -174,7 +194,15 @@ class HumanInTheLoopService:
         for req in self.request_history:
             if req["request_id"] == request_id:
                 return req
-        return None
+        return self.pending_request_details.get(request_id)
+
+    def get_resume_snapshot(self, request_id: str) -> Optional[Dict[str, Any]]:
+        """获取确认点恢复快照"""
+        return self.pending_execution_snapshots.get(request_id) or self.completed_execution_snapshots.get(request_id)
+
+    def has_pending_request(self, request_id: str) -> bool:
+        """确认请求是否仍在等待响应"""
+        return request_id in self.pending_requests
 
 
 # 全局实例

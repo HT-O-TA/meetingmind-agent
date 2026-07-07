@@ -39,7 +39,7 @@ class Metric:
 
 @dataclass
 class TraceSpan:
-    """追踪跨度"""
+    """追踪跨度 - 记录 Agent 执行链路的详细信息"""
     span_id: str
     parent_id: Optional[str]
     operation_name: str
@@ -47,6 +47,16 @@ class TraceSpan:
     end_time: Optional[float] = None
     duration: Optional[float] = None
     attributes: Dict[str, Any] = None
+    
+    # Agent 执行链路专用字段
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    token_cost_usd: float = 0.0
+    retry_count: int = 0
+    output: Optional[str] = None
+    error: Optional[str] = None
+    status: str = "running"  # running, completed, failed
     
     def __post_init__(self):
         if self.attributes is None:
@@ -56,6 +66,30 @@ class TraceSpan:
         """结束跨度并计算持续时间"""
         self.end_time = time.time()
         self.duration = self.end_time - self.start_time
+        if self.error:
+            self.status = "failed"
+        else:
+            self.status = "completed"
+            
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典格式，用于序列化"""
+        return {
+            "span_id": self.span_id,
+            "parent_id": self.parent_id,
+            "operation_name": self.operation_name,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "duration_ms": self.duration * 1000 if self.duration else None,
+            "attributes": self.attributes,
+            "prompt_tokens": self.prompt_tokens,
+            "completion_tokens": self.completion_tokens,
+            "total_tokens": self.total_tokens,
+            "token_cost_usd": self.token_cost_usd,
+            "retry_count": self.retry_count,
+            "output": self.output,
+            "error": self.error,
+            "status": self.status,
+        }
 
 
 class AgentMonitor:
@@ -69,6 +103,24 @@ class AgentMonitor:
         self.span_history = deque(maxlen=max_spans)
         self.active_spans: List[str] = []
         self.event_handlers: Dict[str, List[callable]] = defaultdict(list)
+        
+        self.agent_stats = {
+            "total_requests": 0,
+            "successful_requests": 0,
+            "failed_requests": 0,
+            "total_tokens": 0,
+            "total_cost_usd": 0.0,
+            "total_latency_ms": 0.0,
+            "total_retries": 0,
+            "hallucination_count": 0,
+            "task_success_scores": [],
+            "tool_success_scores": [],
+            "route_accuracy_scores": [],
+            "reflection_scores": [],
+            "latency_scores": [],
+            "cost_efficiency_scores": [],
+            "hallucination_risk_scores": []
+        }
         
     def _setup_logger(self) -> logging.Logger:
         """设置日志记录器
@@ -176,6 +228,67 @@ class AgentMonitor:
             metadata=span.attributes
         )
     
+    def update_span_tokens(self, span_id: str, prompt_tokens: int = 0, completion_tokens: int = 0):
+        """更新跨度的 Token 信息
+        
+        Args:
+            span_id: 跨度 ID
+            prompt_tokens: Prompt Token 数
+            completion_tokens: Completion Token 数
+        """
+        if span_id in self.spans:
+            span = self.spans[span_id]
+            span.prompt_tokens = prompt_tokens
+            span.completion_tokens = completion_tokens
+            span.total_tokens = prompt_tokens + completion_tokens
+    
+    def update_span_cost(self, span_id: str, cost_usd: float):
+        """更新跨度的成本信息
+        
+        Args:
+            span_id: 跨度 ID
+            cost_usd: 成本（美元）
+        """
+        if span_id in self.spans:
+            span = self.spans[span_id]
+            span.token_cost_usd = cost_usd
+    
+    def update_span_retry(self, span_id: str, retry_count: int):
+        """更新跨度的重试次数
+        
+        Args:
+            span_id: 跨度 ID
+            retry_count: 重试次数
+        """
+        if span_id in self.spans:
+            span = self.spans[span_id]
+            span.retry_count = retry_count
+    
+    def update_span_output(self, span_id: str, output: str):
+        """更新跨度的输出信息
+        
+        Args:
+            span_id: 跨度 ID
+            output: 输出内容
+        """
+        if span_id in self.spans:
+            span = self.spans[span_id]
+            # 限制输出长度，避免内存溢出
+            max_output_len = 2000
+            span.output = output[:max_output_len] if len(output) > max_output_len else output
+    
+    def update_span_error(self, span_id: str, error: str):
+        """更新跨度的错误信息
+        
+        Args:
+            span_id: 跨度 ID
+            error: 错误内容
+        """
+        if span_id in self.spans:
+            span = self.spans[span_id]
+            span.error = error
+            span.status = "failed"
+    
     def record_metric(self, name: str, value: float, unit: str = "", metadata: Optional[Dict] = None):
         """记录指标
         
@@ -198,6 +311,165 @@ class AgentMonitor:
         # 保持在限制内
         if len(self.metrics[name]) > 1000:
             self.metrics[name] = self.metrics[name][-1000:]
+    
+    def record_agent_request(
+        self,
+        success: bool,
+        latency_ms: float,
+        token_cost_usd: float = 0.0,
+        total_tokens: int = 0,
+        retry_count: int = 0,
+        hallucination_detected: bool = False,
+        task_success: float = 0.0,
+        tool_success: float = 0.0,
+        route_accuracy: float = 0.0,
+        reflection_score: float = 0.0,
+        latency_score: float = 0.0,
+        cost_efficiency: float = 0.0,
+        hallucination_risk: float = 0.0
+    ):
+        """记录 Agent 请求统计
+        
+        Args:
+            success: 是否成功
+            latency_ms: 延迟(ms)
+            token_cost_usd: 令牌成本(美元)
+            total_tokens: 总令牌数
+            retry_count: 重试次数
+            hallucination_detected: 是否检测到幻觉
+            task_success: 任务成功率
+            tool_success: 工具成功率
+            route_accuracy: 路由准确性
+            reflection_score: 反思分数
+            latency_score: 延迟分数
+            cost_efficiency: 成本效率
+            hallucination_risk: 幻觉风险
+        """
+        self.agent_stats["total_requests"] += 1
+        if success:
+            self.agent_stats["successful_requests"] += 1
+        else:
+            self.agent_stats["failed_requests"] += 1
+        
+        self.agent_stats["total_tokens"] += total_tokens
+        self.agent_stats["total_cost_usd"] += token_cost_usd
+        self.agent_stats["total_latency_ms"] += latency_ms
+        self.agent_stats["total_retries"] += retry_count
+        
+        if hallucination_detected:
+            self.agent_stats["hallucination_count"] += 1
+        
+        max_scores = 1000
+        self.agent_stats["task_success_scores"].append(task_success)
+        self.agent_stats["tool_success_scores"].append(tool_success)
+        self.agent_stats["route_accuracy_scores"].append(route_accuracy)
+        self.agent_stats["reflection_scores"].append(reflection_score)
+        self.agent_stats["latency_scores"].append(latency_score)
+        self.agent_stats["cost_efficiency_scores"].append(cost_efficiency)
+        self.agent_stats["hallucination_risk_scores"].append(hallucination_risk)
+        
+        if len(self.agent_stats["task_success_scores"]) > max_scores:
+            for key in [
+                "task_success_scores", "tool_success_scores", "route_accuracy_scores",
+                "reflection_scores", "latency_scores", "cost_efficiency_scores",
+                "hallucination_risk_scores"
+            ]:
+                self.agent_stats[key] = self.agent_stats[key][-max_scores:]
+            
+    def get_agent_stats(self) -> Dict[str, Any]:
+        """获取 Agent 统计信息
+        
+        Returns:
+            统计信息字典
+        """
+        stats = self.agent_stats.copy()
+        total = stats["total_requests"]
+        
+        if total > 0:
+            stats["success_rate"] = stats["successful_requests"] / total
+            stats["error_rate"] = stats["failed_requests"] / total
+            stats["avg_latency_ms"] = stats["total_latency_ms"] / total
+            stats["avg_tokens"] = stats["total_tokens"] / total
+            stats["avg_cost_usd"] = stats["total_cost_usd"] / total
+            stats["avg_retries"] = stats["total_retries"] / total
+            stats["hallucination_rate"] = stats["hallucination_count"] / total
+        else:
+            stats["success_rate"] = 0.0
+            stats["error_rate"] = 0.0
+            stats["avg_latency_ms"] = 0.0
+            stats["avg_tokens"] = 0
+            stats["avg_cost_usd"] = 0.0
+            stats["avg_retries"] = 0.0
+            stats["hallucination_rate"] = 0.0
+        
+        for key in [
+            "task_success_scores", "tool_success_scores", "route_accuracy_scores",
+            "reflection_scores", "latency_scores", "cost_efficiency_scores",
+            "hallucination_risk_scores"
+        ]:
+            scores = stats[key]
+            if scores:
+                avg_key = key.replace("_scores", "_avg")
+                stats[avg_key] = sum(scores) / len(scores)
+            else:
+                avg_key = key.replace("_scores", "_avg")
+                stats[avg_key] = 0.0
+        
+        stats["overall_score"] = self._calculate_overall_score(stats)
+        
+        return stats
+    
+    def _calculate_overall_score(self, stats: Dict[str, Any]) -> float:
+        """计算综合评分
+        
+        Args:
+            stats: 统计信息
+            
+        Returns:
+            综合评分
+        """
+        weights = {
+            "task_success_avg": 0.20,
+            "tool_success_avg": 0.15,
+            "route_accuracy_avg": 0.10,
+            "reflection_avg": 0.10,
+            "latency_avg": 0.15,
+            "cost_efficiency_avg": 0.15,
+            "hallucination_risk_avg": 0.15
+        }
+        
+        total_score = 0.0
+        total_weight = 0.0
+        
+        for key, weight in weights.items():
+            if key in stats:
+                if key == "hallucination_risk_avg":
+                    total_score += (1.0 - stats[key]) * weight
+                else:
+                    total_score += stats[key] * weight
+                total_weight += weight
+        
+        return total_score / total_weight if total_weight > 0 else 0.0
+    
+    def reset_agent_stats(self):
+        """重置 Agent 统计信息"""
+        self.agent_stats = {
+            "total_requests": 0,
+            "successful_requests": 0,
+            "failed_requests": 0,
+            "total_tokens": 0,
+            "total_cost_usd": 0.0,
+            "total_latency_ms": 0.0,
+            "total_retries": 0,
+            "hallucination_count": 0,
+            "task_success_scores": [],
+            "tool_success_scores": [],
+            "route_accuracy_scores": [],
+            "reflection_scores": [],
+            "latency_scores": [],
+            "cost_efficiency_scores": [],
+            "hallucination_risk_scores": []
+        }
             
     def get_metric_stats(self, name: str) -> Dict[str, Any]:
         """获取指标统计信息
@@ -238,18 +510,63 @@ class AgentMonitor:
             跨度列表
         """
         spans = list(self.span_history)[-limit:]
-        return [
-            {
-                "span_id": span.span_id,
-                "parent_id": span.parent_id,
-                "operation_name": span.operation_name,
-                "start_time": span.start_time,
-                "end_time": span.end_time,
-                "duration": span.duration,
-                "attributes": span.attributes
-            }
-            for span in spans
-        ]
+        return [span.to_dict() for span in spans]
+    
+    def get_trace_tree(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """获取追踪树结构（按时间排序的完整执行链路）
+        
+        Args:
+            limit: 返回数量限制
+            
+        Returns:
+            追踪树列表
+        """
+        spans = list(self.span_history)[-limit:]
+        
+        span_dict = {span.span_id: span.to_dict() for span in spans}
+        result = []
+        
+        for span in spans:
+            span_data = span.to_dict()
+            children = []
+            for child_span in spans:
+                if child_span.parent_id == span.span_id:
+                    children.append(child_span.to_dict())
+            
+            if children:
+                span_data["children"] = children
+            
+            if span.parent_id is None:
+                result.append(span_data)
+        
+        return result
+    
+    def get_span_by_id(self, span_id: str) -> Optional[Dict[str, Any]]:
+        """根据 ID 获取跨度信息
+        
+        Args:
+            span_id: 跨度 ID
+            
+        Returns:
+            跨度信息
+        """
+        for span in self.span_history:
+            if span.span_id == span_id:
+                return span.to_dict()
+        return None
+    
+    def get_spans_by_operation(self, operation_name: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """根据操作名称获取跨度
+        
+        Args:
+            operation_name: 操作名称
+            limit: 返回数量限制
+            
+        Returns:
+            跨度列表
+        """
+        spans = [span for span in self.span_history if span.operation_name == operation_name]
+        return [span.to_dict() for span in spans[-limit:]]
     
     def subscribe(self, event: str, handler: callable):
         """订阅事件

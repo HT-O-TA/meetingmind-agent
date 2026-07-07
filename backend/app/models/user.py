@@ -5,8 +5,9 @@ import enum
 
 
 class UserRole(str, enum.Enum):
-    admin = "admin"
-    member = "member"
+    admin = "admin"      # 管理员：全部权限
+    user = "user"        # 普通用户：基本操作权限
+    readonly = "readonly"  # 只读用户：仅查看权限
 
 
 class User(Base):
@@ -18,8 +19,9 @@ class User(Base):
     hashed_password = Column(String(256), nullable=False)
     full_name = Column(String(64), nullable=True)
     department = Column(String(64), nullable=True)
-    role = Column(String(16), default=UserRole.member, nullable=False)
+    role = Column(String(16), default=UserRole.user, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     avatar = Column(String(256), nullable=True)
+    permissions = Column(Text, nullable=True)  # JSON格式的自定义权限列表
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

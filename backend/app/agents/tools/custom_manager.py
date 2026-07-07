@@ -22,7 +22,12 @@ class CustomToolManager:
     
     def __init__(self):
         self.registry = get_tool_registry()
-        self.custom_tools_dir = "./custom_tools"
+        # 使用绝对路径，避免工作目录不一致问题
+        from app.core.config import settings
+        import os
+        backend_dir = settings._get_backend_dir()
+        self.custom_tools_dir = os.path.join(backend_dir, "custom_tools")
+        self.custom_tools_dir = os.path.normpath(self.custom_tools_dir)
         self._ensure_directory()
     
     def _ensure_directory(self):

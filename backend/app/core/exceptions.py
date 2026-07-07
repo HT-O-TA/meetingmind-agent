@@ -1,3 +1,14 @@
+"""
+全局异常处理模块
+
+提供应用级异常定义和处理器：
+- AppException: 自定义业务异常
+- app_exception_handler: AppException 处理器
+- http_exception_handler: HTTP 异常处理器
+- validation_exception_handler: 请求验证异常处理器
+
+所有异常统一返回 JSON 格式响应
+"""
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -39,8 +50,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 async def global_exception_handler(request: Request, exc: Exception):
-    app_logger.error(f"UnhandledException: {str(exc)} | path={request.url.path}", exc_info=True)
+    import traceback
+    error_details = traceback.format_exc()
+    app_logger.error(f"UnhandledException: {str(exc)} | path={request.url.path}\n{error_details}")
     return JSONResponse(
         status_code=500,
-        content={"code": 500, "message": "服务器内部错误", "data": None},
+        content={"code": 500, "message": f"服务器内部错误: {str(exc)[:200]}", "data": None},
     )

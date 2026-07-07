@@ -1,5 +1,7 @@
 import sys
+import json
 import logging
+from pathlib import Path
 from loguru import logger
 from app.core.config import settings
 
@@ -48,11 +50,15 @@ def setup_logger():
         "<level>{message}</level>"
     )
 
+    # 根据 DEBUG 模式决定日志级别
+    # DEBUG=True 时强制使用 DEBUG 级别，否则使用 LOG_LEVEL 配置
+    effective_log_level = "DEBUG" if settings.DEBUG else settings.LOG_LEVEL
+
     # 添加过滤器，过滤包含向量数据的日志
     logger.add(
         sys.stdout, 
         format=log_format, 
-        level=settings.LOG_LEVEL, 
+        level=effective_log_level, 
         colorize=True,
         filter=lambda record: not VectorFilter.should_filter(record["message"])
     )

@@ -1,0 +1,70 @@
+# ============================================
+# Docker 构建排除文件
+# 排除不需要打包到镜像中的文件
+# ============================================
+
+# 测试相关
+tests/
+pytest.ini
+*.test.py
+test_*.py
+
+# 测试数据（217个会议文档）
+tests/chunking/data/
+
+# 模型文件（几个GB，应该通过挂载卷加载）
+model/
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.onnx
+
+# 环境配置
+.env
+.env.local
+.env.*.local
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# IDE 配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 日志和临时文件
+logs/
+*.log
+uploads/
+*.tmp
+*.temp
+
+# Git 相关
+.git/
+.gitignore
+.gitattributes
+
+# Docker 相关
+Dockerfile
+docker-compose*.yml
+.docker/
+
+# 文档
+docs/
+*.md
+README.md
+
+# 其他
+*.egg-info/
+dist/
+build/
+.cache/
+.mypy_cache/
+.pytest_cache/

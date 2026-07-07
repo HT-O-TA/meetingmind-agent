@@ -35,6 +35,9 @@ class ToolRegistry:
         
         # 加载内置工具
         self._load_builtin_tools()
+        
+        # 加载企业办公系统集成工具
+        self._load_enterprise_tools()
     
     def _load_builtin_tools(self):
         """加载内置工具"""
@@ -45,6 +48,16 @@ class ToolRegistry:
             self.register(tool)
         
         app_logger.info(f"[Registry] 已加载 {len(builtin_tools)} 个内置工具")
+    
+    def _load_enterprise_tools(self):
+        """加载企业办公系统集成工具"""
+        from app.agents.tools.enterprise_tools import get_enterprise_tools
+        
+        enterprise_tools = get_enterprise_tools()
+        for tool in enterprise_tools:
+            self.register(tool)
+        
+        app_logger.info(f"[Registry] 已加载 {len(enterprise_tools)} 个企业办公系统集成工具")
     
     def register(self, tool: Tool, executor: Optional[Callable] = None) -> bool:
         """
@@ -110,6 +123,13 @@ class ToolRegistry:
     def get(self, tool_id: str) -> Optional[Tool]:
         """获取工具"""
         return self._tools.get(tool_id)
+    
+    def get_by_name(self, name: str) -> Optional[Tool]:
+        """按名称获取工具（支持中文名称）"""
+        for tool in self._tools.values():
+            if tool.metadata.name == name:
+                return tool
+        return None
     
     def get_all(self) -> List[Tool]:
         """获取所有工具"""

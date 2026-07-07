@@ -25,6 +25,46 @@ async def get_templates(category: Optional[str] = None):
     return {"templates": templates}
 
 
+@router.get("/categories")
+async def get_categories():
+    """获取所有模板分类"""
+    categories = [
+        {"value": cat.value, "label": get_category_label(cat)}
+        for cat in TemplateCategory
+    ]
+    return {"categories": categories}
+
+
+@router.get("/domain-config")
+async def get_domain_config():
+    """获取领域配置"""
+    market = get_prompt_market()
+    config = market.get_domain_config()
+    return {"config": config.get_all()}
+
+
+@router.post("/domain-config")
+async def update_domain_config(config: Dict[str, Any]):
+    """更新领域配置"""
+    market = get_prompt_market()
+    domain_config = market.get_domain_config()
+
+    for key, value in config.items():
+        domain_config.set(key, value)
+
+    return {"message": "领域配置更新成功"}
+
+
+@router.post("/domain-config/reset")
+async def reset_domain_config():
+    """重置领域配置为默认值"""
+    market = get_prompt_market()
+    domain_config = market.get_domain_config()
+    domain_config.reset_to_defaults()
+
+    return {"message": "领域配置已重置为默认值"}
+
+
 @router.get("/{template_id}")
 async def get_template(template_id: str):
     """获取模板详情"""
@@ -141,46 +181,6 @@ async def render_template(template_id: str, **variables):
         raise HTTPException(status_code=400, detail="模板渲染失败，可能缺少变量")
     
     return {"rendered_content": result}
-
-
-@router.get("/categories")
-async def get_categories():
-    """获取所有模板分类"""
-    categories = [
-        {"value": cat.value, "label": get_category_label(cat)}
-        for cat in TemplateCategory
-    ]
-    return {"categories": categories}
-
-
-@router.get("/domain-config")
-async def get_domain_config():
-    """获取领域配置"""
-    market = get_prompt_market()
-    config = market.get_domain_config()
-    return {"config": config.get_all()}
-
-
-@router.post("/domain-config")
-async def update_domain_config(config: Dict[str, Any]):
-    """更新领域配置"""
-    market = get_prompt_market()
-    domain_config = market.get_domain_config()
-    
-    for key, value in config.items():
-        domain_config.set(key, value)
-    
-    return {"message": "领域配置更新成功"}
-
-
-@router.post("/domain-config/reset")
-async def reset_domain_config():
-    """重置领域配置为默认值"""
-    market = get_prompt_market()
-    domain_config = market.get_domain_config()
-    domain_config.reset_to_defaults()
-    
-    return {"message": "领域配置已重置为默认值"}
 
 
 def get_category_label(category: TemplateCategory) -> str:

@@ -4508,3 +4508,10 @@ RAG_EVAL_DATASET = [
 
 def get_eval_dataset() -> list:
     return RAG_EVAL_DATASET
+
+
+def get_question_by_id(question_id: str) -> dict | None:
+    for item in RAG_EVAL_DATASET:
+        if item.get("id") == question_id:
+            return item
+    return None

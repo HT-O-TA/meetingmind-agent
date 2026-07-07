@@ -8,7 +8,7 @@ from app.schemas.meeting import (
     SpeechRecordCreate, SpeechRecordUpdate, SpeechRecordOut,
 )
 from app.core.response import Response, PageResponse
-from app.core.deps import get_current_user, get_optional_user
+from app.core.deps import get_current_user
 from app.models.user import User
 
 router = APIRouter()
@@ -38,7 +38,7 @@ async def list_meetings(
 async def create_meeting(
     data: MeetingCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     svc = MeetingService(db)
     organizer_id = cast(int, current_user.id) if current_user else None
@@ -54,14 +54,24 @@ async def get_meeting(meeting_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.put("/{meeting_id}", response_model=Response)
-async def update_meeting(meeting_id: int, data: MeetingUpdate, db: AsyncSession = Depends(get_db)):
+async def update_meeting(
+    meeting_id: int,
+    data: MeetingUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = MeetingService(db)
     meeting = await svc.update(meeting_id, data)
     return Response.ok(MeetingOut.model_validate(meeting))
 
 
 @router.patch("/{meeting_id}/status", response_model=Response)
-async def update_status(meeting_id: int, status: str, db: AsyncSession = Depends(get_db)):
+async def update_status(
+    meeting_id: int,
+    status: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     allowed = {"draft", "processing", "completed", "archived"}
     if status not in allowed:
         from app.core.exceptions import AppException
@@ -72,7 +82,11 @@ async def update_status(meeting_id: int, status: str, db: AsyncSession = Depends
 
 
 @router.delete("/{meeting_id}", response_model=Response)
-async def delete_meeting(meeting_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_meeting(
+    meeting_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = MeetingService(db)
     await svc.delete(meeting_id)
     return Response.ok(message="删除成功")
@@ -88,7 +102,12 @@ async def list_speeches(meeting_id: int, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/{meeting_id}/speeches", response_model=Response)
-async def create_speech(meeting_id: int, data: SpeechRecordCreate, db: AsyncSession = Depends(get_db)):
+async def create_speech(
+    meeting_id: int,
+    data: SpeechRecordCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = MeetingService(db)
     speech = await svc.create_speech(meeting_id, data)
     return Response.created(SpeechRecordOut.model_validate(speech))
@@ -99,6 +118,7 @@ async def bulk_create_speeches(
     meeting_id: int,
     data: List[SpeechRecordCreate],
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     svc = MeetingService(db)
     speeches = await svc.bulk_create_speeches(meeting_id, data)
@@ -107,7 +127,11 @@ async def bulk_create_speeches(
 
 @router.put("/{meeting_id}/speeches/{speech_id}", response_model=Response)
 async def update_speech(
-    meeting_id: int, speech_id: int, data: SpeechRecordUpdate, db: AsyncSession = Depends(get_db)
+    meeting_id: int,
+    speech_id: int,
+    data: SpeechRecordUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     svc = MeetingService(db)
     speech = await svc.update_speech(speech_id, data)
@@ -115,7 +139,12 @@ async def update_speech(
 
 
 @router.delete("/{meeting_id}/speeches/{speech_id}", response_model=Response)
-async def delete_speech(meeting_id: int, speech_id: int, db: AsyncSession = Depends(get_db)):
+async def delete_speech(
+    meeting_id: int,
+    speech_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = MeetingService(db)
     await svc.delete_speech(speech_id)
     return Response.ok(message="删除成功")

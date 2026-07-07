@@ -7,7 +7,21 @@
     <el-row :gutter="16" v-if="meeting">
       <el-col :span="16">
         <el-card style="margin-bottom:16px">
-          <template #header>基本信息</template>
+          <template #header>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span>基本信息</span>
+              <el-button 
+                v-if="meeting && !meeting.summary" 
+                type="primary" 
+                size="small" 
+                @click="processMeeting"
+                :loading="processing"
+              >
+                <el-icon><Cpu /></el-icon>
+                一键AI处理
+              </el-button>
+            </div>
+          </template>
           <el-descriptions :column="2" border>
             <el-descriptions-item label="状态">
               <el-tag :type="statusType(meeting.status)">{{ statusLabel(meeting.status) }}</el-tag>
@@ -117,12 +131,14 @@ import { useRoute } from 'vue-router'
 import { meetingApi } from '@/api/meetings'
 import { todoApi } from '@/api/todos'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Cpu } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const meeting = ref(null)
 const speeches = ref([])
 const todos = ref([])
 const loading = ref(false)
+const processing = ref(false)
 
 // 待办相关
 const showTodoDialog = ref(false)
@@ -222,6 +238,20 @@ function resetSpeechForm() {
   editingSpeech.value = null
   speechForm.speaker_name = ''
   speechForm.content = ''
+}
+
+async function processMeeting() {
+  processing.value = true
+  try {
+    const id = route.params.id
+    await meetingApi.process(id)
+    ElMessage.success('AI处理已启动，请在任务队列查看进度')
+    await load()
+  } catch (e) {
+    ElMessage.error(e.message || '启动失败')
+  } finally {
+    processing.value = false
+  }
 }
 
 onMounted(load)

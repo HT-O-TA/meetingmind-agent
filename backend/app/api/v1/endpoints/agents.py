@@ -1,6 +1,7 @@
 """Agent API 端点 - 支持 Tool Calling + 监控 + Prompt 管理 + 人机协作
 """
 import asyncio
+import time
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, Body
 from fastapi.responses import StreamingResponse
@@ -10,6 +11,7 @@ from app.services.vector_search_service import VectorSearchService
 from app.agents.agent_service import AgentService
 from app.core.dependencies import get_llm_service, get_vector_search_service
 from app.core.logger import app_logger
+from app.services.performance_metrics import record_performance
 import json
 
 
@@ -17,6 +19,12 @@ class ConfirmationResponse(BaseModel):
     """确认响应请求"""
     request_id: str
     response: str
+
+
+class ConfirmationResumeRequest(BaseModel):
+    """确认并恢复执行请求"""
+    request_id: str
+    response: str = "approved"
 
 
 router = APIRouter(tags=["Agent"])
@@ -91,6 +99,8 @@ async def agent_query(
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
 ):
+    start_time = time.time()
+    
     agent_service = await get_agent_service(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
@@ -111,10 +121,23 @@ async def agent_query(
         document_ids=request.document_ids,
         config=config,
     )
+    
+    latency_ms = (time.time() - start_time) * 1000
+    await record_performance(latency_ms=latency_ms)
 
     return {
         "success": result.success,
         "task_type": result.task_type.value if result.task_type else "qa",
+        "workflow_type": result.workflow_type.value if result.workflow_type else None,
+        "route_reason": result.route_reason,
+        "retrieval_confidence": result.retrieval_confidence,
+        "citations": result.citations,
+        "validation_errors": result.validation_errors,
+        "policy_results": result.policy_results,
+        "risk_level": result.risk_level.value if result.risk_level else None,
+        "requires_confirmation": result.requires_confirmation,
+        "confirmation_status": result.confirmation_status,
+        "pending_action": result.pending_action,
         "answer": result.answer,
         "minutes": result.minutes,
         "todos": result.todos,
@@ -123,6 +146,7 @@ async def agent_query(
         "thoughts": result.thoughts,
         "reflection": result.reflection,
         "plan": result.plan,
+        "latency_ms": round(latency_ms, 2),
     }
 
 
@@ -179,6 +203,16 @@ async def agent_query_stream(
             final_result = {
                 "success": result.success,
                 "task_type": result.task_type.value if result.task_type else "qa",
+                "workflow_type": result.workflow_type.value if result.workflow_type else None,
+                "route_reason": result.route_reason,
+                "retrieval_confidence": result.retrieval_confidence,
+                "citations": result.citations,
+                "validation_errors": result.validation_errors,
+                "policy_results": result.policy_results,
+                "risk_level": result.risk_level.value if result.risk_level else None,
+                "requires_confirmation": result.requires_confirmation,
+                "confirmation_status": result.confirmation_status,
+                "pending_action": result.pending_action,
                 "answer": result.answer,
                 "minutes": result.minutes,
                 "todos": result.todos,
@@ -195,8 +229,22 @@ async def agent_query_stream(
             if task and not task.done():
                 task.cancel()
             raise
+        except Exception as e:
+            app_logger.exception(f"[API] Agent流式查询失败: {e}")
+            if task and not task.done():
+                task.cancel()
+            error = json.dumps({"type": "error", "data": {"message": str(e)}}, ensure_ascii=False)
+            yield f"data: {error}\n\n"
+            yield "data: [DONE]\n\n"
     
-    return StreamingResponse(generate(), media_type="text/event-stream")
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.post("/batch")
@@ -223,6 +271,10 @@ async def agent_batch_query(
             {
                 "success": r.success,
                 "task_type": r.task_type.value if r.task_type else "qa",
+                "workflow_type": r.workflow_type.value if r.workflow_type else None,
+                "risk_level": r.risk_level.value if r.risk_level else None,
+                "confirmation_status": r.confirmation_status,
+                "policy_results": r.policy_results,
                 "answer": r.answer,
                 "error": r.error,
             }
@@ -396,3 +448,19 @@ async def respond_to_confirmation(
     if success:
         return {"message": f"已响应确认请求 {request.request_id}", "response": request.response}
     return {"error": f"响应失败，请求 {request.request_id} 不存在或已处理"}
+
+
+@router.post("/confirmations/resume")
+async def resume_confirmation(
+    request: ConfirmationResumeRequest,
+    llm_service: LLMService = Depends(get_llm_service),
+    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+):
+    """确认后恢复 Agent 执行"""
+    agent_service = await get_agent_service(
+        llm_service=llm_service,
+        vector_search_service=vector_search_service,
+        enable_tool_calling=True,
+        enable_human_in_the_loop=True,
+    )
+    return await agent_service.resume_confirmation(request.request_id, request.response)

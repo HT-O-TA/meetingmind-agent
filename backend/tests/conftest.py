@@ -10,7 +10,6 @@ def mock_llm_service():
     """模拟 LLM 服务"""
     mock = AsyncMock(spec=LLMService)
     mock.chat.return_value = "测试响应"
-    mock.complete.return_value = "测试完成"
     return mock
 
 

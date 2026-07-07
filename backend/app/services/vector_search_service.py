@@ -2,13 +2,15 @@
 import json
 import numpy as np
 from typing import List, Optional, Tuple
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy import select, text, func
 from app.models.vector import VectorChunk
 from app.models.document import Document
 from app.core.config import settings
 from app.core.logger import app_logger
 from app.core.cache import cache_get, cache_set
+
+_global_vector_search_service = None
 
 
 class VectorSearchService:
@@ -335,28 +337,42 @@ class VectorSearchService:
     
     async def get_document_chunks(self, document_id: int) -> List[dict]:
         """获取文档的所有向量块（按 chunk_index 顺序，不做相似度过滤）"""
-        result = await self.db.execute(
-            select(VectorChunk)
-            .where(VectorChunk.document_id == document_id)
-            .order_by(VectorChunk.chunk_index)
-        )
-        chunks = result.scalars().all()
+        try:
+            result = await self.db.execute(
+                select(
+                    VectorChunk.id,
+                    VectorChunk.document_id,
+                    VectorChunk.meeting_id,
+                    VectorChunk.chunk_text,
+                    VectorChunk.chunk_index,
+                    VectorChunk.department,
+                    VectorChunk.speaker_name,
+                    VectorChunk.time_offset,
+                    VectorChunk.metadata_json,
+                )
+                .where(VectorChunk.document_id == document_id)
+                .order_by(VectorChunk.chunk_index)
+            )
+            chunks = result.all()
 
-        return [
-            {
-                'chunk_id': chunk.id,
-                'document_id': chunk.document_id,
-                'meeting_id': chunk.meeting_id,
-                'chunk_text': chunk.chunk_text,
-                'chunk_index': chunk.chunk_index,
-                'similarity': 1.0,  # 全文取回，相似度视为满分
-                'department': chunk.department,
-                'speaker_name': chunk.speaker_name or '',
-                'time_offset': chunk.time_offset,
-                'metadata_json': chunk.metadata_json,
-            }
-            for chunk in chunks
-        ]
+            return [
+                {
+                    'chunk_id': chunk.id,
+                    'document_id': chunk.document_id,
+                    'meeting_id': chunk.meeting_id,
+                    'chunk_text': chunk.chunk_text,
+                    'chunk_index': chunk.chunk_index,
+                    'similarity': 1.0,
+                    'department': chunk.department,
+                    'speaker_name': chunk.speaker_name or '',
+                    'time_offset': chunk.time_offset,
+                    'metadata_json': chunk.metadata_json,
+                }
+                for chunk in chunks
+            ]
+        except Exception as e:
+            app_logger.error(f"Error getting document chunks: {e}")
+            return []
     
     async def search_with_multi_retrieval(
         self,
@@ -369,9 +385,14 @@ class VectorSearchService:
         enable_bm25: bool = True,
         enable_vector: bool = True,
         enable_rerank: bool = True,
+        strategy: Optional[str] = None,
     ) -> List[dict]:
         """
         多路召回检索 - BM25 + 向量检索 + 重排序
+        
+        支持两种策略：
+        - 策略A（当前）：BM25 + dense向量 + 加权融合
+        - 策略B（目标）：BM25 + dense向量 + sparse向量 + RRF融合
         
         Args:
             query_text: 查询文本
@@ -383,16 +404,24 @@ class VectorSearchService:
             enable_bm25: 是否启用BM25检索
             enable_vector: 是否启用向量检索
             enable_rerank: 是否启用重排序
+            strategy: 检索策略，'A'或'B'，默认为配置文件中的设置
             
         Returns:
             检索结果列表
         """
-        from app.services.multi_retrieval_fusion import get_multi_retrieval_fusion
+        from app.services.enhanced_retrieval_fusion import get_enhanced_retrieval_fusion
         
-        # 执行向量检索
-        vector_results = []
+        # 使用配置文件中的策略或传入的策略
+        current_strategy = strategy or settings.RETRIEVAL_STRATEGY
+        app_logger.debug(f"[MultiRetrieval] 使用策略: {current_strategy}")
+        
+        # 获取增强版融合器
+        fusion = get_enhanced_retrieval_fusion(strategy=current_strategy)
+        
+        # 执行向量检索（dense）
+        dense_results = []
         if enable_vector:
-            vector_results = await self.search_by_text(
+            dense_results = await self.search_by_text(
                 query_text=query_text,
                 top_k=top_k * 2,  # 多取一些用于重排序
                 document_ids=document_ids,
@@ -401,7 +430,7 @@ class VectorSearchService:
                 similarity_threshold=similarity_threshold,
             )
             # 转换格式，添加 score 字段
-            for r in vector_results:
+            for r in dense_results:
                 r['score'] = r.get('similarity', 0)
                 r['doc_id'] = r.get('document_id', r.get('chunk_id', 0))
         
@@ -433,26 +462,52 @@ class VectorSearchService:
             except Exception as e:
                 app_logger.warning(f"BM25检索失败，跳过: {e}")
         
+        # 策略B需要准备稀疏索引
+        sparse_index = None
+        if current_strategy == 'B' and settings.ENABLE_SPARSE_RETRIEVAL:
+            try:
+                # 获取文档内容用于构建稀疏索引
+                docs_for_sparse = []
+                if document_ids:
+                    for doc_id in document_ids:
+                        chunks = await self.get_document_chunks(doc_id)
+                        if chunks:
+                            full_content = "\n".join(c.get('chunk_text', '') for c in chunks)
+                            docs_for_sparse.append({'id': doc_id, 'content': full_content})
+                else:
+                    # 获取所有文档
+                    from app.models.document import Document
+                    result = await self.db.execute(
+                        select(Document.id, Document.content)
+                    )
+                    for row in result.fetchall():
+                        doc_id, content = row
+                        if content:
+                            docs_for_sparse.append({'id': doc_id, 'content': content})
+                
+                # 构建稀疏索引
+                sparse_index = fusion._build_sparse_index(docs_for_sparse)
+            except Exception as e:
+                app_logger.warning(f"构建稀疏索引失败，将跳过稀疏检索: {e}")
+        
         # 如果不启用重排序，直接融合返回
         if not enable_rerank:
-            # 简单融合
-            fused = {}
-            for r in vector_results:
-                doc_id = r.get('doc_id', r.get('document_id', r.get('chunk_id', 0)))
-                if doc_id not in fused:
-                    fused[doc_id] = r
-            for r in bm25_results:
-                doc_id = r.get('doc_id', r.get('document_id', r.get('chunk_id', 0)))
-                if doc_id not in fused:
-                    fused[doc_id] = r
-            return list(fused.values())[:top_k]
+            # 根据策略选择融合方式
+            if current_strategy == 'B':
+                # 使用RRF融合
+                sparse_results = fusion._sparse_search(query_text, sparse_index, top_k=top_k * 2) if sparse_index else []
+                fused_results = fusion._rrf_fusion(bm25_results, dense_results, sparse_results)
+            else:
+                # 使用加权融合
+                fused_results = fusion._weighted_fusion(bm25_results, dense_results)
+            return fused_results[:top_k]
         
-        # 使用多路召回融合器进行融合和重排序
-        fusion = get_multi_retrieval_fusion()
+        # 使用增强版多路召回融合器进行融合和重排序
         results = await fusion.retrieve(
             query=query_text,
             bm25_results=bm25_results,
-            vector_results=vector_results,
+            dense_results=dense_results,
+            sparse_index=sparse_index,
             top_k=top_k
         )
         
@@ -477,3 +532,15 @@ class VectorSearchService:
         fusion.update_bm25_index(documents)
         
         app_logger.info(f"BM25索引已更新，共 {len(documents)} 个文档")
+
+
+async def get_vector_search_service() -> VectorSearchService:
+    global _global_vector_search_service
+    if _global_vector_search_service is None:
+        engine = create_async_engine(settings.DATABASE_URL)
+        async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        async with async_session() as session:
+            service = VectorSearchService(session)
+            await service.check_pgvector_support()
+            _global_vector_search_service = service
+    return _global_vector_search_service
