@@ -29,6 +29,15 @@ test_docs/
 # Generated HTML files from Markdown
 docs/*.html
 
+# Personal resume files (contains privacy information)
+docs/*简历*
+
+# Interview preparation documents (contains personal interview materials)
+docs/面试提问.md
+
+# Metrics documents (contains detailed internal metrics)
+docs/量化指标.md
+
 # VSCode
 .vscode/
 .idea/
