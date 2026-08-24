@@ -1,0 +1,80 @@
+====================================================================================================
+COMPLETE MEMORY SYSTEM ANALYSIS REPORT
+====================================================================================================
+
+
+====================================================================================================
+FILE 1: backend/app/services/long_term_memory.py
+====================================================================================================
+
+### TTL CONSTANTS AND STORAGE LIMITS ###
+
+Line 33: _MEMORY_TTL = 60 * 60 * 24 * 365   # 1 year for individual memories
+Line 34: _INDEX_TTL = 60 * 60 * 24 * 365    # 1 year for index sets
+Line 35: _CONTEXT_TTL = 60 * 60 * 24 * 90   # 90 days for meeting contexts
+Line 38: MAX_MEMORIES = 2000
+
+### REDIS OPERATIONS (cache_get/cache_set/cache_delete) ###
+
+Line 198: all_ids_data = await cache_get(_REDIS_INDEX_KEY)
+Line 204: raw = await cache_get(_REDIS_MEMORY_KEY.format(memory_id=memory_id))
+Line 219: ctx_ids_data = await cache_get(_REDIS_PREFIX + "ctx_index:all")
+Line 222: raw = await cache_get(_REDIS_CONTEXT_KEY.format(meeting_id=mid))
+Line 239: await cache_set(key, data, ttl=_MEMORY_TTL)
+Line 242: all_ids_data = await cache_get(_REDIS_INDEX_KEY)
+Line 246: await cache_set(_REDIS_INDEX_KEY, all_ids, ttl=_INDEX_TTL)
+Line 253: await cache_delete(_REDIS_MEMORY_KEY.format(memory_id=memory_id))
+Line 254: all_ids_data = await cache_get(_REDIS_INDEX_KEY)
+Line 258: await cache_set(_REDIS_INDEX_KEY, all_ids, ttl=_INDEX_TTL)
+Line 265: await cache_set(
+Line 270: ctx_ids_data = await cache_get(_REDIS_PREFIX + "ctx_index:all")
+Line 274: await cache_set(_REDIS_PREFIX + "ctx_index:all", ctx_ids, ttl=_INDEX_TTL)
+Line 684: await cache_delete(_REDIS_INDEX_KEY)
+Line 685: await cache_delete(_REDIS_PREFIX + "ctx_index:all")
+Line 686: await cache_delete_pattern(_REDIS_PREFIX + "*")
+
+### DATABASE WRITE OPERATIONS ###
+
+Line 810: return await get_long_term_memory().delete_memory(memory_id)
+
+### TODO/FIXME COMMENTS ###
+
+(None found)
+
+====================================================================================================
+FILE 2: backend/app/agents/memory.py
+====================================================================================================
+
+### TTL CONSTANTS AND STORAGE LIMITS ###
+
+Line 113: await cache_set(f"memory:{self._session_id}:short_term", short_term_data, ttl=3600)
+Line 205: await cache_set(cache_key, self._serialize_memory_item(item), ttl=3600)
+Line 260: await cache_set(cache_key, [self._serialize_memory_item(item) for item in results], ttl=300)
+Line 299: await cache_set(cache_key, self._serialize_memory_item(item), ttl=3600)
+
+### REDIS OPERATIONS (cache_get/cache_set/cache_delete) ###
+
+Line 102: short_term_data = await cache_get(f"memory:{self._session_id}:short_term")
+Line 113: await cache_set(f"memory:{self._session_id}:short_term", short_term_data, ttl=3600)
+Line 205: await cache_set(cache_key, self._serialize_memory_item(item), ttl=3600)
+Line 231: cached = await cache_get(cache_key)
+Line 260: await cache_set(cache_key, [self._serialize_memory_item(item) for item in results], ttl=300)
+Line 277: cached = await cache_get(cache_key)
+Line 299: await cache_set(cache_key, self._serialize_memory_item(item), ttl=3600)
+Line 327: await cache_delete(cache_key)
+Line 349: await cache_delete(cache_key)
+
+### DATABASE WRITE OPERATIONS ###
+
+Line 181: db_memory = await self.memory_store.create_memory(
+Line 237: db_memories = await self.memory_store.search_memories(
+Line 283: db_memory = await self.memory_store.get_memory_by_id(memory_id)
+Line 319: await self.memory_store.update_memory(
+Line 342: await self.memory_store.update_memory(
+Line 373: db_entity = await self.memory_store.create_entity(
+Line 409: db_entity = await self.memory_store.get_entity_by_id(entity_id)
+Line 441: await self.memory_store.create_relation(
+
+### TODO/FIXME COMMENTS ###
+
+(None found)

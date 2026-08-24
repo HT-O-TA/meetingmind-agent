@@ -1,0 +1,259 @@
+﻿====================================================================================================
+COMPLETE MEMORY SYSTEM ANALYSIS - METHOD SIGNATURES WITH LINE NUMBERS
+====================================================================================================
+
+FILE 1: F:\project\meetingmind-agent\backend\app\services\long_term_memory.py
+Total Lines: 816
+
+---
+TTL CONSTANTS
+---
+Line 33:  _MEMORY_TTL = 60 * 60 * 24 * 365        # 1 year (31,536,000 seconds)
+Line 34:  _INDEX_TTL = 60 * 60 * 24 * 365         # 1 year (31,536,000 seconds)
+Line 35:  _CONTEXT_TTL = 60 * 60 * 24 * 90        # 90 days (7,776,000 seconds)
+Line 38:  MAX_MEMORIES = 2000                      # LRU eviction threshold
+
+---
+STORAGE BACKENDS
+---
+PRIMARY: Redis (cache_get, cache_set, cache_delete, cache_delete_pattern)
+SECONDARY: In-memory OrderedDict LRU cache (_memories)
+KEYS: ltm:memory:{id}, ltm:index:all, ltm:idx:meeting:{id}, ltm:idx:type:{type}, ltm:ctx:{meeting_id}
+
+---
+CLASSES AND METHODS
+---
+
+CLASS: MemoryType (Enum) | Lines 41-50
+
+CLASS: MemoryScope (Enum) | Lines 52-58
+
+CLASS: MemoryEntry (dataclass) | Lines 61-117
+  ├─ is_expired()                    | Lines 76-83
+  ├─ to_dict()                       | Lines 85-99
+  └─ from_dict(cls, data)            | Lines 102-116 @classmethod
+
+CLASS: MeetingContext (dataclass) | Lines 120-150
+  ├─ to_dict()                       | Lines 133-145
+  └─ from_dict(cls, data)            | Lines 148-150 @classmethod
+
+CLASS: LongTermMemory | Lines 152-689
+  ├─ __init__()                      | Lines 162-179
+  ├─ _ensure_loaded() [async]        | Lines 185-193
+  ├─ _load_from_redis() [async]      | Lines 195-232
+  ├─ _persist_memory() [async]       | Lines 234-248
+  ├─ _remove_from_redis() [async]    | Lines 250-260
+  ├─ _persist_context() [async]      | Lines 262-280
+  ├─ _add_to_index()                 | Lines 282-299
+  ├─ _remove_from_index()            | Lines 301-322
+  ├─ _remove() [static]              | Lines 305-309
+  ├─ _get_embedder()                 | Lines 328-354
+  ├─ _compute_similarity()           | Lines 356-375
+  ├─ _generate_memory_id() [static]  | Lines 377-379
+  ├─ add_memory() [async]            | Lines 381-413
+  ├─ _link_related_memories() [async]| Lines 415-434
+  ├─ add_meeting_context() [async]   | Lines 436-473
+  ├─ get_memory()                    | Lines 475-480
+  ├─ get_memories_by_type()          | Lines 482-486
+  ├─ get_memories_by_scope()         | Lines 488-492
+  ├─ get_memories_by_meeting()       | Lines 494-498
+  ├─ delete_memory() [async]         | Lines 500-509
+  ├─ purge_expired() [async]         | Lines 511-523
+  ├─ search_memories() [async]       | Lines 525-584
+  ├─ _recency() [static]             | Lines 545-552
+  ├─ find_relevant_memories() [async]| Lines 586-604
+  ├─ generate_context_prompt() [async]| Lines 606-634
+  ├─ get_cross_meeting_context() [async]| Lines 636-656
+  ├─ get_statistics()                | Lines 658-672
+  └─ clear() [async]                 | Lines 674-689
+
+MODULE-LEVEL FUNCTIONS | Lines 699-816
+  ├─ get_long_term_memory()          | Lines 699-704
+  ├─ add_meeting_memory() [async]    | Lines 707-734
+  ├─ search_related_memories() [async]| Lines 737-741
+  ├─ get_context_prompt() [async]    | Lines 744-747
+  ├─ get_memory_statistics()         | Lines 750-752
+  ├─ add_memory() [async]            | Lines 755-782
+  ├─ get_memory()                    | Lines 785-786
+  ├─ get_memories_by_type()          | Lines 789-794
+  ├─ get_memories_by_scope()         | Lines 797-802
+  ├─ get_memories_by_meeting()       | Lines 805-806
+  ├─ delete_memory() [async]         | Lines 809-810
+  └─ search_memories() [async]       | Lines 813-816
+
+---
+REDIS CACHE OPERATIONS (cache_get/cache_set/cache_delete)
+---
+Line 198:  cache_get(_REDIS_INDEX_KEY)
+Line 204:  cache_get(_REDIS_MEMORY_KEY.format(memory_id=memory_id))
+Line 219:  cache_get(_REDIS_PREFIX + "ctx_index:all")
+Line 222:  cache_get(_REDIS_CONTEXT_KEY.format(meeting_id=mid))
+Line 239:  cache_set(key, data, ttl=_MEMORY_TTL)
+Line 242:  cache_get(_REDIS_INDEX_KEY)
+Line 246:  cache_set(_REDIS_INDEX_KEY, all_ids, ttl=_INDEX_TTL)
+Line 253:  cache_delete(_REDIS_MEMORY_KEY.format(memory_id=memory_id))
+Line 254:  cache_get(_REDIS_INDEX_KEY)
+Line 258:  cache_set(_REDIS_INDEX_KEY, all_ids, ttl=_INDEX_TTL)
+Line 265:  cache_set(context_key, context_data, ttl=_CONTEXT_TTL)
+Line 270:  cache_get(_REDIS_PREFIX + "ctx_index:all")
+Line 274:  cache_set(_REDIS_PREFIX + "ctx_index:all", ctx_ids, ttl=_INDEX_TTL)
+Line 684:  cache_delete(_REDIS_INDEX_KEY)
+Line 685:  cache_delete(_REDIS_PREFIX + "ctx_index:all")
+Line 686:  cache_delete_pattern(_REDIS_PREFIX + "*")
+
+---
+DATABASE WRITE POINTS
+---
+Line 810:  delete_memory delegation (in-memory deletion via LRU cache management)
+
+---
+TODO COMMENTS
+---
+(None found)
+
+====================================================================================================
+FILE 2: F:\project\meetingmind-agent\backend\app\agents\memory.py
+Total Lines: 739
+
+---
+TTL CONSTANTS
+---
+Line 113:  ttl=3600      # 1 hour for short-term memory cache
+Line 205:  ttl=3600      # 1 hour for long-term memory hot cache
+Line 260:  ttl=300       # 5 minutes for search results cache
+Line 299:  ttl=3600      # 1 hour for hot cache
+
+---
+STORAGE BACKENDS
+---
+PRIMARY: PostgreSQL via MemoryStore (long-term persistence)
+SECONDARY: Redis (cache_get, cache_set, cache_delete for session/hot data)
+TERTIARY: In-memory lists/dicts (_short_term_memory, _entities, _entity_relations)
+
+---
+CLASSES AND METHODS
+---
+
+CLASS: MemoryType (Enum) | Lines 20-27
+
+CLASS: MemoryStatus (Enum) | Lines 29-34
+
+CLASS: MemoryItem (dataclass) | Lines 37-54
+  └─ __post_init__()                 | Lines 49-53
+
+CLASS: Entity (dataclass) | Lines 57-69
+  └─ __post_init__()                 | Lines 66-69
+
+CLASS: MemorySystem | Lines 71-537
+  ├─ __init__()                      | Lines 74-86
+  ├─ memory_store [property]         | Lines 89-93
+  ├─ load_short_term_from_cache() [async]| Lines 97-105
+  ├─ save_short_term_to_cache() [async]| Lines 107-114
+  ├─ add_short_term_memory()         | Lines 116-133
+  ├─ get_short_term_memory()         | Lines 135-137
+  ├─ clear_short_term_memory()       | Lines 139-142
+  ├─ consolidate_short_term() [async]| Lines 144-161
+  ├─ add_long_term_memory() [async]  | Lines 165-213
+  ├─ search_long_term_memory() [async]| Lines 215-267
+  ├─ get_long_term_memory() [async]  | Lines 269-306
+  ├─ update_long_term_memory() [async]| Lines 308-334
+  ├─ archive_long_term_memory() [async]| Lines 336-356
+  ├─ add_entity() [async]            | Lines 360-397
+  ├─ get_entity() [async]            | Lines 399-427
+  ├─ add_entity_relation() [async]   | Lines 429-457
+  ├─ _add_long_term_memory_in_memory()| Lines 461-477
+  ├─ _search_long_term_memory_in_memory()| Lines 479-481
+  ├─ _get_long_term_memory_in_memory()| Lines 483-485
+  ├─ _add_entity_in_memory()         | Lines 487-497
+  ├─ _add_entity_relation_in_memory()| Lines 499-504
+  ├─ _serialize_memory_item()        | Lines 506-514
+  ├─ _deserialize_memory_item()      | Lines 516-528
+  └─ get_memory_summary()            | Lines 530-537
+
+CLASS: ShortTermMemory | Lines 542-593
+  ├─ __init__()                      | Lines 545-550
+  ├─ add_turn()                      | Lines 552-565
+  ├─ mark_for_compression()          | Lines 567-570
+  ├─ get_recent_turns()              | Lines 572-573
+  ├─ get_context()                   | Lines 575-582
+  ├─ compress()                      | Lines 584-586
+  └─ get_summary()                   | Lines 588-593
+
+CLASS: LongTermMemory | Lines 596-636
+  ├─ __init__()                      | Lines 599-602
+  ├─ add_memory()                    | Lines 604-615
+  ├─ _prune_low_importance()         | Lines 617-621
+  ├─ search_by_content()             | Lines 623-625
+  └─ add_key_fact()                  | Lines 627-636
+
+CLASS: MemoryCompressor | Lines 639-666
+  ├─ __init__()                      | Lines 642-643
+  └─ compress_turns() [async]        | Lines 645-666
+
+CLASS: MemoryManager | Lines 669-734
+  ├─ __init__()                      | Lines 672-683
+  ├─ add_conversation()              | Lines 685-686
+  ├─ get_context_for_query()         | Lines 688-696
+  ├─ get_memory_stats()              | Lines 698-706
+  ├─ clear_all()                     | Lines 708-710
+  ├─ enable_checkpoint()             | Lines 712-713
+  ├─ save_checkpoint()               | Lines 715-721
+  ├─ load_checkpoint()               | Lines 723-725
+  └─ compress_if_needed() [async]    | Lines 727-734
+
+MODULE-LEVEL FUNCTION | Line 737
+  └─ get_memory_system()             | Lines 737-739
+
+---
+REDIS CACHE OPERATIONS (cache_get/cache_set/cache_delete)
+---
+Line 102:  cache_get(f"memory:{self._session_id}:short_term")
+Line 113:  cache_set(f"memory:{self._session_id}:short_term", short_term_data, ttl=3600)
+Line 205:  cache_set(cache_key, item, ttl=3600) [hot cache]
+Line 231:  cache_get(cache_key) [search cache]
+Line 260:  cache_set(cache_key, results, ttl=300) [search results]
+Line 277:  cache_get(cache_key) [hot cache]
+Line 299:  cache_set(cache_key, item, ttl=3600) [hot cache]
+Line 327:  cache_delete(cache_key) [invalidate on update]
+Line 349:  cache_delete(cache_key) [invalidate on archive]
+
+---
+DATABASE WRITE POINTS (PostgreSQL via MemoryStore)
+---
+Line 181:  self.memory_store.create_memory() [add long-term memory]
+Line 237:  self.memory_store.search_memories() [retrieve]
+Line 283:  self.memory_store.get_memory_by_id() [retrieve]
+Line 319:  self.memory_store.update_memory() [update existing]
+Line 342:  self.memory_store.update_memory() [archive status]
+Line 373:  self.memory_store.create_entity() [add entity]
+Line 409:  self.memory_store.get_entity_by_id() [retrieve entity]
+Line 441:  self.memory_store.create_relation() [add relation]
+
+---
+TODO COMMENTS
+---
+(None found)
+
+====================================================================================================
+SUMMARY
+====================================================================================================
+
+File 1 (long_term_memory.py):
+  - 816 total lines
+  - 4 TTL constants (1-year base + 90-day context)
+  - 2,000 max in-memory entries (LRU)
+  - 16 Redis operations (cache_get/cache_set/cache_delete)
+  - Async/await used throughout
+
+File 2 (memory.py):
+  - 739 total lines
+  - 4 TTL constants (3600s/300s for Redis, no explicit DB TTL)
+  - 7 database write points (PostgreSQL via MemoryStore)
+  - 9 Redis operations (cache_get/cache_set/cache_delete)
+  - Hybrid storage: PostgreSQL (primary) + Redis (cache) + in-memory
+
+KEY DIFFERENCES:
+  File 1: Pure Redis + in-memory LRU caching (no persistent DB)
+  File 2: PostgreSQL primary + Redis cache layer (distributed system)
+
+====================================================================================================

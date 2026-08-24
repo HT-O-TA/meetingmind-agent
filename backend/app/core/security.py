@@ -4,7 +4,7 @@ import hashlib
 from typing import Dict, List, Any, Optional, Tuple, Union
 from enum import Enum
 from datetime import datetime, timedelta
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from app.core.logger import app_logger
@@ -79,6 +79,76 @@ class ResourceType(str, Enum):
     CONFIG = "config"
     TEMPLATE = "template"
     AGENT = "agent"
+
+
+@dataclass
+class AccessContext:
+    """访问上下文 - 从 JWT 构造，下推到检索阶段做权限过滤
+
+    设计目标（对应 docs/总结.md 检索记忆层）：
+    将用户、部门、项目、会议、文档归属条件下推到召回阶段，
+    先过滤权限再计算相关性，避免召回后过滤造成信息泄漏。
+
+    使用方式：
+        # 在 API 层从 JWT 构造
+        payload = decode_access_token(token)
+        ctx = AccessContext.from_jwt_payload(payload)
+        # 下推到检索
+        results = await bm25.search(query, access_context=ctx)
+    """
+    user_id: Optional[int] = None
+    department_ids: List[int] = field(default_factory=list)
+    project_ids: List[int] = field(default_factory=list)
+    meeting_ids: List[int] = field(default_factory=list)
+    document_scope: Optional[List[int]] = None  # None 表示不限制，[] 表示无权限
+    is_admin: bool = False
+
+    @classmethod
+    def from_jwt_payload(cls, payload: Dict[str, Any]) -> "AccessContext":
+        """从 JWT payload 构造访问上下文"""
+        return cls(
+            user_id=payload.get("user_id") or payload.get("sub"),
+            department_ids=payload.get("department_ids", []),
+            project_ids=payload.get("project_ids", []),
+            meeting_ids=payload.get("meeting_ids", []),
+            document_scope=payload.get("document_scope"),
+            is_admin=payload.get("is_admin", False) or payload.get("role") == "admin",
+        )
+
+    def to_bm25_filters(self) -> Dict[str, Any]:
+        """转换为 BM25 SQL 过滤参数（用于召回前过滤）"""
+        if self.is_admin:
+            return {}  # 管理员不限制
+        filters = {}
+        if self.department_ids:
+            filters["department_ids"] = self.department_ids
+        if self.meeting_ids:
+            filters["meeting_ids"] = self.meeting_ids
+        if self.document_scope is not None:
+            filters["document_scope"] = self.document_scope
+        return filters
+
+    def to_milvus_expr(self) -> Optional[str]:
+        """转换为 Milvus 过滤表达式（用于召回前过滤）
+
+        Milvus expr 语法示例：
+        department_id in [1, 2] and meeting_id in [10, 20]
+        """
+        if self.is_admin:
+            return None  # 管理员不限制
+        parts = []
+        if self.department_ids:
+            ids = ", ".join(str(d) for d in self.department_ids)
+            parts.append(f"department_id in [{ids}]")
+        if self.meeting_ids:
+            ids = ", ".join(str(m) for m in self.meeting_ids)
+            parts.append(f"meeting_id in [{ids}]")
+        if self.document_scope is not None and len(self.document_scope) > 0:
+            ids = ", ".join(str(d) for d in self.document_scope)
+            parts.append(f"document_id in [{ids}]")
+        elif self.document_scope is not None and len(self.document_scope) == 0:
+            parts.append("document_id in [-1]")  # 空列表 = 无权限
+        return " and ".join(parts) if parts else None
 
 
 class AuditAction(str, Enum):

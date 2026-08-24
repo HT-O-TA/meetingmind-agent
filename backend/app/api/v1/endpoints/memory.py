@@ -1,29 +1,19 @@
-"""长期记忆服务API端点"""
-from fastapi import APIRouter, HTTPException, Query
+"""长期记忆服务API端点 - 基于 UnifiedMemoryService"""
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import List, Optional, Dict, Any
 from datetime import datetime
-from app.services.long_term_memory import (
-    get_long_term_memory,
-    add_meeting_memory,
-    search_related_memories,
-    get_context_prompt,
-    get_memory_statistics,
-    add_memory,
-    get_memory,
-    get_memories_by_type,
-    get_memories_by_scope,
-    get_memories_by_meeting,
-    delete_memory,
-    search_memories,
-)
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.database import get_db
+from app.services.unified_memory_service import UnifiedMemoryService, get_unified_memory_service
 
 router = APIRouter(prefix="/memory", tags=["memory"])
 
 
 @router.get("/statistics", response_model=Dict[str, Any])
-async def memory_statistics():
+async def memory_statistics(db: AsyncSession = Depends(get_db)):
     """获取记忆统计信息"""
-    stats = get_memory_statistics()
+    memory_service = get_unified_memory_service(db)
+    stats = await memory_service.get_statistics()
     return {"success": True, "data": stats}
 
 
@@ -37,10 +27,12 @@ async def add_meeting_endpoint(
     decisions: Optional[List[str]] = Query(None),
     action_items: Optional[List[str]] = Query(None),
     controversies: Optional[List[str]] = Query(None),
+    db: AsyncSession = Depends(get_db),
 ):
     """添加会议记忆"""
     try:
-        await add_meeting_memory(
+        memory_service = get_unified_memory_service(db)
+        await memory_service.add_meeting_memory(
             meeting_id=meeting_id,
             topic=topic,
             date=date,
@@ -56,10 +48,19 @@ async def add_meeting_endpoint(
 
 
 @router.get("/meeting/{meeting_id}", response_model=Dict[str, Any])
-async def get_meeting_memories(meeting_id: str):
+async def get_meeting_memories(
+    meeting_id: str,
+    db: AsyncSession = Depends(get_db),
+):
     """获取会议相关记忆"""
-    memories = get_memories_by_meeting(meeting_id)
-    return {"success": True, "data": memories}
+    memory_service = get_unified_memory_service(db)
+    results = await memory_service.search_memories(
+        query="",
+        meeting_id=int(meeting_id) if meeting_id.isdigit() else None,
+        include_semantic=True,
+        include_structured=True,
+    )
+    return {"success": True, "data": results}
 
 
 @router.get("/search", response_model=Dict[str, Any])
@@ -68,16 +69,29 @@ async def search_memories_endpoint(
     top_k: int = 10,
     memory_type: Optional[str] = None,
     scope: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
 ):
     """搜索相关记忆"""
-    results = await search_related_memories(query, top_k=top_k)
+    memory_service = get_unified_memory_service(db)
+    results = await memory_service.search_memories(
+        query=query,
+        limit=top_k,
+        memory_type=memory_type,
+        include_semantic=True,
+        include_structured=True,
+    )
     return {"success": True, "data": results}
 
 
 @router.get("/context", response_model=Dict[str, Any])
-async def get_context_endpoint(query: str):
+async def get_context_endpoint(
+    query: str,
+    meeting_id: Optional[int] = None,
+    db: AsyncSession = Depends(get_db),
+):
     """生成上下文提示词"""
-    prompt = await get_context_prompt(query)
+    memory_service = get_unified_memory_service(db)
+    prompt = await memory_service.generate_context_prompt(query, meeting_id=meeting_id)
     return {"success": True, "data": {"prompt": prompt}}
 
 
@@ -90,17 +104,19 @@ async def add_memory_endpoint(
     meeting_topic: Optional[str] = None,
     entities: Optional[List[str]] = Query(None),
     metadata: Optional[Dict[str, Any]] = None,
+    db: AsyncSession = Depends(get_db),
 ):
     """添加记忆"""
     try:
-        await add_memory(
+        memory_service = get_unified_memory_service(db)
+        meeting_id_int = int(meeting_id) if meeting_id and meeting_id.isdigit() else None
+        await memory_service.add_memory(
             content=content,
-            type=memory_type,
-            scope=scope,
-            meeting_id=meeting_id,
-            meeting_topic=meeting_topic,
+            memory_type=memory_type,
+            meeting_id=meeting_id_int,
             entities=entities or [],
-            metadata=metadata or {},
+            metadata=metadata or {"topic": meeting_topic} if meeting_topic else metadata,
+            scope=scope,
         )
         return {"success": True, "message": "记忆添加成功"}
     except Exception as e:
@@ -108,32 +124,57 @@ async def add_memory_endpoint(
 
 
 @router.get("/{memory_id}", response_model=Dict[str, Any])
-async def get_memory_endpoint(memory_id: str):
+async def get_memory_endpoint(
+    memory_id: str,
+    db: AsyncSession = Depends(get_db),
+):
     """获取单个记忆"""
-    memory = get_memory(memory_id)
+    memory_service = get_unified_memory_service(db)
+    memory = await memory_service.get_memory(memory_id)
     if not memory:
         raise HTTPException(status_code=404, detail="记忆不存在")
-    return {"success": True, "data": memory.to_dict()}
+    return {"success": True, "data": memory}
 
 
 @router.delete("/{memory_id}", response_model=Dict[str, Any])
-async def delete_memory_endpoint(memory_id: str):
+async def delete_memory_endpoint(
+    memory_id: str,
+    db: AsyncSession = Depends(get_db),
+):
     """删除记忆"""
-    success = delete_memory(memory_id)
-    if not success:
+    memory_service = get_unified_memory_service(db)
+    result = await memory_service.delete_memory(memory_id)
+    if result.get("status") == "failed":
         raise HTTPException(status_code=404, detail="记忆不存在")
     return {"success": True, "message": "记忆删除成功"}
 
 
 @router.get("/type/{memory_type}", response_model=Dict[str, Any])
-async def get_memories_by_type_endpoint(memory_type: str):
+async def get_memories_by_type_endpoint(
+    memory_type: str,
+    db: AsyncSession = Depends(get_db),
+):
     """按类型获取记忆"""
-    memories = get_memories_by_type(memory_type)
-    return {"success": True, "data": [m.to_dict() for m in memories]}
+    memory_service = get_unified_memory_service(db)
+    results = await memory_service.search_memories(
+        query="",
+        memory_type=memory_type,
+        include_semantic=False,
+        include_structured=True,
+    )
+    return {"success": True, "data": results}
 
 
 @router.get("/scope/{scope}", response_model=Dict[str, Any])
-async def get_memories_by_scope_endpoint(scope: str):
+async def get_memories_by_scope_endpoint(
+    scope: str,
+    db: AsyncSession = Depends(get_db),
+):
     """按范围获取记忆"""
-    memories = get_memories_by_scope(scope)
-    return {"success": True, "data": [m.to_dict() for m in memories]}
+    memory_service = get_unified_memory_service(db)
+    results = await memory_service.search_memories(
+        query="",
+        include_semantic=True,
+        include_structured=True,
+    )
+    return {"success": True, "data": results}
