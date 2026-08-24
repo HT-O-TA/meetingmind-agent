@@ -6,16 +6,19 @@
 
 ```
 meetingmind-agent/
-├── backend/          # 后端服务（FastAPI）
-├── frontend/         # 前端服务（Vue3）
-├── docs/             # 项目文档
-├── .github/          # GitHub 配置（CI/CD）
-├── .gitignore        # Git忽略配置
-├── .env.example      # 环境变量示例（根目录）
+├── backend/                # 后端服务（FastAPI）
+├── frontend/               # 前端服务（Vue3）
+├── docs/                   # 项目文档
+├── monitoring/             # 监控配置（Prometheus/Grafana）
+├── .github/                # GitHub 配置（CI/CD）
+├── .vscode/                # VS Code 配置
+├── .pytest_cache/          # pytest 缓存
+├── .gitignore              # Git忽略配置
+├── .env.example            # 环境变量示例（根目录）
 ├── docker-compose.yml       # Docker Compose开发环境配置
 ├── docker-compose.prod.yml  # Docker Compose生产环境配置
 ├── start-docker.ps1         # Docker启动脚本
-└── README.md         # 项目说明
+└── README.md               # 项目说明
 ```
 
 ---
@@ -29,11 +32,14 @@ backend/
 ├── model/            # 本地模型文件（BGE-M3、Reranker等）
 ├── scripts/          # 辅助脚本（数据导入、向量化等）
 ├── .dockerignore     # Docker忽略配置
+├── .env              # 环境变量（运行时）
 ├── .env.example      # 环境变量示例
 ├── Dockerfile        # Docker镜像构建配置
 ├── pytest.ini        # pytest配置
 ├── requirements.txt  # Python依赖
-└── run.py            # 启动入口
+├── run.py            # 启动入口
+├── agent_monitor.log # Agent监控日志
+└── .pytest_cache/    # pytest缓存
 ```
 
 ### `backend/app/` 应用核心
@@ -42,6 +48,7 @@ backend/
 app/
 ├── main.py           # 【入口】FastAPI应用创建、中间件注册、路由挂载、启动初始化
 ├── __init__.py
+└── __pycache__/      # Python编译缓存
 ```
 
 #### `app/agents/` Agent系统
@@ -49,23 +56,24 @@ app/
 ```
 agents/
 ├── __init__.py            # 模块初始化
-├── agent_service.py      # 【核心】Agent主服务，处理用户查询、协调工作流
-├── graph.py             # 【工作流】状态图（Plan-Execute-Reflect + Tool Calling）
-├── nodes.py             # 【节点】Plan/Execute/Reflect 各阶段节点实现
-├── state.py             # 【状态】AgentState 状态定义
+├── agent_service.py       # 【核心】Agent主服务，处理用户查询、协调工作流
+├── graph.py              # 【工作流】状态图（Plan-Execute-Reflect + Tool Calling）
+├── nodes.py              # 【节点】Plan/Execute/Reflect 各阶段节点实现
+├── state.py              # 【状态】AgentState 状态定义
 ├── memory.py             # 【记忆】会话记忆管理（短期/长期）
-├── prompts.py           # 【Prompt】Prompt模板（支持JSON Schema验证）
+├── prompts.py            # 【Prompt】Prompt模板（支持JSON Schema验证）
 ├── prompt_market.py      # 【Prompt】Prompt版本管理与A/B测试
 ├── reflection.py         # 【反思】质量评估与结果验证
 ├── plan_validator.py     # 【验证】计划语法/逻辑/质量检查
 ├── task_templates.py     # 【模板】任务模板库，优先匹配模板
-├── monitor.py           # 【监控】错误恢复、性能监控、日志记录
-├── human_in_the_loop.py # 【人机】确认请求、协作消息
+├── monitor.py            # 【监控】错误恢复、性能监控、日志记录
+├── human_in_the_loop.py  # 【人机】确认请求、协作消息
 ├── agent_communication.py# 【通信】Agent间消息传递
-├── multi_agent.py       # 【多Agent】多Agent协作框架
-├── trace_integration.py # 【追踪】LangSmith等追踪系统集成
-├── errors.py            # 【异常】Agent专用异常定义
-├── tools/               # 【工具系统】
+├── multi_agent.py        # 【多Agent】多Agent协作框架
+├── trace_integration.py  # 【追踪】LangSmith等追踪系统集成
+├── errors.py             # 【异常】Agent专用异常定义
+├── __pycache__/          # Python编译缓存
+├── tools/                # 【工具系统】
 │   ├── __init__.py       # 模块初始化
 │   ├── registry.py       # 工具注册表
 │   ├── manager.py        # 工具管理器
@@ -81,13 +89,15 @@ agents/
 │   ├── examples.py       # 工具使用示例
 │   ├── policy.py         # 工具使用策略
 │   ├── enterprise_tools.py # 企业级工具
-│   └── dynamic_tool_discovery.py # 动态工具发现
+│   ├── dynamic_tool_discovery.py # 动态工具发现
+│   └── __pycache__/      # Python编译缓存
 └── mcp/                 # 【MCP服务】Model Context Protocol
     ├── __init__.py       # 模块初始化
     ├── server.py         # MCP服务端实现
     ├── client.py         # MCP客户端
     ├── initializer.py    # MCP初始化
     ├── mcp_tool_manager.py # MCP工具管理器
+    ├── __pycache__/      # Python编译缓存
     └── external_services/ # 外部企业服务MCP适配
         ├── __init__.py
         ├── feishu_server.py
@@ -103,6 +113,7 @@ api/
 ├── v1/                # API版本1
 │   ├── router.py             # 【路由聚合】挂载所有endpoints
 │   ├── __init__.py
+│   ├── __pycache__/          # Python编译缓存
 │   └── endpoints/
 │       ├── users.py          # 【用户】登录/注册/用户管理
 │       ├── meetings.py       # 【会议】会议CRUD/上传/解析
@@ -131,9 +142,10 @@ api/
 │       ├── dynamic_tool.py   # 【动态工具】动态工具接口
 │       ├── frontend_events.py # 【前端事件】前端事件推送
 │       ├── cost.py           # 【成本】成本管理接口
-│       └── __init__.py
+│       ├── __init__.py
+│       └── __pycache__/      # Python编译缓存
 ├── __init__.py
-└── cache_example.py     # 缓存示例代码
+└── __pycache__/          # Python编译缓存
 ```
 
 #### `app/core/` 核心模块
@@ -155,7 +167,9 @@ core/
 ├── dependencies.py       # 【依赖注入】其他依赖
 ├── fault_tolerance.py    # 【容错】重试/降级/熔断
 ├── observability.py      # 【可观测】指标收集/追踪
-└── rabbitmq.py           # 【RabbitMQ】连接管理器，支持连接池和重连
+├── rabbitmq.py           # 【RabbitMQ】连接管理器，支持连接池和重连
+├── __init__.py
+└── __pycache__/          # Python编译缓存
 ```
 
 #### `app/db/` 数据库
@@ -177,7 +191,8 @@ models/
 ├── todo.py               # 【待办模型】TodoItem表
 ├── vector.py             # 【向量模型】VectorChunk表
 ├── config.py             # 【配置模型】Config表
-└── feedback.py           # 【反馈模型】Feedback表
+├── feedback.py           # 【反馈模型】Feedback表
+└── __pycache__/          # Python编译缓存
 ```
 
 #### `app/schemas/` Pydantic模型
@@ -190,7 +205,8 @@ schemas/
 ├── document.py           # 【文档】Document请求/响应模型
 ├── todo.py               # 【待办】Todo请求/响应模型
 ├── agent.py              # 【Agent】Agent请求/响应模型
-└── text_process.py       # 【文本处理】切分请求/响应模型
+├── text_process.py       # 【文本处理】切分请求/响应模型
+└── __pycache__/          # Python编译缓存
 ```
 
 #### `app/services/` 业务服务
@@ -198,38 +214,40 @@ schemas/
 ```
 services/
 ├── __init__.py              # 模块初始化
-├── llm_service.py            # 【LLM】OpenAI兼容接口调用
-├── embedding_service.py      # 【向量化】BGE-M3文本向量化（稠密+稀疏）
-├── vector_search_service.py  # 【向量检索】pgvector/轻量模式检索
-├── bm25_retriever.py        # 【BM25】BM25全文检索
+├── llm_service.py           # 【LLM】OpenAI兼容接口调用
+├── embedding_service.py     # 【向量化】BGE-M3文本向量化（稠密+稀疏）
+├── vector_search_service.py # 【向量检索】pgvector/轻量模式检索
+├── bm25_retriever.py       # 【BM25】BM25全文检索
 ├── multi_retrieval_fusion.py # 【融合】BM25+向量+Rerank多路召回融合（旧版）
 ├── enhanced_retrieval_fusion.py # 【增强融合】三路召回（BM25+BGE-M3稠密+BGE-M3稀疏）+ RRF融合 + Reranker精排
-├── reranker.py              # 【重排序】BGE-Reranker精排
-├── rag_service.py           # 【RAG】问答服务，整合检索+生成
+├── reranker.py             # 【重排序】BGE-Reranker精排
+├── rag_service.py          # 【RAG】问答服务，整合检索+生成
 ├── rag_evaluation_service.py # 【评估】RAGAS评估/检索指标/生成指标
-├── ragas_evaluator.py       # 【评估】RAGAS指标计算
-├── rag_regression.py        # 【回归测试】基准对比/回归检测
-├── document_service.py      # 【文档】上传/解析/切分/向量化
-├── document_parser.py       # 【解析】PDF/DOCX/Excel解析
-├── text_process_service.py   # 【文本处理】speaker解析/固定切分
-├── semantic_chunker.py      # 【语义切分】SPEAKER_AWARE_HYBRID策略，说话人感知+语义连贯性
-├── meeting_service.py       # 【会议】会议CRUD/解析
-├── todo_service.py          # 【待办】待办CRUD
-├── user_service.py          # 【用户】用户CRUD/认证
-├── knowledge_graph.py       # 【知识图谱】实体关系抽取/图谱增强检索
-├── query_optimizer.py       # 【查询优化】Query改写/扩展
-├── adaptive_prompt.py       # 【自适应Prompt】根据场景选择Prompt
+├── ragas_evaluator.py      # 【评估】RAGAS指标计算
+├── rag_regression.py       # 【回归测试】基准对比/回归检测
+├── document_service.py     # 【文档】上传/解析/切分/向量化
+├── document_parser.py      # 【解析】PDF/DOCX/Excel解析
+├── text_process_service.py # 【文本处理】speaker解析/固定切分
+├── semantic_chunker.py     # 【语义切分】SPEAKER_AWARE_HYBRID策略，说话人感知+语义连贯性
+├── meeting_service.py      # 【会议】会议CRUD/解析
+├── todo_service.py         # 【待办】待办CRUD
+├── user_service.py         # 【用户】用户CRUD/认证
+├── knowledge_graph.py      # 【知识图谱】实体关系抽取/图谱增强检索
+├── query_optimizer.py      # 【查询优化】Query改写/扩展
+├── adaptive_prompt.py      # 【自适应Prompt】根据场景选择Prompt
 ├── complexity_classifier.py # 【复杂度分类】四级复杂度分类器（Simple/Retrieval/CoT/Agent）
-├── batch_embedding.py       # 【批量向量化】批量处理优化
-├── multimodal.py            # 【多模态】Vision/Whisper服务
-├── cost_manager.py          # 【成本管理】推理成本统计与优化
-├── performance_metrics.py   # 【性能指标】系统性能监控
-├── feedback_service.py      # 【反馈服务】用户反馈收集与处理
-├── long_term_memory.py      # 【长期记忆】长期记忆管理
-├── task_queue.py            # 【任务队列】异步任务管理
-├── agent_benchmark.py       # 【基准测试】Agent基准测试数据集与测试器
-├── dspy_rag.py              # 【DSPy】DSPy优化RAG管道
-└── neo4j_client.py          # 【Neo4j】Neo4j图数据库客户端
+├── batch_embedding.py      # 【批量向量化】批量处理优化
+├── multimodal.py           # 【多模态】Vision/Whisper服务
+├── cost_manager.py         # 【成本管理】推理成本统计与优化
+├── performance_metrics.py  # 【性能指标】系统性能监控
+├── feedback_service.py     # 【反馈服务】用户反馈收集与处理
+├── long_term_memory.py     # 【长期记忆】长期记忆管理
+├── task_queue.py           # 【任务队列】异步任务管理
+├── agent_benchmark.py      # 【基准测试】Agent基准测试数据集与测试器
+├── dspy_rag.py             # 【DSPy】DSPy优化RAG管道
+├── neo4j_client.py         # 【Neo4j】Neo4j图数据库客户端
+├── __init__.py
+└── __pycache__/            # Python编译缓存
 ```
 
 #### `app/utils/` 工具
@@ -237,7 +255,8 @@ services/
 ```
 utils/
 ├── __init__.py        # 模块初始化
-└── cache_utils.py     # 【缓存工具】缓存辅助函数
+├── cache_utils.py     # 【缓存工具】缓存辅助函数
+└── __pycache__/       # Python编译缓存
 ```
 
 #### `app/workers/` 异步任务 Worker
@@ -252,7 +271,9 @@ workers/
 
 ```
 workflows/
-└── enterprise_workflow.py # 【企业工作流】企业级业务流程定义
+├── __init__.py
+├── enterprise_workflow.py # 【企业工作流】企业级业务流程定义
+└── __pycache__/          # Python编译缓存
 ```
 
 ### `backend/model/` 本地模型
@@ -303,6 +324,7 @@ tests/
 ├── test_graph_api.py     # 图谱API测试
 ├── test_graph_api_requests.py # 图谱API请求测试
 ├── test_memory_multi_agent.py # 多Agent记忆测试
+├── __pycache__/          # Python编译缓存
 ├── unit/                # 单元测试（原子级功能）
 │   ├── __init__.py
 │   ├── test_errors.py              # 异常处理测试
@@ -352,6 +374,8 @@ tests/
 ├── index_comparison/    # 索引对比测试
 │   ├── __init__.py
 │   └── test_index_comparison.py    # 索引性能对比
+├── experiments/         # 实验测试
+│   └── __init__.py
 └── results/             # 测试结果
     └── 1.md
 ```
@@ -365,8 +389,9 @@ frontend/
 ├── src/               # 源码目录
 ├── dist/              # 构建产物
 ├── test-report/       # 测试报告目录
+├── node_modules/      # npm依赖
 ├── index.html         # HTML入口
-├── package.json       # npm依赖
+├── package.json       # npm依赖配置
 ├── package-lock.json  # npm依赖锁定
 ├── vite.config.js     # Vite配置
 ├── vitest.config.ts   # Vitest测试配置
@@ -488,11 +513,37 @@ docs/
 ├── rag评估.md                        # 【评估】RAG评估说明（含三路召回、RRF融合）
 ├── chunking评估.md                   # 【切分】SPEAKER_AWARE_HYBRID策略评估
 ├── 量化指标.md                        # 【指标】量化指标体系
-├── 优化.md                           # 【优化】项目优化方案
-├── 掌握能力.md                        # 【能力】掌握能力清单
 ├── 项目真实总结.md                    # 【总结】项目真实总结
 ├── 面试提问.md                        # 【面试】面试问题清单
-└── 何涛-AI应用开发（AgentRAG）-简历 copy.md # 【简历】项目相关简历
+└── 何涛-AI应用开发（AgentRAG）-简历.md # 【简历】项目相关简历
+```
+
+---
+
+## 监控目录 `monitoring/`
+
+```
+monitoring/
+├── prometheus.yml              # Prometheus配置文件
+└── grafana/                    # Grafana配置
+    ├── dashboards/
+    │   └── meetingmind.json    # 自定义仪表盘配置
+    └── provisioning/
+        ├── dashboards/
+        │   └── default.yml     # 仪表盘自动加载配置
+        └── datasources/
+            └── prometheus.yml  # 数据源配置
+```
+
+---
+
+## GitHub配置 `.github/`
+
+```
+.github/
+└── workflows/
+    ├── ci.yml                  # CI流水线配置
+    └── docker-publish.yml      # Docker镜像发布配置
 ```
 
 ---
@@ -555,6 +606,7 @@ docs/
 | **数据** | `app/models/` | SQLAlchemy async + PostgreSQL + pgvector |
 | **前端** | `frontend/src/` | Vue3 + Pinia + Axios |
 | **测试** | `backend/tests/` | pytest + pytest-asyncio + Locust |
+| **监控** | `monitoring/` | Prometheus + Grafana |
 | **文档** | `docs/` | Markdown |
 
 ---
