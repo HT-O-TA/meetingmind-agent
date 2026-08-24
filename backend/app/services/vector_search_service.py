@@ -1,24 +1,65 @@
-"""向量检索服务"""
+"""向量检索服务 - 支持 Milvus 混合检索和 PostgreSQL 回退
+
+架构说明：
+- 先用 Milvus 检索出 Top-K 的 ID（高性能向量检索）
+- 再用这些 ID 去 PostgreSQL 做精确的权限过滤和完整内容读取
+- 避免跨库关联查询，保持数据一致性
+"""
 import json
 import numpy as np
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy import select, text, func
+from sqlalchemy import select, text, func, and_
 from app.models.vector import VectorChunk
 from app.models.document import Document
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.core.security import AccessContext
 from app.core.cache import cache_get, cache_set
+from app.services.vector_cache_manager import get_cached_result as _get_cached_result, set_cached_result as _set_cached_result
+
+
+class VectorCacheManager:
+    """兼容层 - 映射到 vector_cache_manager 的便捷函数"""
+    
+    @staticmethod
+    async def get_cached_result(query: str, **kwargs):
+        # 将 meeting_id, document_ids, department 等转换为 filters
+        filters = {}
+        if 'meeting_id' in kwargs and kwargs['meeting_id']:
+            filters['meeting_id'] = str(kwargs['meeting_id'])
+        if 'document_ids' in kwargs and kwargs['document_ids']:
+            filters['document_id'] = [str(d) for d in kwargs['document_ids']]
+        if 'department' in kwargs and kwargs['department']:
+            filters['department'] = kwargs['department']
+        
+        top_k = kwargs.get('top_k', 10)
+        return await _get_cached_result(query, top_k=top_k, filters=filters or None)
+    
+    @staticmethod
+    async def set_cached_result(query: str, results, **kwargs):
+        # 将 meeting_id, document_ids, department 等转换为 filters
+        filters = {}
+        if 'meeting_id' in kwargs and kwargs['meeting_id']:
+            filters['meeting_id'] = str(kwargs['meeting_id'])
+        if 'document_ids' in kwargs and kwargs['document_ids']:
+            filters['document_id'] = [str(d) for d in kwargs['document_ids']]
+        if 'department' in kwargs and kwargs['department']:
+            filters['department'] = kwargs['department']
+        
+        top_k = kwargs.get('top_k', 10)
+        await _set_cached_result(query, results, top_k=top_k, filters=filters or None)
 
 _global_vector_search_service = None
 
 
 class VectorSearchService:
-    """向量检索服务（支持轻量模式和pgvector模式）"""
+    """向量检索服务（支持 Milvus 混合检索、pgvector 模式和轻量模式）"""
     
     def __init__(self, db: AsyncSession):
         self.db = db
         self.use_pgvector = False
+        self.use_milvus = False
         
     async def check_pgvector_support(self) -> bool:
         """检查数据库是否支持pgvector"""
@@ -49,6 +90,24 @@ class VectorSearchService:
             self.use_pgvector = False
             return False
     
+    async def check_milvus_support(self) -> bool:
+        """检查 Milvus 是否可用"""
+        try:
+            from app.services.vector_store_milvus import get_milvus_vector_store
+            
+            milvus_store = get_milvus_vector_store()
+            if milvus_store is None:
+                raise Exception("Milvus store not initialized")
+            
+            count = await milvus_store.get_document_count()
+            self.use_milvus = True
+            app_logger.info(f"Using Milvus mode for vector search, document count: {count}")
+            return True
+        except Exception as e:
+            app_logger.warning(f"Milvus not available: {e}, using pgvector/lightweight mode")
+            self.use_milvus = False
+            return False
+    
     async def search_by_text(
         self,
         query_text: str,
@@ -57,10 +116,20 @@ class VectorSearchService:
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
         similarity_threshold: float = 0.0,
+        access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """
-        根据文本进行向量检索（带Redis缓存）
-        
+        根据文本进行向量检索
+
+        权限下推机制（对应 docs/总结.md 检索记忆层）：
+        access_context 非空时，将权限条件转为 Milvus expr 过滤表达式，
+        在向量召回阶段就过滤权限（先过滤后算相关性），避免召回后过滤泄漏。
+
+        检索流程：
+        1. 先从 Redis 精确缓存获取结果（仅简单查询）
+        2. 使用 Milvus 检索出 Top-K 的 chunk_id（带权限 expr 过滤）
+        3. 用这些 ID 去 PostgreSQL 做精确的权限过滤和完整内容读取
+
         Args:
             query_text: 查询文本
             top_k: 返回结果数量
@@ -68,65 +137,247 @@ class VectorSearchService:
             meeting_id: 指定会议ID
             department: 指定部门
             similarity_threshold: 相似度阈值
-            
+            access_context: 访问上下文（JWT 权限下推）
+
         Returns:
-            检索结果列表
+            检索结果列表（完整的 chunk 信息）
         """
-        # 构建缓存key
-        cache_key = f"vector_search:{query_text}:{top_k}:{meeting_id or 'all'}"
-        if document_ids:
-            cache_key += f":{','.join(map(str, sorted(document_ids)))}"
-        
-        # 尝试从缓存获取结果
-        cached_result = await cache_get(cache_key)
+        # 1. 尝试精确缓存（仅高频简单查询）
+        cached_result = await VectorCacheManager.get_cached_result(
+            query_text, top_k=top_k, meeting_id=meeting_id, 
+            document_ids=document_ids, department=department
+        )
         if cached_result is not None:
-            app_logger.debug(f"Cache hit for query: {query_text[:50]}...")
+            app_logger.debug(f"[VectorSearch] 精确缓存命中: {query_text[:50]}...")
             return cached_result
         
+        # 2. 优先使用 Milvus 混合检索
+        if self.use_milvus:
+            try:
+                # Step 1: Milvus 检索，获取 Top-K 的 ID 和分数
+                milvus_results = await self._milvus_retrieve_ids(
+                    query_text=query_text,
+                    top_k=top_k * 2,  # 多取一些，PG 过滤后可能不足
+                    document_ids=document_ids,
+                    meeting_id=meeting_id,
+                    department=department,
+                    access_context=access_context,
+                )
+                
+                if not milvus_results:
+                    app_logger.debug("[VectorSearch] Milvus 无结果，回退到 PG")
+                    return await self._search_fallback(
+                        query_text, top_k, document_ids, meeting_id, 
+                        department, similarity_threshold
+                    )
+                
+                # Step 2: 用 chunk_ids 去 PostgreSQL 做精确过滤和完整读取
+                chunk_ids = [r["chunk_id"] for r in milvus_results]
+                pg_results = await self._fetch_chunks_from_pg(
+                    chunk_ids=chunk_ids,
+                    document_ids=document_ids,
+                    meeting_id=meeting_id,
+                    department=department,
+                )
+                
+                # Step 3: 合并结果（保留 Milvus 分数 + PG 完整信息）
+                result_map = {r["chunk_id"]: r for r in milvus_results}
+                final_results = []
+                for pg_chunk in pg_results:
+                    chunk_id = pg_chunk["id"]
+                    if chunk_id in result_map:
+                        merged = {
+                            **result_map[chunk_id],  # Milvus 分数和元数据
+                            "chunk_id": chunk_id,
+                            "content": pg_chunk["chunk_text"],  # PG 完整文本
+                            "chunk_text": pg_chunk["chunk_text"],
+                            "full_text": pg_chunk["chunk_text"],
+                            "speaker_name": pg_chunk.get("speaker_name"),
+                            "time_offset": pg_chunk.get("time_offset"),
+                            "metadata": pg_chunk.get("metadata_json"),
+                        }
+                        final_results.append(merged)
+                
+                # Step 4: 应用相似度阈值和限制
+                final_results = [r for r in final_results 
+                               if r.get("score", 0) >= similarity_threshold]
+                final_results = final_results[:top_k]
+                
+                # 缓存（仅适合缓存的简单查询）
+                await VectorCacheManager.set_cache_result(
+                    query_text, final_results,
+                    top_k=top_k, meeting_id=meeting_id,
+                    document_ids=document_ids, department=department
+                )
+                
+                app_logger.info(
+                    f"[VectorSearch] Milvus 检索完成: "
+                    f"Milvus命中 {len(milvus_results)}, "
+                    f"PG过滤后 {len(final_results)}"
+                )
+                return final_results
+                
+            except Exception as milvus_e:
+                app_logger.warning(f"[VectorSearch] Milvus 检索失败，回退到 PG: {milvus_e}")
+        
+        # 3. 回退：PG 向量检索或轻量模式
+        return await self._search_fallback(
+            query_text, top_k, document_ids, meeting_id, 
+            department, similarity_threshold
+        )
+    
+    async def _milvus_retrieve_ids(
+        self,
+        query_text: str,
+        top_k: int,
+        document_ids: Optional[List[int]] = None,
+        meeting_id: Optional[int] = None,
+        department: Optional[str] = None,
+        access_context: Optional["AccessContext"] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        仅从 Milvus 检索 ID 和分数（不返回完整内容）
+
+        权限下推：access_context 非空时，调用 to_milvus_expr() 生成过滤表达式，
+        在向量召回阶段就过滤权限，避免召回后过滤造成信息泄漏。
+
+        Returns:
+            List of {chunk_id, document_id, score, ...}
+        """
+        from app.services.vector_store_milvus import get_milvus_vector_store
+
+        milvus_store = get_milvus_vector_store()
+        if milvus_store is None:
+            return []
+
+        # 构建过滤条件（仅元数据过滤）
+        filters = {}
+        if meeting_id:
+            filters["meeting_id"] = str(meeting_id)
+        if department:
+            filters["department"] = department
+        if document_ids:
+            filters["document_id"] = [str(d) for d in document_ids]
+
+        # ── AccessContext 权限下推：转为 Milvus expr 过滤表达式 ──
+        if access_context and not access_context.is_admin:
+            expr = access_context.to_milvus_expr()
+            if expr:
+                filters["expr"] = expr  # Milvus 原生过滤表达式
+
+        # 检索：获取 ID 和分数
+        raw_results = await milvus_store.search(
+            query=query_text,
+            top_k=top_k,
+            filters=filters if filters else None,
+            dense_weight=1.0,
+            sparse_weight=0.0,
+        )
+        
+        # 标准化结果（确保有 chunk_id）
+        results = []
+        for r in raw_results:
+            chunk_id = r.get("chunk_id") or r.get("id")
+            if chunk_id:
+                results.append({
+                    "chunk_id": int(chunk_id) if isinstance(chunk_id, str) and chunk_id.isdigit() else chunk_id,
+                    "document_id": r.get("document_id"),
+                    "score": r.get("score", 0),
+                    "meeting_id": r.get("meeting_id"),
+                    "department": r.get("department"),
+                })
+        
+        return results
+    
+    async def _fetch_chunks_from_pg(
+        self,
+        chunk_ids: List[Any],
+        document_ids: Optional[List[int]] = None,
+        meeting_id: Optional[int] = None,
+        department: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        从 PostgreSQL 获取完整的 chunk 数据
+        
+        这是与 Milvus 协作的正确方式：
+        1. 先用 Milvus 检索出 ID
+        2. 再用 ID 去 PG 做精确过滤和完整读取
+        """
+        if not chunk_ids:
+            return []
+        
+        # 构建查询：用 chunk_ids 做精确过滤
+        query = select(VectorChunk).where(VectorChunk.id.in_(chunk_ids))
+        
+        # 添加额外过滤条件
+        conditions = []
+        if document_ids:
+            conditions.append(VectorChunk.document_id.in_(document_ids))
+        if meeting_id:
+            conditions.append(VectorChunk.meeting_id == meeting_id)
+        if department:
+            conditions.append(VectorChunk.department == department)
+        
+        if conditions:
+            query = query.where(and_(*conditions))
+        
+        result = await self.db.execute(query)
+        chunks = result.scalars().all()
+        
+        # 转换为字典
+        chunk_list = []
+        for chunk in chunks:
+            chunk_list.append({
+                "id": chunk.id,
+                "document_id": chunk.document_id,
+                "meeting_id": chunk.meeting_id,
+                "chunk_text": chunk.chunk_text,
+                "chunk_index": chunk.chunk_index,
+                "speaker_name": chunk.speaker_name,
+                "time_offset": chunk.time_offset,
+                "department": chunk.department,
+                "metadata_json": chunk.metadata_json,
+            })
+        
+        # 保持与 chunk_ids 相同的顺序
+        id_order = {cid: idx for idx, cid in enumerate(chunk_ids)}
+        chunk_list.sort(key=lambda c: id_order.get(c["id"], len(chunk_ids)))
+        
+        return chunk_list
+    
+    async def _search_fallback(
+        self,
+        query_text: str,
+        top_k: int,
+        document_ids: Optional[List[int]] = None,
+        meeting_id: Optional[int] = None,
+        department: Optional[str] = None,
+        similarity_threshold: float = 0.0,
+    ) -> List[dict]:
+        """回退检索：PG 向量检索或轻量模式"""
         try:
             from app.services.embedding_service import EmbeddingService
             embedding_service = EmbeddingService()
             query_vector = embedding_service.encode_text(query_text)
             
             if not query_vector:
-                app_logger.warning("Failed to encode query text")
+                app_logger.warning("[VectorSearch] 查询向量编码失败")
                 return []
             
-            result = await self.search_by_vector(
-                query_vector=query_vector,
-                top_k=top_k,
-                document_ids=document_ids,
-                meeting_id=meeting_id,
-                department=department,
-                similarity_threshold=similarity_threshold,
-            )
-            
-            # 将结果存入缓存
-            await cache_set(cache_key, result, ttl=settings.CACHE_TTL)
-            return result
-        except Exception as e:
-            app_logger.error(f"Error in search_by_text: {e}")
-            # 尝试使用轻量模式回退
-            try:
-                from app.services.embedding_service import EmbeddingService
-                embedding_service = EmbeddingService()
-                query_vector = embedding_service.encode_text(query_text)
+            # 根据模式选择检索方式
+            if self.use_pgvector:
+                return await self._search_pgvector(
+                    query_vector, top_k, document_ids, meeting_id,
+                    department, similarity_threshold
+                )
+            else:
+                return await self._search_lightweight(
+                    query_vector, top_k, document_ids, meeting_id,
+                    department, similarity_threshold
+                )
                 
-                if query_vector:
-                    app_logger.warning("Falling back to lightweight mode")
-                    result = await self._search_lightweight(
-                        query_vector=query_vector,
-                        top_k=top_k,
-                        document_ids=document_ids,
-                        meeting_id=meeting_id,
-                        department=department,
-                        similarity_threshold=similarity_threshold,
-                    )
-                    # 将结果存入缓存
-                    await cache_set(cache_key, result, ttl=settings.CACHE_TTL)
-                    return result
-            except Exception as fallback_e:
-                app_logger.error(f"Failed to fallback to lightweight mode: {fallback_e}")
+        except Exception as e:
+            app_logger.error(f"[VectorSearch] 回退检索失败: {e}")
             return []
     
     async def search_by_vector(
@@ -431,8 +682,8 @@ class VectorSearchService:
             )
             # 转换格式，添加 score 字段
             for r in dense_results:
-                r['score'] = r.get('similarity', 0)
-                r['doc_id'] = r.get('document_id', r.get('chunk_id', 0))
+                r['score'] = r.get('score', r.get('similarity', 0))
+                r['doc_id'] = r.get('chunk_id', r.get('document_id', 0))
         
         # 执行BM25检索（如果启用）
         bm25_results = []
@@ -442,27 +693,17 @@ class VectorSearchService:
                 
                 bm25_retriever = get_bm25_retriever()
                 
-                # 如果指定了文档ID，需要过滤BM25结果
-                if document_ids:
-                    # 获取指定文档的内容用于BM25检索
-                    docs_for_bm25 = []
-                    for doc_id in document_ids:
-                        chunks = await self.get_document_chunks(doc_id)
-                        if chunks:
-                            full_content = "\n".join(c.get('chunk_text', '') for c in chunks)
-                            docs_for_bm25.append({'id': doc_id, 'content': full_content})
-                    
-                    # 创建临时BM25检索器
-                    from app.services.bm25_retriever import BM25Retriever
-                    temp_bm25 = BM25Retriever()
-                    temp_bm25.add_documents(docs_for_bm25)
-                    bm25_results = temp_bm25.search(query_text, top_k=top_k * 2)
-                else:
-                    bm25_results = bm25_retriever.search(query_text, top_k=top_k * 2)
+                bm25_results = await bm25_retriever.search(
+                    query=query_text,
+                    top_k=top_k * 2,
+                    meeting_id=meeting_id,
+                    document_ids=document_ids,
+                    department=department,
+                )
             except Exception as e:
                 app_logger.warning(f"BM25检索失败，跳过: {e}")
         
-        # 策略B需要准备稀疏索引
+        # 方案 A 不构建任何额外稀疏索引；Milvus Sparse 已从正式链路移除。
         sparse_index = None
         if current_strategy == 'B' and settings.ENABLE_SPARSE_RETRIEVAL:
             try:

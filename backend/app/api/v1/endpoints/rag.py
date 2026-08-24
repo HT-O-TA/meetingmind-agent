@@ -16,6 +16,7 @@ async def get_rag_service(db: AsyncSession = Depends(get_db)) -> RAGService:
     """获取 RAG 服务实例"""
     vector_service = VectorSearchService(db)
     await vector_service.check_pgvector_support()
+    await vector_service.check_milvus_support()
     llm_service = LLMService()
     return RAGService(vector_service=vector_service, llm_service=llm_service)
 

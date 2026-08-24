@@ -75,7 +75,7 @@ class FeedbackService:
             category=category,
             input_text=feedback.input_text,
             actual_output=feedback.output_text,
-            priority="high" if feedback.rating <= 2 else "medium"
+            priority="high" if (feedback.rating is not None and feedback.rating <= 2) else "medium"
         )
         
         self.db.add(bad_case)
@@ -332,15 +332,26 @@ class FeedbackService:
     
     async def get_performance_report(self) -> Dict[str, Any]:
         """获取性能报告"""
-        # 从数据库获取统计
-        result = await self.db.execute(
+        # 从数据库获取统计（分开查询避免隐式交叉连接）
+        fb_result = await self.db.execute(
             select(
                 func.count(Feedback.id).label("total_feedbacks"),
                 func.avg(Feedback.rating).label("avg_rating"),
-                func.count(BadCase.id).label("total_bad_cases")
             )
         )
-        stats = result.first()
+        fb_stats = fb_result.first()
+        bc_result = await self.db.execute(
+            select(func.count(BadCase.id).label("total_bad_cases"))
+        )
+        bc_stats = bc_result.first()
+
+        class _Stats:
+            def __init__(self):
+                self.total_feedbacks = fb_stats[0] if fb_stats else 0
+                self.avg_rating = fb_stats[1] if fb_stats else None
+                self.total_bad_cases = bc_stats[0] if bc_stats else 0
+
+        stats = _Stats()
         
         # 获取按评分分布
         rating_result = await self.db.execute(

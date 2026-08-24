@@ -72,7 +72,8 @@ class Neo4jClient:
                 MERGE (e:Entity {entity_id: $entity_id})
                 ON CREATE SET e.name = $name, e.type = $type, e.frequency = $frequency
                 ON MATCH SET e.frequency = e.frequency + 1
-                SET e.aliases = $aliases, e.description = $description, e.properties = $properties, e.source_chunks = $source_chunks
+                SET e.aliases = $aliases, e.description = $description, e.properties = $properties, e.source_chunks = $source_chunks,
+                    e.canonical_name = $canonical_name, e.confidence = $confidence, e.extractor = $extractor
                 RETURN e
                 """
                 
@@ -85,6 +86,9 @@ class Neo4jClient:
                     "description": entity.description,
                     "properties": entity.properties,
                     "source_chunks": entity.source_chunks
+                    ,"canonical_name": entity.canonical_name or entity.name
+                    ,"confidence": entity.confidence
+                    ,"extractor": entity.extractor
                 })
                 
                 await result.data()
@@ -348,7 +352,10 @@ class Neo4jClient:
             description=node_data.get("description", ""),
             properties=node_data.get("properties", {}),
             source_chunks=node_data.get("source_chunks", []),
-            frequency=node_data.get("frequency", 1)
+            frequency=node_data.get("frequency", 1),
+            canonical_name=node_data.get("canonical_name", node_data.get("name", "")),
+            confidence=node_data.get("confidence", 1.0),
+            extractor=node_data.get("extractor", "unknown")
         )
     
     def _record_to_relation(self, record: Dict[str, Any]) -> Relation:

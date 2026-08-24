@@ -21,3 +21,4 @@ class VectorChunk(Base):
     department = Column(String(64), nullable=True)
     metadata_json = Column(Text, nullable=True)  # 额外元数据
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)

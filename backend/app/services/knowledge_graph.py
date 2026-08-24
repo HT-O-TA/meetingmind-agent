@@ -1,6 +1,7 @@
 """知识图谱索引 + 实体关系管理"""
 import json
 import re
+from difflib import SequenceMatcher
 from typing import List, Dict, Any, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
@@ -49,6 +50,9 @@ class Entity:
     properties: Dict[str, Any] = field(default_factory=dict)
     source_chunks: List[str] = field(default_factory=list)
     frequency: int = 1
+    canonical_name: str = ""
+    confidence: float = 1.0
+    extractor: str = "rule"
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -60,6 +64,9 @@ class Entity:
             "properties": self.properties,
             "source_chunks": self.source_chunks,
             "frequency": self.frequency
+            ,"canonical_name": self.canonical_name or self.name
+            ,"confidence": self.confidence
+            ,"extractor": self.extractor
         }
 
 
@@ -98,6 +105,22 @@ class KnowledgeGraph:
     
     def add_entity(self, entity: Entity) -> str:
         """添加实体"""
+        entity.canonical_name = entity.canonical_name or entity.name
+
+        # 框架级实体链接：先用名称/别名相似度合并，embedding 相似度接口后续接入。
+        linked = self._link_entity(entity)
+        if linked:
+            linked.frequency += entity.frequency
+            if entity.name.lower() != linked.canonical_name.lower() and entity.name not in linked.aliases:
+                linked.aliases.append(entity.name)
+            for alias in entity.aliases:
+                if alias not in linked.aliases and alias.lower() != linked.canonical_name.lower():
+                    linked.aliases.append(alias)
+            for chunk_id in entity.source_chunks:
+                if chunk_id not in linked.source_chunks:
+                    linked.source_chunks.append(chunk_id)
+            return linked.entity_id
+
         if entity.entity_id in self.entities:
             self.entities[entity.entity_id].frequency += 1
             return entity.entity_id
@@ -111,6 +134,22 @@ class KnowledgeGraph:
         self.type_index[entity.type].add(entity.entity_id)
         
         return entity.entity_id
+
+    def _link_entity(self, entity: Entity) -> Optional[Entity]:
+        """编辑距离链接骨架；embedding_score 预留给后续向量模型。"""
+        candidates = [e for e in self.entities.values() if e.type == entity.type]
+        target = (entity.canonical_name or entity.name).strip().lower()
+        for candidate in candidates:
+            names = [candidate.canonical_name or candidate.name, candidate.name, *candidate.aliases]
+            edit_score = max(
+                SequenceMatcher(None, target, name.strip().lower()).ratio()
+                for name in names if name
+            )
+            embedding_score = 0.0  # reserved: entity embedding similarity
+            combined_score = 0.7 * edit_score + 0.3 * embedding_score
+            if combined_score >= 0.88 or edit_score >= 0.94:
+                return candidate
+        return None
     
     def add_relation(self, relation: Relation) -> str:
         """添加关系"""
@@ -181,7 +220,7 @@ class KnowledgeGraph:
         results = []
         
         for entity in self.entities.values():
-            if query_lower in entity.name.lower():
+            if entity.name.lower() in query_lower or query_lower in entity.name.lower():
                 results.append(entity)
                 continue
             
@@ -191,6 +230,23 @@ class KnowledgeGraph:
                     break
         
         return results
+
+    def analyze_query(self, query: str) -> Dict[str, Any]:
+        """轻量 KG 触发分析框架：实体匹配 + 关系词识别。"""
+        entities = self.search_by_query(query)
+        relation_terms = (
+            "负责", "参与", "属于", "依赖", "汇报", "关联", "决定", "安排",
+            "完成", "影响", "谁", "哪些", "什么关系", "和", "与", "之间", "有没有提到"
+        )
+        matched_terms = [term for term in relation_terms if term in query]
+        relation_query = bool(matched_terms)
+        should_trigger = bool(entities) and (relation_query or len(entities) >= 2)
+        return {
+            "entities": entities,
+            "entity_count": len(entities),
+            "relation_terms": matched_terms,
+            "should_trigger": should_trigger,
+        }
     
     def get_statistics(self) -> Dict[str, Any]:
         """获取统计信息"""
@@ -268,7 +324,9 @@ class EntityExtractor:
                             entity_id=entity_id,
                             name=name,
                             type=etype,
-                            source_chunks=[doc_id]
+                            source_chunks=[doc_id],
+                            extractor="rule",
+                            confidence=0.9,
                         )
                         entities.append(entity)
                     else:
@@ -347,7 +405,9 @@ class EntityExtractor:
                         type=etype,
                         aliases=item.get("aliases", []),
                         description=item.get("description", ""),
-                        source_chunks=[doc_id]
+                        source_chunks=[doc_id],
+                        extractor="llm",
+                        confidence=0.7,
                     )
                     entities.append(entity)
                 
@@ -549,15 +609,17 @@ class KnowledgeGraphIndex:
             content = doc.get("content", doc.get("chunk_text", ""))
             
             entities = await self._entity_extractor.extract_entities(content, chunk_id)
-            
+            entity_id_map = {}
             for entity in entities:
-                self._graph.add_entity(entity)
+                entity_id_map[entity.entity_id] = self._graph.add_entity(entity)
             
             relations = await self._relation_extractor.extract_relations(
                 content, entities, chunk_id
             )
             
             for relation in relations:
+                relation.source_id = entity_id_map.get(relation.source_id, relation.source_id)
+                relation.target_id = entity_id_map.get(relation.target_id, relation.target_id)
                 self._graph.add_relation(relation)
         
         return self._graph
@@ -773,10 +835,18 @@ async def build_graph_from_chunks(chunks: List[Dict[str, Any]]) -> Dict[str, Any
 async def enhance_search_results(
     query: str,
     vector_results: List[Dict[str, Any]],
-    depth: int = 2
+    depth: int = 2,
+    max_added_chunks: int = 5,
+    query_analysis: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """
     使用知识图谱增强检索结果
+    
+    增强策略：
+    1. 从查询中抽取实体
+    2. 通过实体关系扩展相关文档块
+    3. 合并向量检索结果和图谱扩展结果，考虑关系权重
+    4. 重新排序：向量分数 * 0.7 + 图谱关系权重 * 0.3
     
     Args:
         query: 查询文本
@@ -787,7 +857,88 @@ async def enhance_search_results(
         增强后的检索结果
     """
     index = get_knowledge_graph_index()
-    return index.search_with_graph(query, vector_results, depth=depth)
+    
+    # 获取图谱中的实体
+    analysis = query_analysis or index._graph.analyze_query(query)
+    if not analysis.get("should_trigger"):
+        return vector_results
+    entities = analysis.get("entities", [])
+    
+    if not entities:
+        return vector_results
+    
+    # 获取扩展文档块及其关系权重
+    expanded_chunks = {}
+    for entity in entities:
+        neighbors = index._graph.get_neighbors(entity.entity_id, depth=depth)
+        
+        for neighbor, relation in neighbors:
+            for chunk_id in neighbor.source_chunks:
+                if chunk_id not in expanded_chunks:
+                    expanded_chunks[chunk_id] = {
+                        'weight': 0,
+                        'entities': [],
+                        'relations': []
+                    }
+                expanded_chunks[chunk_id]['weight'] += relation.weight * (1.0 / (depth + 1))
+                expanded_chunks[chunk_id]['entities'].append(neighbor.name)
+                expanded_chunks[chunk_id]['relations'].append(relation.relation_type.value)
+    
+    # 合并结果并重新排序
+    seen_chunks = set()
+    enhanced_results = []
+    
+    for result in vector_results:
+        chunk_id = result.get("chunk_id", result.get("document_id", ""))
+        
+        if chunk_id and chunk_id in seen_chunks:
+            continue
+        seen_chunks.add(chunk_id)
+        
+        # 计算综合分数
+        base_score = result.get("score", result.get("similarity", 0))
+        graph_weight = expanded_chunks.get(chunk_id, {}).get("weight", 0)
+        
+        # 综合评分：向量分数为主，图谱关系为辅
+        combined_score = base_score * 0.7 + graph_weight * 0.3
+        
+        result["score"] = combined_score
+        result["base_score"] = base_score
+        result["graph_weight"] = graph_weight
+        
+        if chunk_id in expanded_chunks:
+            result["graph_enhanced"] = True
+            result["related_entities"] = expanded_chunks[chunk_id]['entities']
+            result["relations"] = expanded_chunks[chunk_id]['relations']
+        
+        enhanced_results.append(result)
+    
+    # 添加图谱扩展但向量检索未命中的文档
+    added_count = 0
+    ranked_expansions = sorted(expanded_chunks.items(), key=lambda item: item[1]['weight'], reverse=True)
+    for chunk_id, info in ranked_expansions:
+        if added_count >= max_added_chunks:
+            break
+        if chunk_id not in seen_chunks:
+            seen_chunks.add(chunk_id)
+            enhanced_results.append({
+                "chunk_id": chunk_id,
+                "score": info['weight'] * 0.5,
+                "base_score": 0,
+                "graph_weight": info['weight'],
+                "source": "graph",
+                "graph_enhanced": True,
+                "related_entities": info['entities'],
+                "relations": info['relations'],
+            })
+            added_count += 1
+    
+    # 按综合分数排序
+    enhanced_results.sort(key=lambda x: x.get("score", 0), reverse=True)
+    
+    app_logger.debug(f"[GraphEnhance] 原始结果: {len(vector_results)}, 增强后: {len(enhanced_results)}, 发现实体: {len(entities)}")
+    
+    return enhanced_results
 
 
 async def get_entity_subgraph(entity_name: str, depth: int = 2) -> Dict[str, Any]:

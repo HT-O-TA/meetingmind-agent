@@ -30,6 +30,35 @@ class PerformanceMetrics:
         self._latency_records.append(latency_ms)
         if token_cost_usd > 0:
             self._token_cost_records.append(token_cost_usd)
+
+    def record_token_usage(
+        self,
+        prompt_tokens: int = 0,
+        completion_tokens: int = 0,
+        latency_ms: float = 0.0,
+        model: str = "",
+    ) -> None:
+        """记录 LLM 真实 Token 消耗（第10层：耗时/Token追踪）
+
+        Args:
+            prompt_tokens: 输入 token 数
+            completion_tokens: 输出 token 数
+            latency_ms: 本次调用耗时（毫秒）
+            model: 模型名称
+        """
+        total_tokens = prompt_tokens + completion_tokens
+        self._request_timestamps.append(time.time())
+        self._latency_records.append(latency_ms)
+        # 将 token 数写入 _token_cost_records（以 token 数为单位，非 USD）
+        if total_tokens > 0:
+            self._token_cost_records.append(float(total_tokens))
+
+        from app.core.logger import app_logger
+        app_logger.debug(
+            f"[TokenUsage] model={model} "
+            f"prompt={prompt_tokens} completion={completion_tokens} "
+            f"total={total_tokens} latency={latency_ms:.0f}ms"
+        )
     
     def record_tool_execution(self, tool_id: str, success: bool, latency_ms: float, retry_count: int = 0):
         """记录工具执行"""

@@ -128,8 +128,8 @@ class QueryDecomposer:
 
 只输出JSON："""
             
-            response = await llm._call(prompt)
-            
+            response = await llm.chat(messages=[{"role": "user", "content": prompt}])
+
             sub_queries = self._parse_response(response)
             
             if sub_queries:
@@ -149,9 +149,9 @@ class QueryDecomposer:
         try:
             start = response.find('[')
             end = response.rfind(']') + 1
-            if start != -1 and end != 0:
+            if start != -1 and end > start:
                 data = json.loads(response[start:end])
-                
+
                 sub_queries = []
                 for i, item in enumerate(data):
                     sq = SubQuery(
@@ -191,8 +191,8 @@ class QueryDecomposer:
 [补充信息]: 可能需要的补充查询
 """
             
-            return await llm._call(prompt)
-            
+            return await llm.chat(messages=[{"role": "user", "content": prompt}])
+
         except Exception as e:
             app_logger.error(f"Multi-step reasoning failed: {e}")
             return query
@@ -257,9 +257,9 @@ class HyDEGenerator:
 ]
 
 只输出JSON："""
-            
-            response = await llm._call(prompt)
-            
+
+            response = await llm.chat(messages=[{"role": "user", "content": prompt}])
+
             docs = self._parse_response(response, num_docs)
             
             if docs:

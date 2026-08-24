@@ -601,8 +601,8 @@ class SemanticChunker:
 
     def _speaker_aware_similarity(self, text1: str, text2: str) -> float:
         """基于词频余弦相似度的语义近似"""
-        tokens1 = self._tokenize_for_similarity(text1)
-        tokens2 = self._tokenize_for_similarity(text2)
+        tokens1 = self._tokenize_speaker_text(text1)
+        tokens2 = self._tokenize_speaker_text(text2)
 
         if not tokens1 or not tokens2:
             return 0.0
@@ -779,7 +779,7 @@ class SemanticChunker:
             elif chunk.level < chunks[i-1].level:
                 parent_idx = i - 1
                 while parent_idx >= 0:
-                    if chunks[parent_idx].level == chunk.level:
+                    if chunks[parent_idx].level < chunk.level:
                         chunk.parent_id = chunks[parent_idx].chunk_id
                         chunks[parent_idx].child_ids.append(chunk.chunk_id)
                         break

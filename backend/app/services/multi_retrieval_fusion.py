@@ -136,7 +136,7 @@ class MultiRetrievalFusion:
         """
         # 如果没有提供预计算结果，执行 BM25 检索
         if bm25_results is None:
-            bm25_results = self.bm25_retriever.search(query, top_k=top_k * 2)
+            bm25_results = await self.bm25_retriever.search(query, top_k=top_k * 2)
         
         # 如果没有提供向量结果，返回空列表（向量检索由外部传入）
         if vector_results is None:

@@ -22,7 +22,7 @@ class RAGEvaluationService:
 
     def __init__(self, vector_service: VectorSearchService, llm_service: LLMService = None):
         self.vector_service = vector_service
-        self.llm_service = llm_service or LLMService()
+        self.llm_service = llm_service
         self.embedding_service = EmbeddingService()
 
     async def evaluate_single_question(

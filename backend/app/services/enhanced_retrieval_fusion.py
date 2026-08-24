@@ -1,4 +1,4 @@
-"""增强版多路召回融合器 - BM25 + dense + sparse + RRF融合 + Reranker"""
+"""增强版多路召回融合器 - BM25 + Milvus混合检索 + Reranker"""
 from typing import List, Dict, Any, Optional, Literal
 from app.core.logger import app_logger
 from app.core.config import settings
@@ -7,36 +7,35 @@ class EnhancedMultiRetrievalFusion:
     """
     增强版多路召回融合器
     
-    支持两种策略：
+    支持三种策略：
     - 策略A（当前）：BM25 + dense向量 + 加权融合
-    - 策略B（目标）：BM25 + dense向量 + sparse向量 + RRF融合
+    - 策略B（目标）：BM25 + dense向量 + sparse向量 + RRF融合（PostgreSQL回退）
+    - 策略M（Milvus）：PostgreSQL BM25 + Milvus Dense+Sparse混合检索 + 加权融合
     
-    RRF (Reciprocal Rank Fusion) 公式：
-    score = sum(1 / (k + rank_i)) for all retrieval methods
-    其中 k 通常取 60
+    策略M说明：
+    - Milvus 内部使用 WeightedRanker 完成 Dense + Sparse 融合
+    - 只需要将 PostgreSQL BM25 结果与 Milvus 结果进行融合
     """
     
     # 类级别的模型缓存
     _model_cache: Dict[str, Any] = {}
     
-    def __init__(self, strategy: Literal['A', 'B'] = 'A'):
+    def __init__(self, strategy: Literal['A', 'B', 'M'] = 'A'):
         self.strategy = strategy
-        self.rrf_k = settings.RRF_K if hasattr(settings, 'RRF_K') else 60  # RRF参数，经典值为60
+        self.rrf_k = settings.RRF_K if hasattr(settings, 'RRF_K') else 60
         self.rerank_top_n = settings.RERANK_TOP_N
+        self.bm25_weight = settings.BM25_WEIGHT
+        self.vector_weight = settings.VECTOR_WEIGHT
         
-        # 使用配置文件中的模型路径（BGE-M3嵌入模型）
         self.local_model_path = settings.LOCAL_EMBEDDING_MODEL_PATH
         
-        # 延迟导入，避免循环依赖
         from app.services.bm25_retriever import get_bm25_retriever
         from app.services.reranker import get_reranker
-        from app.services.embedding_service import EmbeddingService
         
         self.bm25_retriever = get_bm25_retriever()
         self.reranker = get_reranker()
-        self.embedding_service = EmbeddingService()
         
-        app_logger.info(f"[EnhancedFusion] 初始化完成，策略: {strategy}, 模型路径: {self.local_model_path}")
+        app_logger.info(f"[EnhancedFusion] 初始化完成，策略: {strategy}")
     
     def _extract_sparse_vector(self, sparse_vec) -> Dict[int, float]:
         """
@@ -463,24 +462,33 @@ class EnhancedMultiRetrievalFusion:
         fused = {}
         
         for result in bm25_results:
-            doc_id = result.get('doc_id', result.get('document_id', result.get('chunk_id', 0)))
+            doc_id = result.get('chunk_id', result.get('doc_id', result.get('document_id', 0)))
             fused[doc_id] = {
                 'doc_id': doc_id,
+                'chunk_id': result.get('chunk_id', doc_id),
+                'document_id': result.get('document_id'),
                 'score': result.get('normalized_score', 0) * bm25_weight,
                 'content': result.get('content', ''),
+                'chunk_text': result.get('chunk_text', result.get('content', '')),
                 'sources': ['bm25']
             }
         
         for result in dense_results:
-            doc_id = result.get('doc_id', result.get('document_id', result.get('chunk_id', 0)))
+            doc_id = result.get('chunk_id', result.get('doc_id', result.get('document_id', 0)))
             if doc_id in fused:
                 fused[doc_id]['score'] += result.get('normalized_score', 0) * vector_weight
                 fused[doc_id]['sources'].append('dense')
+                if not fused[doc_id].get('chunk_text'):
+                    fused[doc_id]['chunk_text'] = result.get('chunk_text', result.get('content', ''))
+                    fused[doc_id]['content'] = fused[doc_id]['chunk_text']
             else:
                 fused[doc_id] = {
                     'doc_id': doc_id,
+                    'chunk_id': result.get('chunk_id', doc_id),
+                    'document_id': result.get('document_id'),
                     'score': result.get('normalized_score', 0) * vector_weight,
                     'content': result.get('content', result.get('chunk_text', '')),
+                    'chunk_text': result.get('chunk_text', result.get('content', '')),
                     'sources': ['dense']
                 }
         
@@ -495,6 +503,7 @@ class EnhancedMultiRetrievalFusion:
                        dense_results: Optional[List[Dict[str, Any]]] = None,
                        sparse_results: Optional[List[Dict[str, Any]]] = None,
                        sparse_index: Optional[Dict[int, Dict[int, float]]] = None,
+                       milvus_results: Optional[List[Dict[str, Any]]] = None,
                        top_k: int = 10) -> List[Dict[str, Any]]:
         """
         执行多路召回和融合
@@ -505,43 +514,95 @@ class EnhancedMultiRetrievalFusion:
             dense_results: 预计算的稠密向量结果（可选）
             sparse_results: 预计算的稀疏向量结果（可选）
             sparse_index: 稀疏向量索引（可选，策略B时需要）
+            milvus_results: 预计算的Milvus混合检索结果（可选，策略M时需要）
             top_k: 返回前k个结果
             
         Returns:
             重排序后的检索结果
         """
-        # 如果没有提供预计算结果，执行BM25检索
-        if bm25_results is None:
-            bm25_results = self.bm25_retriever.search(query, top_k=top_k * 2)
+        # 策略M：Milvus模式
+        if self.strategy == 'M':
+            return await self._retrieve_milvus_mode(query, bm25_results, milvus_results, top_k)
         
-        # 如果没有提供稠密向量结果，返回空列表
+        # 策略A/B：传统模式
+        if bm25_results is None:
+            bm25_results = await self.bm25_retriever.search(query, top_k=top_k * 2)
+        
         if dense_results is None:
             dense_results = []
         
-        # 策略B：执行稀疏向量检索
         if self.strategy == 'B' and sparse_results is None:
             if sparse_index is not None:
                 sparse_results = self._sparse_search(query, sparse_index, top_k=top_k * 2)
             else:
                 sparse_results = []
         
-        # 根据策略选择融合方式
         if self.strategy == 'B':
             fused_results = self._rrf_fusion(bm25_results, dense_results, sparse_results)
         else:
             fused_results = self._weighted_fusion(bm25_results, dense_results)
         
-        # 如果没有结果，直接返回
         if not fused_results:
             return []
         
-        # 取前N个进行重排序
-        candidates = fused_results[:self.rerank_top_n]
-        
-        # 执行重排序
-        reranked_results = await self.reranker.arerank(query, candidates, top_n=top_k)
+        reranked_results = await self.rerank_candidates(query, fused_results, top_k)
         
         app_logger.debug(f"[EnhancedFusion] 检索完成（策略{self.strategy}），最终返回 {len(reranked_results)} 条结果")
+        
+        return reranked_results
+
+    async def rerank_candidates(self, query: str, candidates: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
+        """统一 Reranker 入口，供 KG 在精排前扩展候选。"""
+        candidates = candidates[:self.rerank_top_n]
+        if not candidates:
+            return []
+        return await self.reranker.arerank(query, candidates, top_n=top_k)
+    
+    async def _retrieve_milvus_mode(self, 
+                                   query: str,
+                                   bm25_results: Optional[List[Dict[str, Any]]] = None,
+                                   milvus_results: Optional[List[Dict[str, Any]]] = None,
+                                   top_k: int = 10) -> List[Dict[str, Any]]:
+        """
+        Milvus模式检索：PostgreSQL BM25 + Milvus Dense+Sparse混合检索
+        
+        Args:
+            query: 查询文本
+            bm25_results: 预计算的BM25结果
+            milvus_results: 预计算的Milvus结果
+            top_k: 返回前k个结果
+            
+        Returns:
+            重排序后的检索结果
+        """
+        if bm25_results is None:
+            bm25_results = await self.bm25_retriever.search(query, top_k=top_k * 2)
+        
+        if milvus_results is None:
+            try:
+                from app.services.vector_store_milvus import get_milvus_vector_store
+                milvus_store = get_milvus_vector_store()
+                if milvus_store is None:
+                    raise Exception("Milvus store not available")
+                milvus_results = await milvus_store.search(
+                    query=query,
+                    top_k=top_k * 2,
+                    dense_weight=self.vector_weight,
+                    sparse_weight=self.bm25_weight,
+                )
+            except Exception as e:
+                app_logger.warning(f"Milvus检索失败: {e}")
+                milvus_results = []
+        
+        fused_results = self._weighted_fusion(bm25_results, milvus_results)
+        
+        if not fused_results:
+            return []
+        
+        candidates = fused_results[:self.rerank_top_n]
+        reranked_results = await self.reranker.arerank(query, candidates, top_n=top_k)
+        
+        app_logger.debug(f"[EnhancedFusion] Milvus模式检索完成，BM25: {len(bm25_results)} 条，Milvus: {len(milvus_results)} 条，最终返回 {len(reranked_results)} 条结果")
         
         return reranked_results
     
