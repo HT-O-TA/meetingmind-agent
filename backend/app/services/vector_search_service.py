@@ -204,7 +204,7 @@ class VectorSearchService:
                 final_results = final_results[:top_k]
                 
                 # 缓存（仅适合缓存的简单查询）
-                await VectorCacheManager.set_cache_result(
+                await VectorCacheManager.set_cached_result(
                     query_text, final_results,
                     top_k=top_k, meeting_id=meeting_id,
                     document_ids=document_ids, department=department

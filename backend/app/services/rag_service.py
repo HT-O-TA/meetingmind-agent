@@ -29,6 +29,14 @@ class RAGService:
                 self.enable_evaluation = False
         return self._evaluator
 
+    def _retrieval_mode(self) -> str:
+        """将底层布尔能力标记转换为稳定的 API 字符串。"""
+        if getattr(self.vector_service, "use_milvus", False):
+            return "milvus"
+        if getattr(self.vector_service, "use_pgvector", False):
+            return "pgvector"
+        return "lightweight"
+
     async def ask(
         self,
         question: str,
@@ -42,9 +50,10 @@ class RAGService:
         RAG 问答：BM25 + Dense 多路召回、融合、Reranker 精排和可选图谱增强。
 
         检索流程：
-        1. PostgreSQL BM25 与 Milvus Dense 并行召回
-        2. 加权融合并使用 BGE Reranker 精排
-        3. 可选知识图谱增强
+        1. Dense 与 PostgreSQL BM25 顺序召回（当前实现尚未并行化）
+        2. 加权融合
+        3. 可选知识图谱扩展候选
+        4. BGE Reranker 精排
 
         Args:
             question: 用户问题
@@ -60,9 +69,10 @@ class RAGService:
         # 方案 A：单一查询走 PostgreSQL BM25 + Milvus dense，统一融合后由 Reranker 精排。
         # HyDE、问题分解和复杂查询编排保留在 Query Optimizer 中，后续按评测结果接入。
         search_queries = [question]
-        merged_results = await self.vector_service.multi_retrieval_search(
+        candidate_top_k = max(top_k, settings.RERANK_TOP_N) if settings.ENABLE_RERANK else top_k
+        merged_results = await self.vector_service.search_with_multi_retrieval(
             query_text=question,
-            top_k=top_k,
+            top_k=candidate_top_k,
             meeting_id=meeting_id,
             department=department,
             similarity_threshold=similarity_threshold,
@@ -73,9 +83,9 @@ class RAGService:
         )
         
         # KG 在 Reranker 前扩展候选；复杂 NER/分类后续接入当前分析接口。
-        kg_analysis = get_knowledge_graph_index().get_graph().analyze_query(question)
         if settings.ENABLE_KNOWLEDGE_GRAPH and merged_results:
             try:
+                kg_analysis = get_knowledge_graph_index().get_graph().analyze_query(question)
                 primary_query = search_queries[0] if search_queries else question
                 merged_results = await enhance_search_results(
                     primary_query, merged_results, depth=2, max_added_chunks=5,
@@ -98,7 +108,7 @@ class RAGService:
                 "answer": "抱歉，我在知识库中没有找到与您问题相关的内容。",
                 "chunks": [],
                 "count": 0,
-                "mode": self.vector_service.use_milvus if hasattr(self.vector_service, 'use_milvus') else "unknown",
+                "mode": self._retrieval_mode(),
                 "query_type": "standard",
                 "original_query": question,
                 "rewritten_query": search_queries,
@@ -125,8 +135,7 @@ class RAGService:
             "answer": answer,
             "chunks": merged_results,
             "count": len(merged_results),
-            "mode": "milvus" if getattr(self.vector_service, 'use_milvus', False) else 
-                    ("pgvector" if getattr(self.vector_service, 'use_pgvector', False) else "lightweight"),
+            "mode": self._retrieval_mode(),
             "query_type": "standard",
             "original_query": question,
             "rewritten_query": search_queries,

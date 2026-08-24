@@ -478,9 +478,12 @@ class EnhancedMultiRetrievalFusion:
             if doc_id in fused:
                 fused[doc_id]['score'] += result.get('normalized_score', 0) * vector_weight
                 fused[doc_id]['sources'].append('dense')
-                if not fused[doc_id].get('chunk_text'):
-                    fused[doc_id]['chunk_text'] = result.get('chunk_text', result.get('content', ''))
-                    fused[doc_id]['content'] = fused[doc_id]['chunk_text']
+                # Dense 结果来自 PostgreSQL 正文回查，优先保留完整文本，
+                # 避免 BM25 的展示片段覆盖 LLM/Reranker 所需的完整上下文。
+                dense_text = result.get('chunk_text', result.get('content', ''))
+                if dense_text:
+                    fused[doc_id]['chunk_text'] = dense_text
+                    fused[doc_id]['content'] = dense_text
             else:
                 fused[doc_id] = {
                     'doc_id': doc_id,
@@ -553,7 +556,9 @@ class EnhancedMultiRetrievalFusion:
 
     async def rerank_candidates(self, query: str, candidates: List[Dict[str, Any]], top_k: int = 5) -> List[Dict[str, Any]]:
         """统一 Reranker 入口，供 KG 在精排前扩展候选。"""
-        candidates = candidates[:self.rerank_top_n]
+        # 候选池至少覆盖调用方要求的输出数量；RERANK_TOP_N 是默认池深度，
+        # 不能把合法的 top_k 请求静默截断为更小的结果集。
+        candidates = candidates[:max(top_k, self.rerank_top_n)]
         if not candidates:
             return []
         return await self.reranker.arerank(query, candidates, top_n=top_k)

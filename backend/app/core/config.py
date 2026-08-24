@@ -211,7 +211,7 @@ class Settings(BaseSettings):
 
     
     # ==================== 知识图谱配置 ====================
-    ENABLE_KNOWLEDGE_GRAPH: bool = True  # 是否启用知识图谱增强检索
+    ENABLE_KNOWLEDGE_GRAPH: bool = False  # 可选增强默认关闭，不改变正式 RAG 主链路
     KNOWLEDGE_GRAPH_DEPTH: int = 2  # 图谱扩展深度
     KNOWLEDGE_GRAPH_MIN_SCORE: float = 0.3  # 图谱扩展结果的最低分数阈值
     

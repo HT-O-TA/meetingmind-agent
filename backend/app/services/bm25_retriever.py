@@ -126,7 +126,9 @@ class BM25Retriever:
                     'document_id': row.document_id,
                     'doc_id': row.document_id,
                     'score': float(row.rank),
-                    'content': row.chunk_text[:200] + '...' if len(row.chunk_text) > 200 else row.chunk_text,
+                    # 检索层返回完整正文；展示层如需摘要，应在 API/UI 层单独截断。
+                    'content': row.chunk_text,
+                    'chunk_text': row.chunk_text,
                     'meeting_id': row.meeting_id,
                     'department': row.department,
                 })

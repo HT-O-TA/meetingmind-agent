@@ -38,10 +38,14 @@ async def rag_ask(
     """
     result = await rag_service.ask(
         question=request.question,
-        top_k=request.top_k or settings.TOP_K_DEFAULT,
+        top_k=request.top_k if request.top_k is not None else settings.TOP_K_DEFAULT,
         meeting_id=request.meeting_id,
         department=request.department,
-        similarity_threshold=request.similarity_threshold or settings.SIMILARITY_THRESHOLD,
+        similarity_threshold=(
+            request.similarity_threshold
+            if request.similarity_threshold is not None
+            else settings.SIMILARITY_THRESHOLD
+        ),
         use_llm=request.use_llm,
     )
     return Response.ok(result)
