@@ -41,6 +41,7 @@ docs/量化指标.md
 # VSCode
 .vscode/
 .idea/
+.claude/
 
 # Python cache
 __pycache__/
