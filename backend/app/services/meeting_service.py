@@ -17,9 +17,8 @@ class MeetingService:
     async def get_by_id(self, meeting_id: int) -> Meeting:
         cache_key = make_cache_key("meetings", "detail", meeting_id)
         cached = await cache_get(cache_key)
-        if cached:
-            # 缓存命中时仍需返回 ORM 对象，直接查库但跳过序列化开销
-            pass
+        # NOTE: cache stores dict; get_by_id must return ORM object, so cache is not used here.
+        # Use get_by_id_cached() for read-only dict returns that benefit from caching.
 
         result = await self.db.execute(select(Meeting).where(Meeting.id == meeting_id))
         meeting = result.scalar_one_or_none()

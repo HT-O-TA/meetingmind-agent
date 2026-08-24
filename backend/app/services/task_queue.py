@@ -29,6 +29,7 @@ class TaskType(str, Enum):
     DOCUMENT_PROCESS = "document_process"     # 文档处理
     VECTOR_EMBED = "vector_embed"            # 向量化
     KNOWLEDGE_GRAPH = "knowledge_graph"       # 知识图谱构建
+    AGENT_EXECUTE = "agent_execute"           # Agent执行任务
 
 
 @dataclass
@@ -61,12 +62,19 @@ class TaskQueueService:
         """获取任务存储的 Redis key"""
         return f"task:{task_id}"
     
-    def _get_task_queue(self, task_type: str) -> str:
+    def _get_task_queue(self, task_type) -> str:
         """获取任务队列名称"""
+        # Normalize plain string (e.g. from Redis deserialization) to enum
+        if isinstance(task_type, str):
+            try:
+                task_type = TaskType(task_type)
+            except ValueError:
+                return settings.QUEUE_DOCUMENT_PROCESS
         queue_map = {
             TaskType.DOCUMENT_PROCESS: settings.QUEUE_DOCUMENT_PROCESS,
             TaskType.VECTOR_EMBED: settings.QUEUE_VECTOR_EMBED,
             TaskType.KNOWLEDGE_GRAPH: settings.QUEUE_KNOWLEDGE_GRAPH,
+            TaskType.AGENT_EXECUTE: settings.QUEUE_AGENT_EXECUTE,
         }
         return queue_map.get(task_type, settings.QUEUE_DOCUMENT_PROCESS)
     

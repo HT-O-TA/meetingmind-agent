@@ -49,6 +49,25 @@ class Settings(BaseSettings):
     
     # LLM 缓存配置（原生Redis实现）
     LLM_CACHE_TTL: int = 3600  # LLM 缓存过期时间（秒，1小时）
+
+    # ==================== 记忆系统 TTL 四层体系 ====================
+    # 记忆系统 TTL 配置
+    # 注意：以下 TTL 仅为 Redis 缓存过期时间，PostgreSQL 主存储中的数据不会因缓存过期而丢失
+    # 
+    # 四层记忆架构：
+    # 层1：WorkingMemory（AgentState 内存）—— 无TTL，随请求生命周期
+    # 层2：SessionMemory（Redis）—— 会话级短期记忆
+    MEMORY_SESSION_TTL: int = 21600          # 会话记忆缓存过期时间（秒，6小时）
+    # 层3：MeetingMemory（PostgreSQL + Milvus）—— 跨会议长期记忆
+    MEMORY_MEETING_TTL_DAYS: int = 730       # 会议记忆保留天数（2年），0=永不过期
+    MEMORY_LONG_TERM_DEFAULT_DAYS: int = 365  # 长期记忆默认有效期（天），0=永不过期
+    # 层4：KnowledgeGraph（Neo4j）—— 永久存储，无TTL
+    #
+    # Redis 热缓存（层3的热点数据缓存，失效后自动从 PG 重建）
+    MEMORY_HOT_CACHE_TTL: int = 3600         # 热点记忆Redis缓存过期（秒，1小时）
+    MEMORY_INDEX_TTL: int = 86400            # 记忆ID索引缓存过期（秒，24小时）
+    MEMORY_CONTEXT_TTL: int = 604800         # 会议上下文缓存过期（秒，7天）
+    MEMORY_COMPRESS_MAX_CHARS: int = 300     # Level-1 摘要压缩目标字符数
     
     # FastAPI-Cache 配置
     ENABLE_API_CACHE: bool = True  # 是否启用 API 响应缓存
@@ -64,6 +83,7 @@ class Settings(BaseSettings):
     QUEUE_DOCUMENT_PROCESS: str = "document_process"  # 文档处理队列
     QUEUE_VECTOR_EMBED: str = "vector_embed"  # 向量化队列
     QUEUE_KNOWLEDGE_GRAPH: str = "knowledge_graph"  # 知识图谱构建队列
+    QUEUE_AGENT_EXECUTE: str = "agent_execute"  # Agent执行队列
     QUEUE_TASK_TIMEOUT: int = 3600  # 任务默认超时时间（秒）
     QUEUE_PREFETCH_COUNT: int = 1  # 消费者预取消息数量
 
@@ -84,6 +104,7 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "qwen3.6-plus"  # 默认使用的LLM模型名称
     LLM_TEMPERATURE: float = 0.7  # LLM温度参数，控制输出随机性（0-1）
     LLM_MAX_TOKENS: int = 1000  # LLM生成的最大token数
+    PLAN_LLM_MAX_TOKENS: int = 3000  # 规划阶段专用最大token数（JSON结构较大，需要更多token防止截断）
     LLM_TIMEOUT: int = 120  # LLM API请求超时时间（秒）
     LLM_MAX_CONTEXT_CHARS: int = 5000  # 传入LLM的最大上下文字符数
 
@@ -105,11 +126,28 @@ class Settings(BaseSettings):
     ENABLE_MULTI_RETRIEVAL: bool = True  # 是否启用多路召回
     ENABLE_BM25: bool = True  # 是否启用BM25检索
     ENABLE_RERANK: bool = True  # 是否启用重排序
+
+    # ==================== Query Rewrite 配置 ====================
+    ENABLE_QUERY_REWRITE: bool = True   # 是否启用 Query Rewrite（HyDE + MultiQuery + Step-back）
+    ENABLE_HYDE: bool = True            # 是否启用 HyDE 假设文档生成
+    ENABLE_MULTI_QUERY: bool = True     # 是否启用 MultiQuery 子问题分解
+    ENABLE_STEP_BACK: bool = True       # 是否启用 Step-back 泛化改写
+    QUERY_REWRITE_MAX_QUERIES: int = 5  # 最多并发检索的扩展 query 数量（防止 token 爆炸）
+    QUERY_REWRITE_ONLY_COMPLEX: bool = True  # True=只对复杂查询做 Rewrite，False=所有查询
     
     # ==================== 检索策略配置 ====================
-    RETRIEVAL_STRATEGY: str = "B"  # 检索策略：A-当前策略(BM25+dense+加权融合)，B-目标策略(BM25+dense+sparse+RRF融合)
+    RETRIEVAL_STRATEGY: str = "A"  # 当前正式链路：PostgreSQL BM25 + Milvus dense + 加权融合 + Reranker
     RRF_K: int = 60  # RRF融合参数（经典值为60）
-    ENABLE_SPARSE_RETRIEVAL: bool = True  # 是否启用稀疏向量检索（策略B时生效）
+    ENABLE_SPARSE_RETRIEVAL: bool = False  # 暂不启用 Milvus/BGE-M3 稀疏向量检索
+    
+    # ==================== Milvus向量数据库配置 ====================
+    MILVUS_URI: str = "http://localhost:19530"  # Milvus连接URI，Docker部署使用"http://localhost:19530"
+    MILVUS_TOKEN: str = ""  # Milvus认证令牌（Zilliz Cloud时需要）
+    MILVUS_COLLECTION_NAME: str = "meetingmind_docs"  # Milvus集合名称
+    VECTOR_COLLECTION_NAME: str = "meetingmind_docs"  # 向量集合名称（供 MilvusVectorStore 使用）
+    USE_GPU: bool = True  # 是否使用GPU加速（RTX 4060）
+    USE_FP16: bool = True  # 是否使用FP16精度（GPU可用时开启，加速推理）
+    BGE_M3_MODEL_PATH: str = "F:/project/meetingmind-agent/backend/model/bge-m3"  # BGE-M3本地模型路径
     
     # ==================== 多模态服务配置 ====================
     VISION_API_BASE: str = "https://api.openai.com/v1"  # 视觉API基础URL
@@ -120,6 +158,18 @@ class Settings(BaseSettings):
     WHISPER_API_KEY: str = ""  # Whisper API密钥
     WHISPER_MODEL: str = "whisper-1"  # Whisper模型名称
     ENABLE_MULTIMODAL: bool = True  # 是否启用多模态服务
+    MULTIMODAL_MAX_IMAGE_SIZE_MB: int = 10  # 图片最大大小（MB）
+    MULTIMODAL_MAX_AUDIO_SIZE_MB: int = 50  # 音频最大大小（MB）
+    MULTIMODAL_SUPPORTED_FORMATS: str = "png,jpg,jpeg,gif,webp,bmp,mp3,wav,m4a,ogg,flac,pdf,docx,txt,md"
+    MULTIMODAL_ENABLE_SAFETY_CHECK: bool = True  # 是否启用多模态安全检测
+
+    # ==================== 安全护栏配置 ====================
+    ENABLE_SEMANTIC_RISK_CHECK: bool = True  # 是否启用语义风险检测
+    SEMANTIC_RISK_MODEL: str = "gpt-4o-mini"  # 语义检测用的模型
+    SEMANTIC_RISK_TIMEOUT_MS: int = 3000  # 语义检测超时
+    ENABLE_INJECTION_GUARD: bool = True  # 是否启用 Prompt Injection 防护
+    INJECTION_GUARD_DEPTH: str = "light"  # light/heavy 检测深度
+    INJECTION_GUARD_LOG_ALL: bool = True  # 是否记录所有检测尝试
 
     # ==================== Agent规划配置 ====================
     ENABLE_TEMPLATE_PLANNING: bool = True  # 是否启用任务模板库（优先匹配模板，失败再用LLM）
@@ -127,6 +177,38 @@ class Settings(BaseSettings):
     ENABLE_PLAN_AUTO_FIX: bool = True  # 是否启用计划自动修复
     TEMPLATE_MATCH_THRESHOLD: float = 0.2  # 模板匹配阈值（0-1）
     MAX_TASKS_IN_PLAN: int = 10  # 计划中最大任务数量
+
+    # ==================== 并行执行配置 ====================
+    ENABLE_PARALLEL_EXECUTOR: bool = True  # 是否启用并行执行引擎
+    MAX_PARALLEL_WORKERS: int = 3  # 最大并行工作线程数
+    TASK_TIMEOUT_SECONDS: int = 60  # 单任务超时时间（秒）
+
+    # ==================== 规划 Token 预算保护配置 ====================
+    PLAN_MAX_TASKS: int = 8  # 规划最大任务数（动态调整）
+    PLAN_MIN_TOKENS: int = 500  # 规划最小可用 token
+    PLAN_COMPLEXITY_THRESHOLD: float = 0.7  # 触发渐进式规划的复杂度阈值
+
+    # ==================== 统一质量门禁配置 ====================
+    ENABLE_UNIFIED_QUALITY_GATE: bool = True  # 是否启用统一质量门禁（替代 replan+reflection 双重评估）
+    QUALITY_GATE_REPLAN_THRESHOLD: float = 0.5  # 触发重规划的分数阈值
+    QUALITY_GATE_POLISH_THRESHOLD: float = 0.7  # 触发抛光的分数阈值
+
+    # ==================== HITL 细粒度风险控制配置 ====================
+    HITL_MIN_RISK_LEVEL: str = "HIGH"  # 触发人工确认的最低风险等级（LOW/MEDIUM/HIGH/CRITICAL）
+    HITL_AUTO_APPROVE_LOW: bool = True  # LOW 风险自动放行（不弹确认）
+    HITL_AUTO_APPROVE_MEDIUM: bool = True  # MEDIUM 风险自动放行（不弹确认）
+
+    # ==================== 确定性错误检查配置 ====================
+    ENABLE_DETERMINISTIC_CHECK: bool = True  # 是否启用确定性错误检查（反思前置）
+    ENABLE_CROSS_MODEL_VALIDATION: bool = False  # 是否启用跨模型交叉验证
+
+    # ==================== 反思记忆配置 ====================
+    ENABLE_REFLECTION_MEMORY: bool = True  # 是否启用反思记忆持久化
+    REFLECTION_MEMORY_TOP_K: int = 3  # 查询相似反思的最大数量
+    REFLECTION_MEMORY_ASYNC: bool = True  # 是否异步写入（不阻塞主流程）
+    REFLECTION_MEMORY_CACHE_SIZE: int = 500  # 内存缓存大小
+    REFLECTION_MEMORY_CACHE_TTL: int = 3600  # 缓存过期时间（秒）
+
     
     # ==================== 知识图谱配置 ====================
     ENABLE_KNOWLEDGE_GRAPH: bool = True  # 是否启用知识图谱增强检索

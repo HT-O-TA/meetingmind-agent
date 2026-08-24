@@ -23,4 +23,5 @@ async def get_vector_search_service(
 ) -> VectorSearchService:
     service = VectorSearchService(db)
     await service.check_pgvector_support()
+    await service.check_milvus_support()
     return service

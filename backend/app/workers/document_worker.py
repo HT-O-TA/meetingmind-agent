@@ -22,47 +22,59 @@ logger = logging.getLogger(__name__)
 
 class DocumentWorker:
     """文档处理Worker"""
-    
+
     def __init__(self):
-        self.document_service = DocumentService()
         self.embedding_service = EmbeddingService()
         self.is_running = False
-    
+
     async def process_document(self, task_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """处理文档"""
         try:
             document_id = payload.get("document_id")
             file_path = payload.get("file_path")
             user_id = payload.get("user_id")
-            
+
             logger.info(f"Processing document {document_id}, file: {file_path}")
-            
+
             # 更新状态为处理中
             await task_queue_service.update_task_status(
                 task_id,
                 TaskStatus.PROCESSING,
                 progress=10
             )
-            
-            # 1. 解析文档
+
+            # 1. 解析文档并更新向量块
             await task_queue_service.update_task_status(
                 task_id,
                 TaskStatus.PROCESSING,
                 progress=20
             )
-            
-            chunks = await self.document_service.process_document(
-                document_id=document_id,
-                file_path=file_path,
-                user_id=user_id
-            )
-            
+
+            from app.db.database import AsyncSessionLocal
+            from app.services.document_parser import DocumentParser
+
+            async with AsyncSessionLocal() as db:
+                doc_service = DocumentService(db)
+                # 获取文档记录
+                doc = await doc_service.get_by_id(document_id)
+                # 如果文档内容尚未解析，则解析文件
+                if not doc.content and file_path:
+                    parser = DocumentParser()
+                    with open(file_path, "rb") as f:
+                        file_bytes = f.read()
+                    ext = file_path.rsplit(".", 1)[-1].lower() if "." in file_path else ""
+                    parsed = parser.parse(file_bytes, ext, filename=file_path)
+                    if parsed.content:
+                        await doc_service.update_content(document_id, parsed.content)
+                # 获取向量块
+                chunks = await doc_service.get_vector_chunks(document_id)
+
             await task_queue_service.update_task_status(
                 task_id,
                 TaskStatus.PROCESSING,
                 progress=50
             )
-            
+
             # 2. 创建向量化任务
             chunk_ids = [chunk.id for chunk in chunks]
             
@@ -204,16 +216,82 @@ class KnowledgeGraphWorker:
                 progress=10
             )
             
-            # TODO: 实现知识图谱构建逻辑
-            # 这里暂时只做示例
+            # === 实现知识图谱构建逻辑 ===
+            from app.services.knowledge_graph import KnowledgeGraphIndex
+            from app.db.database import AsyncSessionLocal
+            from app.models.vector import VectorChunk
             
-            result = {
-                "document_id": document_id,
-                "chunks_processed": len(chunk_ids),
-                "entities_extracted": 0,
-                "relations_extracted": 0,
-                "message": "Knowledge graph building completed"
-            }
+            # 1. 从数据库获取 chunk 内容
+            documents = []
+            async with AsyncSessionLocal() as session:
+                if chunk_ids:
+                    result = await session.execute(
+                        VectorChunk.__table__.select().where(
+                            VectorChunk.id.in_(chunk_ids)
+                        )
+                    )
+                    for row in result:
+                        documents.append({
+                            "chunk_id": str(row.id),
+                            "content": row.chunk_text,
+                            "document_id": str(row.document_id) if row.document_id else None,
+                            "meeting_id": str(row.meeting_id) if row.meeting_id else None,
+                        })
+                elif document_id:
+                    result = await session.execute(
+                        VectorChunk.__table__.select().where(
+                            VectorChunk.document_id == int(document_id)
+                        )
+                    )
+                    for row in result:
+                        documents.append({
+                            "chunk_id": str(row.id),
+                            "content": row.chunk_text,
+                            "document_id": str(row.document_id) if row.document_id else None,
+                        })
+            
+            if not documents:
+                logger.warning(f"No chunks found for document {document_id}, skipping graph build")
+                result = {
+                    "document_id": document_id,
+                    "chunks_processed": 0,
+                    "entities_extracted": 0,
+                    "relations_extracted": 0,
+                    "message": "No chunks to process"
+                }
+            else:
+                # 2. 构建知识图谱索引
+                index = KnowledgeGraphIndex()
+                graph = await index.build_index(documents)
+                
+                # 3. 可选：保存到 Neo4j（如果启用了持久化）
+                saved_stats = {"saved_entities": 0, "saved_relations": 0}
+                if settings.ENABLE_NEO4J_PERSISTENCE:
+                    try:
+                        saved_stats = await index.save_to_neo4j()
+                        logger.info(f"Saved to Neo4j: {saved_stats}")
+                    except Exception as neo_err:
+                        logger.warning(f"Failed to save to Neo4j (non-critical): {neo_err}")
+                
+                # 4. 返回统计结果
+                entities = list(graph.entities.values())
+                relations = list(graph.relations.values())
+                
+                # 按类型统计实体
+                entities_by_type = {}
+                for entity in entities:
+                    type_name = entity.type.value if hasattr(entity.type, 'value') else str(entity.type)
+                    entities_by_type[type_name] = entities_by_type.get(type_name, 0) + 1
+                
+                result = {
+                    "document_id": document_id,
+                    "chunks_processed": len(documents),
+                    "entities_extracted": len(entities),
+                    "relations_extracted": len(relations),
+                    "entities_by_type": entities_by_type,
+                    "saved_to_neo4j": saved_stats,
+                    "message": f"Knowledge graph built: {len(entities)} entities, {len(relations)} relations from {len(documents)} chunks"
+                }
             
             await task_queue_service.update_task_status(
                 task_id,
@@ -254,6 +332,7 @@ async def process_document_message(message: IncomingMessage):
             
         except Exception as e:
             logger.error(f"Error processing document message: {e}")
+            raise  # NACK: message returns to queue instead of being silently ACK'd
 
 
 async def process_vector_message(message: IncomingMessage):
@@ -270,6 +349,7 @@ async def process_vector_message(message: IncomingMessage):
             
         except Exception as e:
             logger.error(f"Error processing vector message: {e}")
+            raise  # NACK: message returns to queue instead of being silently ACK'd
 
 
 async def process_kg_message(message: IncomingMessage):
@@ -286,6 +366,7 @@ async def process_kg_message(message: IncomingMessage):
             
         except Exception as e:
             logger.error(f"Error processing KG message: {e}")
+            raise  # NACK: message returns to queue instead of being silently ACK'd
 
 
 async def start_workers():

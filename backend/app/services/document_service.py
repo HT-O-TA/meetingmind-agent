@@ -458,7 +458,7 @@ async def get_all_document_chunks(db: AsyncSession) -> List[Dict[str, Any]]:
             "meeting_id": chunk.meeting_id,
             "speaker_name": chunk.speaker_name,
             "time_offset": chunk.time_offset,
-            "metadata": chunk.metadata_json or {},
+            "metadata": json.loads(chunk.metadata_json) if chunk.metadata_json else {},
         }
         for chunk in chunks
     ]

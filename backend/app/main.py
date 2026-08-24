@@ -84,6 +84,14 @@ async def startup():
                 app_logger.warning("MCP Server 初始化失败")
         except Exception as e:
             app_logger.error(f"MCP Server 初始化异常: {e}")
+    
+    # 启动Agent执行消费者
+    try:
+        from app.services.agent_worker import start_agent_worker
+        await start_agent_worker()
+        app_logger.info("Agent执行消费者启动成功")
+    except Exception as e:
+        app_logger.error(f"Agent执行消费者启动失败: {e}")
 
 
 @app.on_event("shutdown")

@@ -91,8 +91,9 @@ class RabbitMQManager:
         queue = await self.declare_queue(queue_name)
         
         # 创建消息
+        import json as _json
         message = Message(
-            body=str(message_body).encode(),
+            body=_json.dumps(message_body).encode(),
             delivery_mode=DeliveryMode.PERSISTENT,
             priority=priority,
             headers=headers or {},
