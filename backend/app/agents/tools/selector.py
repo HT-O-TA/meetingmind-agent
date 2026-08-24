@@ -212,7 +212,7 @@ class ToolSelector:
         
         if "task_type" in context:
             task_type = context["task_type"]
-            for tool in self.registry.get_all():
+            for tool in self._iter_allowed_tools():
                 if task_type.lower() in tool.metadata.description.lower():
                     scores[tool.metadata.tool_id] = scores.get(tool.metadata.tool_id, 0) + 0.5
         

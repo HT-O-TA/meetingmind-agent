@@ -9,9 +9,10 @@ from app.agents.tools import ToolManager
 from app.agents.prompts import PromptManager
 from app.agents.errors import ErrorRecoveryManager
 from app.agents.monitor import AgentMonitor
+from app.agents.session_context import SessionContext, generate_session_id, generate_conversation_id
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
-from app.services.long_term_memory import add_meeting_memory, get_long_term_memory, get_context_prompt
+from app.services.unified_memory_service import get_unified_memory
 from app.core.logger import app_logger
 
 
@@ -77,6 +78,9 @@ class AgentService:
             enable_compression=enable_compression,
             llm_service=llm_service if enable_compression else None
         )
+        
+        # 统一记忆服务（Phase 3: 替代旧 long_term_memory 接口）
+        self.unified_memory = get_unified_memory()
 
         # 每个会话的记忆管理器
         self.session_memories: Dict[str, MemoryManager] = {}
@@ -140,7 +144,7 @@ class AgentService:
             # 获取长期记忆上下文
             long_term_context = ""
             try:
-                long_term_context = await get_context_prompt(question)
+                long_term_context = await self.unified_memory.generate_context_prompt(question)
             except Exception as e:
                 app_logger.warning(f"获取长期记忆上下文失败: {e}")
 
@@ -161,7 +165,10 @@ class AgentService:
                 "current_phase": "plan",
                 "task_type": TaskType.QA,
                 "workflow_type": None,
+                "reasoning_mode": None,
                 "complexity_score": 0.0,
+                "complexity_level": None,
+                "is_multi_task": False,
                 "route_reason": "",
                 "retrieval_required": True,
                 "retrieval_confidence": 0.0,
@@ -175,6 +182,7 @@ class AgentService:
                 "confirmation_status": "not_required",
                 "pending_action": None,
                 "plan": None,
+                "task_contexts": {},
                 "minutes": None,
                 "todos": None,
                 "controversies": None,
@@ -183,9 +191,12 @@ class AgentService:
                 "error": None,
                 "cot_thoughts": [],
                 "agents_involved": [],
+                "last_strategy": None,
+                "fallback_count": 0,
                 "event_callback": event_callback,
                 "human_confirmations": [],
                 "enable_human_in_the_loop": self.enable_human_in_the_loop,
+                "session_context": None,
             }
 
             # 执行
@@ -266,6 +277,7 @@ class AgentService:
                 requires_confirmation=bool(final_state.get("requires_confirmation", False)),
                 confirmation_status=final_state.get("confirmation_status"),
                 pending_action=final_state.get("pending_action"),
+                route_decision=final_state.get("route_decision"),
             )
 
             # 保存会话记忆
@@ -288,25 +300,21 @@ class AgentService:
 
             # 保存长期记忆（会议总结、决策、待办）
             try:
-                long_term_memory = get_long_term_memory()
                 if result.minutes or result.todos:
-                    await long_term_memory.add_memory(
+                    await self.unified_memory.add_memory(
                         content=result.minutes or result.answer or question,
-                        type="meeting_summary",
-                        scope="team",
-                        meeting_id=str(meeting_id) if meeting_id else None,
-                        meeting_topic=question,
+                        memory_type="meeting_summary",
+                        meeting_id=meeting_id,
+                        metadata={"topic": question},
+                        importance_score=0.7,
                     )
                 if result.todos:
                     for todo in result.todos:
                         content = todo.get("content", "")
                         if content:
-                            await long_term_memory.add_memory(
+                            await self.unified_memory.add_action_item(
                                 content=content,
-                                type="action_item",
-                                scope="team",
-                                meeting_id=str(meeting_id) if meeting_id else None,
-                                meeting_topic=question,
+                                meeting_id=meeting_id,
                                 entities=[todo.get("assignee", "")] if todo.get("assignee") else [],
                             )
             except Exception as e:
@@ -345,6 +353,225 @@ class AgentService:
             if span_id:
                 self.monitor.finish_span(span_id, {"success": False, "error": str(e)})
             
+            return AgentResult(
+                success=False,
+                task_type=TaskType.QA,
+                error=str(e),
+            )
+
+    async def process_query_with_context(
+        self,
+        question: str,
+        context: SessionContext,
+        document_ids: Optional[List[int]] = None,
+        event_callback: Optional[callable] = None,
+    ) -> AgentResult:
+        """使用 SessionContext 处理用户查询（推荐入口）
+
+        通过 SessionContext 统一管理四层 ID，确保会话隔离。
+        - thread_id: session_id:conversation_id（LangGraph 唯一标识）
+        - session_id: 浏览器会话（记忆系统隔离）
+        - meeting_id: 业务域过滤
+        """
+        span_id = None
+        if self.monitor:
+            self.monitor.info(f"开始处理查询 (context): {question}")
+            span_id = self.monitor.start_span(
+                "agent_process_query_with_context",
+                attributes={
+                    "question": question[:50],
+                    "thread_id": context.thread_id,
+                    "session_id": context.session_id,
+                }
+            )
+
+        memory = self._get_session_memory(context.session_id)
+
+        async def emit_event(event_type, data):
+            if event_callback:
+                await event_callback(event_type, data)
+
+        try:
+            await emit_event("start", {
+                "question": question,
+                "phase": "初始化",
+                "thread_id": context.thread_id,
+                "session_id": context.session_id,
+            })
+
+            # 获取会话记忆上下文
+            memory_context = ""
+            if self.enable_memory:
+                memory_context = memory.get_context_for_query(question, n_recent=3)
+
+            # 获取长期记忆上下文
+            long_term_context = ""
+            try:
+                long_term_context = await self.unified_memory.generate_context_prompt(
+                    question,
+                    meeting_id=context.meeting_id,
+                )
+            except Exception as e:
+                app_logger.warning(f"获取长期记忆上下文失败: {e}")
+
+            raw_context = []
+            if long_term_context:
+                raw_context.insert(0, long_term_context)
+            if memory_context and self.enable_memory:
+                raw_context.insert(0, f"【相关记忆】\n{memory_context}")
+
+            initial_state: AgentState = {
+                "question": question,
+                "meeting_id": context.meeting_id,
+                "document_ids": document_ids,
+                "context": [],
+                "raw_context": raw_context,
+                "current_phase": "plan",
+                "task_type": TaskType.QA,
+                "workflow_type": None,
+                "reasoning_mode": None,
+                "complexity_score": 0.0,
+                "complexity_level": None,
+                "is_multi_task": False,
+                "route_reason": "",
+                "retrieval_required": True,
+                "retrieval_confidence": 0.0,
+                "citations": [],
+                "validation_errors": [],
+                "policy_results": [],
+                "repair_count": 0,
+                "max_repair_attempts": 1,
+                "risk_level": RiskLevel.LOW,
+                "requires_confirmation": False,
+                "confirmation_status": "not_required",
+                "pending_action": None,
+                "plan": None,
+                "task_contexts": {},
+                "minutes": None,
+                "todos": None,
+                "controversies": None,
+                "answer": None,
+                "reflection": None,
+                "last_strategy": None,
+                "fallback_count": 0,
+                "session_context": None,
+                "error": None,
+                "cot_thoughts": [],
+                "agents_involved": [],
+                "event_callback": event_callback,
+                "human_confirmations": [],
+                "enable_human_in_the_loop": self.enable_human_in_the_loop,
+            }
+
+            await emit_event("phase", {"phase": "execute", "message": "开始执行Agent..."})
+
+            # 使用 SessionContext 生成 config
+            invoke_config = context.get_config()
+            final_state = await self.app.ainvoke(initial_state, config=invoke_config)
+
+            # 安全处理 final_state
+            safe_final_state = {}
+            for key, value in final_state.items():
+                if isinstance(value, slice):
+                    app_logger.warning(f"检测到 slice 对象在字段 {key}，已重置")
+                    if key in ("cot_thoughts", "agents_involved", "human_confirmations"):
+                        safe_final_state[key] = []
+                    elif key == "task_contexts":
+                        safe_final_state[key] = {}
+                    else:
+                        safe_final_state[key] = None
+                else:
+                    safe_final_state[key] = value
+            final_state = safe_final_state
+
+            # 保存对话到会话记忆
+            if self.enable_memory:
+                try:
+                    memory.add_exchange(question, final_state.get("answer", ""))
+                except Exception as e:
+                    app_logger.warning(f"保存会话记忆失败: {e}")
+
+            # 异步写入长期记忆
+            answer = final_state.get("answer")
+            if answer and context.meeting_id:
+                try:
+                    import asyncio
+                    asyncio.create_task(
+                        self.unified_memory.add_meeting_memory(
+                            meeting_id=str(context.meeting_id),
+                            title=question[:80],
+                            content=answer,
+                            session_id=context.session_id,
+                        )
+                    )
+                except Exception as e:
+                    app_logger.warning(f"异步写入长期记忆失败: {e}")
+
+            # 构建结果
+            result_payload = self._state_to_result_payload(final_state)
+            result_payload.update({
+                "session_id": context.session_id,
+                "conversation_id": context.conversation_id,
+                "thread_id": context.thread_id,
+                "meeting_id": context.meeting_id,
+            })
+
+            await emit_event("complete", {
+                "phase": "完成",
+                "answer_length": len(str(final_state.get("answer", ""))),
+            })
+
+            if span_id:
+                self.monitor.finish_span(span_id, {"success": True})
+
+            task_type = final_state.get("task_type") or TaskType.QA
+            reflection = final_state.get("reflection")
+            if reflection and isinstance(reflection, dict):
+                reflection = reflection.copy()
+                if 'overall_score' in reflection:
+                    reflection['overall_score'] = float(reflection['overall_score'])
+                    reflection['quality_score'] = reflection['overall_score']
+                if 'confidence' in reflection:
+                    reflection['confidence'] = float(reflection['confidence'])
+
+            plan = final_state.get("plan")
+            formatted_plan = None
+            if plan:
+                formatted_plan = {
+                    "analysis": plan.get("analysis", ""),
+                    "tasks": plan.get("tasks", []),
+                    "execution_order": plan.get("execution_order", []),
+                    "parallel_groups": plan.get("parallel_groups", []),
+                    "tool_calls": plan.get("tool_calls", []),
+                }
+
+            return AgentResult(
+                success=True,
+                task_type=task_type,
+                answer=final_state.get("answer"),
+                minutes=final_state.get("minutes"),
+                todos=final_state.get("todos"),
+                controversies=final_state.get("controversies"),
+                thoughts=final_state.get("cot_thoughts"),
+                reflection=reflection,
+                plan=formatted_plan,
+                workflow_type=final_state.get("workflow_type"),
+                route_reason=final_state.get("route_reason"),
+                citations=final_state.get("citations"),
+                validation_errors=final_state.get("validation_errors"),
+                policy_results=final_state.get("policy_results"),
+                retrieval_confidence=final_state.get("retrieval_confidence"),
+                risk_level=final_state.get("risk_level"),
+                requires_confirmation=bool(final_state.get("requires_confirmation", False)),
+                confirmation_status=final_state.get("confirmation_status"),
+                pending_action=final_state.get("pending_action"),
+                route_decision=final_state.get("route_decision"),
+            )
+
+        except Exception as e:
+            app_logger.error(f"Agent 执行失败: {e}")
+            if span_id:
+                self.monitor.finish_span(span_id, {"success": False, "error": str(e)})
             return AgentResult(
                 success=False,
                 task_type=TaskType.QA,
@@ -564,6 +791,10 @@ class AgentService:
             "thoughts": state.get("cot_thoughts"),
             "reflection": state.get("reflection"),
             "plan": state.get("plan"),
+            "route_decision": state.get("route_decision").to_dict() if state.get("route_decision") and hasattr(state.get("route_decision"), "to_dict") else None,
+            "route_confidence": state.get("route_confidence"),
+            "route_candidates": state.get("route_candidates"),
+            "route_decision_trace": state.get("route_decision_trace"),
         }
     
     def get_pending_confirmations(self) -> List[Dict[str, Any]]:

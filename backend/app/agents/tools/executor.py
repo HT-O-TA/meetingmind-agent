@@ -103,11 +103,13 @@ class ToolExecutor:
             )
         
         # 检查工具状态
-        if tool.metadata.status.value != "active":
+        _status = tool.metadata.status
+        _status_val = _status.value if hasattr(_status, "value") else str(_status)
+        if _status_val != "active":
             return ToolExecutionResult(
                 tool_id=tool_id,
                 success=False,
-                error=f"工具 {tool_id} 当前状态为 {tool.metadata.status.value}",
+                error=f"工具 {tool_id} 当前状态为 {_status_val}",
             )
         
         # 生成缓存键
@@ -169,8 +171,8 @@ class ToolExecutor:
                         execution_time=execution_time,
                     )
                 
-                # 等待后重试
-                await asyncio.sleep(0.5 * (attempt + 1))
+                # 指数退避等待后重试: 1s, 2s, 4s
+                await asyncio.sleep(2 ** attempt)
         
         return ToolExecutionResult(
             tool_id=tool_id,

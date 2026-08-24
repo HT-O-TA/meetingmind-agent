@@ -183,6 +183,10 @@ class ToolMetadata:
     timeout: int = 30  # 超时时间（秒）
     cost: float = 0.0  # 每次调用成本
     risk_level: ToolRiskLevel | str = ToolRiskLevel.LOW  # 工具风险等级
+    risk_reason: str = "未填写风险理由"  # 风险等级依据
+    operation_type: str = "read"  # read/write/delete/external
+    reversible: bool = True  # 操作是否可撤销
+    external_effect: bool = False  # 是否影响外部系统或对外传播
     requires_confirmation: bool = False  # 执行前是否需要人工确认
     idempotent: bool = True  # 重复执行是否不会产生额外副作用
     allowed_workflows: List[str] = field(default_factory=list)  # 允许使用的工作流
@@ -248,6 +252,10 @@ class ToolMetadata:
             "timeout": self.timeout,
             "cost": self.cost,
             "risk_level": self.risk_level.value if isinstance(self.risk_level, ToolRiskLevel) else self.risk_level,
+            "risk_reason": self.risk_reason,
+            "operation_type": self.operation_type,
+            "reversible": self.reversible,
+            "external_effect": self.external_effect,
             "requires_confirmation": self.requires_confirmation,
             "idempotent": self.idempotent,
             "allowed_workflows": self.allowed_workflows,

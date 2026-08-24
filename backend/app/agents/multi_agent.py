@@ -10,7 +10,7 @@ from collections import deque
 from app.core.logger import app_logger
 from app.agents.state import TaskType, WorkflowType, ReasoningMode, AgentState, create_initial_state
 from app.agents.prompt_market import get_prompt_market
-from app.services.long_term_memory import get_long_term_memory
+from app.services.unified_memory_service import get_unified_memory
 from app.services.knowledge_graph import enhance_search_results
 from app.services.vector_search_service import get_vector_search_service
 
@@ -77,7 +77,7 @@ class BaseAgent:
     def __init__(self, role: AgentRole):
         self.role = role
         self._prompt_market = get_prompt_market()
-        self._memory = get_long_term_memory()
+        self._memory = get_unified_memory()
         self._message_queue = deque()
         self._is_running = False
 

@@ -3,12 +3,14 @@
 import asyncio
 import time
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, Body
+from fastapi import APIRouter, Depends, Body, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
 from app.agents.agent_service import AgentService
+from app.agents.session_context import SessionContext, generate_session_id, generate_conversation_id
+from app.services.multimodal_gateway import get_multimodal_gateway, MultimodalStatus
 from app.core.dependencies import get_llm_service, get_vector_search_service
 from app.core.logger import app_logger
 from app.services.performance_metrics import record_performance
@@ -66,11 +68,20 @@ async def get_agent_service(
 
 
 class AgentQueryRequest(BaseModel):
-    """Agent 查询请求"""
+    """Agent 查询请求
+
+    ID 体系说明：
+    - session_id: 浏览器会话（前端生成，隔离标签页）
+    - conversation_id: 对话ID（可选，用于恢复对话）
+    - thread_id 由后端自动生成: f"{session_id}:{conversation_id}"
+    - meeting_id: 业务域过滤（可选）
+    """
     question: str
     meeting_id: Optional[int] = None
     document_ids: Optional[List[int]] = None
     session_id: Optional[str] = None
+    conversation_id: Optional[str] = None
+    user_id: Optional[int] = None
     enable_memory: bool = True
     enable_tool_calling: bool = True
     enable_human_in_the_loop: bool = False
@@ -82,6 +93,8 @@ class AgentBatchRequest(BaseModel):
     meeting_id: Optional[int] = None
     document_ids: Optional[List[int]] = None
     session_id: Optional[str] = None
+    conversation_id: Optional[str] = None
+    user_id: Optional[int] = None
     enable_tool_calling: bool = False
     enable_memory: bool = True
 
@@ -109,23 +122,26 @@ async def agent_query(
         enable_human_in_the_loop=request.enable_human_in_the_loop
     )
 
-    config = {}
-    if request.session_id:
-        config["thread_id"] = request.session_id
-
-    app_logger.info(f"[API] Agent查询 - Tool Calling: {request.enable_tool_calling}")
-
-    result = await agent_service.process_query(
-        question=request.question,
+    # 构建 SessionContext（统一四层 ID）
+    context = SessionContext(
+        user_id=request.user_id,
+        session_id=request.session_id or generate_session_id(),
+        conversation_id=request.conversation_id or generate_conversation_id(),
         meeting_id=request.meeting_id,
+    )
+
+    app_logger.info(f"[API] Agent查询 - Tool Calling: {request.enable_tool_calling}, thread_id: {context.thread_id}")
+
+    result = await agent_service.process_query_with_context(
+        question=request.question,
+        context=context,
         document_ids=request.document_ids,
-        config=config,
     )
     
     latency_ms = (time.time() - start_time) * 1000
     await record_performance(latency_ms=latency_ms)
 
-    return {
+    response_data = {
         "success": result.success,
         "task_type": result.task_type.value if result.task_type else "qa",
         "workflow_type": result.workflow_type.value if result.workflow_type else None,
@@ -147,6 +163,120 @@ async def agent_query(
         "reflection": result.reflection,
         "plan": result.plan,
         "latency_ms": round(latency_ms, 2),
+        # 返回会话上下文信息，供前端保存
+        "session_id": context.session_id,
+        "conversation_id": context.conversation_id,
+        "thread_id": context.thread_id,
+        "meeting_id": context.meeting_id,
+        # 结构化路由决策结果
+        "route_decision": result.route_decision.to_dict() if result.route_decision and hasattr(result.route_decision, "to_dict") else None,
+        "route_confidence": result.route_decision.confidence if result.route_decision else None,
+        "route_candidates": result.route_decision.candidates if result.route_decision else None,
+        "route_decision_trace": result.route_decision.decision_trace if result.route_decision else None,
+    }
+
+    # 合并 metadata 中的额外信息
+    if hasattr(result, 'metadata') and result.metadata:
+        response_data["metadata"] = result.metadata
+
+    return response_data
+
+
+@router.post("/query-multimodal")
+async def agent_query_multimodal(
+    question: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    meeting_id: Optional[int] = Form(None),
+    document_ids: Optional[str] = Form(None),
+    session_id: Optional[str] = Form(None),
+    conversation_id: Optional[str] = Form(None),
+    user_id: Optional[int] = Form(None),
+    enable_memory: bool = Form(True),
+    enable_tool_calling: bool = Form(True),
+    enable_human_in_the_loop: bool = Form(False),
+    llm_service: LLMService = Depends(get_llm_service),
+    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+):
+    """多模态查询 - 支持上传图片/音频/文档"""
+    start_time = time.time()
+
+    # 处理 document_ids
+    doc_ids = None
+    if document_ids:
+        try:
+            doc_ids = json.loads(document_ids)
+        except json.JSONDecodeError:
+            doc_ids = None
+
+    agent_service = await get_agent_service(
+        llm_service=llm_service,
+        vector_search_service=vector_search_service,
+        enable_memory=enable_memory,
+        enable_tool_calling=enable_tool_calling,
+        enable_human_in_the_loop=enable_human_in_the_loop,
+    )
+
+    # 处理多模态文件
+    gateway = get_multimodal_gateway()
+    multimodal_text = ""
+
+    if file:
+        file_content = await file.read()
+        file_result = await gateway.process_upload(
+            filename=file.filename or "unknown",
+            content=file_content,
+            content_type=file.content_type,
+        )
+
+        if file_result.status == MultimodalStatus.SUCCESS:
+            multimodal_text = file_result.text_description
+            app_logger.info(f"[多模态] 文件处理成功: {file.filename}, 耗时: {file_result.processing_time_ms:.0f}ms")
+        elif file_result.status == MultimodalStatus.SKIPPED:
+            app_logger.warning(f"[多模态] {file_result.error_message}")
+        else:
+            app_logger.warning(f"[多模态] 文件处理失败: {file_result.error_message}")
+            # 失败时继续，但不包含文件内容
+
+    # 合并问题描述
+    full_question = question
+    if multimodal_text:
+        full_question = f"{question}\n\n[附件内容]:\n{multimodal_text}"
+
+    # 构建 SessionContext
+    context = SessionContext(
+        user_id=user_id,
+        session_id=session_id or generate_session_id(),
+        conversation_id=conversation_id or generate_conversation_id(),
+        meeting_id=meeting_id,
+    )
+
+    app_logger.info(f"[API] 多模态查询 - thread_id: {context.thread_id}, has_file: {bool(file)}")
+
+    result = await agent_service.process_query_with_context(
+        question=full_question,
+        context=context,
+        document_ids=doc_ids,
+    )
+
+    latency_ms = (time.time() - start_time) * 1000
+    await record_performance(latency_ms=latency_ms)
+
+    return {
+        "success": result.success,
+        "answer": result.answer,
+        "task_type": result.task_type.value if result.task_type else "qa",
+        "citations": result.citations,
+        "error": result.error,
+        "latency_ms": round(latency_ms, 2),
+        "session_id": context.session_id,
+        "conversation_id": context.conversation_id,
+        "thread_id": context.thread_id,
+        "meeting_id": context.meeting_id,
+        # 多模态处理信息
+        "multimodal": {
+            "file_processed": bool(file and multimodal_text),
+            "file_description": multimodal_text[:200] if multimodal_text else "",
+        },
     }
 
 
@@ -173,18 +303,21 @@ async def agent_query_stream(
             enable_human_in_the_loop=request.enable_human_in_the_loop
         )
 
-        config = {}
-        if request.session_id:
-            config["thread_id"] = request.session_id
+        # 构建 SessionContext（统一四层 ID）
+        context = SessionContext(
+            user_id=request.user_id,
+            session_id=request.session_id or generate_session_id(),
+            conversation_id=request.conversation_id or generate_conversation_id(),
+            meeting_id=request.meeting_id,
+        )
 
-        app_logger.info(f"[API] Agent流式查询 - Tool Calling: {request.enable_tool_calling}")
+        app_logger.info(f"[API] Agent流式查询 - Tool Calling: {request.enable_tool_calling}, thread_id: {context.thread_id}")
 
         try:
-            task = asyncio.create_task(agent_service.process_query(
+            task = asyncio.create_task(agent_service.process_query_with_context(
                 question=request.question,
-                meeting_id=request.meeting_id,
+                context=context,
                 document_ids=request.document_ids,
-                config=config,
                 event_callback=event_callback,
             ))
 
@@ -221,6 +354,11 @@ async def agent_query_stream(
                 "thoughts": result.thoughts,
                 "reflection": result.reflection,
                 "plan": result.plan,
+                # 返回会话上下文信息，供前端保存
+                "session_id": context.session_id,
+                "conversation_id": context.conversation_id,
+                "thread_id": context.thread_id,
+                "meeting_id": context.meeting_id,
             }
             message = json.dumps({"type": "final", "data": final_result}, ensure_ascii=False)
             yield f"data: {message}\n\n"

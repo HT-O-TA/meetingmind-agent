@@ -8,17 +8,24 @@
 - 上下文传递
 - 质量评估
 - 循环重新规划
+- 可配置风险规则
+- 语义风险感知
+- Prompt Injection 防护
 """
 import json
 import re
 import asyncio
 from typing import Dict, List, Optional, Tuple, Any
-from app.agents.state import AgentState, AgentResult, TaskType, WorkflowType, RiskLevel, AgentCard, CoTThought, Plan, TaskItem, TaskContext, TaskStatus
+from app.agents.state import AgentState, AgentResult, TaskType, WorkflowType, RiskLevel, AgentCard, CoTThought, Plan, TaskItem, TaskContext, TaskStatus, ComplexityLevel
 from app.agents.tools import ToolExecutor, ToolExecutionResult, ToolManager
 from app.agents.tools.policy import ToolPolicy
 from app.agents.human_in_the_loop import get_hitl_service, ConfirmationType
 from app.agents.trace_integration import AgentTraceContext
 from app.services.llm_service import LLMService
+from app.services.risk_rule_service import get_risk_rule_service
+from app.services.semantic_risk_service import get_semantic_risk_service
+from app.services.prompt_injection_guard import get_prompt_injection_guard, InjectionType
+from app.services.unified_memory_service import get_unified_memory
 from app.core.logger import app_logger
 
 
@@ -89,7 +96,21 @@ class AgentNodes:
         self.max_retries = max_retries
         self.hitl_service = get_hitl_service()
         self.tool_policy = ToolPolicy()
-        
+
+        # 新增：可配置风险规则服务
+        self.risk_rule_service = get_risk_rule_service()
+        # 新增：语义风险感知服务（受 ENABLE_SEMANTIC_RISK_CHECK 开关控制）
+        from app.core.config import settings as _cfg
+        self._enable_semantic_risk = getattr(_cfg, 'ENABLE_SEMANTIC_RISK_CHECK', True)
+        self.semantic_risk_service = get_semantic_risk_service()
+        # 新增：Prompt Injection 防护（受 ENABLE_INJECTION_GUARD/INJECTION_GUARD_DEPTH 控制）
+        self._enable_injection_guard = getattr(_cfg, 'ENABLE_INJECTION_GUARD', True)
+        _guard_depth = getattr(_cfg, 'INJECTION_GUARD_DEPTH', 'light')
+        self.injection_guard = get_prompt_injection_guard()
+        # 根据配置项动态调整 injection_guard 行为
+        self.injection_guard._enable_llm_check = self._enable_injection_guard
+        self.injection_guard._llm_depth = _guard_depth
+
         # 合并配置
         self.config = {**self.DEFAULT_CONFIG, **(config or {})}
 
@@ -142,6 +163,16 @@ class AgentNodes:
             "event_callback": state.get("event_callback"),
             "human_confirmations": state.get("human_confirmations", []),
             "enable_human_in_the_loop": state.get("enable_human_in_the_loop", False),
+            # 路由阶段补充字段（原 _sanitize_state 遗漏，导致路由后状态丢失）
+            "thread_id": state.get("thread_id"),
+            "reasoning_mode": state.get("reasoning_mode"),
+            "complexity_level": state.get("complexity_level"),
+            "is_multi_task": state.get("is_multi_task", False),
+            "last_strategy": state.get("last_strategy"),
+            "fallback_count": state.get("fallback_count", 0),
+            "session_context": state.get("session_context"),
+            # 供 should_reflect_and_regenerate 使用的节点追踪字段
+            "last_executed_node": state.get("last_executed_node"),
         }
         
         # 逐个检查并清理每个字段，防止 slice 对象
@@ -232,7 +263,12 @@ class AgentNodes:
             context = "\n\n".join(formatted_contexts) if formatted_contexts else ""
         else:
             context = "\n\n".join(contexts) if contexts else ""
-        
+
+        # P1 #4: 将 route_agent 预注入的历史会话记忆拼接到上下文头部
+        session_context = (state.get("session_context") or "").strip()
+        if session_context:
+            context = session_context + ("\n\n" + context if context else "")
+
         # 应用上下文截断
         return self._truncate_context(context)
     
@@ -698,11 +734,32 @@ class AgentNodes:
             else:
                 improvement_prompt = ""
 
+            # Token 预算保护：评估可用 token，动态限制任务数
+            from app.core.config import settings as _settings
+            budget_hint = ""
+            if getattr(_settings, "ENABLE_PLAN_VALIDATION", True):
+                from app.services.plan_budget_guard import get_plan_budget_guard
+                budget_guard = get_plan_budget_guard()
+                complexity_score = state.get("complexity_score", 0.5)
+                budget = budget_guard.evaluate(
+                    question=question,
+                    context=context[:2000] if context else "",
+                    complexity_score=complexity_score,
+                )
+                if budget.guidance_hint:
+                    budget_hint = f"\n【Token 预算提示】{budget.guidance_hint}\n最大任务数限制: {budget.recommended_max_tasks}"
+                if budget.is_tight:
+                    app_logger.warning(
+                        f"[PLAN] Token 预算紧张: available={budget.available_output_tokens}, "
+                        f"max_tasks={budget.recommended_max_tasks}"
+                    )
+
             prompt = f"""你是一个任务规划专家，同时负责决定使用哪些工具。
 
 {tools_info}
 
 {improvement_prompt}
+{budget_hint}
 
 请分析以下问题，决定需要调用哪些工具来完成任务：
 
@@ -739,8 +796,13 @@ class AgentNodes:
             ]
 
             try:
-                response = await self.llm_service.chat(messages=messages, temperature=0.3)
-                self._add_thought(state, "plan_agent", "plan", f"LLM 生成计划...", observation=response[:500])
+                # 使用专用规划 max_tokens，避免 JSON 被截断
+                _plan_max_tokens = getattr(_settings, "PLAN_LLM_MAX_TOKENS", 3000)
+                # 双轴模型路由：规划阶段按复杂度选择模型（C/A → max，S/R → plus）
+                from app.services.model_router import get_model_router
+                _plan_model = get_model_router().select_for_planning(state.get("complexity_level"))
+                response = await self.llm_service.chat(messages=messages, model=_plan_model, temperature=0.3, max_tokens=_plan_max_tokens)
+                self._add_thought(state, "plan_agent", "plan", f"LLM 生成计划（模型: {_plan_model}）...", observation=response[:500])
 
                 success, result = self._parse_json_response(response, "执行计划")
                 if success and isinstance(result, dict):
@@ -761,6 +823,29 @@ class AgentNodes:
                         "parallel_groups": result.get("parallel_groups", [[t["task_id"] for t in tasks]]),
                         "tool_calls": result.get("tool_calls", [])
                     }
+
+                    # Token 预算保护：校验计划完整性
+                    if getattr(_settings, "ENABLE_PLAN_VALIDATION", True):
+                        validation = budget_guard.validate(plan)
+                        if not validation.is_valid:
+                            app_logger.warning(
+                                f"[PLAN] 计划校验失败: {validation.errors}"
+                            )
+                            # 尝试自动修复
+                            for warning in validation.warnings:
+                                app_logger.debug(f"[PLAN] 计划警告: {warning}")
+                            if validation.errors:
+                                self._add_thought(
+                                    state, "plan_agent", "plan",
+                                    f"计划校验发现问题: {validation.errors[:2]}",
+                                    observation="尝试自动修复"
+                                )
+                        elif validation.warnings:
+                            self._add_thought(
+                                state, "plan_agent", "plan",
+                                f"计划校验通过（有 {len(validation.warnings)} 个警告）",
+                            )
+
                     repair_plan = reflection.get("repair_plan") if isinstance(reflection, dict) else None
                     plan = self._apply_repair_plan_to_plan(plan, repair_plan, state)
                     state["plan"] = plan
@@ -805,28 +890,77 @@ class AgentNodes:
             return self._sanitize_state(state)
 
     async def route_agent(self, state: AgentState) -> AgentState:
-        """意图路由节点：使用智能分类器进行复杂度评估和任务判断。"""
+        """意图路由节点：使用统一 IntentRouter 进行复杂度评估和任务判断。"""
         state = self._sanitize_state(state)
         question = state.get("question", "")
-        
-        # 使用智能复杂度分类器
-        from app.services.complexity_classifier import get_complexity_classifier
-        classifier = await get_complexity_classifier()
-        complexity_result = await classifier.classify(question)
-        
-        # 设置分类结果
-        state["complexity_score"] = complexity_result["score"]
-        state["complexity_level"] = complexity_result["level"]
-        state["is_multi_task"] = complexity_result["is_multi_task"]
-        # 问候语不需要检索，优先级最高
-        state["retrieval_required"] = False if self._is_greeting(question) else complexity_result["requires_retrieval"]
-        
-        # 确定工作流类型
-        workflow_type, task_type, reason = self._classify_by_complexity(state, complexity_result)
-        
-        state["workflow_type"] = workflow_type
-        state["task_type"] = task_type
-        state["route_reason"] = reason
+
+        # ── 规则短路通道 ──────────────────────────────────────────────
+        # 问候语/寒暄等简单模式直接走 simple_qa_node，不进入分类流程，
+        # 节省一次 IntentRouter / ComplexityClassifier 调用。
+        if self._is_greeting(question):
+            app_logger.info("[RouteAgent] 规则短路命中（问候语），跳过分类器")
+            state["route_decision"] = None
+            state["complexity_score"] = 0.0
+            state["complexity_level"] = ComplexityLevel.SIMPLE
+            state["is_multi_task"] = False
+            state["workflow_type"] = WorkflowType.QA
+            state["task_type"] = TaskType.QA
+            state["route_reason"] = "规则短路：问候语直接走 simple_qa_node"
+            state["retrieval_required"] = False
+            state["route_confidence"] = 1.0
+            state["route_candidates"] = []
+            state["route_decision_trace"] = ["rule_short_circuit(greeting) → simple_qa_node"]
+            state["retrieval_confidence"] = 1.0
+            state.setdefault("citations", self._build_citations(state))
+            state.setdefault("validation_errors", [])
+            state.setdefault("policy_results", [])
+            state["current_phase"] = "route"
+            state["agents_involved"].append("route_agent")
+            self._add_thought(
+                state, "route_agent", "route",
+                "规则短路命中（问候语），跳过分类器，直接路由到 simple_qa_node",
+                action="规则短路", observation="未调用 IntentRouter 或 ComplexityClassifier"
+            )
+            return self._sanitize_state(state)
+
+        # 使用统一 IntentRouter
+        from app.services.intent_router import get_intent_router
+        try:
+            router = await get_intent_router()
+            route_decision = await router.route(question, self.llm_service)
+        except Exception as e:
+            app_logger.warning(f"[RouteAgent] IntentRouter 异常，降级到原逻辑: {e}")
+            route_decision = None
+
+        if route_decision:
+            # 新流程：使用 RouteDecision 结构化结果
+            state["route_decision"] = route_decision
+            state["complexity_score"] = route_decision.complexity_score
+            state["complexity_level"] = route_decision.complexity_level
+            state["is_multi_task"] = route_decision.is_multi_task
+            state["workflow_type"] = route_decision.workflow_type
+            state["task_type"] = route_decision.task_type
+            state["route_reason"] = route_decision.reason
+            state["retrieval_required"] = route_decision.requires_retrieval
+            state["route_confidence"] = route_decision.confidence
+            state["route_candidates"] = route_decision.candidates
+            state["route_decision_trace"] = route_decision.decision_trace
+        else:
+            # 降级流程：使用原有的复杂度分类器
+            from app.services.complexity_classifier import get_complexity_classifier
+            classifier = await get_complexity_classifier()
+            complexity_result = await classifier.classify(question)
+
+            state["complexity_score"] = complexity_result["score"]
+            state["complexity_level"] = complexity_result["level"]
+            state["is_multi_task"] = complexity_result["is_multi_task"]
+            state["retrieval_required"] = False if self._is_greeting(question) else complexity_result["requires_retrieval"]
+
+            workflow_type, task_type, reason = self._classify_by_complexity(state, complexity_result)
+            state["workflow_type"] = workflow_type
+            state["task_type"] = task_type
+            state["route_reason"] = reason
+
         state["retrieval_confidence"] = self._estimate_retrieval_confidence(state)
         state.setdefault("citations", self._build_citations(state))
         state.setdefault("validation_errors", [])
@@ -834,14 +968,43 @@ class AgentNodes:
         state["current_phase"] = "route"
         state["agents_involved"].append("route_agent")
 
+        # 记录路由决策链路（可观测性增强）
+        trace_observation = state.get("route_decision_trace", [])
+        if trace_observation:
+            app_logger.debug(f"[RouteAgent] 决策链路: {' → '.join(trace_observation)}")
+
+        candidates_info = ""
+        if state.get("route_candidates"):
+            top_candidates = [c["type"] for c in state["route_candidates"][:3]]
+            candidates_info = f", 候选项: {', '.join(top_candidates)}"
+
         self._add_thought(
             state,
             "route_agent",
             "route",
-            f"路由到 {workflow_type.value}（复杂度: {complexity_result['level'].value}, 分数: {complexity_result['score']:.2f}）",
+            f"路由到 {state['workflow_type'].value}（复杂度: {state['complexity_level'].value}, 分数: {state['complexity_score']:.2f}, 置信度: {state.get('route_confidence', 0):.2f}{candidates_info}）",
             action="意图路由",
-            observation=reason,
+            observation=state.get("route_reason", ""),
         )
+
+        # ── P1 #4: 会话记忆预注入 ──────────────────────────────────────
+        if question and not self._is_greeting(question):
+            try:
+                unified_memory = get_unified_memory()
+                memory_prompt = await unified_memory.generate_context_prompt(question)
+                if memory_prompt:
+                    existing = state.get("session_context") or ""
+                    state["session_context"] = (existing + "\n\n" + memory_prompt).strip()
+                    self._add_thought(
+                        state,
+                        "route_agent",
+                        "route",
+                        "已预注入历史会话记忆上下文",
+                        observation=f"session_context_len={len(state['session_context'])}",
+                    )
+            except Exception as mem_exc:
+                app_logger.warning(f"[Memory] route_agent 会话记忆预注入失败（不影响主流程）: {mem_exc}")
+
         return self._sanitize_state(state)
     
     def _detect_task_type(self, question: str) -> Tuple[Optional[WorkflowType], Optional[TaskType], Optional[str]]:
@@ -942,12 +1105,82 @@ class AgentNodes:
             self._add_thought(state, "retrieve_node", "retrieve", "开始检索相关文档", action="上下文检索")
 
             try:
-                chunks = await self._retrieve_context(
-                    question=state.get("question", ""),
-                    meeting_id=state.get("meeting_id"),
-                    document_ids=state.get("document_ids"),
-                    vector_search_service=vector_search_service,
-                )
+                question = state.get("question", "")
+                meeting_id = state.get("meeting_id")
+                document_ids = state.get("document_ids")
+
+                # ── Query Rewrite（HyDE + Multi-Query + Step-back）──────────────
+                search_queries = [question]
+                if settings.ENABLE_QUERY_REWRITE and question:
+                    try:
+                        from app.services.query_optimizer import get_query_optimizer
+                        optimizer = get_query_optimizer()
+                        expanded = await optimizer.optimize(
+                            query=question,
+                            enable_decompose=settings.ENABLE_MULTI_QUERY,
+                            enable_hyde=settings.ENABLE_HYDE,
+                            enable_expand=False,  # 同义词扩展不用于检索，避免噪音
+                        )
+                        # 收集扩展查询：原始 + 子查询（multi-query）+ step-back 推理结果
+                        candidate_queries = {question}
+                        for sq in (expanded.sub_queries or []):
+                            if sq.query and sq.query.strip():
+                                candidate_queries.add(sq.query.strip())
+                        # HyDE：用假设文档而非原始 query 做向量检索（增强语义召回）
+                        if settings.ENABLE_HYDE and expanded.hyde_result:
+                            for doc in (expanded.hyde_result.hypothetical_documents or []):
+                                if doc and len(doc.strip()) > 10:
+                                    candidate_queries.add(doc.strip())
+                        search_queries = list(candidate_queries)[:settings.QUERY_REWRITE_MAX_QUERIES]
+                        self._add_thought(
+                            state,
+                            "retrieve_node",
+                            "retrieve",
+                            f"Query Rewrite 完成，生成 {len(search_queries)} 个检索查询",
+                            observation=f"original={question[:30]}...",
+                        )
+                    except Exception as qr_exc:
+                        app_logger.warning(f"[QueryRewrite] 失败，回退到原始查询: {qr_exc}")
+                        search_queries = [question]
+
+                # ── 多查询并发检索 + 去重合并 ──────────────────────────────────
+                if len(search_queries) == 1:
+                    chunks = await self._retrieve_context(
+                        question=search_queries[0],
+                        meeting_id=meeting_id,
+                        document_ids=document_ids,
+                        vector_search_service=vector_search_service,
+                    )
+                else:
+                    import asyncio
+                    tasks = [
+                        self._retrieve_context(
+                            question=q,
+                            meeting_id=meeting_id,
+                            document_ids=document_ids,
+                            vector_search_service=vector_search_service,
+                        )
+                        for q in search_queries
+                    ]
+                    results = await asyncio.gather(*tasks, return_exceptions=True)
+                    # 合并去重（按 chunk_id 去重，保留最高相似度）
+                    seen_ids: dict = {}
+                    for result in results:
+                        if isinstance(result, Exception):
+                            app_logger.warning(f"[QueryRewrite] 某路检索失败: {result}")
+                            continue
+                        for chunk in result:
+                            cid = chunk.get("chunk_id") or chunk.get("id") or id(chunk)
+                            if cid not in seen_ids:
+                                seen_ids[cid] = chunk
+                            else:
+                                # 保留相似度更高的那个
+                                if chunk.get("similarity", 0) > seen_ids[cid].get("similarity", 0):
+                                    seen_ids[cid] = chunk
+                    # 按相似度降序，保留 top_k 个
+                    merged = sorted(seen_ids.values(), key=lambda x: x.get("similarity", 0), reverse=True)
+                    chunks = merged[:10]
+
                 existing_raw_context = state.get("raw_context") or []
                 state["context"] = chunks
                 state["raw_context"] = existing_raw_context + self._format_chunks_to_text(chunks)
@@ -966,23 +1199,78 @@ class AgentNodes:
                 self._add_thought(state, "retrieve_node", "retrieve", f"检索失败: {exc}", action="错误处理")
                 trace.update_error(str(exc))
 
+            # ── 注入长期记忆上下文 ──────────────────────────────────────────
+            try:
+                unified_memory = get_unified_memory()
+                question = state.get("question", "")
+                if question:
+                    memory_prompt = await unified_memory.generate_context_prompt(question)
+                    if memory_prompt:
+                        state["raw_context"] = (state.get("raw_context") or []) + [memory_prompt]
+                        self._add_thought(
+                            state,
+                            "retrieve_node",
+                            "retrieve",
+                            "已注入历史会议长期记忆上下文",
+                            observation=f"memory_prompt_len={len(memory_prompt)}",
+                        )
+            except Exception as mem_exc:
+                app_logger.warning(f"[Memory] 长期记忆注入失败（不影响主流程）: {mem_exc}")
+
             return self._sanitize_state(state)
 
     async def risk_node(self, state: AgentState) -> AgentState:
-        """风险评估节点：判断是否需要人工确认。"""
+        """风险评估节点：判断是否需要人工确认。
+
+        双轨检测：
+        1. 规则检测（快速）：RiskRuleService 关键词/正则匹配
+        2. 语义检测（深度）：SemanticRiskService LLM 语义理解
+        """
         state = self._sanitize_state(state)
         question = state.get("question", "")
-        risk_level, requires_confirmation, reason = self._assess_risk(state, question)
-        self._apply_risk_assessment(state, risk_level, requires_confirmation, reason, "intent")
+        tenant_id = state.get("tenant_id")
+
+        # 第一层：规则检测（使用可配置风险规则）
+        rule_level, rule_requires, rule_reason = self._assess_risk(state, question)
+
+        # 第二层：语义检测（规则未命中时调用 LLM 做深度判断，受 ENABLE_SEMANTIC_RISK_CHECK 控制）
+        semantic_level = None
+        semantic_reason = ""
+        if self._enable_semantic_risk and rule_level == RiskLevel.LOW and question and question.strip():
+            try:
+                semantic_result = await self.semantic_risk_service.assess_risk(
+                    question=question,
+                    llm_service=self.llm_service,
+                )
+                semantic_level = semantic_result.risk_level
+                semantic_reason = semantic_result.reason
+
+                # 如果语义检测发现更高风险，采用语义结果
+                semantic_risk_map = {
+                    "LOW": RiskLevel.LOW,
+                    "MEDIUM": RiskLevel.MEDIUM,
+                    "HIGH": RiskLevel.HIGH,
+                    "CRITICAL": RiskLevel.CRITICAL,
+                }
+                semantic_rl = semantic_risk_map.get(semantic_level, RiskLevel.LOW)
+                if semantic_rl.value != "LOW":
+                    rule_level = semantic_rl
+                    rule_requires = semantic_result.requires_confirmation
+                    rule_reason = f"语义检测: {semantic_reason}"
+                    app_logger.info(f"[RiskNode] 语义检测提升风险等级: {rule_level.value}, reason={semantic_reason}")
+            except Exception as e:
+                app_logger.warning(f"[RiskNode] 语义检测失败，使用规则结果: {e}")
+
+        self._apply_risk_assessment(state, rule_level, rule_requires, rule_reason, "intent")
 
         state["agents_involved"].append("risk_node")
         self._add_thought(
             state,
             "risk_node",
             "risk",
-            f"风险等级：{risk_level.value}",
+            f"风险等级：{rule_level.value}",
             action="风险评估",
-            observation=reason,
+            observation=rule_reason,
         )
         return self._sanitize_state(state)
 
@@ -1014,6 +1302,18 @@ class AgentNodes:
         reason: str,
         source: str,
     ) -> None:
+        # 细粒度 HITL 控制：根据配置的最低触发风险等级决定是否真正拦截
+        from app.core.config import settings as _s
+        _min_level_str = getattr(_s, "HITL_MIN_RISK_LEVEL", "HIGH").upper()
+        _risk_order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "CRITICAL": 3}
+        _min_order = _risk_order.get(_min_level_str, 2)  # 默认 HIGH
+        _current_order = _risk_order.get(risk_level.value.upper(), 0)
+        # 只有当前风险等级 >= 配置的最低触发等级，才真正要求确认
+        if requires_confirmation and _current_order < _min_order:
+            requires_confirmation = False
+            app_logger.debug(
+                f"[HITL] 风险等级 {risk_level.value} 低于触发阈值 {_min_level_str}，自动放行"
+            )
         state["risk_level"] = risk_level
         state["requires_confirmation"] = requires_confirmation
         state["confirmation_status"] = "required" if requires_confirmation else "not_required"
@@ -1045,14 +1345,41 @@ class AgentNodes:
             state["pending_action"] = None
 
     def _assess_risk(self, state: AgentState, question: str) -> Tuple[RiskLevel, bool, str]:
+        """评估风险等级（使用可配置风险规则）
+
+        优先使用 RiskRuleService（数据库驱动），失败时降级到硬编码规则。
+        """
+        tenant_id = state.get("tenant_id")
+
+        try:
+            level_str, requires_confirmation, reason = self.risk_rule_service.evaluate_risk(
+                question=question,
+                tenant_id=tenant_id,
+            )
+            # 转换字符串等级为 RiskLevel 枚举
+            level_map = {
+                "LOW": RiskLevel.LOW,
+                "MEDIUM": RiskLevel.MEDIUM,
+                "HIGH": RiskLevel.HIGH,
+                "CRITICAL": RiskLevel.CRITICAL,
+            }
+            risk_level = level_map.get(level_str, RiskLevel.LOW)
+            return risk_level, requires_confirmation, reason
+        except Exception as e:
+            app_logger.warning(f"[RiskNode] RiskRuleService 异常，降级到硬编码: {e}")
+            return self._assess_risk_fallback(state, question)
+
+    def _assess_risk_fallback(self, state: AgentState, question: str) -> Tuple[RiskLevel, bool, str]:
+        """硬编码兜底风险评估（数据库不可用时使用）"""
         normalized = question.lower()
-        destructive_keywords = ["删除", "移除", "清空", "作废", "delete", "remove", "clear"]
-        write_keywords = ["创建", "新增", "更新", "修改", "保存", "提交", "批量", "写入", "create", "update", "save", "submit", "bulk"]
+        destructive_keywords = ["删除", "移除", "清空", "作废", "delete", "remove", "clear", "drop"]
+        write_keywords = ["创建", "新增", "更新", "修改", "保存", "提交", "批量", "写入",
+                          "create", "update", "save", "submit", "bulk", "insert"]
 
         if any(keyword in normalized for keyword in destructive_keywords):
-            return RiskLevel.CRITICAL, True, "包含删除/清空类高风险动作"
+            return RiskLevel.CRITICAL, True, "包含删除/清空类高风险动作（兜底规则）"
         if any(keyword in normalized for keyword in write_keywords):
-            return RiskLevel.HIGH, True, "包含创建/修改/写入类动作"
+            return RiskLevel.HIGH, True, "包含创建/修改/写入类动作（兜底规则）"
         if state.get("task_type") == TaskType.MULTI and state.get("workflow_type") == WorkflowType.COMPLEX:
             return RiskLevel.MEDIUM, False, "复杂分析任务，仅生成结果不写入"
         return RiskLevel.LOW, False, "只读分析或生成任务"
@@ -1064,6 +1391,7 @@ class AgentNodes:
 
         highest = RiskLevel.LOW
         requires_confirmation = False
+        medium_requires_confirmation = False
         risk_reasons = []
         for call in tool_calls:
             tool_name = call.get("tool_name") if isinstance(call, dict) else None
@@ -1076,10 +1404,28 @@ class AgentNodes:
 
             tool_risk = self._normalize_risk_level(getattr(metadata, "risk_level", RiskLevel.LOW))
             highest = self._max_risk_level(highest, tool_risk)
-            # 低风险不需要确认，其他风险都需要确认
-            tool_requires_confirmation = tool_risk != RiskLevel.LOW
-            requires_confirmation = requires_confirmation or tool_requires_confirmation
-            risk_reasons.append(f"{tool_name}:{tool_risk.value}")
+            if tool_risk in {RiskLevel.HIGH, RiskLevel.CRITICAL}:
+                requires_confirmation = True
+            elif tool_risk == RiskLevel.MEDIUM:
+                # MEDIUM 仅在本轮明确授权且可撤销、无外部副作用时自动放行。
+                explicit = bool(state.get("explicit_write_authorization", False))
+                if not explicit:
+                    question = str(state.get("question", "")).lower()
+                    explicit = any(word in question for word in ("创建", "新增", "保存", "更新", "修改", "写入", "create", "save", "update"))
+                safe_medium = (
+                    explicit
+                    and bool(getattr(metadata, "reversible", True))
+                    and not bool(getattr(metadata, "external_effect", False))
+                    and not bool(getattr(metadata, "bulk_operation", False))
+                )
+                medium_requires_confirmation = medium_requires_confirmation or not safe_medium
+                if not safe_medium:
+                    # 当前 HITL 默认阈值为 HIGH；不满足 MEDIUM 自动放行条件时升级为 HIGH。
+                    highest = self._max_risk_level(highest, RiskLevel.HIGH)
+            reason = getattr(metadata, "risk_reason", "未填写风险理由")
+            risk_reasons.append(f"{tool_name}:{tool_risk.value}({reason})")
+
+        requires_confirmation = requires_confirmation or medium_requires_confirmation
 
         if not risk_reasons:
             return RiskLevel.LOW, False, "计划中的工具未匹配到风险元数据"
@@ -1113,6 +1459,134 @@ class AgentNodes:
             RiskLevel.CRITICAL: 3,
         }
         return candidate if order[candidate] > order[current] else current
+
+    async def prompt_injection_node(self, state: AgentState) -> AgentState:
+        """Prompt Injection 检测节点：在 risk_node 之前检测注入攻击。
+
+        双轨检测：
+        1. 规则检测（快速）：正则+关键词匹配注入特征
+        2. LLM 检测（深度）：语义理解判断是否为注入
+
+        检测结果：
+        - block: 跳转到 rejection_node
+        - warning: 标记后继续
+        - pass: 继续到 risk_node
+        """
+        state = self._sanitize_state(state)
+        question = state.get("question", "")
+
+        if not question or not question.strip():
+            state["injection_check"] = {"status": "pass", "reason": "空输入"}
+            state["agents_involved"].append("prompt_injection_node")
+            return self._sanitize_state(state)
+
+        # 受 ENABLE_INJECTION_GUARD 开关控制
+        if not self._enable_injection_guard:
+            state["injection_check"] = {"status": "pass", "reason": "注入防护已关闭（ENABLE_INJECTION_GUARD=False）"}
+            state["injection_blocked"] = False
+            state["agents_involved"].append("prompt_injection_node")
+            app_logger.debug("[InjectionGuard] 注入防护已关闭，跳过检测")
+            return self._sanitize_state(state)
+
+        try:
+            injection_result = await self.injection_guard.check(
+                question=question,
+                llm_service=self.llm_service,
+            )
+
+            state["injection_check"] = injection_result.to_dict()
+            state["agents_involved"].append("prompt_injection_node")
+
+            if injection_result.should_block:
+                app_logger.warning(
+                    f"[InjectionGuard] 检测到 Prompt Injection! "
+                    f"type={injection_result.injection_type.value if injection_result.injection_type else 'unknown'}, "
+                    f"confidence={injection_result.confidence:.2f}"
+                )
+                state["injection_blocked"] = True
+                state["injection_block_reason"] = injection_result.details.get("reason", "")
+                self._add_thought(
+                    state,
+                    "prompt_injection_node",
+                    "security",
+                    f"检测到注入攻击: {injection_result.injection_type.value if injection_result.injection_type else 'unknown'}",
+                    action="安全拦截",
+                    observation=f"置信度: {injection_result.confidence:.2f}",
+                )
+            elif injection_result.is_injection:
+                # warning 级别，记录但不阻止
+                app_logger.info(
+                    f"[InjectionGuard] 可疑输入（未阻止）: "
+                    f"type={injection_result.injection_type.value if injection_result.injection_type else 'unknown'}"
+                )
+                state["injection_blocked"] = False
+                self._add_thought(
+                    state,
+                    "prompt_injection_node",
+                    "security",
+                    f"可疑输入（警告）",
+                    action="安全检测",
+                    observation=f"置信度: {injection_result.confidence:.2f}",
+                )
+            else:
+                state["injection_blocked"] = False
+                self._add_thought(
+                    state,
+                    "prompt_injection_node",
+                    "security",
+                    "注入检测通过",
+                    action="安全检测",
+                    observation="未检测到注入特征",
+                )
+
+        except Exception as e:
+            app_logger.error(f"[InjectionGuard] 检测异常: {e}")
+            state["injection_check"] = {"status": "error", "reason": str(e)}
+            state["injection_blocked"] = False
+            state["agents_involved"].append("prompt_injection_node")
+
+        return self._sanitize_state(state)
+
+    async def rejection_node(self, state: AgentState) -> AgentState:
+        """拒绝节点：当检测到 Prompt Injection 时返回友好拒绝信息。
+
+        注意：不暴露检测细节，避免攻击者调整策略。
+        """
+        state = self._sanitize_state(state)
+        state["current_phase"] = "rejected"
+        state["task_type"] = TaskType.SIMPLE_QA
+
+        # 友好但坚定的拒绝信息
+        rejection_messages = [
+            "抱歉，我无法处理您的请求。如需帮助，请尝试重新描述您的问题。",
+            "抱歉，我无法完成这个请求。如果您有其他问题，欢迎继续提问。",
+            "很抱歉，当前请求无法处理。请尝试用更简单直接的方式描述您的需求。",
+        ]
+        # 使用固定消息，避免被识别为拦截模板
+        import random
+        message = random.choice(rejection_messages)
+
+        state["answer"] = message
+        state["error"] = "REJECTED_BY_SAFETY_GUARD"
+        state["injection_blocked"] = True
+        state["agents_involved"].append("rejection_node")
+
+        self._add_thought(
+            state,
+            "rejection_node",
+            "security",
+            "请求被安全护栏拦截",
+            action="拒绝",
+            observation="检测到 Prompt Injection 攻击特征",
+        )
+
+        app_logger.warning(
+            f"[RejectionNode] 请求被拦截 - "
+            f"session_id={state.get('session_id')}, "
+            f"reason={state.get('injection_block_reason', 'unknown')}"
+        )
+
+        return self._sanitize_state(state)
 
     def _record_policy_result(
         self,
@@ -1380,6 +1854,7 @@ class AgentNodes:
         state["current_phase"] = "direct_qa"
         await self._execute_qa(state, self._direct_task(TaskType.QA), self._format_context(state))
         state["agents_involved"].append("simple_qa_node")
+        state["last_executed_node"] = "simple_qa_node"
         return self._sanitize_state(state)
 
     async def minutes_node(self, state: AgentState) -> AgentState:
@@ -1387,6 +1862,7 @@ class AgentNodes:
         state["current_phase"] = "direct_minutes"
         await self._execute_minutes(state, self._direct_task(TaskType.MINUTES), self._format_context(state))
         state["agents_involved"].append("minutes_node")
+        state["last_executed_node"] = "minutes_node"
         return self._sanitize_state(state)
 
     async def todos_node(self, state: AgentState) -> AgentState:
@@ -1394,6 +1870,7 @@ class AgentNodes:
         state["current_phase"] = "direct_todo"
         await self._execute_todos(state, self._direct_task(TaskType.TODO), self._format_context(state))
         state["agents_involved"].append("todos_node")
+        state["last_executed_node"] = "todos_node"
         return self._sanitize_state(state)
 
     async def controversy_node(self, state: AgentState) -> AgentState:
@@ -1401,6 +1878,7 @@ class AgentNodes:
         state["current_phase"] = "direct_controversy"
         await self._execute_controversies(state, self._direct_task(TaskType.CONTROVERSY), self._format_context(state))
         state["agents_involved"].append("controversy_node")
+        state["last_executed_node"] = "controversy_node"
         return self._sanitize_state(state)
 
     async def validate_node(self, state: AgentState) -> AgentState:
@@ -1439,6 +1917,9 @@ class AgentNodes:
             )
         else:
             self._add_thought(state, "validate_node", "validate", "输出校验通过", action="输出校验")
+
+        # 输出侧敏感信息脱敏（第9层：输出安全校验）
+        self._sanitize_output(state)
 
         return self._sanitize_state(state)
 
@@ -1556,6 +2037,36 @@ class AgentNodes:
     def _has_retrieved_context(self, state: AgentState) -> bool:
         return bool(state.get("context") or state.get("raw_context"))
 
+    def _sanitize_output(self, state: AgentState) -> None:
+        """输出侧敏感信息脱敏（第9层：输出安全校验）
+
+        对 state["answer"] 和 state["minutes"] 调用 ContentSafetyService.check_output_text，
+        将命中的敏感信息（手机号/银行卡/身份证/邮箱/密码）替换为占位符。
+        脱敏结果直接写回 state，不阻断流程。
+        """
+        try:
+            from app.services.content_safety import get_content_safety_service
+            safety = get_content_safety_service()
+
+            # 脱敏 answer
+            answer = state.get("answer")
+            if isinstance(answer, str) and answer.strip():
+                result = safety.check_output_text(answer)
+                sanitized = result.details.get("sanitized_text", answer)
+                if sanitized != answer:
+                    state["answer"] = sanitized
+
+            # 脱敏 minutes
+            minutes = state.get("minutes")
+            if isinstance(minutes, str) and minutes.strip():
+                result = safety.check_output_text(minutes)
+                sanitized = result.details.get("sanitized_text", minutes)
+                if sanitized != minutes:
+                    state["minutes"] = sanitized
+
+        except Exception as e:
+            app_logger.debug(f"[ValidateNode] 输出脱敏失败（忽略）: {e}")
+
     def _validate_answer(self, state: AgentState) -> List[str]:
         errors = []
         answer = state.get("answer")
@@ -1669,6 +2180,7 @@ class AgentNodes:
 
             state["current_phase"] = "execute"
             plan = state.get("plan")
+            tasks = {}  # 防止 plan is None 时 line 2175 引用 tasks 导致 NameError
 
             if not plan:
                 state = await self._execute_default_task(state)
@@ -1680,7 +2192,35 @@ class AgentNodes:
                 tasks = {t["task_id"]: t for t in plan.get("tasks", [])}
                 parallel_groups = plan.get("parallel_groups", [])
                 
-                if parallel_groups:
+                # 使用 ParallelExecutor 真正并行执行
+                from app.core.config import settings
+                if getattr(settings, "ENABLE_PARALLEL_EXECUTOR", True) and parallel_groups:
+                    from app.services.parallel_executor import get_parallel_executor
+                    executor = get_parallel_executor()
+                    exec_result = await executor.execute(
+                        tasks=tasks,
+                        parallel_groups=parallel_groups,
+                        execute_fn=self._execute_single_task,
+                        state=state,
+                        all_tasks=tasks,
+                    )
+                    self._add_thought(
+                        state, "execute_agent", "execute",
+                        f"并行执行完成: {exec_result.completed} 成功, {exec_result.failed} 失败, {exec_result.skipped} 跳过",
+                        action="并行执行结果",
+                    )
+                    # 记录执行结果到 state
+                    state["execution_result"] = {
+                        "total": exec_result.total,
+                        "completed": exec_result.completed,
+                        "failed": exec_result.failed,
+                        "skipped": exec_result.skipped,
+                        "all_failed": exec_result.all_failed,
+                        "partial_failure": exec_result.partial_failure,
+                        "failure_rate": exec_result.failure_rate,
+                        "failed_task_ids": exec_result.failed_task_ids,
+                    }
+                elif parallel_groups:
                     await self._execute_with_parallel(state, tasks, parallel_groups)
                 else:
                     await self._execute_sequential(state, tasks, plan.get("execution_order", []))
@@ -1693,9 +2233,41 @@ class AgentNodes:
             state["agents_involved"].append("execute_agent")
             self._add_thought(state, "execute_agent", "execute", "所有任务执行完成", observation="进入反思阶段")
             state["current_phase"] = "replan"
-            
+
             plan_info = plan.get("tasks", []) if plan else []
             trace.update_output(f"执行完成，{len(plan_info)} 个任务")
+
+            # ── 写入长期记忆 ────────────────────────────────────────────
+            try:
+                unified_memory = get_unified_memory()
+                meeting_id = state.get("meeting_id") or state.get("session_id") or state.get("thread_id")
+                minutes = state.get("minutes")
+                todos = state.get("todos")
+                controversies = state.get("controversies")
+                answer = state.get("answer")
+                question = state.get("question", "")
+                # 只要有实质性输出就写入记忆
+                if meeting_id and (minutes or todos or controversies or answer):
+                    asyncio.create_task(
+                        unified_memory.add_meeting_memory(
+                            meeting_id=str(meeting_id),
+                            title=question[:80] if question else "未命名会议",
+                            content=minutes or answer or "",
+                            key_points=todos if isinstance(todos, list) else [],
+                            participants=state.get("participants", []),
+                            decisions=controversies if isinstance(controversies, list) else [],
+                            tags=["auto"],
+                        )
+                    )
+                    self._add_thought(
+                        state,
+                        "execute_agent",
+                        "execute",
+                        "已异步写入长期记忆",
+                        observation=f"meeting_id={meeting_id}",
+                    )
+            except Exception as mem_exc:
+                app_logger.warning(f"[Memory] 长期记忆写入失败（不影响主流程）: {mem_exc}")
 
             return self._sanitize_state(state)
 
@@ -1717,8 +2289,20 @@ class AgentNodes:
             if metadata:
                 tool_risk = self._normalize_risk_level(getattr(metadata, "risk_level", RiskLevel.LOW))
             
-            # 只有非低风险工具才需要确认
-            if tool_risk != RiskLevel.LOW:
+            # HIGH/CRITICAL 必须确认；MEDIUM 由 ToolPolicy 根据授权、可撤销性和外部副作用判断。
+            medium_safe = False
+            if tool_risk == RiskLevel.MEDIUM and metadata:
+                explicit = bool(state.get("explicit_write_authorization", False))
+                if not explicit:
+                    question = str(state.get("question", "")).lower()
+                    explicit = any(word in question for word in ("创建", "新增", "保存", "更新", "修改", "写入", "create", "save", "update"))
+                medium_safe = (
+                    explicit
+                    and bool(getattr(metadata, "reversible", True))
+                    and not bool(getattr(metadata, "external_effect", False))
+                    and not bool(getattr(metadata, "bulk_operation", False))
+                )
+            if tool_risk in {RiskLevel.HIGH, RiskLevel.CRITICAL} or (tool_risk == RiskLevel.MEDIUM and not medium_safe):
                 # 检查是否启用人机协作
                 if state.get("enable_human_in_the_loop", False):
                     # 请求单个工具确认
@@ -1774,15 +2358,31 @@ class AgentNodes:
                 retry_count=policy_decision.retry_count,
             )
 
-            result: ToolExecutionResult = await self.tool_manager.execute_tool(
-                tool_name,
-                arguments,
-                retry_count=policy_decision.retry_count,
-            )
+            # 局部重试逻辑：工具失败时最多重试 TOOL_MAX_LOCAL_RETRIES 次，避免直接升级为全量 repair
+            _tool_max_retries = getattr(__import__('app.core.config', fromlist=['settings']).settings, 'TOOL_MAX_LOCAL_RETRIES', 2)
+            _tool_retry_delay = getattr(__import__('app.core.config', fromlist=['settings']).settings, 'TOOL_RETRY_DELAY_SECONDS', 1)
+            result: ToolExecutionResult = None  # type: ignore
+            for _attempt in range(1 + _tool_max_retries):
+                if _attempt > 0:
+                    app_logger.warning(f"[EXECUTE] 工具 {tool_name} 第 {_attempt} 次重试...")
+                    self._add_thought(
+                        state, "execute_agent", "execute",
+                        f"工具 {tool_name} 重试 ({_attempt}/{_tool_max_retries})",
+                        action="工具重试",
+                        observation=f"上次错误: {result.error if result else 'unknown'}"
+                    )
+                    await asyncio.sleep(_tool_retry_delay)
+                result = await self.tool_manager.execute_tool(
+                    tool_name,
+                    arguments,
+                    retry_count=policy_decision.retry_count,
+                )
+                if result.success:
+                    break
 
             if result.success:
                 self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行成功", observation=str(result.result)[:200])
-                
+
                 # 存储工具结果到上下文
                 state["task_contexts"][tool_name] = TaskContext(
                     task_id=tool_name,
@@ -1791,7 +2391,9 @@ class AgentNodes:
                 )
                 self._apply_tool_result_to_state(state, tool_name, result.result)
             else:
-                self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行失败: {result.error}", observation="错误")
+                app_logger.error(f"[EXECUTE] 工具 {tool_name} 重试 {_tool_max_retries} 次后仍失败: {result.error}")
+                self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行失败(已重试{_tool_max_retries}次): {result.error}", observation="错误")
+                state["validation_errors"].append(f"工具 {tool_name} 执行失败: {result.error}")
 
     def _substitute_variables(self, arguments: Dict[str, Any], state: AgentState) -> Dict[str, Any]:
         """替换变量"""
@@ -2062,7 +2664,10 @@ class AgentNodes:
 请直接给出你的回答："""
                             
                             messages = [{"role": "user", "content": prompt}]
-                            final_answer = await self.llm_service.chat(messages=messages, temperature=0.7)
+                            # QA 兜底回答，沿用双轴路由
+                            from app.services.model_router import get_model_router as _get_mr2
+                            _tier_fb, _qa_fb_model = _get_mr2().select(TaskType.QA, state.get("complexity_level"))
+                            final_answer = await self.llm_service.chat(messages=messages, model=_qa_fb_model, temperature=0.7)
                             state["answer"] = final_answer
                         else:
                             state["answer"] = ""
@@ -2227,14 +2832,17 @@ class AgentNodes:
             prompt = f"请回答问题：{state['question']}\n\n上下文：{context}"
         
         messages = [{"role": "user", "content": prompt}]
-        answer = await self.llm_service.chat(messages=messages, temperature=0.7)
+        # 双轴模型路由：QA 任务 × 当前复杂度
+        from app.services.model_router import get_model_router
+        _tier, _qa_model = get_model_router().select(state.get("task_type", TaskType.QA), state.get("complexity_level"))
+        answer = await self.llm_service.chat(messages=messages, model=_qa_model, temperature=0.7)
         state["answer"] = answer
         state["agents_involved"].append("execute_agent")
         return answer
 
     async def _execute_minutes(self, state: AgentState, task: TaskItem, context: str) -> str:
         self._add_thought(state, "execute_agent", "execute", f"[{task['task_id']}] 生成纪要", action="生成纪要")
-        
+
         tool_result = state["task_contexts"].get("generate_minutes")
         if tool_result:
             state["minutes"] = tool_result.get("data", "")
@@ -2242,7 +2850,10 @@ class AgentNodes:
 
         prompt = f"请生成会议纪要：\n{context}"
         messages = [{"role": "user", "content": prompt}]
-        minutes = await self.llm_service.chat(messages=messages, temperature=0.7)
+        # 双轴模型路由：MINUTES 确定性任务，锁 plus 下限，C/A 升 max
+        from app.services.model_router import get_model_router
+        _tier, _minutes_model = get_model_router().select(TaskType.MINUTES, state.get("complexity_level"))
+        minutes = await self.llm_service.chat(messages=messages, model=_minutes_model, temperature=0.7)
         state["minutes"] = minutes
         state["agents_involved"].append("execute_agent")
         return minutes
@@ -2257,10 +2868,14 @@ class AgentNodes:
 
         prompt = f"请从以下内容中抽取待办事项：\n{context}"
         messages = [{"role": "user", "content": prompt}]
-        
+
+        # 双轴模型路由：TODO 确定性任务，锁 plus 下限，C/A 升 max
+        from app.services.model_router import get_model_router
+        _tier, _todo_model = get_model_router().select(TaskType.TODO, state.get("complexity_level"))
+
         for attempt in range(self.max_retries):
             try:
-                response = await self.llm_service.chat(messages=messages, temperature=0.3)
+                response = await self.llm_service.chat(messages=messages, model=_todo_model, temperature=0.3)
                 success, todos = self._parse_json_response(response, "待办事项")
                 if success and isinstance(todos, list):
                     state["todos"] = todos
@@ -2282,10 +2897,14 @@ class AgentNodes:
 
         prompt = f"请从以下内容中识别争议点：\n{context}"
         messages = [{"role": "user", "content": prompt}]
-        
+
+        # 双轴模型路由：CONTROVERSY 确定性任务，锁 plus 下限，C/A 升 max
+        from app.services.model_router import get_model_router
+        _tier, _controversy_model = get_model_router().select(TaskType.CONTROVERSY, state.get("complexity_level"))
+
         for attempt in range(self.max_retries):
             try:
-                response = await self.llm_service.chat(messages=messages, temperature=0.3)
+                response = await self.llm_service.chat(messages=messages, model=_controversy_model, temperature=0.3)
                 success, controversies = self._parse_json_response(response, "争议点")
                 if success and isinstance(controversies, list):
                     state["controversies"] = controversies
@@ -2325,6 +2944,53 @@ class AgentNodes:
             app_logger.info("[REPLAN] 开始重新规划阶段...")
             self._add_thought(state, "replan_agent", "replan", "开始评估执行结果质量", action="质量评估")
 
+            # 统一质量门禁：替代 replan + reflection 双重 LLM 评估
+            from app.core.config import settings as _settings
+            if getattr(_settings, "ENABLE_UNIFIED_QUALITY_GATE", True):
+                try:
+                    from app.services.quality_gate import get_quality_gate
+                    quality_gate = get_quality_gate()
+                    gate_result = await quality_gate.evaluate(state, self.llm_service)
+
+                    # 将评估结果写入 state
+                    reflection = state.get("reflection") or {}
+                    retry_count = int(reflection.get("retry_count", 0)) if reflection else 0
+                    MAX_RETRIES = getattr(_settings, "MAX_REFLECTION_ITERATIONS", 2)
+
+                    state["reflection"] = {
+                        **reflection,
+                        "overall_score": gate_result.quality_score,
+                        "confidence": gate_result.quality_score,
+                        "issues": gate_result.issues,
+                        "suggestions": gate_result.suggestions,
+                        "needs_retry": gate_result.needs_replan,
+                        "needs_polish": gate_result.needs_polish,
+                        "polishing_prompt": gate_result.polishing_prompt,
+                        "replan_prompt": gate_result.replan_prompt,
+                        "retry_count": retry_count,
+                        "dimensions": gate_result.dimensions,
+                        "structural_errors": gate_result.structural_errors,
+                        "evaluation_method": gate_result.evaluation_method,
+                    }
+
+                    emoji = "🟢" if gate_result.quality_score >= 0.7 else "🟡" if gate_result.quality_score >= 0.5 else "🔴"
+                    self._add_thought(
+                        state, "replan_agent", "replan",
+                        f"统一质量门禁评估完成 {emoji} score={gate_result.quality_score:.2f}, "
+                        f"replan={gate_result.needs_replan}, polish={gate_result.needs_polish}",
+                        action="质量评估",
+                        observation=f"method={gate_result.evaluation_method}, issues={len(gate_result.issues)}"
+                    )
+                    trace.update_output(
+                        f"质量门禁: score={gate_result.quality_score:.2f}, "
+                        f"replan={gate_result.needs_replan}, polish={gate_result.needs_polish}"
+                    )
+                    state["agents_involved"].append("replan_agent")
+                    return self._sanitize_state(state)
+                except Exception as e:
+                    app_logger.warning(f"[REPLAN] 统一质量门禁异常，降级到原逻辑: {e}")
+
+            # 降级路径：原有的 LLM 评估逻辑
             question = state["question"]
             answer = state.get("answer")
             if not isinstance(answer, str):
@@ -2641,9 +3307,12 @@ class AgentNodes:
             )
             
             messages = [{"role": "system", "content": "你是一个推理专家，使用 ReAct 框架进行思考和行动。"}, {"role": "user", "content": prompt}]
-            
+
             try:
-                response = await self.llm_service.chat(messages=messages, temperature=0.5)
+                # ReAct 节点由路由判定为 A 复杂度，恒走 max 档位
+                from app.services.model_router import get_model_router
+                _react_model = get_model_router().select_for_planning(ComplexityLevel.AGENT)
+                response = await self.llm_service.chat(messages=messages, model=_react_model, temperature=0.5)
                 success, result = self._parse_json_response(response, "ReAct 推理")
                 
                 if not success or not isinstance(result, dict):
@@ -2673,7 +3342,10 @@ class AgentNodes:
                     self._add_thought(state, "react_agent", "react", "决定直接回答用户问题", action="完成")
                     answer_prompt = f"基于以下思考，总结回答用户问题：\n\n思考过程：{thought}\n\n问题：{question}\n\n请给出最终回答："
                     answer_messages = [{"role": "user", "content": answer_prompt}]
-                    final_answer = await self.llm_service.chat(messages=answer_messages, temperature=0.7)
+                    # ReAct 最终回答阶段，沿用 max 档位
+                    from app.services.model_router import get_model_router as _get_mr
+                    _react_final_model = _get_mr().select_for_planning(ComplexityLevel.AGENT)
+                    final_answer = await self.llm_service.chat(messages=answer_messages, model=_react_final_model, temperature=0.7)
                     state["answer"] = final_answer
                     react_step["observation"] = "直接生成回答"
                     react_step["final_answer"] = final_answer[:100]
@@ -2726,9 +3398,14 @@ class AgentNodes:
         state["react_history"] = react_history
         state["agents_involved"].append("react_agent")
         state["current_phase"] = "validate"
-        
+        # 供 fallback_strategy 使用：记录当前策略，以便条件边只读路由
+        state["last_strategy"] = "react"
+        state["fallback_count"] = state.get("fallback_count", 0)
+        # 供 should_reflect_and_regenerate 使用
+        state["last_executed_node"] = "react_node"
+
         self._add_thought(state, "react_agent", "react", f"ReAct 推理完成，共 {iteration} 次迭代", observation="进入验证阶段")
-        
+
         return self._sanitize_state(state)
     
     async def cot_reasoning_node(self, state: AgentState) -> AgentState:
@@ -2746,9 +3423,12 @@ class AgentNodes:
         prompt = prompt_manager.render_prompt("cot_reasoning", question=question, context=context)
         
         messages = [{"role": "system", "content": "你是一个推理专家，擅长详细展示思考过程。"}, {"role": "user", "content": prompt}]
-        
+
         try:
-            response = await self.llm_service.chat(messages=messages, temperature=0.5)
+            # CoT 节点由路由判定为 C 复杂度，恒走 max 档位
+            from app.services.model_router import get_model_router
+            _cot_model = get_model_router().select_for_planning(ComplexityLevel.COT)
+            response = await self.llm_service.chat(messages=messages, model=_cot_model, temperature=0.5)
             success, result = self._parse_json_response(response, "CoT 推理")
             
             if success and isinstance(result, dict):
@@ -2786,5 +3466,200 @@ class AgentNodes:
         
         state["agents_involved"].append("cot_agent")
         state["current_phase"] = "validate"
-        
+        # 供 fallback_strategy 使用：记录当前策略，以便条件边只读路由
+        # 若上一策略是 react（即 cot 作为 fallback 执行），则 fallback_count 递增到 1
+        prev_strategy = state.get("last_strategy")
+        state["last_strategy"] = "cot"
+        if prev_strategy == "react":
+            state["fallback_count"] = 1
+        else:
+            state["fallback_count"] = state.get("fallback_count", 0)
+        # 供 should_reflect_and_regenerate 使用
+        state["last_executed_node"] = "cot_node"
+
         return self._sanitize_state(state)
+
+    async def reflection_node(self, state: AgentState) -> AgentState:
+        """反思节点 - 确定性错误检查 + LLM 深度评估 + 反思记忆持久化"""
+        async with AgentTraceContext("reflection_node", "reflection") as trace:
+            state = self._sanitize_state(state)
+            app_logger.info("[REFLECTION] 开始反思评估阶段...")
+            self._add_thought(state, "reflection_node", "reflection", "开始深度质量评估", action="质量评估")
+            
+            question = state.get("question", "")
+            answer = state.get("answer", "")
+            reference_context = self._format_context(state)
+            
+            if not answer:
+                self._add_thought(state, "reflection_node", "reflection", "没有生成回答，跳过反思", action="跳过")
+                state["reflection_evaluation"] = {
+                    "confidence": 0.0,
+                    "needs_regeneration": False,
+                    "suggestions": []
+                }
+                state["current_phase"] = "validate"
+                return self._sanitize_state(state)
+
+            # === 确定性错误检查（FastRetry 快速路径）===
+            from app.core.config import settings as _settings
+            det_result = None
+            if getattr(_settings, "ENABLE_DETERMINISTIC_CHECK", True):
+                try:
+                    from app.services.deterministic_error_checker import get_deterministic_error_checker
+                    checker = get_deterministic_error_checker()
+                    det_result = checker.check(
+                        answer=answer,
+                        source_context=reference_context,
+                        minutes=state.get("minutes", ""),
+                        todos=state.get("todos", []),
+                        controversies=state.get("controversies", []),
+                    )
+
+                    if det_result.has_critical_error:
+                        app_logger.warning(
+                            f"[REFLECTION] 确定性硬错误: types={det_result.error_types}, "
+                            f"errors={det_result.errors[:2]}"
+                        )
+                        self._add_thought(
+                            state, "reflection_node", "reflection",
+                            f"确定性检查发现硬错误: {det_result.errors[:2]}",
+                            action="FastRetry",
+                            observation=f"error_types={det_result.error_types}"
+                        )
+                        # 走 FastRetry 路径：跳过 LLM 评估，直接触发重生成
+                        state["reflection_evaluation"] = {
+                            "confidence": 0.3,
+                            "needs_regeneration": True,
+                            "suggestions": det_result.errors,
+                            "deterministic_errors": det_result.errors,
+                            "error_types": det_result.error_types,
+                            "evaluation_method": "deterministic_fast_retry",
+                        }
+                        state["reflection_fast_retry"] = True
+                        state["agents_involved"].append("reflection_node")
+                        state["current_phase"] = "validate"
+
+                        # 异步保存反思记忆
+                        await self._save_reflection_memory(state, question, 0.3, det_result.error_types, det_result.errors)
+
+                        trace.update_output(
+                            f"确定性硬错误 → FastRetry: {det_result.error_types}"
+                        )
+                        return self._sanitize_state(state)
+                    elif det_result.has_warning:
+                        self._add_thought(
+                            state, "reflection_node", "reflection",
+                            f"确定性检查发现软警告: {det_result.warnings[:1]}",
+                            action="确定性检查",
+                        )
+                except Exception as e:
+                    app_logger.warning(f"[REFLECTION] 确定性检查异常（不影响主流程）: {e}")
+
+            # === LLM 深度评估 ===
+            from app.agents.reflection import get_reflection_system
+            
+            reflection_system = get_reflection_system()
+            
+            try:
+                result = await reflection_system.reflect_and_replan(
+                    input_text=question,
+                    output_text=answer,
+                    context=state,
+                    tools_used=state.get("tools_used", []),
+                    max_iterations=self.config.get("max_reflection_iterations", 2),
+                    use_llm_evaluation=True,
+                    reference_context=reference_context,
+                )
+                
+                state["reflection_evaluation"] = {
+                    "confidence": result.get("confidence", 0.5),
+                    "needs_regeneration": result.get("iterations", 0) > 0,
+                    "suggestions": result.get("suggestions", []),
+                    "evaluation": result.get("evaluation", {}),
+                    "iterations": result.get("iterations", 0),
+                }
+                
+                if result.get("output") != answer:
+                    state["answer"] = result.get("output", answer)
+                    self._add_thought(
+                        state,
+                        "reflection_node",
+                        "reflection",
+                        f"反思优化成功，置信度从评估值提升",
+                        action="答案优化",
+                        observation=f"迭代次数: {result.get('iterations', 0)}"
+                    )
+                
+                confidence = result.get("confidence", 0.5)
+                emoji = "🟢" if confidence >= 0.7 else "🟡" if confidence >= 0.5 else "🔴"
+                trace.update_output(f"反思评估完成 - 置信度: {emoji} {confidence:.2f}, 迭代次数: {result.get('iterations', 0)}")
+
+                # === 异步保存反思记忆 ===
+                error_types = []
+                if det_result and det_result.has_warning:
+                    error_types = det_result.error_types
+                await self._save_reflection_memory(
+                    state, question, confidence, error_types,
+                    result.get("suggestions", [])
+                )
+                
+            except Exception as e:
+                app_logger.error(f"[REFLECTION] 反思评估失败: {e}")
+                state["reflection_evaluation"] = {
+                    "confidence": 0.5,
+                    "needs_regeneration": False,
+                    "suggestions": [],
+                    "error": str(e),
+                }
+                trace.update_error(str(e))
+            
+            state["agents_involved"].append("reflection_node")
+            state["current_phase"] = "validate"
+            
+            return self._sanitize_state(state)
+
+    async def _save_reflection_memory(
+        self,
+        state: AgentState,
+        question: str,
+        quality_score: float,
+        error_types: List[str],
+        suggestions: List[str],
+    ) -> None:
+        """异步保存反思记忆（不阻塞主流程）"""
+        from app.core.config import settings as _settings
+        if not getattr(_settings, "ENABLE_REFLECTION_MEMORY", True):
+            return
+
+        try:
+            from app.services.reflection_memory_service import get_reflection_memory_service
+            service = get_reflection_memory_service()
+
+            reflection = state.get("reflection") or {}
+            retry_count = int(reflection.get("retry_count", 0)) if reflection else 0
+            final_answer = state.get("answer", "")
+
+            if getattr(_settings, "REFLECTION_MEMORY_ASYNC", True):
+                # fire-and-forget 异步写入
+                import asyncio
+                asyncio.create_task(
+                    service.save_reflection(
+                        question=question,
+                        quality_score=quality_score,
+                        error_types=error_types,
+                        suggestions=suggestions,
+                        retry_count=retry_count,
+                        final_answer=final_answer,
+                    )
+                )
+            else:
+                await service.save_reflection(
+                    question=question,
+                    quality_score=quality_score,
+                    error_types=error_types,
+                    suggestions=suggestions,
+                    retry_count=retry_count,
+                    final_answer=final_answer,
+                )
+        except Exception as e:
+            app_logger.debug(f"[REFLECTION] 反思记忆保存失败（不影响主流程）: {e}")

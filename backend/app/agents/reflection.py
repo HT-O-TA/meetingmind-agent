@@ -25,6 +25,8 @@ class EvaluationMetric(str, Enum):
     COMPLETENESS = "completeness"        # 完整性
     COHERENCE = "coherence"              # 连贯性
     USEFULNESS = "usefulness"            # 有用性
+    CONSISTENCY = "consistency"          # 与上下文一致性
+    HALLUCINATION = "hallucination"      # 幻觉程度
     CONFIDENCE = "confidence"            # 置信度
 
 
@@ -241,16 +243,14 @@ class ReflectionSystem:
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[EvaluationMetric, float]:
         """执行自我评估"""
-        # 模拟自我评估逻辑（可扩展为调用LLM进行评估）
         metrics = {}
         
-        # 基于启发式规则的评估
+        # 基于启发式规则的评估（快速评估）
         metrics[EvaluationMetric.ACCURACY] = self._evaluate_accuracy(output_text)
         metrics[EvaluationMetric.RELEVANCE] = self._evaluate_relevance(input_text, output_text)
         metrics[EvaluationMetric.COMPLETENESS] = self._evaluate_completeness(output_text)
         metrics[EvaluationMetric.COHERENCE] = self._evaluate_coherence(output_text)
         metrics[EvaluationMetric.USEFULNESS] = self._evaluate_usefulness(output_text)
-        metrics[EvaluationMetric.CONFIDENCE] = self._calculate_confidence(metrics)
         
         # 创建自我评估反馈
         self.add_feedback(
@@ -262,6 +262,121 @@ class ReflectionSystem:
         )
         
         return metrics
+    
+    async def perform_llm_evaluation(
+        self,
+        input_text: str,
+        output_text: str,
+        reference_context: Optional[str] = None,
+    ) -> Dict[str, float]:
+        """
+        使用LLM进行深度质量评估（包含事实一致性校验）
+        
+        Args:
+            input_text: 原始输入问题
+            output_text: 生成的回答
+            reference_context: 参考上下文（检索到的文档内容）
+            
+        Returns:
+            包含详细评估指标的字典
+        """
+        from app.services.llm_service import LLMService
+        
+        llm_service = LLMService()
+        
+        prompt = f"""你是一个专业的回答质量评估专家。请从以下维度评估回答质量：
+
+【评估标准】
+- accuracy (0-1): 回答的事实准确性，是否存在错误信息
+- relevance (0-1): 回答与问题的相关性，是否偏离主题
+- completeness (0-1): 回答的完整性，是否涵盖问题的核心要点
+- coherence (0-1): 回答的逻辑性和连贯性
+- consistency (0-1): 如果有参考上下文，回答与上下文的一致性
+- hallucination (0-1): 幻觉程度，0表示无幻觉，1表示严重幻觉
+- suggestions: 针对问题的具体改进建议（列表形式）
+
+【输入】
+问题：{input_text}
+
+【参考上下文】
+{reference_context or "无"}
+
+【回答】
+{output_text}
+
+请严格按照以下JSON格式输出评估结果，不要包含其他内容：
+{{
+    "accuracy": 0.0-1.0,
+    "relevance": 0.0-1.0,
+    "completeness": 0.0-1.0,
+    "coherence": 0.0-1.0,
+    "consistency": 0.0-1.0,
+    "hallucination": 0.0-1.0,
+    "suggestions": ["改进建议1", "改进建议2"]
+}}
+"""
+        
+        try:
+            messages = [
+                {"role": "system", "content": "你是专业的AI回答质量评估专家，擅长检测事实错误和幻觉。"},
+                {"role": "user", "content": prompt},
+            ]
+            response = await llm_service.chat(messages)
+            
+            success, result = self._parse_json_response(response, "LLM评估结果")
+            if success and isinstance(result, dict):
+                result["confidence"] = self._calculate_confidence_from_llm(result)
+                return result
+            
+            app_logger.warning("[Reflection] LLM评估结果解析失败，回退到启发式评估")
+        except Exception as e:
+            app_logger.warning(f"[Reflection] LLM评估失败: {e}")
+        
+        # 回退到启发式评估
+        metrics = self.perform_self_evaluation(input_text, output_text)
+        return {k.value if hasattr(k, 'value') else k: v for k, v in metrics.items()}
+    
+    def _calculate_confidence_from_llm(self, llm_metrics: Dict[str, float]) -> float:
+        """从LLM评估结果计算总体置信度"""
+        weights = {
+            "accuracy": 0.20,
+            "relevance": 0.20,
+            "completeness": 0.15,
+            "coherence": 0.10,
+            "consistency": 0.20,
+            "hallucination": -0.15,
+        }
+        
+        total = 0.0
+        total_weight = 0.0
+        
+        for metric, weight in weights.items():
+            value = llm_metrics.get(metric, 0.5)
+            if metric == "hallucination":
+                total += (1.0 - value) * abs(weight)
+            else:
+                total += value * weight
+            total_weight += abs(weight)
+        
+        return min(1.0, max(0.0, total / total_weight))
+    
+    def _parse_json_response(self, response: str, expected_type: str) -> tuple:
+        """解析JSON响应"""
+        import re
+        response = response.strip()
+        if "```json" in response:
+            match = re.search(r"```json\s*(.*?)\s*```", response, re.DOTALL)
+            if match:
+                response = match.group(1).strip()
+        elif "```" in response:
+            match = re.search(r"```\s*(.*?)\s*```", response, re.DOTALL)
+            if match:
+                response = match.group(1).strip()
+        try:
+            import json
+            return True, json.loads(response)
+        except json.JSONDecodeError:
+            return False, None
     
     def _evaluate_accuracy(self, output: str) -> float:
         """评估准确性"""
@@ -333,15 +448,28 @@ class ReflectionSystem:
     def _calculate_confidence(self, metrics: Dict[EvaluationMetric, float]) -> float:
         """计算总体置信度"""
         weights = {
-            EvaluationMetric.ACCURACY: 0.25,
-            EvaluationMetric.RELEVANCE: 0.25,
-            EvaluationMetric.COMPLETENESS: 0.2,
-            EvaluationMetric.COHERENCE: 0.15,
-            EvaluationMetric.USEFULNESS: 0.15
+            EvaluationMetric.ACCURACY: 0.20,
+            EvaluationMetric.RELEVANCE: 0.20,
+            EvaluationMetric.COMPLETENESS: 0.15,
+            EvaluationMetric.COHERENCE: 0.10,
+            EvaluationMetric.USEFULNESS: 0.10,
+            EvaluationMetric.CONSISTENCY: 0.20,
+            EvaluationMetric.HALLUCINATION: -0.05,
         }
         
-        total = sum(metrics.get(m, 0.5) * weights.get(m, 0.2) for m in EvaluationMetric)
-        return min(1.0, max(0.0, total))
+        total = 0.0
+        total_weight = 0.0
+        
+        for m in EvaluationMetric:
+            value = metrics.get(m, 0.5)
+            weight = weights.get(m, 0.2)
+            if m == EvaluationMetric.HALLUCINATION:
+                total += (1.0 - value) * abs(weight)
+            else:
+                total += value * weight
+            total_weight += abs(weight)
+        
+        return min(1.0, max(0.0, total / total_weight))
     
     def generate_improvement_suggestions(self, limit: int = 5) -> List[ReflectionNote]:
         """生成改进建议"""
@@ -441,9 +569,11 @@ class ReflectionSystem:
         context: Optional[Dict[str, Any]] = None,
         tools_used: Optional[List[str]] = None,
         max_iterations: int = 3,
+        use_llm_evaluation: bool = True,
+        reference_context: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        反思并重新规划
+        反思并重新规划（支持LLM深度评估和事实一致性校验）
         
         Args:
             input_text: 原始输入
@@ -451,6 +581,8 @@ class ReflectionSystem:
             context: 上下文信息
             tools_used: 之前使用的工具
             max_iterations: 最大迭代次数
+            use_llm_evaluation: 是否使用LLM进行深度评估
+            reference_context: 参考上下文（用于事实一致性校验）
             
         Returns:
             重新规划结果，包含新的计划、工具选择和重新生成的答案
@@ -463,15 +595,29 @@ class ReflectionSystem:
             "tools": tools_used or [],
             "confidence": 0.0,
             "iterations": 0,
+            "evaluation": {},
+            "suggestions": [],
         }
         
         while iteration < max_iterations:
             iteration += 1
             app_logger.info(f"[Reflection] 反思迭代 {iteration}/{max_iterations}")
             
-            evaluation = self.perform_self_evaluation(input_text, output_text, context)
-            evaluation_dict = {k.value if hasattr(k, 'value') else k: v for k, v in evaluation.items()}
+            # 使用LLM深度评估（包含事实一致性校验）
+            if use_llm_evaluation:
+                evaluation_dict = await self.perform_llm_evaluation(
+                    input_text=input_text,
+                    output_text=output_text,
+                    reference_context=reference_context,
+                )
+            else:
+                evaluation = self.perform_self_evaluation(input_text, output_text, context)
+                evaluation_dict = {k.value if hasattr(k, 'value') else k: v for k, v in evaluation.items()}
+            
             confidence = evaluation_dict.get("confidence", 0.5)
+            suggestions = evaluation_dict.get("suggestions", [])
+            
+            app_logger.info(f"[Reflection] 评估完成 - 置信度: {confidence:.2f}, 建议: {suggestions}")
             
             if confidence >= 0.7:
                 app_logger.info(f"[Reflection] 置信度 {confidence:.2f} 达到阈值，停止迭代")
@@ -480,12 +626,21 @@ class ReflectionSystem:
                     "confidence": confidence,
                     "iterations": iteration,
                     "evaluation": evaluation_dict,
+                    "suggestions": suggestions,
                 })
                 break
             
-            new_plan = self._generate_new_plan(input_text, output_text, evaluation_dict, tools_used)
+            new_plan = self._generate_new_plan(input_text, output_text, evaluation_dict, tools_used, suggestions)
             new_tools = await self._select_new_tools(input_text, output_text, evaluation_dict, tools_used)
-            output_text = await self._regenerate_answer(input_text, output_text, evaluation_dict, new_plan, new_tools)
+            output_text = await self._regenerate_answer_with_suggestions(
+                input_text=input_text,
+                output_text=output_text,
+                evaluation=evaluation_dict,
+                new_plan=new_plan,
+                new_tools=new_tools,
+                suggestions=suggestions,
+                reference_context=reference_context,
+            )
             
             best_result.update({
                 "output": output_text,
@@ -494,6 +649,7 @@ class ReflectionSystem:
                 "confidence": confidence,
                 "iterations": iteration,
                 "evaluation": evaluation_dict,
+                "suggestions": suggestions,
             })
             
             app_logger.info(f"[Reflection] 迭代 {iteration} 完成，置信度: {confidence:.2f}")
@@ -506,6 +662,7 @@ class ReflectionSystem:
         output_text: str,
         evaluation: Dict[str, float],
         tools_used: Optional[List[str]] = None,
+        suggestions: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """
         根据评估结果生成新的执行计划
@@ -515,39 +672,56 @@ class ReflectionSystem:
             output_text: 当前输出
             evaluation: 评估结果
             tools_used: 之前使用的工具
+            suggestions: LLM给出的具体改进建议
             
         Returns:
             新的执行计划步骤
         """
         plan = []
+        suggestions = suggestions or []
         
-        if evaluation.get("accuracy", 0) < 0.5:
+        if evaluation.get("accuracy", 0) < 0.5 or evaluation.get("consistency", 0) < 0.5:
             plan.append({
                 "step": "verify_facts",
-                "description": "验证事实准确性",
+                "description": "验证事实准确性，确保所有信息与参考上下文一致",
+                "priority": "high",
+            })
+        
+        if evaluation.get("hallucination", 0) > 0.5:
+            plan.append({
+                "step": "eliminate_hallucination",
+                "description": "消除幻觉，确保所有陈述都有事实依据",
                 "priority": "high",
             })
         
         if evaluation.get("completeness", 0) < 0.6:
             plan.append({
                 "step": "gather_more_info",
-                "description": "收集更多信息",
+                "description": "收集更多信息，补充缺失的内容",
                 "priority": "high",
             })
         
         if evaluation.get("relevance", 0) < 0.5:
             plan.append({
                 "step": "reanalyze_query",
-                "description": "重新分析查询意图",
+                "description": "重新分析查询意图，确保回答紧扣问题",
                 "priority": "high",
             })
         
         if evaluation.get("coherence", 0) < 0.6:
             plan.append({
                 "step": "restructure_response",
-                "description": "重新组织回答结构",
+                "description": "重新组织回答结构，提升逻辑性",
                 "priority": "medium",
             })
+        
+        if suggestions:
+            for i, suggestion in enumerate(suggestions):
+                plan.append({
+                    "step": f"apply_suggestion_{i+1}",
+                    "description": f"应用改进建议: {suggestion}",
+                    "priority": "high",
+                })
         
         plan.append({
             "step": "final_generation",
@@ -612,7 +786,7 @@ class ReflectionSystem:
         new_tools: List[str],
     ) -> str:
         """
-        根据新计划和工具重新生成答案
+        根据新计划和工具重新生成答案（兼容旧接口）
         
         Args:
             input_text: 原始输入
@@ -624,50 +798,103 @@ class ReflectionSystem:
         Returns:
             重新生成的答案
         """
+        return await self._regenerate_answer_with_suggestions(
+            input_text=input_text,
+            output_text=output_text,
+            evaluation=evaluation,
+            new_plan=new_plan,
+            new_tools=new_tools,
+        )
+    
+    async def _regenerate_answer_with_suggestions(
+        self,
+        input_text: str,
+        output_text: str,
+        evaluation: Dict[str, float],
+        new_plan: List[Dict[str, Any]],
+        new_tools: List[str],
+        suggestions: Optional[List[str]] = None,
+        reference_context: Optional[str] = None,
+    ) -> str:
+        """
+        根据评估结果和具体改进建议重新生成答案（支持事实一致性校验）
+        
+        Args:
+            input_text: 原始输入
+            output_text: 当前输出
+            evaluation: 评估结果
+            new_plan: 新的执行计划
+            new_tools: 新选择的工具
+            suggestions: LLM给出的具体改进建议
+            reference_context: 参考上下文（用于确保事实一致性）
+            
+        Returns:
+            重新生成的答案
+        """
         from app.services.llm_service import LLMService
         
         llm_service = LLMService()
+        suggestions = suggestions or []
         
-        evaluation_feedback = []
-        for metric, score in evaluation.items():
-            metric_name = metric.value if hasattr(metric, 'value') else metric
-            if score < 0.6:
-                evaluation_feedback.append(f"- {metric_name}: {score:.2f} (需要改进)")
+        # 构建针对性的改进反馈
+        improvement_feedback = self._build_improvement_feedback(evaluation, suggestions)
         
         plan_steps = "\n".join([f"{i+1}. {p['description']} (优先级: {p['priority']})" for i, p in enumerate(new_plan)])
         
-        prompt = f"""你是一位专业的会议助手。请根据以下信息重新生成回答：
-
-【原始问题】
-{input_text}
-
-【当前回答】
-{output_text}
-
-【自我评估结果】
-{"\n".join(evaluation_feedback) if evaluation_feedback else "所有指标达标"}
-
-【评估指标】
-{json.dumps({k.value if hasattr(k, 'value') else k: v for k, v in evaluation.items()}, indent=2)}
-
-【新的执行计划】
-{plan_steps}
-
-【建议使用的新工具】
-{', '.join(new_tools) if new_tools else '无'}
-
-【要求】
-1. 根据评估反馈改进回答质量
-2. 提高准确性、完整性和相关性
-3. 如果有建议使用的工具，请考虑如何利用它们改进回答
-4. 输出格式保持专业、清晰
-
-请重新生成回答：
-"""
+        # 构建包含参考上下文的改进Prompt
+        prompt_parts = [
+            "你是一位专业的会议助手。请根据以下信息重新生成回答：",
+            "",
+            "【原始问题】",
+            input_text,
+            "",
+            "【当前回答】",
+            output_text,
+            "",
+        ]
+        
+        if reference_context:
+            prompt_parts.extend([
+                "【参考上下文】",
+                reference_context,
+                "",
+            ])
+        
+        prompt_parts.extend([
+            "【评估反馈】",
+            improvement_feedback,
+            "",
+            "【评估指标】",
+            json.dumps(evaluation, indent=2, ensure_ascii=False),
+            "",
+            "【改进计划】",
+            plan_steps,
+            "",
+        ])
+        
+        if new_tools:
+            prompt_parts.extend([
+                "【建议使用的工具】",
+                ", ".join(new_tools),
+                "",
+            ])
+        
+        prompt_parts.extend([
+            "【改进要求】",
+            "1. 根据评估反馈逐一改进回答质量",
+            "2. 确保所有陈述都有参考上下文支持，避免幻觉",
+            "3. 重点改进评估分数低的维度",
+            "4. 严格按照改进计划执行",
+            "5. 输出格式保持专业、清晰",
+            "",
+            "请重新生成回答：",
+        ])
+        
+        prompt = "\n".join(prompt_parts)
         
         try:
             messages = [
-                {"role": "system", "content": "你是一位专业的会议助手，擅长分析会议内容并生成高质量的总结。"},
+                {"role": "system", "content": "你是一位专业的会议助手，擅长分析会议内容并生成高质量的总结。你的回答必须基于提供的参考上下文，不得编造事实。"},
                 {"role": "user", "content": prompt},
             ]
             response = await llm_service.chat(messages)
@@ -676,6 +903,47 @@ class ReflectionSystem:
         except Exception as e:
             app_logger.warning(f"[Reflection] 答案重新生成失败: {e}")
             return output_text
+    
+    def _build_improvement_feedback(self, evaluation: Dict[str, float], suggestions: List[str]) -> str:
+        """
+        根据评估结果和建议构建针对性的改进反馈
+        
+        Args:
+            evaluation: 评估结果
+            suggestions: LLM给出的具体改进建议
+            
+        Returns:
+            格式化的改进反馈字符串
+        """
+        feedback_lines = []
+        
+        # 根据评估指标构建反馈
+        if evaluation.get("accuracy", 0) < 0.5:
+            feedback_lines.append("- 事实准确性不足，请验证所有关键信息")
+        
+        if evaluation.get("consistency", 0) < 0.5:
+            feedback_lines.append("- 回答与参考上下文不一致，请修正")
+        
+        if evaluation.get("hallucination", 0) > 0.5:
+            feedback_lines.append("- 检测到可能的幻觉，请确保所有陈述都有事实依据")
+        
+        if evaluation.get("relevance", 0) < 0.5:
+            feedback_lines.append("- 回答偏离问题，请聚焦于核心主题")
+        
+        if evaluation.get("completeness", 0) < 0.6:
+            feedback_lines.append("- 回答不完整，请补充缺失的关键信息")
+        
+        if evaluation.get("coherence", 0) < 0.6:
+            feedback_lines.append("- 回答逻辑不连贯，请重新组织结构")
+        
+        # 添加LLM给出的具体建议
+        if suggestions:
+            feedback_lines.append("")
+            feedback_lines.append("【具体改进建议】")
+            for i, suggestion in enumerate(suggestions):
+                feedback_lines.append(f"{i+1}. {suggestion}")
+        
+        return "\n".join(feedback_lines) if feedback_lines else "所有指标达标，无需改进"
 
     def should_reflect(self, evaluation: Dict[str, float]) -> bool:
         """

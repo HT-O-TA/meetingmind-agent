@@ -251,6 +251,9 @@ class AgentState(TypedDict):
     human_confirmations: List[HumanConfirmation]
     enable_human_in_the_loop: bool
 
+    # P1 #4: 会话记忆上下文（route_agent 预注入，供所有路径使用）
+    session_context: Optional[str]
+
 
 @dataclass
 class AgentResult:
@@ -275,6 +278,53 @@ class AgentResult:
     requires_confirmation: bool = False
     confirmation_status: Optional[str] = None
     pending_action: Optional[Dict[str, Any]] = None
+    route_decision: Optional["RouteDecision"] = None
+
+
+@dataclass
+class RouteDecision:
+    """路由决策结果 - 结构化的路由决策信息
+
+    包含完整的路由决策链路、置信度、候选项等信息，便于前端展示和调试。
+    """
+    workflow_type: WorkflowType
+    task_type: TaskType
+    complexity_level: ComplexityLevel
+    complexity_score: float
+    confidence: float
+    reason: str
+    detected_tasks: List[str] = None
+    task_confidence: float = 0.0
+    is_multi_task: bool = False
+    requires_retrieval: bool = False
+    requires_reasoning: bool = False
+    candidates: List[Dict[str, Any]] = None
+    decision_trace: List[str] = None
+
+    def __post_init__(self):
+        if self.detected_tasks is None:
+            self.detected_tasks = []
+        if self.candidates is None:
+            self.candidates = []
+        if self.decision_trace is None:
+            self.decision_trace = []
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "workflow_type": self.workflow_type.value,
+            "task_type": self.task_type.value,
+            "complexity_level": self.complexity_level.value,
+            "complexity_score": self.complexity_score,
+            "confidence": self.confidence,
+            "reason": self.reason,
+            "detected_tasks": self.detected_tasks,
+            "task_confidence": self.task_confidence,
+            "is_multi_task": self.is_multi_task,
+            "requires_retrieval": self.requires_retrieval,
+            "requires_reasoning": self.requires_reasoning,
+            "candidates": self.candidates,
+            "decision_trace": self.decision_trace,
+        }
 
 
 def create_initial_state(
@@ -325,4 +375,5 @@ def create_initial_state(
         "event_callback": None,
         "human_confirmations": [],
         "enable_human_in_the_loop": enable_human_in_the_loop,
+        "session_context": None,
     }

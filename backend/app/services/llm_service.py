@@ -1,11 +1,16 @@
 """LLM 服务封装"""
+import asyncio
 import time
 from typing import List, Dict, Optional
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, RateLimitError
 from httpx import Timeout
 from app.core.config import settings
 from app.core.logger import app_logger
 from app.services.performance_metrics import get_performance_metrics
+
+# LLM 限流重试配置
+_LLM_MAX_RETRIES = 3
+_LLM_RETRY_BASE_WAIT = 5  # 初始等待秒数，指数退避：5s, 10s, 20s
 
 
 class LLMService:
@@ -15,11 +20,11 @@ class LLMService:
         api_key = settings.LLM_API_KEY
         base_url = settings.LLM_API_BASE
         app_logger.info(f"[LLMService] Initializing with api_key length: {len(api_key) if api_key else 0}, base_url: {base_url}")
-        
+
         if not api_key:
             app_logger.error("[LLMService] LLM_API_KEY is empty!")
             raise ValueError("LLM_API_KEY must be set")
-        
+
         self.client = AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
@@ -29,7 +34,7 @@ class LLMService:
                 write=10,
                 pool=5,
             ),
-            max_retries=0,  # 禁用自动重试，避免重试叠加超时
+            max_retries=0,  # 禁用自动重试，避免重试叠加超时；由本层指数退避接管
         )
 
     async def chat(
@@ -79,22 +84,55 @@ class LLMService:
             finally:
                 await temp_client.close()
 
-        try:
-            llm_start_time = time.time()
-            response = await self.client.chat.completions.create(
-                model=model or settings.LLM_MODEL,
-                messages=messages,
-                temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
-                max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
-            )
-            llm_latency_ms = (time.time() - llm_start_time) * 1000
-            
-            get_performance_metrics().record_request(latency_ms=llm_latency_ms)
-            
-            return response.choices[0].message.content
-        except Exception as e:
-            app_logger.error(f"LLM 调用失败: {e}")
-            raise
+        # 主路径：指数退避重试，专门处理 Rate Limit（429）
+        last_error = None
+        for attempt in range(_LLM_MAX_RETRIES):
+            try:
+                llm_start_time = time.time()
+                response = await self.client.chat.completions.create(
+                    model=model or settings.LLM_MODEL,
+                    messages=messages,
+                    temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
+                    max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
+                )
+                llm_latency_ms = (time.time() - llm_start_time) * 1000
+
+                # 记录真实 Token 消耗
+                usage = getattr(response, "usage", None)
+                if usage:
+                    get_performance_metrics().record_token_usage(
+                        prompt_tokens=getattr(usage, "prompt_tokens", 0),
+                        completion_tokens=getattr(usage, "completion_tokens", 0),
+                        latency_ms=llm_latency_ms,
+                        model=model or settings.LLM_MODEL,
+                    )
+                else:
+                    get_performance_metrics().record_request(latency_ms=llm_latency_ms)
+
+                return response.choices[0].message.content
+
+            except RateLimitError as e:
+                last_error = e
+                if attempt == _LLM_MAX_RETRIES - 1:
+                    app_logger.error(f"[LLMService] Rate limit exceeded after {_LLM_MAX_RETRIES} retries: {e}")
+                    raise
+                # 解析 Retry-After 头（如果有），否则用指数退避
+                retry_after = None
+                if hasattr(e, "response") and e.response is not None:
+                    retry_after = e.response.headers.get("retry-after")
+                wait = float(retry_after) if retry_after else _LLM_RETRY_BASE_WAIT * (2 ** attempt)
+                app_logger.warning(
+                    f"[LLMService] Rate limited (attempt {attempt + 1}/{_LLM_MAX_RETRIES}), "
+                    f"waiting {wait:.1f}s before retry"
+                )
+                await asyncio.sleep(wait)
+
+            except Exception as e:
+                app_logger.error(f"[LLMService] LLM 调用失败: {e}")
+                raise
+
+        # 不应到达这里，保险起见
+        raise last_error
 
     async def generate_answer(
         self,
@@ -127,7 +165,7 @@ class LLMService:
 
         # 构建上下文（限制总长度，避免超出API限制）
         max_context_chars = settings.LLM_MAX_CONTEXT_CHARS
-        
+
         context_parts = []
         total_chars = 0
         for i, ctx in enumerate(context):
@@ -141,7 +179,7 @@ class LLMService:
                 if remaining > 100:  # 至少还有100字符的空间
                     context_parts.append(ctx_with_header[:remaining])
                 break
-        
+
         context_text = "\n\n".join(context_parts)
 
         user_message = f"""用户问题：{question}
@@ -165,14 +203,28 @@ class LLMService:
             api_base=api_base,
         )
 
+    async def generate_text(self, prompt: str, **kwargs) -> str:
+        """
+        生成文本（单轮，无上下文）
+
+        Args:
+            prompt: 提示文本
+            **kwargs: 额外参数传递给 chat()
+
+        Returns:
+            生成的文本
+        """
+        messages = [{"role": "user", "content": prompt}]
+        return await self.chat(messages=messages, **kwargs)
+
     async def _call(self, prompt: str, **kwargs) -> str:
         """
         简单的文本调用接口（兼容旧版调用方式）
-        
+
         Args:
             prompt: 提示文本
             **kwargs: 额外参数
-        
+
         Returns:
             生成的文本
         """
