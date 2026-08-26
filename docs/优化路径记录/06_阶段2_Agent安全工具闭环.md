@@ -1,5 +1,7 @@
 # 阶段 2：Agent 安全工具闭环
 
+> **阶段证据说明**：本文保留阶段 2 的 Jira 合同与安全实现证据。阶段 7 又删除了 MCP 框架及其他企业平台示例；当前外部写目标只有 Jira Cloud REST v3。
+
 ## 1. 本阶段要学会什么
 
 Agent 的价值不在于“会选工具”，而在于能把不稳定的模型输出收敛为受控业务动作。本阶段把正式执行顺序固定为：
@@ -120,4 +122,4 @@ PYTHONPATH=. venv/bin/python scripts/smoke_jira.py \
 - 已完成：唯一真实 Jira 适配器、错误分类、重试边界、参数验证、ToolPolicy/HITL 顺序、用户隔离、单调用批准、PostgreSQL 审计、幂等回放与冲突测试。
 - 已验证：Jira 合同与安全测试 12 项通过；真实 PostgreSQL 审计事务测试 1 项通过。
 - 外部阻塞：缺少 Jira 真实凭据与项目权限，所以完整“会议待办 → 真实 Issue → 外部 ID”演示尚未关闭。
-- 明确移出主线：飞书、Notion、Email mock；MCP 框架仍默认关闭，不等同于真实 Server 联调。
+- 明确移出并已删除：飞书、Notion、Email mock 以及 MCP Client/Server/Discovery 框架。

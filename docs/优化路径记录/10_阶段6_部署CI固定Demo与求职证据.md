@@ -1,5 +1,7 @@
 # 阶段 6：部署、CI、固定 Demo 与求职证据
 
+> **当前口径**：本文已按阶段 7 删减后的仓库校正。`stage6_delivery_local_20260826.json` 仍保留阶段 6 当时的原始运行值，不代表当前文件数、测试数或镜像大小。当前唯一回归口径以 CI、README 和阶段 7 记录为准。
+
 ## 1. 本阶段结论
 
 阶段 6 已完成可由当前机器独立验证的部分：轻量 Web/Worker 与模型能力解耦、开发 Compose、生产配置失败关闭、前后端镜像、CI 门禁、三组固定 Demo、可核验指标索引和简历描述边界。
@@ -10,16 +12,16 @@
 |---|---|---|
 | 开发部署预检 | 通过 | `scripts/preflight_deploy.py` |
 | 缺少生产密钥 | 按预期拒绝启动 | 5 个必填变量检查 + Compose 必填插值 |
-| 后端/前端镜像 | Docker CLI 显示 448 MB / 50 MB | 本机 Docker 29.1.3 |
+| 后端/前端镜像 | 构建通过 | GitHub Actions `images` 任务 |
 | 后端运行时依赖 | `pip check` 通过 | `backend/requirements-runtime.lock` |
-| 容器联动 | 默认 6 服务运行；后端、前端、API 代理均 HTTP 200 | Worker 注册 3 个消费者，253099 byte 数据集经 Nginx 代理返回 |
-| 核心测试 | 175 passed，2 skipped | `backend/scripts/run_core_tests.sh` |
+| 容器联动 | 默认 6 服务运行；后端、前端、API 代理均 HTTP 200 | Worker 注册文档、向量、WAV 三个消费者 |
+| 当前后端主链回归 | 本地后端 `184 passed, 1 deselected`；前端 `3 passed` | 阶段 7 同轮运行 |
 | 真实基础设施集成 | 4 passed | PostgreSQL、Redis、RabbitMQ |
-| 前端 | 44 passed，生产构建通过 | Vitest + Vite |
-| 中危/高危静态扫描 | 0 | MD5 键、MCP 监听边界和 SQL 参数绑定已收敛 |
+| 前端生产构建 | 通过，存在非阻断的大包告警 | Vite |
+| 中危/高危静态扫描 | 0 | Bandit `-ll` |
 | 固定 Demo | 3/3 通过 | 队列恢复、ASR 证据、LoRA 抽取 |
 
-汇总原始值见 `backend/evaluation/reports/stage6_delivery_local_20260826.json`。
+阶段 6 当时的汇总原始值见 `backend/evaluation/reports/stage6_delivery_local_20260826.json`；它只用于追溯当时运行，不应复制为当前简历数字。
 
 ## 2. 部署边界
 
@@ -29,13 +31,14 @@
 Browser → Nginx/Vue → FastAPI Web
                          ├→ PostgreSQL
                          ├→ Redis
-                         └→ RabbitMQ → lightweight Worker
+                         └→ RabbitMQ → Worker
+                                             ├→ 文档解析/向量化
+                                             └→ WAV 转写
 
-可选 profile: Neo4j / Prometheus / Grafana
-独立能力: FunASR GPU Worker / Embedding-Reranker / LoRA inference / Milvus
+独立能力: FunASR GPU 环境 / Embedding-Reranker / LoRA inference / Milvus
 ```
 
-Web 镜像不包含 Torch、FunASR、Transformers、训练权重或模型缓存。这样可以分别回答“业务 API 是否可部署”和“GPU 模型服务需要哪些资源”，也避免改一个前端接口就重建数 GB 模型镜像。
+Web 镜像不包含 Torch、FunASR、Transformers、训练权重或模型缓存。这样可以分别回答“业务 API 是否可部署”和“GPU 模型能力需要哪些资源”，也避免改一个前端接口就重建数 GB 模型镜像。
 
 后端构建上下文从首次误带本地环境的 263.7 MB 收敛到 2.789 MB。完整运行时依赖冻结在 `requirements-runtime.lock`；`requirements-runtime.txt` 仍是便于理解和升级的直接依赖清单。两者变化后必须共同重建并执行容器冒烟。
 
@@ -57,14 +60,7 @@ curl --fail http://127.0.0.1:8080/
 docker-compose down
 ```
 
-可选观测与图谱组件：
-
-```bash
-docker-compose --profile observability up -d
-docker-compose --profile knowledge-graph up -d neo4j
-```
-
-这组命令证明核心服务可启动。若要调用 LLM，需要在私有 `.env` 中配置 `LLM_API_KEY`；若要运行 Dense 模型、Milvus 或 ASR，应按对应阶段文档启动独立能力，不能把默认 Compose 描述成完整 AI 生产栈。
+这组命令证明核心服务可启动。KG/Neo4j 与 Prometheus/Grafana 已删除，不再有可选 Compose profile。若要调用 LLM，需要在私有 `.env` 中配置 `LLM_API_KEY`；若要运行 Dense 模型、Milvus 或 ASR，应按对应阶段文档启动独立能力，不能把默认 Compose 描述成完整 AI 生产栈。
 
 ## 4. 生产配置为何必须先失败
 
@@ -91,7 +87,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
 1. Python 3.11 与 3.12 的正式轻量核心测试；
 2. 合成微调数据重新生成并检查 Git diff，防止数据漂移；
 3. Python 源码编译检查；
-4. 前端 `npm ci`、44 个测试和生产构建；
+4. 前端 `npm ci`、当前 SSE 协议回归测试和生产构建；
 5. PostgreSQL/Redis/RabbitMQ 下的 ACL、审计幂等、任务幂等、重试/DLQ 集成测试；
 6. Bandit 中危/高危扫描与开发 Compose 预检；
 7. 前后端镜像构建。
@@ -175,11 +171,11 @@ backend/venv/bin/python scripts/run_fixed_demos.py --demo lora
 
 可直接用于简历、同时保持真实性的表述示例：
 
-> 收敛企业会议智能应用的 RAG/Agent 主链路，完成文档 ACL、引用溯源、ToolPolicy/HITL/幂等审计与 RabbitMQ 重试/DLQ；以 175 项轻量测试和 4 项真实基础设施集成测试建立回归门禁。
+> 收敛企业会议智能应用的 RAG/Agent 主链路，完成文档 ACL、引用溯源、ToolPolicy/HITL/幂等审计与 RabbitMQ 重试/DLQ；以后端主链回归、真实基础设施集成测试和 GitHub Actions 建立可重复门禁。
 
 > 基于 FunASR 构建 WAV→RabbitMQ→PostgreSQL 的时间戳/匿名说话人证据链路，并用 Qwen3-0.6B 完成 LoRA/QLoRA 同协议实验；LoRA 在 16 条项目自编合成测试集上的业务字段 F1 为 0.919，明确不外推真实会议质量。
 
-> 将 Web/Worker 与 GPU 模型能力解耦，构建 448 MiB 后端与 50 MiB 前端镜像、生产密钥失败关闭和 GitHub Actions 多层门禁；开发 Compose 已在本机完成容器联动验证。
+> 将 Web/Worker 与 GPU 模型能力解耦，完成前后端镜像、生产密钥失败关闭和 GitHub Actions 多层门禁；开发 Compose 已在本机完成容器联动验证。
 
 ## 8. 学习检查点
 
@@ -197,4 +193,4 @@ backend/venv/bin/python scripts/run_fixed_demos.py --demo lora
 - 提供 Jira Cloud 凭据与测试项目权限，完成一次真实高风险写入、HITL 和回查；
 - 提供合法、脱敏、带真值的会议/RAG 数据，才能报告真实 RAG、CER、DER 和抽取指标；
 - 在目标生产环境完成 TLS、域名、备份恢复、Secret Manager、多节点高可用、镜像漏洞/SBOM 与容量验收；
-- 前端主包仍约 1.235 MB，生产构建通过但有 chunk size 告警，后续可通过 Element Plus 按需导入继续优化。
+- 前端生产构建仍有 chunk size 告警；Element Plus 按需导入属于可选的传输体积优化，不是当前 AI 应用主链的未完成项。

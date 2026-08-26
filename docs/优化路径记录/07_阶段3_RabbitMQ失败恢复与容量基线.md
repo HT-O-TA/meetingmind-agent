@@ -1,5 +1,7 @@
 # 阶段 3：RabbitMQ 失败恢复与容量基线
 
+> **阶段证据说明**：本文保留阶段 3 的故障修复和单机容量数字。阶段 7 已删除 KG 任务；当前 Worker 只注册文档处理、向量化和 WAV 转写三个消费者。
+
 ## 1. 本阶段要学会什么
 
 消息进入 RabbitMQ 不等于任务可靠。至少要分别回答：
@@ -67,7 +69,7 @@ DLX 的路由语义见 [Dead Letter Exchanges](https://www.rabbitmq.com/docs/dlx
 
 发布结果不确定时不创建新 ID，而是通过 `POST /api/v1/tasks/{task_id}/retry-publish` 重发同一 task_id。即使 broker 曾收到第一次消息，消费者也会把第二份当作终态重复投递跳过。
 
-文档 Worker 创建向量/KG 子任务时，使用 `document_id + chunk_ids hash + kind` 生成稳定幂等键。KG 默认关闭时不再无条件创建 KG 任务。
+文档 Worker 创建向量子任务时，使用 `document_id + chunk_ids hash + kind` 生成稳定幂等键。KG 子任务已在阶段 7 删除。
 
 ### 4.2 状态
 
@@ -128,7 +130,7 @@ cd backend
 PYTHONPATH=. venv/bin/python -m app.workers.run
 ```
 
-本机已验证文档、向量和 KG 三个消费者能够注册并在 SIGINT 后干净退出。
+阶段 3 当时验证过文档、向量和 KG 三个消费者。当前实现已用 WAV 转写替换 KG，CI 继续验证 Worker 依赖、重试/DLQ 和镜像构建。
 
 ## 7. 本机轻量容量基线
 

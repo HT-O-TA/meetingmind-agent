@@ -13,7 +13,7 @@ MeetingMind 不再追求覆盖尽可能多的 AI 概念，而是收敛为一个�
 → BM25 + Dense Retrieval + Reranker
 → LangGraph Agent 问答与任务处理
 → ToolPolicy / HITL
-→ 一个真实企业系统写入
+→ Jira Cloud REST v3 写入
 → 评估、追踪和反馈
 ```
 
@@ -30,26 +30,26 @@ MeetingMind 不再追求覆盖尽可能多的 AI 概念，而是收敛为一个�
 
 | JD 能力 | 当前项目证据 | 当前判断 | 目标产出 | 优先级 |
 |---|---|---|---|---|
-| Python / FastAPI / Async | FastAPI、SQLAlchemy Async、异步服务 | 已具备，需收敛接口 | 一条稳定 API 主链路及集成测试 | P0 |
-| LLM API 接入 | `LLMService`、OpenAI-compatible API | 已具备 | 超时、重试、结构化输出、调用指标 | P0 |
+| Python / FastAPI / Async | FastAPI、SQLAlchemy Async、异步服务 | 生产 Router 已收敛，主链有契约与基础设施集成测试 | 继续保持一条稳定 API 主链 | P0 |
+| LLM API 接入 | `LLMService`、OpenAI-compatible API | 超时、有界重试、结构化输出已实现；真实 Token/成本未采集时不伪造 | 用真实调用记录补效果与成本 | P0 |
 | Prompt Engineering | 主链 Prompt 与结构化 Schema | 保留可解释主链，版本评测待补 | Prompt 版本与评测样本关联 | P1 |
-| 模型路由 | `ModelRouter`，turbo/plus/max | 有规则路由，无供应商容灾 | 保留任务×复杂度路由，记录路由、降级和成本 | P1 |
-| RAG | PG BM25、Milvus Dense、Reranker | 核心能力较强 | 唯一正式检索链路和离线指标 | P0 |
-| 分块 | 说话人感知语义分块及数据集 | 有实验基础 | 固化策略、基线和回归测试 | P0 |
+| 模型路由 | `ModelRouter`，turbo/plus/max | 任务×复杂度路由已固化；未实现供应商容灾，且不作为当前主线 | 用冻结请求集验证档位收益 | P1 |
+| RAG | PG BM25、Milvus Dense、Reranker | 唯一正式检索链已固化，ACL/引用/降级有契约测试 | 冻结真实评测数据与阈值 | P0 |
+| 分块 | 说话人感知混合分块 | 唯一策略已固化，时间戳、说话人、降级和长文有回归测试 | 用真实会议验证块质量 | P0 |
 | RAG 评估 | 一个统一离线命令 | 已删除 RAGAS/重复回归框架 | 冻结真实数据、阈值和报告 | P0 |
 | Agent / LangGraph | 路由、计划、安全执行、质量门禁 | 已固定为 Simple RAG 与 Tool Agent 两条路径 | 冻结真实任务评测 | P0 |
-| Function Calling / Tool Use | ToolManager、ToolExecutor、元数据 | 已具备 | 真实只读工具和真实写工具闭环 | P0 |
+| Function Calling / Tool Use | ToolManager、ToolExecutor、元数据 | 会议/文档只读工具已接入 ACL；Jira 写工具代码闭环已完成 | 用真实 Jira 站点完成外部回查 | P0 |
 | MCP | 已从本项目删除 | 没有真实 MCP 业务闭环，不作为本项目重点 | 需要时在独立最小实验学习 | P2 |
-| 安全与 HITL | ToolPolicy、风险分级、人工确认 | 已有框架 | 低/中/高风险集成测试与审计记录 | P0 |
+| 安全与 HITL | ToolPolicy、风险分级、人工确认 | Schema → Policy → HITL → Executor → 持久审计已完成并有集成测试 | 真实 Jira 高风险写入演示 | P0 |
 | 异步任务 | RabbitMQ、Worker、任务状态 | 文档与 WAV ASR 已接入 | 补真实业务容量和多节点验收 | P1 |
-| 结构化输出 | 任务 Prompt、状态和证据字段 | 缺少统一 Schema 治理 | Pydantic/JSON Schema、非法输出修复和版本追踪 | P0 |
+| 结构化输出 | 任务 Prompt、Pydantic Schema、状态和证据字段 | 主链 Schema、非法输出修复、证据/降级字段和版本已实现 | 用真实样本统计字段质量 | P0 |
 | 多模态 | 只保留 FunASR WAV 正式入口 | 图片/视频骨架已删除；公开样例闭环已验证 | 冻结脱敏多人会议集，补 CER/DER | P1 |
 | 微调 | Qwen3-0.6B LoRA/QLoRA 对比实验 | 合成数据教学闭环已完成 | 补脱敏真实会议数据验收 | P1 |
 | 数据工程 | 会议分块数据、RAG 评测数据 | 有基础，标注规范不足 | 数据卡、切分、质量检查、版本管理 | P1 |
-| 部署 | Docker Compose、服务依赖 | 有基础，GPU 部署不明确 | CPU 基础部署 + 可选模型服务说明 | P1 |
+| 部署 | Docker Compose、服务依赖 | CPU 轻量 Web/Worker 与 GPU 模型能力已解耦，预检与镜像 CI 通过 | 生产环境验收不在当前 AI 主线 | P1 |
 | 可观测性 | 有界的真实 Agent 节点 Trace | 已删除通用 Prometheus/Grafana 和伪报表 | 需要时增加持久化，不生成模拟成本 | P1 |
-| 测试 | Unit/Integration/Contract/RAG 测试 | 已删除大量测试替身与旧模块测试 | 主链路测试矩阵与可重复命令 | P0 |
-| 权限与数据安全 | 权限过滤、注入防护、软删除框架 | 部分实现 | 文档 ACL 检索过滤及删除一致性测试 | P2 |
+| 测试 | Unit/Integration/Contract/RAG 测试 | 主链测试矩阵、可重复命令与 GitHub Actions 门禁已完成 | 随真实数据增加效果回归阈值 | P0 |
+| 权限与数据安全 | 权限过滤、注入防护、软删除 | 文档 ACL 已下推到召回、缓存键、工具和 PostgreSQL 最终回查，有集成测试 | 保持主链回归 | P2 |
 | KG-RAG | 已从本项目删除 | 与目标岗位主链相比证据收益低、维护成本高 | 不在本项目恢复 | P2 |
 
 ## 3. 模块去留决策
@@ -89,26 +89,26 @@ MeetingMind 不再追求覆盖尽可能多的 AI 概念，而是收敛为一个�
 - 评估、测试、性能、成本、模板、动态配置、底层向量等管理 API。
 - Prometheus/Grafana、通用故障框架、动态配置中心和后台用户管理。
 
-## 4. 必须补充的能力
+## 4. 能力要求与当前边界
 
 ### 4.1 真实业务闭环
 
-第一条正式闭环建议选择：
+代码层已固定的正式闭环为：
 
 ```text
 会议文本或音频
 → 纪要/决策/待办抽取
 → RAG 追问并返回引用
 → 用户确认
-→ 创建真实 Jira Issue 或飞书任务
+→ 创建 Jira Cloud Issue
 → 保存外部任务 ID 和执行审计
 ```
 
-验收标准：无 mock 返回，失败可见，操作可追踪，高风险写入需要确认。
+参数、风险、HITL、执行器、幂等和审计已有自动化证据；真实站点的 Issue Key 与回查需由外部凭据完成。
 
 ### 4.2 统一结构化输出
 
-为纪要、待办、工具参数和反思结果定义 Pydantic Schema，至少验证：
+为纪要、待办、工具参数和质量修复结果定义 Pydantic Schema，至少验证：
 
 - JSON 合法率；
 - 必填字段完整率；
@@ -168,7 +168,7 @@ MeetingMind 不再追求覆盖尽可能多的 AI 概念，而是收敛为一个�
 - 审计：记录用户、工具、风险、确认结果、外部结果 ID。
 - 权限：至少完成文档级 ACL 到 RAG 召回过滤。
 - 部署：开发 Compose 可复现，模型服务与 Web 服务解耦。
-- 检索存活校验：Milvus/KG 返回的 chunk 必须回 PostgreSQL 校验软删除、权限和正文一致性。
+- 检索存活校验：Milvus Dense 返回的 chunk 必须回 PostgreSQL 校验软删除、权限和正文一致性。
 - 失败边界：工具次数、修复次数、单步超时、连续失败和外部写操作重放均有上限。
 
 ## 5. 分阶段学习与实施路线
@@ -308,27 +308,27 @@ MeetingMind 不再追求覆盖尽可能多的 AI 概念，而是收敛为一个�
 
 ### 已吸收
 
-以下内容虽然在旧版本设计中完整，但与当前收敛目标相比恢复成本过高：
+旧版本设计已逐项处理：FunASR 以单一 WAV 主链接入，其余高复杂度扩展不在当前仓库恢复。
 
 - Qwen3-VL 视频抽帧、音画时间线融合；
-- FunASR + CAM++ 全套说话人分离，阶段 4 再单独接入 ASR；
+- FunASR + CAM++ 说话人与时间戳证据已在阶段 4 接入；视频理解仍不进入主线；
 - HyDE、问题分解、同义词扩展同时启用；
 - 通用 ReAct 五轮循环和复杂 Plan DAG；
 - 多个企业平台的专用 mock 客户端；
 - 完整跨供应商模型容灾；
 - 在线无停机索引重建和复杂索引版本管理。
 
-### 当前执行顺序
+### 已完成的工程顺序
 
 ```text
 1. 统一路由指令
 2. 结构化输出 Schema
 3. 检索后 PG 权限/存活校验
 4. ToolPolicy + HITL + 审计闭环
-5. 路由、抽取和工具评测集
+5. 路由、抽取和工具评测命令与 Schema（真实样本待补）
 6. RabbitMQ 失败边界
 7. 真实 ASR
 8. LoRA/QLoRA 对比实验
 ```
 
-这组补充能恢复旧版本中最有岗位价值的设计，同时避免重新建设完整多模态、复杂 Agent 和多企业平台分支。
+上述工程项已完成；后续只用真实数据、Jira 站点和人工 Demo 补证据，不重新建设完整多模态、复杂 Agent 或多企业平台分支。
