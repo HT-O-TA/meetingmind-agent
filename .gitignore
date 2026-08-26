@@ -66,6 +66,10 @@ meetingmind/
 backend/venv/
 backend/env/
 backend/.venv-asr/
+backend/.venv-ft/
+
+# Fine-tuning runtime artifacts (keep configs/reports, not model weights)
+backend/finetuning/artifacts/
 
 # Logs
 logs/

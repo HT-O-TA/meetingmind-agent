@@ -247,6 +247,8 @@ MeetingMind 不再追求覆盖尽可能多的 AI 概念，而是收敛为一个�
 
 产出：训练配置、数据卡、实验报告、推理 Demo。
 
+执行状态（2026-08-26）：已完成 76 条项目自编合成待办数据、meeting_id 隔离切分、Qwen3-0.6B LoRA/QLoRA 真实单卡训练、Prompt-only/3-shot/LoRA/QLoRA 同协议评测和推理烟测。LoRA 在 16 条合成测试集上的业务字段 F1 为 0.919，QLoRA 为 0.824；这些数字只证明模板化教学闭环，不能外推到真实会议。官方 AliMeeting4MUG AID 完整真值仍受 ModelScope Token 与数据使用确认阻塞。详见 `docs/优化路径记录/09_阶段5_LoRA与QLoRA可复现实验.md`。
+
 ### 阶段 6：部署、文档与简历
 
 目标：将技术工作转换成可核验的求职成果。

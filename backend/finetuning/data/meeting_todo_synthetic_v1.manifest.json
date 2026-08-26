@@ -1,0 +1,26 @@
+{
+  "schema_version": "meetingmind.todo-extraction.v1",
+  "dataset_path": "backend/finetuning/data/meeting_todo_synthetic_v1.jsonl",
+  "dataset_sha256": "1e140233a3dbbdb18357ba43b3128452d4013e6887e473ff9aaa15bbbb62f360",
+  "generator_path": "backend/finetuning/build_dataset.py",
+  "generator_sha256": "3f8f2a44469cf400cd13e93fd2f00458a61056a885c7fbc27af246b05cb4bc4b",
+  "valid": true,
+  "errors": [],
+  "counts": {
+    "train": 48,
+    "validation": 12,
+    "test": 16
+  },
+  "positive_counts": {
+    "train": 36,
+    "validation": 8,
+    "test": 12
+  },
+  "real_user_record_count": 0,
+  "human_reviewed_record_count": 0,
+  "limitations": [
+    "全部样本为项目自编合成文本，不包含真实会议或真实用户数据。",
+    "标签由确定性模板生成且未经人工复核，只能验证训练工程闭环。",
+    "测试集按 meeting_id 隔离，但与训练集共享语言模板，不能代表真实领域泛化。"
+  ]
+}

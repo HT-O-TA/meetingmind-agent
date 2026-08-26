@@ -1,0 +1,94 @@
+{
+  "schema_version": "meetingmind.finetuning-comparison.v1",
+  "dataset_scope": "76 project-authored synthetic samples; fixed 16-sample test split",
+  "evaluations": {
+    "prompt_only": {
+      "json_valid_rate": 0.75,
+      "schema_valid_rate": 0.0,
+      "sample_exact_match": 0.0,
+      "business_field_f1": 0.0,
+      "item_exact_f1": 0.0,
+      "hallucinated_business_field_rate": 0.0,
+      "latency_mean_ms": 1930.8849116132478,
+      "latency_p95_ms": 2920.063230965752,
+      "peak_cuda_allocated_mb": 1201.2978515625,
+      "source_report": "backend/finetuning/reports/prompt_only_eval_20260826.json",
+      "source_report_sha256": "316e5d76fa9e38b7e216b3a7ffad6d18c345d9452dc8f4e18b6f5e71531ff640"
+    },
+    "few_shot": {
+      "json_valid_rate": 1.0,
+      "schema_valid_rate": 1.0,
+      "sample_exact_match": 0.3125,
+      "business_field_f1": 0.1739130434782609,
+      "item_exact_f1": 0.125,
+      "hallucinated_business_field_rate": 0.3333333333333333,
+      "latency_mean_ms": 202.13935074934852,
+      "latency_p95_ms": 1260.8393899863586,
+      "peak_cuda_allocated_mb": 1244.3134765625,
+      "source_report": "backend/finetuning/reports/few_shot_eval_20260826.json",
+      "source_report_sha256": "57f78f6bf9b86499dfb0800d88541e869338c708925e89fa8511f1c2d2b9ad11"
+    },
+    "lora": {
+      "json_valid_rate": 1.0,
+      "schema_valid_rate": 1.0,
+      "sample_exact_match": 0.875,
+      "business_field_f1": 0.9189189189189189,
+      "item_exact_f1": 0.923076923076923,
+      "hallucinated_business_field_rate": 0.0,
+      "latency_mean_ms": 1151.4379858017492,
+      "latency_p95_ms": 1842.0321439625695,
+      "peak_cuda_allocated_mb": 1205.8896484375,
+      "source_report": "backend/finetuning/reports/lora_eval_20260826.json",
+      "source_report_sha256": "cda049d5ff1dffb9a44a2c7596df40a4286f732731ffe58842d994e432155d7d"
+    },
+    "qlora": {
+      "json_valid_rate": 0.875,
+      "schema_valid_rate": 0.875,
+      "sample_exact_match": 0.875,
+      "business_field_f1": 0.8235294117647058,
+      "item_exact_f1": 0.8333333333333333,
+      "hallucinated_business_field_rate": 0.0,
+      "latency_mean_ms": 2188.371480748174,
+      "latency_p95_ms": 4890.999689989258,
+      "peak_cuda_allocated_mb": 959.10009765625,
+      "source_report": "backend/finetuning/reports/qlora_eval_20260826.json",
+      "source_report_sha256": "bcf567454f5d77598feeb6c39c869063634895c313f1163b6f80be2a830308fd"
+    }
+  },
+  "training": {
+    "lora": {
+      "duration_seconds": 35.58755675901193,
+      "peak_cuda_allocated_mb": 4185.08447265625,
+      "initial_validation_loss": 0.8384612997372946,
+      "final_validation_loss": 0.0011289416288491338,
+      "trainable_parameters": 5046272,
+      "adapter_size_bytes": 20236472,
+      "adapter_weight_sha256": "c318b70e2f7fa94aceadd89b35e8a69753a037176066e4b0de07b939151de2d5",
+      "source_report": "backend/finetuning/reports/lora_training_20260826.json",
+      "source_report_sha256": "8eab97773e03a7138f2e1c169ef2d36683dd8e37d2b0de9549f1b5d6755428bf"
+    },
+    "qlora": {
+      "duration_seconds": 49.91341045603622,
+      "peak_cuda_allocated_mb": 4621.20263671875,
+      "initial_validation_loss": 1.4796126286188762,
+      "final_validation_loss": 0.007098576844631073,
+      "trainable_parameters": 5046272,
+      "adapter_size_bytes": 20236472,
+      "adapter_weight_sha256": "27a3343530191ec86470ada4993083dbdeab817d90a8a36e7e7ffd77c8dac3ce",
+      "source_report": "backend/finetuning/reports/qlora_training_20260826.json",
+      "source_report_sha256": "8caf950be47dae4073f3e338c8e7ed5705e72e7ef92c0607acdff6bccaf37ff5"
+    }
+  },
+  "conclusions": [
+    "LoRA achieved the highest business-field F1 (0.9189) on this synthetic test split.",
+    "QLoRA business-field F1 was 0.8235; it used less inference allocated memory but was slower here.",
+    "Few-shot improved schema validity to 1.0000, but business-field F1 remained 0.1739.",
+    "These results demonstrate a reproducible training pipeline, not real-meeting generalization."
+  ],
+  "limitations": [
+    "All samples are deterministic, project-authored synthetic text and are not human reviewed.",
+    "The test split contains 16 samples and shares language templates with training.",
+    "One seed and one run per method; no confidence interval or significance test.",
+    "CUDA allocated memory is a process-level measurement and QLoRA visible parameter counts are not directly comparable to BF16 LoRA."
+  ]
+}

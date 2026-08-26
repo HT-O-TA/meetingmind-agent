@@ -32,7 +32,7 @@ MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。�
 | MCP | 可选框架，默认关闭 | 尚未完成唯一真实外部 Server 联调 |
 | ASR | 真实本地闭环，可选启用 | WAV → RabbitMQ → FunASR → 会议正文/时间戳/匿名说话人；公开烟测已完成，会议领域基线待真实数据 |
 | 图片/视频多模态 | 骨架，默认关闭 | 不计入已实现能力 |
-| LoRA / QLoRA | 尚未完成 | 训练目录、数据和对比实验仍待建设 |
+| LoRA / QLoRA | 独立教学闭环已完成 | Qwen3-0.6B 两种真实训练和四组公平评测；仅合成数据，不代表真实会议效果，不进入默认线上链路 |
 
 文档 ACL、软删除回查和答案引用已完成代码/契约及 PostgreSQL 集成验证。当前仍不能将 Sparse/RRF、完整多模态、真实企业系统写入、端到端生产部署或合成样例/历史性能数字宣传为已完成能力。
 
@@ -64,6 +64,7 @@ POST /api/v1/rag/ask
 - [阶段 2 Agent 安全工具闭环](docs/优化路径记录/06_阶段2_Agent安全工具闭环.md)
 - [阶段 3 RabbitMQ 失败恢复与容量基线](docs/优化路径记录/07_阶段3_RabbitMQ失败恢复与容量基线.md)
 - [阶段 4 真实 ASR 与音频证据闭环](docs/优化路径记录/08_阶段4_真实ASR与音频证据闭环.md)
+- [阶段 5 LoRA / QLoRA 可复现实验](docs/优化路径记录/09_阶段5_LoRA与QLoRA可复现实验.md)
 
 ## 正式 Agent 边界
 
@@ -172,7 +173,7 @@ pip install -r requirements-core.txt
 ./scripts/run_core_tests.sh -q
 ```
 
-2026-08-26 完成阶段 4 代码收敛后的轻量核心基线为 `171 passed, 2 skipped`；另有 Jira 客户端单元测试 `8 passed`。真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`，并另行完成一次真实 FunASR 队列业务烟测。两个核心跳过项依赖未安装的模型能力；Milvus、会议领域真值、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
+2026-08-26 完成阶段 5 代码收敛后的轻量核心基线为 `175 passed, 2 skipped`；另有 Jira 客户端单元测试 `8 passed`。真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`，并另行完成一次真实 FunASR 队列业务烟测、两次单卡 Adapter 训练和四组生成式抽取评测。两个核心跳过项依赖未安装的模型能力；Milvus、真实会议抽取真值、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
 
 统一离线评估命令：
 

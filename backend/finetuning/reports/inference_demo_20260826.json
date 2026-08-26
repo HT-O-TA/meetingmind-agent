@@ -1,0 +1,19 @@
+{
+  "raw_output": "[{\"content\":\"整理发布核对表\",\"assignee\":\"成员丙\",\"deadline\":\"周五前\",\"priority\":\"unknown\",\"source_id\":\"demo-stage5-001\",\"source_type\":\"demo_input\",\"speaker\":\"成员乙\",\"timestamp\":8.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+  "schema_valid": true,
+  "todos": [
+    {
+      "content": "整理发布核对表",
+      "assignee": "成员丙",
+      "deadline": "周五前",
+      "priority": "unknown",
+      "source_id": "demo-stage5-001",
+      "source_type": "demo_input",
+      "speaker": "成员乙",
+      "timestamp": 8.0,
+      "uncertainties": [],
+      "degradation_info": []
+    }
+  ],
+  "error": null
+}

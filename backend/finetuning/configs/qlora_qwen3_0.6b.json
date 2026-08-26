@@ -1,0 +1,23 @@
+{
+  "schema_version": "meetingmind.training.v1",
+  "method": "qlora",
+  "base_model": "backend/model/qwen3-0.6B",
+  "dataset": "backend/finetuning/data/meeting_todo_synthetic_v1.jsonl",
+  "output_dir": "backend/finetuning/artifacts/qwen3-0.6b-todo-qlora",
+  "report_path": "backend/finetuning/reports/qlora_training_20260826.json",
+  "seed": 42,
+  "max_length": 512,
+  "epochs": 5,
+  "batch_size": 2,
+  "gradient_accumulation_steps": 4,
+  "learning_rate": 0.0002,
+  "weight_decay": 0.01,
+  "max_grad_norm": 1.0,
+  "lora_r": 8,
+  "lora_alpha": 16,
+  "lora_dropout": 0.05,
+  "target_modules": "all-linear",
+  "compute_dtype": "bfloat16",
+  "bnb_4bit_quant_type": "nf4",
+  "bnb_4bit_use_double_quant": true
+}

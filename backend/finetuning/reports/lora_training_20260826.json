@@ -1,0 +1,92 @@
+{
+  "schema_version": "meetingmind.training-report.v1",
+  "method": "lora",
+  "status": "completed",
+  "config_path": "backend/finetuning/configs/lora_qwen3_0.6b.json",
+  "config_sha256": "1f34b1c33837696b4b092dbdd17fcde4b974d45991db89ce5801c27e46c28948",
+  "training_script_sha256": "47b3ff21c300b9a9f54a3cb9ad8b19256598af0c19a279f232e5779d3647ba72",
+  "common_script_sha256": "a5ac80e8fa9f6b2ab5ac20e1ea6112e5f86ab352b3643dc4657f56bd5b286d6e",
+  "dataset_path": "backend/finetuning/data/meeting_todo_synthetic_v1.jsonl",
+  "dataset_sha256": "1e140233a3dbbdb18357ba43b3128452d4013e6887e473ff9aaa15bbbb62f360",
+  "base_model": "backend/model/qwen3-0.6B",
+  "base_model_weight_sha256": "f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b",
+  "adapter_path": "backend/finetuning/artifacts/qwen3-0.6b-todo-lora",
+  "adapter_weight_sha256": "c318b70e2f7fa94aceadd89b35e8a69753a037176066e4b0de07b939151de2d5",
+  "adapter_size_bytes": 20236472,
+  "train_samples": 48,
+  "validation_samples": 12,
+  "optimizer_steps": 30,
+  "trainable_parameters": 5046272,
+  "total_parameters_visible": 601096192,
+  "trainable_ratio": 0.008395115569123418,
+  "initial_validation_loss": 0.8384612997372946,
+  "final_validation_loss": 0.0011289416288491338,
+  "loss_history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.3552169202206035,
+      "validation_loss": 0.15798158881564936
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.04921939533475476,
+      "validation_loss": 0.3551725261689474
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.06634856304056787,
+      "validation_loss": 0.007361255159291129
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.014984474949111851,
+      "validation_loss": 0.0014426543493755162
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.009846145932291014,
+      "validation_loss": 0.0011289416288491338
+    }
+  ],
+  "duration_seconds": 35.58755675901193,
+  "peak_cuda_allocated_mb": 4185.08447265625,
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "gpu_total_memory_mb": 12036.25
+  },
+  "environment": {
+    "python": "3.12.13",
+    "torch": "2.11.0+cu126",
+    "cuda_runtime": "12.6",
+    "transformers": "5.12.1",
+    "peft": "0.18.1",
+    "accelerate": "1.14.0",
+    "bitsandbytes": "0.47.0"
+  },
+  "config": {
+    "schema_version": "meetingmind.training.v1",
+    "method": "lora",
+    "base_model": "backend/model/qwen3-0.6B",
+    "dataset": "backend/finetuning/data/meeting_todo_synthetic_v1.jsonl",
+    "output_dir": "backend/finetuning/artifacts/qwen3-0.6b-todo-lora",
+    "report_path": "backend/finetuning/reports/lora_training_20260826.json",
+    "seed": 42,
+    "max_length": 512,
+    "epochs": 5,
+    "batch_size": 2,
+    "gradient_accumulation_steps": 4,
+    "learning_rate": 0.0002,
+    "weight_decay": 0.01,
+    "max_grad_norm": 1.0,
+    "lora_r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.05,
+    "target_modules": "all-linear",
+    "compute_dtype": "bfloat16"
+  },
+  "limitations": [
+    "训练集为确定性模板生成的合成数据，指标不能外推到真实会议。",
+    "单卡单次实验未做多随机种子置信区间。",
+    "adapter 权重保存在 gitignored artifacts，仓库只提交哈希与报告。"
+  ]
+}

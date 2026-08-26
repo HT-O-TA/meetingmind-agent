@@ -1,0 +1,5 @@
+# Tested experiment environment; install PyTorch for the local CUDA version first.
+transformers==5.12.1
+peft==0.18.1
+accelerate==1.14.0
+bitsandbytes==0.47.0

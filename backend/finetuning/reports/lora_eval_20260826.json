@@ -1,0 +1,678 @@
+{
+  "schema_version": "meetingmind.extraction-evaluation.v1",
+  "protocol": "lora",
+  "base_model": "backend/model/qwen3-0.6B",
+  "evaluation_script_sha256": "d47c7fc329c62c72c5912d7665910d964b3b74c53c8629f671ef6cf5377a0ef1",
+  "common_script_sha256": "a5ac80e8fa9f6b2ab5ac20e1ea6112e5f86ab352b3643dc4657f56bd5b286d6e",
+  "base_model_weight_sha256": "f47f71177f32bcd101b7573ec9171e6a57f4f4d31148d38e382306f42996874b",
+  "adapter": "backend/finetuning/artifacts/qwen3-0.6b-todo-lora",
+  "adapter_weight_sha256": "c318b70e2f7fa94aceadd89b35e8a69753a037176066e4b0de07b939151de2d5",
+  "dataset": "backend/finetuning/data/meeting_todo_synthetic_v1.jsonl",
+  "dataset_sha256": "1e140233a3dbbdb18357ba43b3128452d4013e6887e473ff9aaa15bbbb62f360",
+  "split": "test",
+  "few_shot_ids": [],
+  "generation": {
+    "do_sample": false,
+    "max_new_tokens": 240,
+    "enable_thinking": false
+  },
+  "metrics": {
+    "sample_count": 16,
+    "json_valid_rate": 1.0,
+    "schema_valid_rate": 1.0,
+    "sample_exact_match": 0.875,
+    "item_exact": {
+      "precision": 1.0,
+      "recall": 0.8571428571428571,
+      "f1": 0.923076923076923
+    },
+    "business_field_micro": {
+      "precision": 1.0,
+      "recall": 0.85,
+      "f1": 0.9189189189189189
+    },
+    "field_metrics": {
+      "content": {
+        "tp": 12,
+        "pred": 12,
+        "gold": 14,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.923076923076923
+      },
+      "assignee": {
+        "tp": 11,
+        "pred": 11,
+        "gold": 13,
+        "precision": 1.0,
+        "recall": 0.8461538461538461,
+        "f1": 0.9166666666666666
+      },
+      "deadline": {
+        "tp": 11,
+        "pred": 11,
+        "gold": 13,
+        "precision": 1.0,
+        "recall": 0.8461538461538461,
+        "f1": 0.9166666666666666
+      },
+      "priority": {
+        "tp": 12,
+        "pred": 12,
+        "gold": 14,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.923076923076923
+      },
+      "source_id": {
+        "tp": 12,
+        "pred": 12,
+        "gold": 14,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.923076923076923
+      },
+      "source_type": {
+        "tp": 12,
+        "pred": 12,
+        "gold": 14,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.923076923076923
+      },
+      "speaker": {
+        "tp": 12,
+        "pred": 12,
+        "gold": 14,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.923076923076923
+      },
+      "timestamp": {
+        "tp": 12,
+        "pred": 12,
+        "gold": 14,
+        "precision": 1.0,
+        "recall": 0.8571428571428571,
+        "f1": 0.923076923076923
+      },
+      "uncertainties": {
+        "tp": 2,
+        "pred": 2,
+        "gold": 2,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "degradation_info": {
+        "tp": 0,
+        "pred": 0,
+        "gold": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "hallucinated_business_field_rate": 0.0
+  },
+  "latency": {
+    "mean_ms": 1151.4379858017492,
+    "p50_ms": 1474.4974719942547,
+    "p95_ms": 1842.0321439625695
+  },
+  "model_load_seconds": 1.0020011159940623,
+  "peak_cuda_allocated_mb": 1205.8896484375,
+  "environment": {
+    "python": "3.12.13",
+    "torch": "2.11.0+cu126",
+    "cuda_runtime": "12.6",
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "transformers": "5.12.1",
+    "peft": "0.18.1",
+    "bitsandbytes": "0.47.0"
+  },
+  "rows": [
+    {
+      "sample_id": "syn-tes-001",
+      "expected": [
+        {
+          "content": "整理客户问题清单",
+          "assignee": "成员乙",
+          "deadline": "周二下班前",
+          "priority": "unknown",
+          "source_id": "syn-tes-001",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 12.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"整理客户问题清单\",\"assignee\":\"成员乙\",\"deadline\":\"周二下班前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-001\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员丙\",\"timestamp\":12.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "整理客户问题清单",
+          "assignee": "成员乙",
+          "deadline": "周二下班前",
+          "priority": "unknown",
+          "source_id": "syn-tes-001",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 12.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1842.0321439625695,
+      "input_tokens": 248,
+      "output_tokens": 68
+    },
+    {
+      "sample_id": "syn-tes-002",
+      "expected": [
+        {
+          "content": "完成回滚演练",
+          "assignee": "成员丙",
+          "deadline": "周三前",
+          "priority": "unknown",
+          "source_id": "syn-tes-002",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丁",
+          "timestamp": 16.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"完成回滚演练\",\"assignee\":\"成员丙\",\"deadline\":\"周三前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-002\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员丁\",\"timestamp\":16.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "完成回滚演练",
+          "assignee": "成员丙",
+          "deadline": "周三前",
+          "priority": "unknown",
+          "source_id": "syn-tes-002",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丁",
+          "timestamp": 16.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1495.038567984011,
+      "input_tokens": 241,
+      "output_tokens": 67
+    },
+    {
+      "sample_id": "syn-tes-003",
+      "expected": [
+        {
+          "content": "更新灾备手册",
+          "assignee": "成员丁",
+          "deadline": "本周四",
+          "priority": "unknown",
+          "source_id": "syn-tes-003",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员甲",
+          "timestamp": 20.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"更新灾备手册\",\"assignee\":\"成员丁\",\"deadline\":\"本周四\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-003\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员甲\",\"timestamp\":20.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "更新灾备手册",
+          "assignee": "成员丁",
+          "deadline": "本周四",
+          "priority": "unknown",
+          "source_id": "syn-tes-003",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员甲",
+          "timestamp": 20.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1478.7753589916974,
+      "input_tokens": 244,
+      "output_tokens": 67
+    },
+    {
+      "sample_id": "syn-tes-004",
+      "expected": [
+        {
+          "content": "核对交付范围",
+          "assignee": "成员甲",
+          "deadline": "周五中午前",
+          "priority": "unknown",
+          "source_id": "syn-tes-004",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 24.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"核对交付范围\",\"assignee\":\"成员甲\",\"deadline\":\"周五中午前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-004\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员乙\",\"timestamp\":24.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "核对交付范围",
+          "assignee": "成员甲",
+          "deadline": "周五中午前",
+          "priority": "unknown",
+          "source_id": "syn-tes-004",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 24.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1547.721857961733,
+      "input_tokens": 249,
+      "output_tokens": 68
+    },
+    {
+      "sample_id": "syn-tes-005",
+      "expected": [
+        {
+          "content": "准备招标材料",
+          "assignee": "成员乙",
+          "deadline": "下周一前",
+          "priority": "unknown",
+          "source_id": "syn-tes-005",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 28.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"准备招标材料\",\"assignee\":\"成员乙\",\"deadline\":\"下周一前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-005\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员丙\",\"timestamp\":28.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "准备招标材料",
+          "assignee": "成员乙",
+          "deadline": "下周一前",
+          "priority": "unknown",
+          "source_id": "syn-tes-005",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 28.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1470.219584996812,
+      "input_tokens": 242,
+      "output_tokens": 67
+    },
+    {
+      "sample_id": "syn-tes-006",
+      "expected": [
+        {
+          "content": "补充数据字典",
+          "assignee": "成员丙",
+          "deadline": "发布前",
+          "priority": "unknown",
+          "source_id": "syn-tes-006",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丁",
+          "timestamp": 32.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"补充数据字典\",\"assignee\":\"成员丙\",\"deadline\":\"发布前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-006\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员丁\",\"timestamp\":32.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "补充数据字典",
+          "assignee": "成员丙",
+          "deadline": "发布前",
+          "priority": "unknown",
+          "source_id": "syn-tes-006",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丁",
+          "timestamp": 32.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1509.688411024399,
+      "input_tokens": 241,
+      "output_tokens": 67
+    },
+    {
+      "sample_id": "syn-tes-007",
+      "expected": [
+        {
+          "content": "检查证书期限",
+          "assignee": "成员丁",
+          "deadline": "月底前",
+          "priority": "unknown",
+          "source_id": "syn-tes-007",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员甲",
+          "timestamp": 8.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"检查证书期限\",\"assignee\":\"成员丁\",\"deadline\":\"月底前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-007\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员甲\",\"timestamp\":8.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "检查证书期限",
+          "assignee": "成员丁",
+          "deadline": "月底前",
+          "priority": "unknown",
+          "source_id": "syn-tes-007",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员甲",
+          "timestamp": 8.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1433.3999239606783,
+      "input_tokens": 247,
+      "output_tokens": 65
+    },
+    {
+      "sample_id": "syn-tes-008",
+      "expected": [
+        {
+          "content": "提交会议室预订",
+          "assignee": "成员甲",
+          "deadline": "周一前",
+          "priority": "unknown",
+          "source_id": "syn-tes-008",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 12.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"提交会议室预订\",\"assignee\":\"成员甲\",\"deadline\":\"周一前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-008\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员乙\",\"timestamp\":12.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "提交会议室预订",
+          "assignee": "成员甲",
+          "deadline": "周一前",
+          "priority": "unknown",
+          "source_id": "syn-tes-008",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 12.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1441.6648949845694,
+      "input_tokens": 240,
+      "output_tokens": 66
+    },
+    {
+      "sample_id": "syn-tes-009",
+      "expected": [
+        {
+          "content": "汇总试用反馈",
+          "assignee": "成员乙",
+          "deadline": "",
+          "priority": "unknown",
+          "source_id": "syn-tes-009",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 16.0,
+          "uncertainties": [
+            "deadline_missing"
+          ],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"汇总试用反馈\",\"assignee\":\"成员乙\",\"deadline\":\"\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-009\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员丙\",\"timestamp\":16.0,\"uncertainties\":[\"deadline_missing\"],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "汇总试用反馈",
+          "assignee": "成员乙",
+          "deadline": "",
+          "priority": "unknown",
+          "source_id": "syn-tes-009",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 16.0,
+          "uncertainties": [
+            "deadline_missing"
+          ],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1442.2717259731144,
+      "input_tokens": 245,
+      "output_tokens": 66
+    },
+    {
+      "sample_id": "syn-tes-010",
+      "expected": [
+        {
+          "content": "验证告警规则",
+          "assignee": "",
+          "deadline": "周三前",
+          "priority": "unknown",
+          "source_id": "syn-tes-010",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丁",
+          "timestamp": 20.0,
+          "uncertainties": [
+            "assignee_missing"
+          ],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"验证告警规则\",\"assignee\":\"\",\"deadline\":\"周三前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-010\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员丁\",\"timestamp\":20.0,\"uncertainties\":[\"assignee_missing\"],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "验证告警规则",
+          "assignee": "",
+          "deadline": "周三前",
+          "priority": "unknown",
+          "source_id": "syn-tes-010",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丁",
+          "timestamp": 20.0,
+          "uncertainties": [
+            "assignee_missing"
+          ],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1493.5440919944085,
+      "input_tokens": 244,
+      "output_tokens": 67
+    },
+    {
+      "sample_id": "syn-tes-011",
+      "expected": [],
+      "raw_output": "[]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [],
+      "error": null,
+      "latency_ms": 65.1352129643783,
+      "input_tokens": 238,
+      "output_tokens": 2
+    },
+    {
+      "sample_id": "syn-tes-012",
+      "expected": [],
+      "raw_output": "[]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [],
+      "error": null,
+      "latency_ms": 64.40649199066684,
+      "input_tokens": 235,
+      "output_tokens": 2
+    },
+    {
+      "sample_id": "syn-tes-013",
+      "expected": [],
+      "raw_output": "[]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [],
+      "error": null,
+      "latency_ms": 63.49326699273661,
+      "input_tokens": 234,
+      "output_tokens": 2
+    },
+    {
+      "sample_id": "syn-tes-014",
+      "expected": [],
+      "raw_output": "[]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [],
+      "error": null,
+      "latency_ms": 63.712217030115426,
+      "input_tokens": 239,
+      "output_tokens": 2
+    },
+    {
+      "sample_id": "syn-tes-015",
+      "expected": [
+        {
+          "content": "制定切换检查表",
+          "assignee": "成员乙",
+          "deadline": "周四前",
+          "priority": "unknown",
+          "source_id": "syn-tes-015",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 9.0,
+          "uncertainties": [],
+          "degradation_info": []
+        },
+        {
+          "content": "准备故障通报模板",
+          "assignee": "成员丙",
+          "deadline": "发布前",
+          "priority": "unknown",
+          "source_id": "syn-tes-015",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 17.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"制定切换检查表\",\"assignee\":\"成员乙\",\"deadline\":\"周四前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-015\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员乙\",\"timestamp\":9.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "制定切换检查表",
+          "assignee": "成员乙",
+          "deadline": "周四前",
+          "priority": "unknown",
+          "source_id": "syn-tes-015",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 9.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1521.197309019044,
+      "input_tokens": 261,
+      "output_tokens": 66
+    },
+    {
+      "sample_id": "syn-tes-016",
+      "expected": [
+        {
+          "content": "核对培训名单",
+          "assignee": "成员甲",
+          "deadline": "下周一前",
+          "priority": "unknown",
+          "source_id": "syn-tes-016",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 9.0,
+          "uncertainties": [],
+          "degradation_info": []
+        },
+        {
+          "content": "预订培训设备",
+          "assignee": "成员丁",
+          "deadline": "周五前",
+          "priority": "unknown",
+          "source_id": "syn-tes-016",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员丙",
+          "timestamp": 17.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "raw_output": "[{\"content\":\"核对培训名单\",\"assignee\":\"成员甲\",\"deadline\":\"下周一前\",\"priority\":\"unknown\",\"source_id\":\"syn-tes-016\",\"source_type\":\"synthetic_meeting\",\"speaker\":\"成员乙\",\"timestamp\":9.0,\"uncertainties\":[],\"degradation_info\":[]}]",
+      "json_valid": true,
+      "schema_valid": true,
+      "predicted_validated": [
+        {
+          "content": "核对培训名单",
+          "assignee": "成员甲",
+          "deadline": "下周一前",
+          "priority": "unknown",
+          "source_id": "syn-tes-016",
+          "source_type": "synthetic_meeting",
+          "speaker": "成员乙",
+          "timestamp": 9.0,
+          "uncertainties": [],
+          "degradation_info": []
+        }
+      ],
+      "error": null,
+      "latency_ms": 1490.7067129970528,
+      "input_tokens": 261,
+      "output_tokens": 67
+    }
+  ],
+  "limitations": [
+    "16 条测试样本全部为项目自编合成文本，不能代表真实会议效果。",
+    "单次确定性生成、单随机种子，无置信区间。",
+    "严格字符串指标不奖励语义等价改写。",
+    "Few-shot 示例固定且来自训练切分，测试 meeting_id 与训练切分不重叠。"
+  ]
+}
