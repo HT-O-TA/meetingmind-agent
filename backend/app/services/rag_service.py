@@ -3,8 +3,6 @@ import time
 from typing import Any, List, Optional, Dict
 from app.services.vector_search_service import VectorSearchService
 from app.services.llm_service import LLMService
-from app.services.knowledge_graph import enhance_search_results
-from app.services.knowledge_graph import get_knowledge_graph_index
 from app.services.enhanced_retrieval_fusion import get_enhanced_retrieval_fusion
 from app.core.logger import app_logger
 from app.core.config import settings
@@ -14,22 +12,9 @@ from app.schemas.rag import Citation, RAGResult
 class RAGService:
     """RAG 服务类，整合检索与生成"""
 
-    def __init__(self, vector_service: VectorSearchService, llm_service: LLMService = None, enable_evaluation: bool = False):
+    def __init__(self, vector_service: VectorSearchService, llm_service: LLMService = None):
         self.vector_service = vector_service
         self.llm_service = llm_service or LLMService()
-        self.enable_evaluation = enable_evaluation
-        self._evaluator = None
-    
-    def _get_evaluator(self):
-        """延迟加载评估器"""
-        if self._evaluator is None and self.enable_evaluation:
-            try:
-                from app.services.ragas_evaluator import get_ragas_evaluator
-                self._evaluator = get_ragas_evaluator()
-            except Exception as e:
-                app_logger.warning(f"无法加载评估器: {e}")
-                self.enable_evaluation = False
-        return self._evaluator
 
     def _retrieval_mode(self) -> str:
         """将底层布尔能力标记转换为稳定的 API 字符串。"""
@@ -77,13 +62,12 @@ class RAGService:
         access_context: Optional[Any] = None,
     ) -> Dict:
         """
-        RAG 问答：BM25 + Dense 多路召回、融合、Reranker 精排和可选图谱增强。
+        RAG 问答：BM25 + Dense 多路召回、融合和 Reranker 精排。
 
         检索流程：
         1. Dense 与 PostgreSQL BM25 顺序召回（当前实现尚未并行化）
         2. 加权融合
-        3. 可选知识图谱扩展候选
-        4. BGE Reranker 精排
+        3. BGE Reranker 精排
 
         Args:
             question: 用户问题
@@ -101,7 +85,6 @@ class RAGService:
         degradation_actions: List[str] = []
 
         # 方案 A：单一查询走 PostgreSQL BM25 + Milvus dense，统一融合后由 Reranker 精排。
-        # HyDE、问题分解和复杂查询编排保留在 Query Optimizer 中，后续按评测结果接入。
         search_queries = [question]
         candidate_top_k = max(top_k, settings.RERANK_TOP_N) if settings.ENABLE_RERANK else top_k
         merged_results = await self.vector_service.search_with_multi_retrieval(
@@ -110,35 +93,13 @@ class RAGService:
             meeting_id=meeting_id,
             department=department,
             similarity_threshold=similarity_threshold,
-            enable_bm25=True,
-            enable_vector=True,
             enable_rerank=False,
-            strategy="A",
             access_context=access_context,
         )
         retrieval_stage_metrics = dict(
             getattr(self.vector_service, "last_retrieval_trace", {}) or {}
         )
         
-        # KG 在 Reranker 前扩展候选；复杂 NER/分类后续接入当前分析接口。
-        if settings.ENABLE_KNOWLEDGE_GRAPH and merged_results:
-            kg_started_at = time.perf_counter()
-            try:
-                kg_analysis = get_knowledge_graph_index().get_graph().analyze_query(question)
-                primary_query = search_queries[0] if search_queries else question
-                merged_results = await enhance_search_results(
-                    primary_query, merged_results, depth=2, max_added_chunks=5,
-                    query_analysis=kg_analysis,
-                )
-                app_logger.info(f"[RAG] 知识图谱增强完成，结果数: {len(merged_results)}")
-            except Exception as e:
-                app_logger.warning(f"[RAG] 知识图谱增强失败: {e}")
-                degradation_reasons.append("knowledge_graph_failed")
-            finally:
-                retrieval_stage_metrics["knowledge_graph_latency_ms"] = (
-                    time.perf_counter() - kg_started_at
-                ) * 1000
-
         if settings.ENABLE_RERANK and merged_results:
             rerank_started_at = time.perf_counter()
             fusion = get_enhanced_retrieval_fusion(strategy="A")
@@ -229,22 +190,6 @@ class RAGService:
                 "access_control_applied": access_context is not None,
             },
         }
-
-        # 如果启用评估，添加评估指标
-        if self.enable_evaluation and self._get_evaluator():
-            contexts = [r["chunk_text"] for r in merged_results if r.get("chunk_text")]
-            try:
-                metrics = await self._evaluator.evaluate(
-                    query=question,
-                    answer=answer,
-                    contexts=contexts
-                )
-                result["evaluation"] = {
-                    "metrics": metrics.to_dict() if hasattr(metrics, "to_dict") else metrics,
-                    "avg_score": metrics.avg_score() if hasattr(metrics, "avg_score") else None,
-                }
-            except Exception as e:
-                app_logger.warning(f"评估失败: {e}")
 
         return RAGResult.model_validate(result).model_dump()
     

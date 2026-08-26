@@ -30,9 +30,6 @@
         <el-menu-item index="/feedback">
           <el-icon><ChatDotSquare /></el-icon><span>反馈管理</span>
         </el-menu-item>
-        <el-menu-item index="/graph">
-          <el-icon><Share /></el-icon><span>知识图谱</span>
-        </el-menu-item>
         <el-menu-item index="/agent">
           <el-icon><Cpu /></el-icon><span>Agent演示</span>
         </el-menu-item>
@@ -41,9 +38,6 @@
         </el-menu-item>
         <el-menu-item index="/query">
           <el-icon><Search /></el-icon><span>智能查询</span>
-        </el-menu-item>
-        <el-menu-item index="/users">
-          <el-icon><User /></el-icon><span>用户管理</span>
         </el-menu-item>
       </el-menu>
       <div style="padding:12px 16px;border-top:1px solid #2d3f52">
@@ -76,7 +70,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { Cpu, List, Upload, Checked, Folder, Search, User, Clock, ChatDotSquare, Share, Monitor } from '@element-plus/icons-vue'
+import { Cpu, List, Upload, Checked, Folder, Search, Clock, ChatDotSquare, Monitor } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,22 +83,15 @@ const titleMap = {
   '/documents': '文档库',
   '/tasks': '任务队列',
   '/feedback': '反馈管理',
-  '/graph': '知识图谱',
   '/agent': 'Agent智能助手',
   '/trace': 'Trace监控',
   '/query': '智能查询',
-  '/users': '用户管理',
-  '/profile': '个人信息',
 }
 const pageTitle = computed(() => {
   if (route.path.match(/^\/meetings\/\d+\/edit$/)) return '编辑会议'
   if (route.path.match(/^\/meetings\/\d+$/)) return '会议详情'
   return titleMap[route.path] || 'MeetingMind'
 })
-
-function navigateTo(path) {
-  router.push(path)
-}
 
 function logout() {
   userStore.logout()

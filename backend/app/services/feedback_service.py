@@ -1,15 +1,14 @@
 """反馈服务 - 支持 Bad Case 管理和迭代改进"""
-from typing import List, Dict, Any, Optional
+import uuid
 from datetime import datetime
+from typing import List, Dict, Any, Optional
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logger import app_logger
-from app.core.config import settings
 from app.models.feedback import (
-    Feedback, BadCase, ImprovementRecord, PerformanceMetric,
+    Feedback, BadCase, ImprovementRecord,
     FeedbackType, BadCaseCategory, ResolutionStatus
 )
-from app.agents.reflection import reflection_system, EvaluationMetric
 
 
 class FeedbackService:
@@ -31,7 +30,7 @@ class FeedbackService:
     ) -> Feedback:
         """添加反馈"""
         feedback = Feedback(
-            feedback_id=f"fb_{int(datetime.now().timestamp())}",
+            feedback_id=f"fb_{uuid.uuid4().hex}",
             type=feedback_type,
             input_text=input_text,
             output_text=output_text,
@@ -46,18 +45,6 @@ class FeedbackService:
         await self.db.commit()
         await self.db.refresh(feedback)
         
-        # 同步到内存反思系统
-        reflection_system.add_feedback(
-            type=feedback_type,
-            input_text=input_text,
-            output_text=output_text,
-            rating=rating,
-            comment=comment,
-            metrics=metrics,
-            corrections=corrections,
-            context=context
-        )
-        
         # 自动创建 Bad Case（评分低于3分或失败类型）
         if (rating is not None and rating < 3) or feedback_type == FeedbackType.FAILURE:
             await self._auto_create_bad_case(feedback)
@@ -71,7 +58,7 @@ class FeedbackService:
         category = self._determine_category(feedback)
         
         bad_case = BadCase(
-            bad_case_id=f"bc_{int(datetime.now().timestamp())}",
+            bad_case_id=f"bc_{uuid.uuid4().hex}",
             category=category,
             input_text=feedback.input_text,
             actual_output=feedback.output_text,
@@ -114,7 +101,7 @@ class FeedbackService:
     ) -> BadCase:
         """手动添加 Bad Case"""
         bad_case = BadCase(
-            bad_case_id=f"bc_{int(datetime.now().timestamp())}",
+            bad_case_id=f"bc_{uuid.uuid4().hex}",
             category=category,
             input_text=input_text,
             actual_output=actual_output,
@@ -186,15 +173,8 @@ class FeedbackService:
         if not bad_case:
             raise ValueError(f"Bad Case 不存在: {bad_case_id}")
         
-        # 使用反思系统进行分析
-        metrics = reflection_system.perform_self_evaluation(
-            bad_case.input_text,
-            bad_case.actual_output
-        )
-        
-        # 生成分析报告
-        analysis = self._generate_analysis(bad_case, metrics)
-        improvement_plan = self._generate_improvement_plan(bad_case, metrics)
+        analysis = self._generate_analysis(bad_case)
+        improvement_plan = self._generate_improvement_plan(bad_case)
         
         bad_case.analysis = analysis
         bad_case.improvement_plan = improvement_plan
@@ -206,8 +186,8 @@ class FeedbackService:
         app_logger.info(f"[Feedback] 分析 Bad Case: {bad_case_id}")
         return bad_case
     
-    def _generate_analysis(self, bad_case: BadCase, metrics: Dict) -> str:
-        """生成分析报告"""
+    def _generate_analysis(self, bad_case: BadCase) -> str:
+        """生成可核验的确定性分析，不伪造模型评分。"""
         analysis_parts = []
         
         if bad_case.category == BadCaseCategory.FACTUAL_ERROR:
@@ -217,16 +197,14 @@ class FeedbackService:
         else:
             analysis_parts.append(f"问题类型：{bad_case.category.value}")
         
-        if metrics:
-            analysis_parts.append(f"\n自我评估指标：")
-            for metric, score in metrics.items():
-                analysis_parts.append(f"  - {metric.value}: {score:.2f}")
-        
-        analysis_parts.append("\n建议：需要进一步分析根本原因并实施改进。")
+        analysis_parts.append(
+            "是否提供期望输出：" + ("是" if bad_case.expected_output else "否")
+        )
+        analysis_parts.append("建议：补充人工期望输出，加入统一离线回归集后再验证修复效果。")
         
         return "\n".join(analysis_parts)
     
-    def _generate_improvement_plan(self, bad_case: BadCase, metrics: Dict) -> str:
+    def _generate_improvement_plan(self, bad_case: BadCase) -> str:
         """生成改进计划"""
         plan_items = []
         
@@ -262,7 +240,7 @@ class FeedbackService:
             raise ValueError(f"Bad Case 不存在: {bad_case_id}")
         
         record = ImprovementRecord(
-            improvement_id=f"imp_{int(datetime.now().timestamp())}",
+            improvement_id=f"imp_{uuid.uuid4().hex}",
             bad_case_id=bad_case.id,
             action_type=action_type,
             description=description,
@@ -329,61 +307,6 @@ class FeedbackService:
         
         result = await self.db.execute(query)
         return result.scalars().all()
-    
-    async def get_performance_report(self) -> Dict[str, Any]:
-        """获取性能报告"""
-        # 从数据库获取统计（分开查询避免隐式交叉连接）
-        fb_result = await self.db.execute(
-            select(
-                func.count(Feedback.id).label("total_feedbacks"),
-                func.avg(Feedback.rating).label("avg_rating"),
-            )
-        )
-        fb_stats = fb_result.first()
-        bc_result = await self.db.execute(
-            select(func.count(BadCase.id).label("total_bad_cases"))
-        )
-        bc_stats = bc_result.first()
-
-        class _Stats:
-            def __init__(self):
-                self.total_feedbacks = fb_stats[0] if fb_stats else 0
-                self.avg_rating = fb_stats[1] if fb_stats else None
-                self.total_bad_cases = bc_stats[0] if bc_stats else 0
-
-        stats = _Stats()
-        
-        # 获取按评分分布
-        rating_result = await self.db.execute(
-            select(Feedback.rating, func.count(Feedback.id))
-            .where(Feedback.rating.isnot(None))
-            .group_by(Feedback.rating)
-        )
-        rating_dist = {r[0]: r[1] for r in rating_result.all()}
-        
-        # 获取按状态分布的 Bad Case
-        status_result = await self.db.execute(
-            select(BadCase.resolution_status, func.count(BadCase.id))
-            .group_by(BadCase.resolution_status)
-        )
-        status_dist = {str(r[0]): r[1] for r in status_result.all()}
-        
-        return {
-            "total_feedbacks": stats.total_feedbacks or 0,
-            "avg_rating": round(stats.avg_rating, 2) if stats.avg_rating else 0.0,
-            "rating_distribution": rating_dist,
-            "total_bad_cases": stats.total_bad_cases or 0,
-            "bad_case_status_distribution": status_dist,
-            "success_rate": self._calculate_success_rate(rating_dist)
-        }
-    
-    def _calculate_success_rate(self, rating_dist: Dict[int, int]) -> float:
-        """计算成功率"""
-        total = sum(rating_dist.values())
-        if total == 0:
-            return 0.0
-        successful = rating_dist.get(4, 0) + rating_dist.get(5, 0)
-        return round(successful / total, 2)
     
     async def analyze_bad_case_patterns(self, limit: int = 10) -> List[Dict[str, Any]]:
         """分析 Bad Case 模式"""

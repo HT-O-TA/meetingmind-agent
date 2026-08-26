@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.database import get_db
-from app.schemas.text_process import RAGAskRequest
+from app.schemas.rag import RAGAskRequest
 from app.services.rag_service import RAGService
 from app.services.vector_search_service import VectorSearchService
 from app.services.llm_service import LLMService

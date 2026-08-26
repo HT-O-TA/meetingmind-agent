@@ -302,8 +302,6 @@ class VectorSearchService:
             query=query_text,
             top_k=top_k,
             filters=filters if filters else None,
-            dense_weight=1.0,
-            sparse_weight=0.0,
         )
         
         # 标准化结果（确保有 chunk_id）
@@ -753,18 +751,13 @@ class VectorSearchService:
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
         similarity_threshold: float = 0.0,
-        enable_bm25: bool = True,
-        enable_vector: bool = True,
         enable_rerank: bool = True,
-        strategy: Optional[str] = None,
         access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """
         多路召回检索 - BM25 + 向量检索 + 重排序
         
-        支持两种策略：
-        - 策略A（当前）：BM25 + dense向量 + 加权融合
-        - 策略B（目标）：BM25 + dense向量 + sparse向量 + RRF融合
+        正式策略：BM25 + dense 向量 + 加权融合 + Reranker。
         
         Args:
             query_text: 查询文本
@@ -773,127 +766,60 @@ class VectorSearchService:
             meeting_id: 指定会议ID
             department: 指定部门
             similarity_threshold: 相似度阈值
-            enable_bm25: 是否启用BM25检索
-            enable_vector: 是否启用向量检索
             enable_rerank: 是否启用重排序
-            strategy: 检索策略，'A'或'B'，默认为配置文件中的设置
             
         Returns:
             检索结果列表
         """
         from app.services.enhanced_retrieval_fusion import get_enhanced_retrieval_fusion
         
-        # 使用配置文件中的策略或传入的策略
-        current_strategy = strategy or settings.RETRIEVAL_STRATEGY
+        current_strategy = "A"
         retrieval_started_at = time.perf_counter()
         degradation_reasons = []
         app_logger.debug(f"[MultiRetrieval] 使用策略: {current_strategy}")
         
-        # 获取增强版融合器
         fusion = get_enhanced_retrieval_fusion(strategy=current_strategy)
         
         # 执行向量检索（dense）
         dense_results = []
         dense_started_at = time.perf_counter()
-        if enable_vector:
-            dense_results = await self.search_by_text(
-                query_text=query_text,
-                top_k=top_k * 2,  # 多取一些用于重排序
-                document_ids=document_ids,
-                meeting_id=meeting_id,
-                department=department,
-                similarity_threshold=similarity_threshold,
-                access_context=access_context,
-            )
-            # 转换格式，添加 score 字段
-            for r in dense_results:
-                r['score'] = r.get('score', r.get('similarity', 0))
-                r['doc_id'] = r.get('chunk_id', r.get('document_id', 0))
+        dense_results = await self.search_by_text(
+            query_text=query_text,
+            top_k=top_k * 2,  # 多取一些用于重排序
+            document_ids=document_ids,
+            meeting_id=meeting_id,
+            department=department,
+            similarity_threshold=similarity_threshold,
+            access_context=access_context,
+        )
+        for r in dense_results:
+            r['score'] = r.get('score', r.get('similarity', 0))
+            r['doc_id'] = r.get('chunk_id', r.get('document_id', 0))
         dense_latency_ms = (time.perf_counter() - dense_started_at) * 1000
         
-        # 执行BM25检索（如果启用）
+        # 关键词召回失败时保留 Dense 降级结果。
         bm25_results = []
         bm25_started_at = time.perf_counter()
-        if enable_bm25:
-            try:
-                from app.services.bm25_retriever import get_bm25_retriever
-                
-                bm25_retriever = get_bm25_retriever()
-                
-                bm25_results = await bm25_retriever.search(
-                    query=query_text,
-                    top_k=top_k * 2,
-                    meeting_id=meeting_id,
-                    document_ids=document_ids,
-                    department=department,
-                    access_context=access_context,
-                )
-            except Exception as e:
-                app_logger.warning(f"BM25检索失败，跳过: {e}")
-                degradation_reasons.append("bm25_failed")
+        try:
+            from app.services.bm25_retriever import get_bm25_retriever
+
+            bm25_retriever = get_bm25_retriever()
+            bm25_results = await bm25_retriever.search(
+                query=query_text,
+                top_k=top_k * 2,
+                meeting_id=meeting_id,
+                document_ids=document_ids,
+                department=department,
+                access_context=access_context,
+            )
+        except Exception as e:
+            app_logger.warning(f"BM25检索失败，降级为 Dense: {e}")
+            degradation_reasons.append("bm25_failed")
         bm25_latency_ms = (time.perf_counter() - bm25_started_at) * 1000
-        
-        # 方案 A 不构建任何额外稀疏索引；Milvus Sparse 已从正式链路移除。
-        sparse_index = None
-        if current_strategy == 'B' and settings.ENABLE_SPARSE_RETRIEVAL:
-            try:
-                # 获取文档内容用于构建稀疏索引
-                docs_for_sparse = []
-                if document_ids:
-                    for doc_id in document_ids:
-                        chunks = await self.get_document_chunks(doc_id, access_context=access_context)
-                        if chunks:
-                            full_content = "\n".join(c.get('chunk_text', '') for c in chunks)
-                            docs_for_sparse.append({'id': doc_id, 'content': full_content})
-                else:
-                    # 获取所有文档
-                    from app.models.document import Document
-                    document_query = select(Document.id, Document.content).where(
-                        Document.deleted_at.is_(None)
-                    )
-                    if access_context and not access_context.is_admin:
-                        acl_terms = []
-                        if access_context.allow_public:
-                            acl_terms.append(Document.is_public.is_(True))
-                        if access_context.user_id is not None:
-                            acl_terms.append(Document.uploader_id == access_context.user_id)
-                        if access_context.department:
-                            acl_terms.append(Document.department == access_context.department)
-                        document_query = document_query.where(
-                            or_(*acl_terms) if acl_terms else false()
-                        )
-                        if access_context.document_scope is not None:
-                            document_query = document_query.where(
-                                Document.id.in_(access_context.document_scope)
-                                if access_context.document_scope
-                                else false()
-                            )
-                        if access_context.meeting_ids:
-                            document_query = document_query.where(
-                                Document.meeting_id.in_(access_context.meeting_ids)
-                            )
-                    result = await self.db.execute(document_query)
-                    for row in result.fetchall():
-                        doc_id, content = row
-                        if content:
-                            docs_for_sparse.append({'id': doc_id, 'content': content})
-                
-                # 构建稀疏索引
-                sparse_index = fusion._build_sparse_index(docs_for_sparse)
-            except Exception as e:
-                app_logger.warning(f"构建稀疏索引失败，将跳过稀疏检索: {e}")
-        
         # 如果不启用重排序，直接融合返回
         if not enable_rerank:
             fusion_started_at = time.perf_counter()
-            # 根据策略选择融合方式
-            if current_strategy == 'B':
-                # 使用RRF融合
-                sparse_results = fusion._sparse_search(query_text, sparse_index, top_k=top_k * 2) if sparse_index else []
-                fused_results = fusion._rrf_fusion(bm25_results, dense_results, sparse_results)
-            else:
-                # 使用加权融合
-                fused_results = fusion._weighted_fusion(bm25_results, dense_results)
+            fused_results = fusion._weighted_fusion(bm25_results, dense_results)
             final_results = fused_results[:top_k]
             self.last_retrieval_trace = {
                 "schema_version": "retrieval_trace.v1",
@@ -915,7 +841,6 @@ class VectorSearchService:
             query=query_text,
             bm25_results=bm25_results,
             dense_results=dense_results,
-            sparse_index=sparse_index,
             top_k=top_k
         )
         
@@ -933,27 +858,6 @@ class VectorSearchService:
         }
         return results
     
-    async def update_bm25_index(self):
-        """更新BM25索引"""
-        from app.services.multi_retrieval_fusion import get_multi_retrieval_fusion
-        
-        # 获取所有文档内容
-        result = await self.db.execute(
-            select(Document.id, Document.content)
-        )
-        documents = []
-        for row in result.fetchall():
-            doc_id, content = row
-            if content:
-                documents.append({'id': doc_id, 'content': content})
-        
-        # 更新BM25索引
-        fusion = get_multi_retrieval_fusion()
-        fusion.update_bm25_index(documents)
-        
-        app_logger.info(f"BM25索引已更新，共 {len(documents)} 个文档")
-
-
 async def get_vector_search_service() -> VectorSearchService:
     global _global_vector_search_service
     if _global_vector_search_service is None:

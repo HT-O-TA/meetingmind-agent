@@ -494,10 +494,7 @@ async def test_replan_uses_weighted_score_instead_of_llm_overall(nodes):
         "generate_minutes",
         "detect_controversies",
     ]
-    assert any(
-        "缺少待办事项和争议点" in (thought.get("observation") or "")
-        for thought in result["cot_thoughts"]
-    )
+    assert "缺少待办事项和争议点" in result["reflection"]["issues"]
 
 
 @pytest.mark.asyncio

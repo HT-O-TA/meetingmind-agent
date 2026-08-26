@@ -3,98 +3,73 @@ import pytest
 from app.services.semantic_chunker import ChunkingConfig, ChunkingStrategy, SemanticChunker
 
 
+def _chunker(**overrides):
+    return SemanticChunker(
+        config=ChunkingConfig(
+            min_chunk_size=overrides.get("min_chunk_size", 20),
+            max_chunk_size=overrides.get("max_chunk_size", 80),
+            chunk_overlap=overrides.get("chunk_overlap", 0),
+            semantic_threshold=overrides.get("semantic_threshold", 0.2),
+        )
+    )
+
+
+def test_only_formal_strategy_is_exposed():
+    assert list(ChunkingStrategy) == [ChunkingStrategy.SPEAKER_AWARE_HYBRID]
+
+
 @pytest.mark.asyncio
-async def test_fixed_size_chunking_uses_overlap():
-    chunker = SemanticChunker(config=ChunkingConfig(
-        strategy=ChunkingStrategy.FIXED_SIZE,
-        max_chunk_size=10,
-        chunk_overlap=3,
-        build_hierarchy=False,
-    ))
+async def test_speaker_path_preserves_speaker_and_timestamp_evidence():
+    text = (
+        "[00:01.50] speaker_0: 项目预算需要财务确认。\n"
+        "[00:05.00] speaker_0: 财务将在周五前完成审核。\n"
+        "[00:09.25] speaker_1: 技术团队随后更新排期。"
+    )
 
-    chunks = await chunker.chunk_document("abcdefghijklmnopqrstuvwxyz", "doc")
-
-    assert [chunk.content for chunk in chunks[:2]] == ["abcdefghij", "hijklmnopq"]
-    assert all(chunk.metadata["source"] == "fixed_size" for chunk in chunks)
-
-
-@pytest.mark.asyncio
-async def test_paragraph_chunking_keeps_paragraph_boundaries():
-    chunker = SemanticChunker(config=ChunkingConfig(
-        strategy=ChunkingStrategy.PARAGRAPH,
-        max_chunk_size=80,
-        chunk_overlap=0,
-        build_hierarchy=False,
-    ))
-
-    text = "第一段介绍项目背景。\n\n第二段说明技术方案。\n\n第三段记录结论。"
-    chunks = await chunker.chunk_document(text, "doc")
+    chunks = await _chunker(min_chunk_size=200, max_chunk_size=200).chunk_document(text, "meeting-7")
 
     assert len(chunks) == 1
-    assert "第一段介绍项目背景" in chunks[0].content
-    assert chunks[0].metadata["source"] == "paragraph"
+    assert chunks[0].chunk_id == "meeting-7_0"
+    assert chunks[0].metadata["source"] == "speaker_aware_hybrid"
+    assert chunks[0].metadata["speakers"] == ["speaker_0", "speaker_1"]
+    assert chunks[0].metadata["speaker_name"] is None
+    assert chunks[0].metadata["time_offset"] == 1.5
+    assert chunks[0].metadata["last_time_offset"] == 9.25
 
 
 @pytest.mark.asyncio
-async def test_recursive_chunking_splits_long_text_by_sentence():
-    chunker = SemanticChunker(config=ChunkingConfig(
-        strategy=ChunkingStrategy.RECURSIVE,
-        max_chunk_size=24,
-        chunk_overlap=0,
-        build_hierarchy=False,
-    ))
+async def test_numeric_speaker_and_tone_only_line_are_supported():
+    text = (
+        "[00:01.00] 0157: 嗯嗯。\n"
+        "[00:02.00] 0157: 负责人将在明天提交方案。"
+    )
 
-    text = "这是第一句话。这是第二句话。这是第三句话。这是第四句话。"
-    chunks = await chunker.chunk_document(text, "doc")
+    chunks = await _chunker().chunk_document(text, "meeting-8")
 
-    assert len(chunks) > 1
-    assert all(len(chunk.content) <= 24 for chunk in chunks)
-    assert all(chunk.metadata["source"] == "recursive" for chunk in chunks)
+    assert len(chunks) == 1
+    assert "嗯嗯" not in chunks[0].content
+    assert chunks[0].metadata["speaker_name"] == "0157"
+    assert chunks[0].metadata["time_offset"] == 2.0
 
 
 @pytest.mark.asyncio
-async def test_semantic_strategy_uses_local_similarity_when_llm_disabled():
-    chunker = SemanticChunker(config=ChunkingConfig(
-        strategy=ChunkingStrategy.SEMANTIC,
-        min_chunk_size=20,
-        max_chunk_size=120,
-        chunk_overlap=0,
-        semantic_threshold=0.2,
-        use_llm_split=False,
-        build_hierarchy=False,
-    ))
-
+async def test_plain_text_uses_explicit_local_fallback_and_overlap():
     text = (
         "项目风险包括延期和资源不足。项目风险需要每周跟进。\n\n"
         "菜谱推荐番茄炒蛋和青椒肉丝。烹饪步骤需要控制火候。"
     )
-    chunks = await chunker.chunk_document(text, "doc")
+
+    chunks = await _chunker(chunk_overlap=4).chunk_document(text, "plain")
 
     assert len(chunks) == 2
-    assert "项目风险" in chunks[0].content
-    assert "菜谱推荐" in chunks[1].content
-    assert all(chunk.metadata["source"] == "local_semantic" for chunk in chunks)
+    assert chunks[0].metadata["source"] == "local_semantic_fallback"
+    assert chunks[0].metadata["has_speaker_info"] is False
+    assert chunks[1].content.startswith(chunks[0].content[-4:])
 
 
 @pytest.mark.asyncio
-async def test_hybrid_strategy_uses_semantic_boundaries_by_default():
-    chunker = SemanticChunker(config=ChunkingConfig(
-        strategy=ChunkingStrategy.SEMANTIC_HYBRID,
-        min_chunk_size=20,
-        max_chunk_size=120,
-        chunk_overlap=0,
-        semantic_threshold=0.2,
-        use_llm_split=False,
-        build_hierarchy=False,
-    ))
+async def test_plain_long_sentence_has_bounded_base_segments():
+    chunks = await _chunker(max_chunk_size=30).chunk_document("测试内容" * 25, "long")
 
-    text = (
-        "会议讨论预算审批和项目排期。预算审批需要财务确认。\n\n"
-        "天气预报显示周末有雨。出行需要携带雨具。"
-    )
-    chunks = await chunker.chunk_document(text, "doc")
-
-    assert len(chunks) == 2
-    assert "预算审批" in chunks[0].content
-    assert "天气预报" in chunks[1].content
-    assert all(chunk.metadata["source"] == "semantic_hybrid" for chunk in chunks)
+    assert len(chunks) >= 3
+    assert all(chunk.content for chunk in chunks)

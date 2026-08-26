@@ -9,7 +9,7 @@ from app.core.config import settings
 
 @pytest.fixture
 def jira_tools(monkeypatch):
-    monkeypatch.setattr(settings, "JIRA_MCP_ENABLED", True)
+    monkeypatch.setattr(settings, "JIRA_ENABLED", True)
     return {tool.metadata.tool_id: tool for tool in get_enterprise_tools()}
 
 

@@ -1,12 +1,10 @@
-"""Milvus向量存储 - 原生支持BGE-M3稀疏向量和混合检索（pymilvus 3.0 兼容）"""
+"""Milvus Dense 向量存储。"""
 import json
 import logging
-from typing import List, Dict, Any, Optional, Tuple
-import numpy as np
+from typing import List, Dict, Any
 from pymilvus import (
     MilvusClient,
     DataType,
-    AnnSearchRequest,
 )
 from pymilvus.model.hybrid import BGEM3EmbeddingFunction
 from app.core.config import settings
@@ -14,34 +12,6 @@ from app.core.logger import app_logger
 
 
 logger = logging.getLogger(__name__)
-
-
-def _sparse_to_dict(sparse_vec) -> Dict[int, float]:
-    """将稀疏向量转换为 Milvus 接受的 {index: value} 格式"""
-    if hasattr(sparse_vec, 'indices') and hasattr(sparse_vec, 'data'):
-        # scipy csr_matrix 格式
-        result = {}
-        for idx, val in zip(sparse_vec.indices, sparse_vec.data):
-            if val > 0:
-                result[int(idx)] = float(val)
-        return result
-    elif isinstance(sparse_vec, dict):
-        # 已经是 dict 格式
-        return {int(k): float(v) for k, v in sparse_vec.items()}
-    elif isinstance(sparse_vec, tuple) and len(sparse_vec) == 2:
-        # (indices, values) 格式
-        indices, values = sparse_vec
-        return {int(idx): float(val) for idx, val in zip(indices, values) if val > 0}
-    else:
-        # 尝试从 numpy 数组转换
-        try:
-            if hasattr(sparse_vec, 'nonzero'):
-                nonzero_indices = np.nonzero(sparse_vec)[0]
-                return {int(idx): float(sparse_vec[idx]) for idx in nonzero_indices if sparse_vec[idx] > 0}
-        except Exception:
-            pass
-        return {}
-
 
 class MilvusVectorStore:
     def __init__(self):
@@ -55,7 +25,6 @@ class MilvusVectorStore:
             device="cuda" if hasattr(settings, 'USE_GPU') and settings.USE_GPU else "cpu",
         )
         self.dense_dim = self.embedding_fn.dim["dense"]
-        self.sparse_dim = self.embedding_fn.dim["sparse"]
         self.collection_name = settings.VECTOR_COLLECTION_NAME
 
         self._init_collection()
@@ -166,18 +135,13 @@ class MilvusVectorStore:
         query: str,
         top_k: int = 10,
         filters: Dict[str, Any] = None,
-        dense_weight: float = 1.0,
-        sparse_weight: float = 1.0,
     ) -> List[Dict[str, Any]]:
-        """
-        混合检索 - 同时使用Dense和Sparse向量
+        """执行 Dense 向量检索。
 
         Args:
             query: 查询文本
             top_k: 返回结果数量
             filters: 过滤条件
-            dense_weight: 稠密向量权重
-            sparse_weight: 稀疏向量权重
 
         Returns:
             检索结果列表
@@ -189,18 +153,7 @@ class MilvusVectorStore:
         if not isinstance(dense_embedding, list):
             dense_embedding = dense_embedding.tolist()
 
-        req_list = []
-
-        dense_search_param = {
-            "data": [dense_embedding],
-            "anns_field": "dense_vector",
-            "param": {"metric_type": "IP"},
-            "limit": top_k * 3,
-        }
-        if filters:
-            dense_search_param["expr"] = self._build_filter_expr(filters)
-        dense_req = AnnSearchRequest(**dense_search_param)
-        req_list.append(dense_req)
+        filter_expr = self._build_filter_expr(filters) if filters else None
 
         results = self.client.search(
             collection_name=self.collection_name,
@@ -208,7 +161,7 @@ class MilvusVectorStore:
             anns_field="dense_vector",
             search_params={"metric_type": "IP"},
             limit=top_k,
-            filter=dense_search_param.get("expr"),
+            filter=filter_expr,
             output_fields=["content", "document_id", "chunk_id", "metadata", "meeting_id", "department"],
         )
 
@@ -230,6 +183,9 @@ class MilvusVectorStore:
         """构建Milvus过滤表达式"""
         conditions = []
         for key, value in filters.items():
+            if key == "expr":
+                conditions.append(f"({value})")
+                continue
             if isinstance(value, list):
                 values_str = ",".join([f'"{v}"' for v in value])
                 conditions.append(f'{key} in [{values_str}]')

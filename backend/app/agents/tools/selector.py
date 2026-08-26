@@ -235,13 +235,13 @@ class ToolSelector:
         """
         # 任务类型到工具的映射
         task_type_tools = {
-            "retrieve": ["search_meeting", "search_document", "knowledge_base_search"],
+            "retrieve": ["search_meeting", "search_document"],
             "qa": [],
             "minutes": ["generate_minutes"],
             "todo": ["extract_todos"],
-            "controversy": ["extract_controversies"],
+            "controversy": ["detect_controversies"],
             "combine": [],
-            "multi": ["search_meeting", "extract_todos", "extract_controversies", "generate_minutes"],
+            "multi": ["search_meeting", "extract_todos", "detect_controversies", "generate_minutes"],
         }
         
         tool_ids = task_type_tools.get(task_type.lower(), [])

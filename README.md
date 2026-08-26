@@ -1,226 +1,86 @@
 # MeetingMind
 
-MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。项目目标不是堆叠 AI 概念，而是形成一条可运行、可评估、可部署、可用于技术讲解的会议知识处理闭环。
+MeetingMind 是一个面向 AI 应用开发学习与求职展示的会议知识应用。仓库只保留能形成真实证据链的 RAG、Agent、结构化抽取、安全工具调用、异步任务、ASR、微调实验与可复现部署，不再维护“概念齐全但没有业务闭环”的框架。
 
-当前仓库的正式主线是：
+## 唯一正式主链
 
 ```text
-会议文本/文档或 WAV 音频
-→ 文本解析，或 RabbitMQ + FunASR 转写与匿名说话人时间线
+会议文档 / WAV 音频
+→ 文档解析，或 RabbitMQ + FunASR 转写
 → 说话人感知分块
-→ PostgreSQL 正文存储与 Milvus Dense 索引
+→ PostgreSQL 正文 + Milvus Dense 索引
 → PostgreSQL 关键词召回 + Dense 召回
-→ 加权融合 + BGE Reranker
-→ Simple RAG 或 LangGraph Tool Agent
-→ 参数 Schema / ToolPolicy / HITL / ToolExecutor / PostgreSQL 审计
+→ 0.3 / 0.7 加权融合 + BGE Reranker
+→ RAG 回答与引用
+→ LangGraph 确定性业务节点或 Tool Agent
+→ 参数 Schema → ToolPolicy → HITL → ToolExecutor → PostgreSQL 审计
 ```
 
-## 当前真实性状态
+## 保留能力与真实性边界
 
-| 能力 | 状态 | 说明 |
+| 能力 | 当前实现 | 仍需补齐 |
 |---|---|---|
-| 文档解析与分块 | 已实现，待完整集成基线 | 正式策略为说话人感知混合分块 |
-| RAG HTTP 主链路 | 已建立版本化契约 | `/api/v1/rag/ask` 使用方案 A，强制认证并返回引用/降级/时延 |
-| 关键词召回 | 已实现 | PostgreSQL `tsvector + ts_rank_cd`，属于 BM25 风格检索 |
-| Dense 召回 | 已实现，依赖运行环境 | Milvus 优先，失败回退 pgvector 或轻量余弦检索 |
-| Fusion + Reranker | 已实现契约测试 | 0.3 关键词权重 + 0.7 Dense 权重，权重仍需离线评测 |
-| Agent | 已收敛默认边界 | 默认只保留 Simple RAG、确定性业务节点和 Tool Agent；检索继承用户 ACL |
-| ToolPolicy / HITL | 安全链路与持久审计已验证 | Jira Cloud 为唯一正式目标；缺少本机凭据，真实站点联调待完成 |
-| RabbitMQ 任务 | 可靠性基线已完成 | Confirm、manual ACK、延迟重试、DLQ、幂等、用户隔离及单机轻量容量已验证 |
-| RAG 评估 | 离线命令已统一 | 支持 RAG/抽取/工具/路由/系统指标；当前没有可对外引用的真实效果数字 |
-| KG / Neo4j | 可选增强，默认关闭 | 不进入正式 RAG 请求路径 |
-| MCP | 可选框架，默认关闭 | 尚未完成唯一真实外部 Server 联调 |
-| ASR | 真实本地闭环，可选启用 | WAV → RabbitMQ → FunASR → 会议正文/时间戳/匿名说话人；公开烟测已完成，会议领域基线待真实数据 |
-| 图片/视频多模态 | 骨架，默认关闭 | 不计入已实现能力 |
-| LoRA / QLoRA | 独立教学闭环已完成 | Qwen3-0.6B 两种真实训练和四组公平评测；仅合成数据，不代表真实会议效果，不进入默认线上链路 |
-| 部署 / CI | 开发核心已验证 | 轻量 Web/Worker 镜像、Compose、失败关闭预检和 CI 门禁已完成；不等于生产高可用验收 |
+| RAG | BM25 风格关键词召回、Milvus Dense、加权融合、Reranker、引用、ACL、降级字段 | 冻结的真实会议评测集与正式指标 |
+| Agent | 静态 LangGraph；路由、检索、纪要/待办/争议、计划执行、风险确认、质量门禁、结构修复 | 真实业务数据上的路由与端到端效果 |
+| 工具调用 | 会议/文档工具；Jira Cloud REST v3；Schema、策略、HITL、幂等和审计 | Jira 站点凭据与真实项目写入演示 |
+| 异步任务 | RabbitMQ confirm、manual ACK、延迟重试、DLQ、幂等任务状态 | 多节点高可用与真实容量验收 |
+| ASR | 独立 FunASR 环境；WAV 队列、时间戳、匿名说话人、证据入库 | 脱敏多人会议真值和 CER/DER |
+| LoRA/QLoRA | Qwen3-0.6B 待办抽取教学实验和统一评测 | 真实会议标注集；当前合成结果不可外推 |
+| 评估 | 一个离线命令统一计算检索、抽取、路由、工具指标 | 真实数据阈值与持续回归 |
+| Trace | 有界进程内节点 Trace，只记录真实节点、耗时、重试、输出和错误 | 跨进程持久化不在当前范围 |
+| 部署 | 前后端镜像、PostgreSQL、Redis、RabbitMQ、Worker Compose 和 CI | TLS、备份、Secret Manager、HA、生产容量 |
 
-文档 ACL、软删除回查和答案引用已完成代码/契约及 PostgreSQL 集成验证。当前仍不能将 Sparse/RRF、完整多模态、真实企业系统写入、端到端生产部署或合成样例/历史性能数字宣传为已完成能力。
+## 已删除的非主线内容
 
-## 正式 RAG 路径
+深度瘦身阶段已直接删除，而不是保留关闭开关：
 
-```text
-POST /api/v1/rag/ask
-→ RAGService
-→ Dense 召回
-   → Redis 精确缓存
-   → Milvus 召回 chunk_id
-   → PostgreSQL 回查完整正文
-   → 失败时 pgvector / Python 余弦回退
-→ PostgreSQL 关键词召回
-→ 按 chunk_id 去重和加权融合
-→ 可选 KG 候选扩展（默认关闭）
-→ Reranker 从候选池精排到最终 top_k
-→ LLM 生成或返回检索内容
-```
+- Knowledge Graph / Neo4j 与图谱前端；
+- MCP Client/Server、飞书/GitHub/Notion 示例和动态工具发现；
+- Multi-Agent、Agent 通信、Prompt 市场、通用 ReAct/CoT 分支；
+- HyDE、Multi-Query、Step-back、Sparse/RRF 策略 B/M；
+- 图片/视频“多模态骨架”，仅保留已经跑通的本地 ASR；
+- PostgreSQL/Redis/向量三套长期记忆与反思记忆，改为有界会话窗口；
+- RAGAS、DSPy、重复评估/回归服务；
+- 动态配置中心、后台用户管理、成本/性能/模板/测试等管理接口；
+- Prometheus/Grafana、通用 Fault Tolerance、Locust 等非 AI 主链展示内容。
 
-正式策略明确不包含 Sparse、RRF、Query Rewrite、HyDE、Multi-Query 或 Step-back。这些历史实现只有在离线评测证明收益后才允许重新进入主线。
-
-详细代码走读见：
-
-- [RAG 主链路走读与契约基线](docs/优化路径记录/03_RAG主链路走读与契约基线.md)
-- [主链路真实性审计](docs/优化路径记录/02_主链路真实性审计.md)
-- [Agent 主链路与阶段 0 运行基线](docs/优化路径记录/04_Agent主链路与阶段0基线.md)
-- [阶段 1 RAG 权限、路由与统一评估](docs/优化路径记录/05_阶段1_RAG权限路由与统一评估.md)
-- [阶段 2 Agent 安全工具闭环](docs/优化路径记录/06_阶段2_Agent安全工具闭环.md)
-- [阶段 3 RabbitMQ 失败恢复与容量基线](docs/优化路径记录/07_阶段3_RabbitMQ失败恢复与容量基线.md)
-- [阶段 4 真实 ASR 与音频证据闭环](docs/优化路径记录/08_阶段4_真实ASR与音频证据闭环.md)
-- [阶段 5 LoRA / QLoRA 可复现实验](docs/优化路径记录/09_阶段5_LoRA与QLoRA可复现实验.md)
-- [阶段 6 部署、CI、固定 Demo 与求职证据](docs/优化路径记录/10_阶段6_部署CI固定Demo与求职证据.md)
-
-## 正式 Agent 边界
-
-默认 LangGraph 包含两类业务路径：
-
-1. Simple RAG：安全检查、风险判断、检索、确定性问答/纪要/待办/争议节点、质量校验。
-2. Tool Agent：规划、工具风险检查、必要时 HITL、执行、重规划和质量校验。
-
-ReAct、CoT 和深度 LLM 反思代码暂时保留，但默认不注册到正式图中。Query Rewrite、反思记忆和 Multi-Agent 同样默认关闭或退出默认 Router。
-
-## API 暴露边界
-
-生产环境默认只注册：
-
-- 用户、会议、文档、待办；
-- 文本处理；
-- RAG 与 Agent；
-- 用户反馈；
-- 异步任务状态。
-
-Embedding、底层向量检索、评估、运行配置、Prompt 模板、Trace、性能、记忆、动态工具、反思和成本接口只在 `development` 或 `test` 环境注册。
-
-以下历史 Router 不再进入默认应用：
-
-- HTTP 测试执行器；
-- Workflow mock；
-- Agent Collaboration；
-- Multi-Agent。
-
-KG 和 MCP Router 只有在对应配置显式开启时才注册。
+如要恢复任何能力，先提出可验证的业务问题、数据集和验收指标，再重新实现；不从 Git 历史直接恢复成默认功能。
 
 ## 技术栈
 
-| 层次 | 当前选型 |
+| 层 | 选型 |
 |---|---|
-| API | FastAPI、Pydantic、Uvicorn |
-| 数据访问 | SQLAlchemy 2.0 Async、PostgreSQL |
-| 关键词检索 | PostgreSQL tsvector / ts_rank_cd |
-| Dense 检索 | Milvus，pgvector/轻量模式降级 |
-| Embedding / Reranker | BGE-M3、BGE-Reranker（运行时依赖模型） |
-| Agent | LangGraph、自定义状态与工具体系 |
-| 缓存与状态 | Redis |
+| API / Schema | FastAPI、Pydantic、JSON Schema |
+| Agent | LangGraph、自定义状态、Tool Calling、HITL |
+| 检索 | PostgreSQL tsvector、Milvus Dense、BGE-M3、BGE-Reranker |
+| 数据与状态 | PostgreSQL、Redis |
 | 异步任务 | RabbitMQ、aio-pika、Worker |
-| 可选图谱 | Neo4j |
+| ASR | FunASR（独立可选环境） |
+| 微调 | Transformers、PEFT、bitsandbytes（独立实验环境） |
 | 前端 | Vue 3、Vite、Element Plus、Pinia |
-| 观测 | Trace、Prometheus 指标框架 |
 
-## 配置原则
+## API 边界
 
-复制示例配置后再填入本机信息：
+生产环境注册：
 
-```bash
-cp backend/.env.example backend/.env
-```
+- `/api/v1/users`：注册、登录、当前用户；
+- `/api/v1/meetings`、`/documents`、`/todos`：会议知识业务；
+- `/api/v1/rag`：带 ACL 与引用的 RAG；
+- `/api/v1/agents`：查询、SSE、批量和 HITL；
+- `/api/v1/feedback`：反馈与 Bad Case；
+- `/api/v1/tasks`：异步任务状态。
 
-以下能力默认关闭：
+`/api/v1/trace` 只在 development/test 注册。完整字段见 [API 文档](docs/api.md)。
 
-```dotenv
-RETRIEVAL_STRATEGY=A
-ENABLE_SPARSE_RETRIEVAL=false
-ENABLE_QUERY_REWRITE=false
-ENABLE_HYDE=false
-ENABLE_MULTI_QUERY=false
-ENABLE_STEP_BACK=false
-ENABLE_KNOWLEDGE_GRAPH=false
-ENABLE_NEO4J_PERSISTENCE=false
-ENABLE_MULTIMODAL=false
-ENABLE_ASR=false
-ENABLE_MCP_SERVER=false
-ENABLE_AGENT_WORKER=false
-```
+## 本地开发
 
-`.env` 是本机私有文件，不应提交 API Key、Token 或密码。可公开配置应同步到 `.env.example`，真实密钥只通过环境变量或后续的 SecretProvider 注入。
-
-## 测试
-
-### 零外部依赖契约测试
-
-当前最小基线不要求 FastAPI、数据库、Milvus、Redis 或模型：
-
-```bash
-cd backend
-python3 -m unittest discover -s tests/contracts -v
-```
-
-该基线验证：
-
-- RAG 层与检索层的方法和字段契约；
-- Milvus 成功路径的缓存写入；
-- BM25/Dense 融合后的完整正文；
-- 精排候选池与最终 `top_k`；
-- Agent 图只编译一次；
-- 正式 Agent 默认节点边界；
-- 生产、内部、可选和退役 Router 的暴露策略；
-- 未经验证的可选能力默认关闭。
-
-### 完整测试
-
-当前轻量核心测试不要求数据库、Redis、Milvus 或本地模型。首次创建环境：
+后端核心环境：
 
 ```bash
 cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements-core.txt
-./scripts/run_core_tests.sh -q
-```
-
-2026-08-26 阶段 6 最终轻量核心基线为 `175 passed, 2 skipped`；真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`，前端为 `44 passed`。另行完成真实 FunASR 队列业务烟测、两次单卡 Adapter 训练、四组生成式抽取评测、三组固定 Demo 和前后端容器联动。两个核心跳过项依赖未安装的模型能力；Milvus、真实会议抽取真值、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
-
-统一离线评估命令：
-
-```bash
-cd backend
-python3 scripts/evaluate.py --allow-synthetic \
-  --dataset evaluation/datasets/sample_eval.jsonl \
-  --output evaluation/reports/sample_report.json
-```
-
-仓库样例明确标记为 `synthetic`，只验证公式和报告格式。真实回归必须换成冻结的 `sample_kind=real` 数据，并显式启用回归阈值。
-
-## Compose 一键启动
-
-默认 Compose 启动轻量核心，不包含 Torch、FunASR、本地模型或 Milvus：
-
-```bash
-cp .env.example .env
-python3 scripts/preflight_deploy.py --mode development
-docker-compose up -d --build
-docker-compose ps
-curl --fail http://127.0.0.1:8000/health
-curl --fail http://127.0.0.1:8080/
-```
-
-Neo4j 和观测组件分别使用 `knowledge-graph`、`observability` profile。LLM 调用仍需私有 `LLM_API_KEY`；ASR 与微调推理按阶段 4/5 文档使用独立环境。
-
-生产参考配置必须先执行：
-
-```bash
-python3 scripts/preflight_deploy.py --mode production --env-file /path/to/production.env
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
-```
-
-该覆盖层会在密钥缺失或弱配置时失败；它尚未覆盖 TLS、备份、Secret Manager、多节点高可用和容量验收。
-
-## 源码开发启动
-
-Python 依赖：
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
 cp .env.example .env
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
@@ -233,32 +93,68 @@ npm install
 npm run dev
 ```
 
-开发核心已用 PostgreSQL、Redis、RabbitMQ、后端和前端容器完成冷启动、健康检查与 Nginx API 代理验证。模型服务与 Web 已明确解耦；默认 Compose 没有编排 Milvus/本地模型，因此不能把它描述为完整 AI 生产栈。
+本地模型、ASR 和微调分别使用 `requirements-asr.txt`、`requirements-finetuning.txt` 及对应阶段文档，不安装进 Web/Worker 镜像。
 
-## 项目路线
+## Compose 启动
 
-阶段 0-6 已按照[JD 对标与项目收敛路线](docs/JD对标与项目收敛路线.md)完成当前机器可独立执行的工作：
+默认 Compose 只启动 PostgreSQL、Redis、RabbitMQ、后端、Worker 和前端：
 
-1. 完成真实性审计、主链路和测试环境收敛；
-2. 建立 RAG 离线评估、引用、ACL 和指标；
-3. 完成 ToolPolicy、HITL、审计和一个真实企业写工具；
-4. 完成 RabbitMQ 失败恢复和容量基线；
-5. 接入一种真实 ASR；
-6. 建立会议抽取 LoRA/QLoRA 对比实验；
-7. 完成可复现开发部署、固定 Demo、报告和简历证据。
+```bash
+cp .env.example .env
+python3 scripts/preflight_deploy.py --mode development
+docker-compose up -d --build
+curl --fail http://127.0.0.1:8000/health
+curl --fail http://127.0.0.1:8080/
+```
 
-所有对外描述和简历数字都必须能绑定到代码、测试命令、数据版本和实验报告。
+默认镜像不包含 Torch、FunASR、本地 Embedding/Reranker 模型或 Milvus，因此 Compose 通过表示 Web 主链可启动，不表示完整模型能力或生产环境已经验收。
 
-## 当前未满足的完成标准
+## 测试与评估
 
-- 已有无 mock 的 WAV → RabbitMQ → FunASR → PostgreSQL 证据链路；尚无从会议输入到真实 Jira 写入的完整外部业务闭环；
-- 已有统一评估命令，但尚无冻结真实数据生成的正式指标；
-- 文档 ACL 和答案引用已完成，Milvus/真实数据规模下的效果与容量仍待验证；
-- Jira 已替换为真实 REST v3 客户端并完成合同测试，但因缺少站点凭据与项目权限，尚未完成真实外部写演示；
-- RabbitMQ 单机失败恢复与轻量容量基线已完成；多节点 quorum 高可用和真实文档/模型容量尚未验证；
-- 真实 FunASR 与公开样例/队列烟测已完成，但缺少脱敏多人会议真值，尚无会议领域 CER/DER；
-- LoRA/QLoRA 合成数据实验与推理 Demo 已完成，但尚无双人复核的真实会议标注集；
-- 开发 Compose 和 CI 已验证；生产 TLS、备份恢复、Secret Manager、多节点高可用、SBOM/漏洞扫描与真实容量仍未验收；
-- 三个固定 Demo 的代码和录制脚本已完成，视频文件仍需人工口述录屏并检查隐私。
+零外部依赖的主链契约：
 
-这些限制会随路线执行逐项关闭，并在每个里程碑中留下代码、测试和学习记录。
+```bash
+cd backend
+python3 -m unittest \
+  tests.contracts.test_stage0_boundaries \
+  tests.contracts.test_rag_mainline_contract -v
+```
+
+完整核心测试：
+
+```bash
+cd backend
+./scripts/run_core_tests.sh -q
+```
+
+前端：
+
+```bash
+cd frontend
+npm test -- --run
+npm run build
+```
+
+统一离线评估：
+
+```bash
+cd backend
+python3 scripts/evaluate.py --allow-synthetic \
+  --dataset evaluation/datasets/sample_eval.jsonl \
+  --output evaluation/reports/sample_report.json
+```
+
+仓库样例标记为 `synthetic`，只能验证公式和报告格式。简历和 README 中的效果数字必须来自冻结的 `sample_kind=real` 数据。
+
+## 学习路线与证据
+
+- [JD 对标与项目收敛路线](docs/JD对标与项目收敛路线.md)
+- [阶段 1：RAG 权限、路由与统一评估](docs/优化路径记录/05_阶段1_RAG权限路由与统一评估.md)
+- [阶段 2：Agent 安全工具闭环](docs/优化路径记录/06_阶段2_Agent安全工具闭环.md)
+- [阶段 3：RabbitMQ 失败恢复](docs/优化路径记录/07_阶段3_RabbitMQ失败恢复与容量基线.md)
+- [阶段 4：真实 ASR](docs/优化路径记录/08_阶段4_真实ASR与音频证据闭环.md)
+- [阶段 5：LoRA/QLoRA](docs/优化路径记录/09_阶段5_LoRA与QLoRA可复现实验.md)
+- [阶段 6：部署与 CI](docs/优化路径记录/10_阶段6_部署CI固定Demo与求职证据.md)
+- [阶段 7：深度瘦身与 AI 应用岗位聚焦](docs/优化路径记录/11_阶段7_深度瘦身与AI应用岗位聚焦.md)
+
+项目的学习目标不是记住框架名称，而是能回答：为什么保留这条主链、输入输出契约是什么、失败边界在哪里、指标如何复现、哪些结论目前还不能说。

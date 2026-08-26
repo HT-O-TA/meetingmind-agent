@@ -23,12 +23,7 @@ services:
       LLM_API_BASE: ${LLM_API_BASE:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       LLM_API_KEY: ${LLM_API_KEY:-}
       LLM_MODEL: ${LLM_MODEL:-qwen3.6-plus}
-      ENABLE_AGENT_WORKER: "false"
-      ENABLE_KNOWLEDGE_GRAPH: "false"
-      ENABLE_NEO4J_PERSISTENCE: "false"
       ENABLE_ASR: "false"
-      ENABLE_MULTIMODAL: "false"
-      ENABLE_MCP_SERVER: "false"
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
 
   worker:
@@ -39,9 +34,4 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:?production POSTGRES_PASSWORD is required}@postgres:5432/meetingmind
       REDIS_URL: redis://redis:6379/0
       RABBITMQ_URL: amqp://${RABBITMQ_USER:?production RABBITMQ_USER is required}:${RABBITMQ_PASSWORD:?production RABBITMQ_PASSWORD is required}@rabbitmq:5672
-      ENABLE_AGENT_WORKER: "false"
-      ENABLE_KNOWLEDGE_GRAPH: "false"
-      ENABLE_NEO4J_PERSISTENCE: "false"
       ENABLE_ASR: "false"
-      ENABLE_MULTIMODAL: "false"
-      ENABLE_MCP_SERVER: "false"

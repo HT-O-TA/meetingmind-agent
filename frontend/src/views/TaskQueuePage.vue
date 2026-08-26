@@ -10,7 +10,6 @@
         <el-option label="全部" value="" />
         <el-option label="文档处理" value="document_process" />
         <el-option label="向量化" value="vector_embed" />
-        <el-option label="知识图谱" value="knowledge_graph" />
       </el-select>
       <el-select v-model="filters.status" placeholder="任务状态" style="width: 150px;">
         <el-option label="全部" value="" />
@@ -213,16 +212,14 @@ function viewResult(task) {
 function getTaskTypeLabel(type) {
  const map = {
  'document_process': '文档处理',
- 'vector_embed': '向量化',
- 'knowledge_graph': '知识图谱'
+ 'vector_embed': '向量化'
  };
  return map[type] || type;
 }
 function getTaskTypeTag(type) {
  const map = {
  'document_process': 'primary',
- 'vector_embed': 'success',
- 'knowledge_graph': 'warning'
+ 'vector_embed': 'success'
  };
  return map[type] || 'info';
 }
@@ -390,5 +387,4 @@ onUnmounted(() => {
   font-weight: 600;
 }
 </style>
-
 

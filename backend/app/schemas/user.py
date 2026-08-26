@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime
 
 
@@ -9,32 +9,11 @@ class UserCreate(BaseModel):
     password: str
     full_name: Optional[str] = None
     department: Optional[str] = None
-    role: Optional[str] = "user"
 
 
 class UserLogin(BaseModel):
     username: str
     password: str
-
-
-class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
-    department: Optional[str] = None
-    avatar: Optional[str] = None
-
-
-class UserUpdateByAdmin(BaseModel):
-    """管理员更新用户信息"""
-    full_name: Optional[str] = None
-    department: Optional[str] = None
-    role: Optional[str] = None
-    is_active: Optional[bool] = None
-    password: Optional[str] = None
-
-
-class UserPermissionsUpdate(BaseModel):
-    """更新用户权限"""
-    permissions: List[str]
 
 
 class UserOut(BaseModel):

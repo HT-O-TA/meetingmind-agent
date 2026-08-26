@@ -50,6 +50,12 @@ def mock_vector_search_service():
     mock.search_by_text.return_value = [
         {"document_id": "doc1", "content": "测试内容", "speaker_name": "测试用户", "similarity": 0.9}
     ]
+    mock.search_with_multi_retrieval.return_value = [
+        {"document_id": "doc1", "content": "测试内容", "speaker_name": "测试用户", "similarity": 0.9}
+    ]
+    mock.get_document_chunks.return_value = [
+        {"id": 1, "document_id": 1, "chunk_text": "测试内容"}
+    ]
     return mock
 
 

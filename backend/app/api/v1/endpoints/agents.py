@@ -1,19 +1,16 @@
-"""Agent API 端点 - 支持 Tool Calling + 监控 + Prompt 管理 + 人机协作
-"""
+"""Agent 查询、流式事件与高风险工具确认端点。"""
 import asyncio
 import time
 from typing import Optional, List, Dict, Any
-from fastapi import APIRouter, Depends, Body, UploadFile, File, Form
+from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
 from app.agents.agent_service import AgentService
 from app.agents.session_context import SessionContext, generate_session_id, generate_conversation_id
-from app.services.multimodal_gateway import get_multimodal_gateway, MultimodalStatus
 from app.core.dependencies import get_llm_service, get_vector_search_service
 from app.core.logger import app_logger
-from app.services.performance_metrics import record_performance
 from app.core.deps import get_current_user
 from app.core.security import AccessContext
 from app.models.user import User
@@ -34,7 +31,7 @@ class ConfirmationResumeRequest(BaseModel):
 
 router = APIRouter(tags=["Agent"])
 
-# 进程级单例缓存，key = (enable_memory, enable_tool_calling)
+# 进程级单例缓存按人机确认策略隔离。
 # VectorSearchService 持有 db session，不能跨请求复用，每次请求注入新实例。
 # AgentService 本身（含 session_memories）跨请求持久化。
 _agent_service_cache: Dict[tuple, AgentService] = {}
@@ -44,29 +41,22 @@ _cache_lock = asyncio.Lock()
 async def get_agent_service(
     llm_service: LLMService,
     vector_search_service: VectorSearchService,
-    enable_memory: bool = True,
-    enable_tool_calling: bool = False,
     enable_human_in_the_loop: bool = False,
 ) -> AgentService:
     """获取或复用 AgentService 实例，保证 session_memories 跨请求持久化"""
-    cache_key = (enable_memory, enable_tool_calling, enable_human_in_the_loop)
+    cache_key = (enable_human_in_the_loop,)
     async with _cache_lock:
         if cache_key not in _agent_service_cache:
             _agent_service_cache[cache_key] = AgentService(
                 llm_service=llm_service,
                 vector_search_service=vector_search_service,
-                enable_checkpointer=False,
-                enable_memory=enable_memory,
-                enable_tool_calling=enable_tool_calling,
                 enable_human_in_the_loop=enable_human_in_the_loop,
                 max_short_term_turns=10,
-                max_long_term_items=1000,
             )
         else:
-            # 更新底层服务（db session 每次请求不同）
+            # 图节点和工具都可能捕获请求级 db session，必须整体刷新依赖。
             svc = _agent_service_cache[cache_key]
-            svc.llm_service = llm_service
-            svc.vector_search_service = vector_search_service
+            svc.refresh_dependencies(llm_service, vector_search_service)
     return _agent_service_cache[cache_key]
 
 
@@ -85,8 +75,6 @@ class AgentQueryRequest(BaseModel):
     session_id: Optional[str] = None
     conversation_id: Optional[str] = None
     user_id: Optional[int] = None
-    enable_memory: bool = True
-    enable_tool_calling: bool = True
     enable_human_in_the_loop: bool = False
 
 
@@ -98,15 +86,6 @@ class AgentBatchRequest(BaseModel):
     session_id: Optional[str] = None
     conversation_id: Optional[str] = None
     user_id: Optional[int] = None
-    enable_tool_calling: bool = False
-    enable_memory: bool = True
-
-
-class AgentMemoryRequest(BaseModel):
-    """Agent 记忆操作请求"""
-    session_id: str
-    action: str
-    checkpoint: Optional[Dict[str, Any]] = None
 
 
 @router.post("/query")
@@ -121,8 +100,6 @@ async def agent_query(
     agent_service = await get_agent_service(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
-        enable_memory=request.enable_memory,
-        enable_tool_calling=request.enable_tool_calling,
         enable_human_in_the_loop=request.enable_human_in_the_loop
     )
 
@@ -135,7 +112,7 @@ async def agent_query(
         access_scope=AccessContext.from_user(current_user).cache_scope(),
     )
 
-    app_logger.info(f"[API] Agent查询 - Tool Calling: {request.enable_tool_calling}, thread_id: {context.thread_id}")
+    app_logger.info(f"[API] Agent查询 - thread_id: {context.thread_id}")
 
     result = await agent_service.process_query_with_context(
         question=request.question,
@@ -144,8 +121,6 @@ async def agent_query(
     )
     
     latency_ms = (time.time() - start_time) * 1000
-    await record_performance(latency_ms=latency_ms)
-
     response_data = {
         "success": result.success,
         "task_type": result.task_type.value if result.task_type else "qa",
@@ -188,106 +163,6 @@ async def agent_query(
     return response_data
 
 
-@router.post("/query-multimodal")
-async def agent_query_multimodal(
-    question: str = Form(...),
-    file: Optional[UploadFile] = File(None),
-    meeting_id: Optional[int] = Form(None),
-    document_ids: Optional[str] = Form(None),
-    session_id: Optional[str] = Form(None),
-    conversation_id: Optional[str] = Form(None),
-    user_id: Optional[int] = Form(None),
-    enable_memory: bool = Form(True),
-    enable_tool_calling: bool = Form(True),
-    enable_human_in_the_loop: bool = Form(False),
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-    current_user: User = Depends(get_current_user),
-):
-    """多模态查询 - 支持上传图片/音频/文档"""
-    start_time = time.time()
-
-    # 处理 document_ids
-    doc_ids = None
-    if document_ids:
-        try:
-            doc_ids = json.loads(document_ids)
-        except json.JSONDecodeError:
-            doc_ids = None
-
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-        enable_memory=enable_memory,
-        enable_tool_calling=enable_tool_calling,
-        enable_human_in_the_loop=enable_human_in_the_loop,
-    )
-
-    # 处理多模态文件
-    gateway = get_multimodal_gateway()
-    multimodal_text = ""
-
-    if file:
-        file_content = await file.read()
-        file_result = await gateway.process_upload(
-            filename=file.filename or "unknown",
-            content=file_content,
-            content_type=file.content_type,
-        )
-
-        if file_result.status == MultimodalStatus.SUCCESS:
-            multimodal_text = file_result.text_description
-            app_logger.info(f"[多模态] 文件处理成功: {file.filename}, 耗时: {file_result.processing_time_ms:.0f}ms")
-        elif file_result.status == MultimodalStatus.SKIPPED:
-            app_logger.warning(f"[多模态] {file_result.error_message}")
-        else:
-            app_logger.warning(f"[多模态] 文件处理失败: {file_result.error_message}")
-            # 失败时继续，但不包含文件内容
-
-    # 合并问题描述
-    full_question = question
-    if multimodal_text:
-        full_question = f"{question}\n\n[附件内容]:\n{multimodal_text}"
-
-    # 构建 SessionContext
-    context = SessionContext(
-        user_id=current_user.id,
-        session_id=session_id or generate_session_id(),
-        conversation_id=conversation_id or generate_conversation_id(),
-        meeting_id=meeting_id,
-        access_scope=AccessContext.from_user(current_user).cache_scope(),
-    )
-
-    app_logger.info(f"[API] 多模态查询 - thread_id: {context.thread_id}, has_file: {bool(file)}")
-
-    result = await agent_service.process_query_with_context(
-        question=full_question,
-        context=context,
-        document_ids=doc_ids,
-    )
-
-    latency_ms = (time.time() - start_time) * 1000
-    await record_performance(latency_ms=latency_ms)
-
-    return {
-        "success": result.success,
-        "answer": result.answer,
-        "task_type": result.task_type.value if result.task_type else "qa",
-        "citations": result.citations,
-        "error": result.error,
-        "latency_ms": round(latency_ms, 2),
-        "session_id": context.session_id,
-        "conversation_id": context.conversation_id,
-        "thread_id": context.thread_id,
-        "meeting_id": context.meeting_id,
-        # 多模态处理信息
-        "multimodal": {
-            "file_processed": bool(file and multimodal_text),
-            "file_description": multimodal_text[:200] if multimodal_text else "",
-        },
-    }
-
-
 @router.post("/query-stream")
 async def agent_query_stream(
     request: AgentQueryRequest,
@@ -307,8 +182,6 @@ async def agent_query_stream(
         agent_service = await get_agent_service(
             llm_service=llm_service,
             vector_search_service=vector_search_service,
-            enable_memory=request.enable_memory,
-            enable_tool_calling=request.enable_tool_calling,
             enable_human_in_the_loop=request.enable_human_in_the_loop
         )
 
@@ -321,7 +194,7 @@ async def agent_query_stream(
             access_scope=AccessContext.from_user(current_user).cache_scope(),
         )
 
-        app_logger.info(f"[API] Agent流式查询 - Tool Calling: {request.enable_tool_calling}, thread_id: {context.thread_id}")
+        app_logger.info(f"[API] Agent流式查询 - thread_id: {context.thread_id}")
 
         try:
             task = asyncio.create_task(agent_service.process_query_with_context(
@@ -405,8 +278,6 @@ async def agent_batch_query(
     agent_service = await get_agent_service(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
-        enable_memory=request.enable_memory,
-        enable_tool_calling=request.enable_tool_calling
     )
 
     context = SessionContext(
@@ -438,108 +309,6 @@ async def agent_batch_query(
             for r in results
         ]
     }
-
-
-@router.post("/memory")
-async def agent_memory_operation(
-    request: AgentMemoryRequest,
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-):
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-    )
-
-    if request.action == "clear":
-        agent_service.clear_session_memory(request.session_id)
-        return {"message": f"会话 {request.session_id} 记忆已清空"}
-    elif request.action == "stats":
-        stats = agent_service.get_memory_stats(request.session_id)
-        return {"stats": stats}
-    elif request.action == "save_checkpoint":
-        checkpoint = agent_service.save_checkpoint(request.session_id)
-        return {"checkpoint": checkpoint}
-    elif request.action == "load_checkpoint" and request.checkpoint:
-        agent_service.load_checkpoint(request.session_id, request.checkpoint)
-        return {"message": "检查点已加载"}
-    else:
-        return {"error": f"未知操作: {request.action}"}
-
-
-@router.get("/memory/stats")
-async def get_memory_stats(
-    session_id: Optional[str] = None,
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-):
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-    )
-    return agent_service.get_memory_stats(session_id)
-
-
-@router.get("/architecture")
-async def get_agent_architecture(
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-):
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-    )
-    return agent_service.get_agent_architecture()
-
-
-@router.get("/prompts")
-async def get_prompt_templates(
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-):
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-    )
-    return {"templates": agent_service.get_prompt_templates()}
-
-
-@router.get("/tools")
-async def get_tools_info(
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-):
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-        enable_tool_calling=True,
-    )
-    return agent_service.get_tools_info() or {"tools": []}
-
-
-@router.get("/errors/recent")
-async def get_recent_errors(
-    limit: int = 20,
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-):
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-    )
-    return {"errors": agent_service.get_recent_errors(limit)}
-
-
-@router.get("/monitor/status")
-async def get_monitor_status(
-    llm_service: LLMService = Depends(get_llm_service),
-    vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-):
-    agent_service = await get_agent_service(
-        llm_service=llm_service,
-        vector_search_service=vector_search_service,
-    )
-    return agent_service.get_monitor_status()
 
 
 # ==================== 人机协作 API 端点 ====================
@@ -624,7 +393,6 @@ async def resume_confirmation(
     agent_service = await get_agent_service(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
-        enable_tool_calling=True,
         enable_human_in_the_loop=True,
     )
     return await agent_service.resume_confirmation(

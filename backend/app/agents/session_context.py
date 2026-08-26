@@ -61,31 +61,6 @@ class SessionContext:
             return (parts[0], parts[1])
         return (thread_id, "default")
 
-    def to_redis_key(self) -> str:
-        """生成 Redis 缓存 Key（会话级）"""
-        base = f"session:{self.session_id}"
-        if self.meeting_id:
-            base += f":meeting:{self.meeting_id}"
-        return base
-
-    def to_checkpointer_key(self) -> str:
-        """生成 Checkpointer Key"""
-        return f"checkpoint:{self.thread_id}"
-
-    def to_memory_key(self) -> str:
-        """生成记忆系统 Key"""
-        return f"memory:{self.session_id}"
-
-    def to_short_term_key(self) -> str:
-        """生成短期记忆 Key"""
-        return f"memory:{self.session_id}:short_term"
-
-    def to_long_term_key(self) -> str:
-        """生成长期记忆 Key（按会议）"""
-        if self.meeting_id:
-            return f"memory:{self.session_id}:meeting:{self.meeting_id}:long_term"
-        return f"memory:{self.session_id}:long_term"
-
     def to_hitl_key(self) -> str:
         """生成人机协作 Key"""
         return f"hitl:thread:{self.thread_id}"

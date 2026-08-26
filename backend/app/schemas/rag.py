@@ -6,6 +6,19 @@ from pydantic import BaseModel, Field
 from app.core.response import Response
 
 
+class RAGAskRequest(BaseModel):
+    """RAG 问答请求。"""
+
+    question: str = Field(..., description="用户问题", min_length=1)
+    top_k: Optional[int] = Field(None, description="检索返回数量", ge=1, le=50)
+    meeting_id: Optional[int] = Field(None, description="指定会议 ID")
+    department: Optional[str] = Field(None, description="指定部门")
+    similarity_threshold: Optional[float] = Field(
+        None, description="相似度阈值", ge=0.0, le=1.0
+    )
+    use_llm: bool = Field(True, description="是否使用 LLM 生成回答")
+
+
 class Citation(BaseModel):
     citation_id: str
     source_id: str
@@ -41,6 +54,7 @@ class RAGResult(BaseModel):
     expanded_query_count: int = 1
     retrieval_strategy: str = "A"
     retrieval_sources: List[str] = Field(default_factory=list)
+    retrieval_stage_metrics: Dict[str, Any] = Field(default_factory=dict)
     retrieval_latency_ms: float = 0.0
     generation_latency_ms: float = 0.0
     total_latency_ms: float = 0.0

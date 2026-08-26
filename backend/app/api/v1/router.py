@@ -10,10 +10,6 @@ from app.core.config import settings
 
 api_router = APIRouter()
 
-for module_name, prefix, tag in enabled_router_specs(
-    settings.APP_ENV,
-    enable_knowledge_graph=settings.ENABLE_KNOWLEDGE_GRAPH,
-    enable_mcp_server=settings.ENABLE_MCP_SERVER,
-):
+for module_name, prefix, tag in enabled_router_specs(settings.APP_ENV):
     endpoint = import_module(f"app.api.v1.endpoints.{module_name}")
     api_router.include_router(endpoint.router, prefix=prefix, tags=[tag])

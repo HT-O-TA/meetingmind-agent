@@ -1,12 +1,10 @@
 """LLM 服务封装"""
 import asyncio
-import time
 from typing import List, Dict, Optional
 from openai import AsyncOpenAI, RateLimitError
 from httpx import Timeout
 from app.core.config import settings
 from app.core.logger import app_logger
-from app.services.performance_metrics import get_performance_metrics
 
 # LLM 限流重试配置
 _LLM_MAX_RETRIES = 3
@@ -91,27 +89,12 @@ class LLMService:
         last_error = None
         for attempt in range(_LLM_MAX_RETRIES):
             try:
-                llm_start_time = time.time()
                 response = await self._get_client().chat.completions.create(
                     model=model or settings.LLM_MODEL,
                     messages=messages,
                     temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
                     max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
                 )
-                llm_latency_ms = (time.time() - llm_start_time) * 1000
-
-                # 记录真实 Token 消耗
-                usage = getattr(response, "usage", None)
-                if usage:
-                    get_performance_metrics().record_token_usage(
-                        prompt_tokens=getattr(usage, "prompt_tokens", 0),
-                        completion_tokens=getattr(usage, "completion_tokens", 0),
-                        latency_ms=llm_latency_ms,
-                        model=model or settings.LLM_MODEL,
-                    )
-                else:
-                    get_performance_metrics().record_request(latency_ms=llm_latency_ms)
-
                 return response.choices[0].message.content
 
             except RateLimitError as e:

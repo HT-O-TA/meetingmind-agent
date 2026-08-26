@@ -5,7 +5,6 @@ import asyncio
 from app.core.logger import app_logger
 from app.agents.tools.registry import get_tool_registry
 from app.agents.tools.tool_metadata import ToolExecutionResult
-from app.services.performance_metrics import get_performance_metrics
 from app.agents.tools.meeting_tools import (
     MeetingSearchTool,
     TodoExtractionTool,
@@ -14,7 +13,6 @@ from app.agents.tools.meeting_tools import (
     QAAnswerTool,
     DocumentContentTool,
     DocumentSearchTool,
-    TextProcessorTool
 )
 
 class ToolExecutor:
@@ -44,7 +42,6 @@ class ToolExecutor:
             "answer_question",
             "get_document_content",
             "search_document",
-            "text_processor",
             "jira_create_issue",
             "jira_get_issue",
             "jira_update_issue",
@@ -123,7 +120,13 @@ class ToolExecutor:
         for attempt in range(retry_count):
             try:
                 # 获取工具实例并执行
-                result = await self._execute_tool(tool_id, params, llm_service, vector_search_service)
+                result = await self._execute_tool(
+                    tool_id,
+                    params,
+                    llm_service,
+                    vector_search_service,
+                    context,
+                )
                 
                 if result is not None:
                     execution_time = time.time() - start_time
@@ -134,14 +137,6 @@ class ToolExecutor:
                     
                     # 记录执行历史
                     self._record_execution(tool_id, params, result, True)
-                    
-                    # 记录工具执行性能指标
-                    get_performance_metrics().record_tool_execution(
-                        tool_id=tool_id,
-                        success=True,
-                        latency_ms=execution_time * 1000,
-                        retry_count=attempt
-                    )
                     
                     return ToolExecutionResult(
                         tool_id=tool_id,
@@ -182,7 +177,8 @@ class ToolExecutor:
         tool_id: str,
         params: Dict[str, Any],
         llm_service=None,
-        vector_search_service=None
+        vector_search_service=None,
+        context: Optional[Dict[str, Any]] = None,
     ) -> Any:
         """
         执行具体的工具
@@ -215,7 +211,10 @@ class ToolExecutor:
             app_logger.info(f"[Executor] 执行工具: {tool_id} (实际ID: {actual_tool_id})")
             
             # 转换参数为工具期望的格式
-            result = await tool_instance.execute(**params)
+            execution_params = dict(params)
+            if actual_tool_id in {"search_meeting", "search_document", "get_document_content"}:
+                execution_params["access_scope"] = (context or {}).get("access_scope")
+            result = await tool_instance.execute(**execution_params)
             
             # 统一返回格式
             if hasattr(result, 'result'):
@@ -278,14 +277,15 @@ class ToolExecutor:
                     return None
                 instance = QAAnswerTool(llm_service)
             elif tool_id == "get_document_content":
-                instance = DocumentContentTool()
+                if not vector_search_service:
+                    app_logger.warning("[Executor] get_document_content 需要 vector_search_service")
+                    return None
+                instance = DocumentContentTool(vector_search_service)
             elif tool_id == "search_document":
                 if not vector_search_service:
                     app_logger.warning("[Executor] search_document 需要 vector_search_service")
                     return None
                 instance = DocumentSearchTool(vector_search_service)
-            elif tool_id == "text_processor":
-                instance = TextProcessorTool()
             elif tool_id.startswith("jira_"):
                 from app.agents.tools.enterprise_tools import execute_jira_tool
                 class JiraToolAdapter:
@@ -324,7 +324,7 @@ class ToolExecutor:
         if parallel:
             # 并行执行
             tasks_coroutines = [
-                self.execute(task["tool_id"], task.get("params", {}), context)
+                self.execute(task["tool_id"], task.get("params", {}), context=context)
                 for task in tasks
             ]
             return await asyncio.gather(*tasks_coroutines)
@@ -332,7 +332,9 @@ class ToolExecutor:
             # 顺序执行
             results = []
             for task in tasks:
-                result = await self.execute(task["tool_id"], task.get("params", {}), context)
+                result = await self.execute(
+                    task["tool_id"], task.get("params", {}), context=context
+                )
                 results.append(result)
             return results
     
@@ -358,7 +360,7 @@ class ToolExecutor:
         
         # 创建协程
         coroutines = [
-            self.execute(tool_id, params, context)
+            self.execute(tool_id, params, context=context)
             for tool_id, params in zip(tool_ids, params_list)
         ]
         
@@ -370,20 +372,6 @@ class ToolExecutor:
             tool_id: result
             for tool_id, result in zip(tool_ids, results)
         }
-    
-    async def _execute_with_builtin(
-        self,
-        tool_id: str,
-        params: Dict[str, Any],
-        context: Optional[Dict[str, Any]],
-    ) -> Optional[Any]:
-        """使用内置执行器执行工具"""
-        try:
-            # 对于内置工具，直接调用
-            return execute_builtin_tool(tool_id, params, context)
-        except Exception as e:
-            app_logger.warning(f"[Executor] 内置执行器执行失败: {tool_id}, {e}")
-            return None
     
     def _generate_cache_key(self, tool_id: str, params: Dict[str, Any]) -> str:
         """生成缓存键"""

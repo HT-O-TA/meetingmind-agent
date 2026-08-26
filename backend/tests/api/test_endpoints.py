@@ -295,7 +295,7 @@ def test_todo_routes_cover_crud_bulk_and_stats(client, monkeypatch):
     assert client.delete("/api/v1/todos/40").json()["message"] == "删除成功"
 
 
-def test_user_routes_cover_register_login_profile_and_list(admin_client, monkeypatch):
+def test_user_routes_cover_register_login_and_profile(admin_client, monkeypatch):
     from app.api.v1.endpoints import users as users_endpoint
 
     class FakeUserService:
@@ -307,12 +307,6 @@ def test_user_routes_cover_register_login_profile_and_list(admin_client, monkeyp
 
         async def authenticate(self, username, password):
             return make_user(username=username)
-
-        async def update(self, user_id, data):
-            return make_user(id=user_id, full_name=data.full_name)
-
-        async def list_users(self, page, page_size, keyword):
-            return [make_user()], 1
 
     monkeypatch.setattr(users_endpoint, "UserService", FakeUserService)
     monkeypatch.setattr(users_endpoint, "create_access_token", lambda data: "token-for-test")
@@ -328,8 +322,8 @@ def test_user_routes_cover_register_login_profile_and_list(admin_client, monkeyp
         json={"username": "tester", "password": "secret123"},
     ).json()["data"]["access_token"] == "token-for-test"
     assert admin_client.get("/api/v1/users/me").json()["data"]["username"] == "tester"
-    assert admin_client.put("/api/v1/users/me", json={"full_name": "Renamed"}).json()["data"]["full_name"] == "Renamed"
-    assert admin_client.get("/api/v1/users").json()["total"] == 1
+    assert admin_client.put("/api/v1/users/me", json={"full_name": "Renamed"}).status_code == 405
+    assert admin_client.get("/api/v1/users").status_code == 404
 
 
 def test_rag_requires_auth_and_low_level_retrieval_routes_are_internal(client, authenticated_client):
@@ -376,7 +370,7 @@ def test_agent_query_returns_policy_and_pending_action(authenticated_client, mon
                 validation_errors=["confirmation_required: 高风险工具未获得人工确认"],
                 policy_results=[
                     {
-                        "tool_name": "send_notification",
+                        "tool_name": "jira_create_issue",
                         "code": "confirmation_required",
                         "allowed": False,
                         "reason": "高风险工具未获得人工确认",
@@ -392,8 +386,8 @@ def test_agent_query_returns_policy_and_pending_action(authenticated_client, mon
                 confirmation_status="required",
                 pending_action={
                     "source": "tool",
-                    "reason": "工具风险评估：send_notification:high",
-                    "tool_calls": [{"tool_name": "send_notification", "arguments": {}}],
+                    "reason": "工具风险评估：jira_create_issue:high",
+                    "tool_calls": [{"tool_name": "jira_create_issue", "arguments": {}}],
                 },
             )
 
@@ -402,7 +396,7 @@ def test_agent_query_returns_policy_and_pending_action(authenticated_client, mon
 
     monkeypatch.setattr(agents_endpoint, "get_agent_service", fake_get_agent_service)
 
-    response = authenticated_client.post("/api/v1/agents/query", json={"question": "发送通知"}).json()
+    response = authenticated_client.post("/api/v1/agents/query", json={"question": "创建 Jira 任务"}).json()
 
     assert response["policy_results"][0]["code"] == "confirmation_required"
     assert response["pending_action"]["source"] == "tool"
@@ -421,7 +415,7 @@ def test_agent_confirmation_resume_endpoint(authenticated_client, monkeypatch):
                 "result": {
                     "answer": "已继续执行",
                     "confirmation_status": "approved",
-                    "policy_results": [{"tool_name": "send_notification", "code": "allowed"}],
+                    "policy_results": [{"tool_name": "jira_create_issue", "code": "allowed"}],
                 },
             }
 

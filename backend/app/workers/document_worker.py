@@ -9,7 +9,6 @@ from app.services.task_queue import (
     task_queue_service,
     TaskStatus,
     create_vector_embed_task,
-    create_knowledge_graph_task
 )
 from app.services.document_service import DocumentService
 from app.services.embedding_service import EmbeddingService
@@ -97,22 +96,6 @@ class DocumentWorker:
                         f"Vector child task publish failed: {vector_task.task_id}"
                     )
                 
-                # 触发知识图谱构建任务
-                kg_task = None
-                if settings.ENABLE_KNOWLEDGE_GRAPH:
-                    kg_task = await create_knowledge_graph_task(
-                        document_id=document_id,
-                        chunk_ids=chunk_ids,
-                        user_id=user_id,
-                        idempotency_key=self._child_idempotency_key(
-                            "kg", document_id, chunk_ids
-                        ),
-                    )
-                    if kg_task.status == TaskStatus.PUBLISH_FAILED.value:
-                        raise RuntimeError(
-                            f"Knowledge graph child task publish failed: {kg_task.task_id}"
-                        )
-                
                 await task_queue_service.update_task_status(
                     task_id,
                     TaskStatus.PROCESSING,
@@ -125,7 +108,6 @@ class DocumentWorker:
                 "chunks_created": len(chunks),
                 "chunk_ids": chunk_ids,
                 "vector_task_id": vector_task.task_id if chunk_ids else None,
-                "knowledge_graph_task_id": kg_task.task_id if chunk_ids and kg_task else None,
                 "message": "Document processed successfully"
             }
             
@@ -228,126 +210,9 @@ class VectorWorker:
             raise
 
 
-class KnowledgeGraphWorker:
-    """知识图谱Worker"""
-    
-    def __init__(self):
-        self.is_running = False
-    
-    async def process_knowledge_graph(self, task_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """处理知识图谱构建"""
-        try:
-            document_id = payload.get("document_id")
-            chunk_ids = payload.get("chunk_ids", [])
-            
-            logger.info(f"Building knowledge graph for document {document_id}, chunks: {len(chunk_ids)}")
-            
-            await task_queue_service.update_task_status(
-                task_id,
-                TaskStatus.PROCESSING,
-                progress=10
-            )
-            
-            # === 实现知识图谱构建逻辑 ===
-            from app.services.knowledge_graph import KnowledgeGraphIndex
-            from app.db.database import AsyncSessionLocal
-            from app.models.vector import VectorChunk
-            
-            # 1. 从数据库获取 chunk 内容
-            documents = []
-            async with AsyncSessionLocal() as session:
-                if chunk_ids:
-                    result = await session.execute(
-                        VectorChunk.__table__.select().where(
-                            VectorChunk.id.in_(chunk_ids)
-                        )
-                    )
-                    for row in result:
-                        documents.append({
-                            "chunk_id": str(row.id),
-                            "content": row.chunk_text,
-                            "document_id": str(row.document_id) if row.document_id else None,
-                            "meeting_id": str(row.meeting_id) if row.meeting_id else None,
-                        })
-                elif document_id:
-                    result = await session.execute(
-                        VectorChunk.__table__.select().where(
-                            VectorChunk.document_id == int(document_id)
-                        )
-                    )
-                    for row in result:
-                        documents.append({
-                            "chunk_id": str(row.id),
-                            "content": row.chunk_text,
-                            "document_id": str(row.document_id) if row.document_id else None,
-                        })
-            
-            if not documents:
-                logger.warning(f"No chunks found for document {document_id}, skipping graph build")
-                result = {
-                    "document_id": document_id,
-                    "chunks_processed": 0,
-                    "entities_extracted": 0,
-                    "relations_extracted": 0,
-                    "message": "No chunks to process"
-                }
-            else:
-                # 2. 构建知识图谱索引
-                index = KnowledgeGraphIndex()
-                graph = await index.build_index(documents)
-                
-                # 3. 可选：保存到 Neo4j（如果启用了持久化）
-                saved_stats = {"saved_entities": 0, "saved_relations": 0}
-                if settings.ENABLE_NEO4J_PERSISTENCE:
-                    try:
-                        saved_stats = await index.save_to_neo4j()
-                        logger.info(f"Saved to Neo4j: {saved_stats}")
-                    except Exception as neo_err:
-                        logger.warning(f"Failed to save to Neo4j (non-critical): {neo_err}")
-                
-                # 4. 返回统计结果
-                entities = list(graph.entities.values())
-                relations = list(graph.relations.values())
-                
-                # 按类型统计实体
-                entities_by_type = {}
-                for entity in entities:
-                    type_name = entity.type.value if hasattr(entity.type, 'value') else str(entity.type)
-                    entities_by_type[type_name] = entities_by_type.get(type_name, 0) + 1
-                
-                result = {
-                    "document_id": document_id,
-                    "chunks_processed": len(documents),
-                    "entities_extracted": len(entities),
-                    "relations_extracted": len(relations),
-                    "entities_by_type": entities_by_type,
-                    "saved_to_neo4j": saved_stats,
-                    "message": f"Knowledge graph built: {len(entities)} entities, {len(relations)} relations from {len(documents)} chunks"
-                }
-            
-            await task_queue_service.update_task_status(
-                task_id,
-                TaskStatus.COMPLETED,
-                progress=100,
-                result=result
-            )
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"Error in knowledge graph building: {e}")
-            await task_queue_service.update_task_status(
-                task_id,
-                TaskStatus.FAILED,
-                error=str(e)
-            )
-            raise
-
-
 # Worker 实例
 document_worker = DocumentWorker()
 vector_worker = VectorWorker()
-knowledge_graph_worker = KnowledgeGraphWorker()
 
 
 async def _run_claimed_task(message_body: Dict[str, Any], processor) -> Any:
@@ -379,12 +244,6 @@ async def process_vector_message(message_body: Dict[str, Any]):
     return await _run_claimed_task(message_body, vector_worker.process_vector_embed)
 
 
-async def process_kg_message(message_body: Dict[str, Any]):
-    """处理知识图谱队列消息"""
-    logger.info("Received KG task: %s", message_body.get("task_id"))
-    return await _run_claimed_task(message_body, knowledge_graph_worker.process_knowledge_graph)
-
-
 async def start_workers():
     """启动所有Worker"""
     logger.info("Starting message queue workers...")
@@ -398,11 +257,6 @@ async def start_workers():
         await rabbitmq_manager.consume_messages(
             settings.QUEUE_VECTOR_EMBED,
             process_vector_message,
-            failure_callback=task_queue_service.record_delivery_failure,
-        ),
-        await rabbitmq_manager.consume_messages(
-            settings.QUEUE_KNOWLEDGE_GRAPH,
-            process_kg_message,
             failure_callback=task_queue_service.record_delivery_failure,
         ),
     ]
@@ -426,5 +280,4 @@ async def stop_workers():
     logger.info("Stopping workers...")
     document_worker.is_running = False
     vector_worker.is_running = False
-    knowledge_graph_worker.is_running = False
     logger.info("All workers stopped")

@@ -31,8 +31,6 @@ class TaskStatus(str, Enum):
 class TaskType(str, Enum):
     DOCUMENT_PROCESS = "document_process"
     VECTOR_EMBED = "vector_embed"
-    KNOWLEDGE_GRAPH = "knowledge_graph"
-    AGENT_EXECUTE = "agent_execute"
     AUDIO_TRANSCRIBE = "audio_transcribe"
 
 
@@ -95,8 +93,6 @@ class TaskQueueService:
         return {
             TaskType.DOCUMENT_PROCESS: settings.QUEUE_DOCUMENT_PROCESS,
             TaskType.VECTOR_EMBED: settings.QUEUE_VECTOR_EMBED,
-            TaskType.KNOWLEDGE_GRAPH: settings.QUEUE_KNOWLEDGE_GRAPH,
-            TaskType.AGENT_EXECUTE: settings.QUEUE_AGENT_EXECUTE,
             TaskType.AUDIO_TRANSCRIBE: settings.QUEUE_AUDIO_TRANSCRIBE,
         }[normalized]
 
@@ -422,23 +418,6 @@ async def create_vector_embed_task(
 ) -> TaskInfo:
     return await task_queue_service.create_task(
         TaskType.VECTOR_EMBED,
-        {"document_id": document_id, "chunk_ids": chunk_ids, "user_id": user_id},
-        metadata,
-        user_id=user_id,
-        idempotency_key=idempotency_key,
-    )
-
-
-async def create_knowledge_graph_task(
-    document_id: int,
-    chunk_ids: List[int],
-    metadata: Optional[Dict[str, Any]] = None,
-    *,
-    user_id: Optional[int] = None,
-    idempotency_key: Optional[str] = None,
-) -> TaskInfo:
-    return await task_queue_service.create_task(
-        TaskType.KNOWLEDGE_GRAPH,
         {"document_id": document_id, "chunk_ids": chunk_ids, "user_id": user_id},
         metadata,
         user_id=user_id,

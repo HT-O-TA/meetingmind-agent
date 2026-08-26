@@ -328,20 +328,6 @@ async def verify_improvement(
     }
 
 
-@router.get("/performance", response_model=Dict[str, Any])
-async def get_performance_report(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-) -> Dict[str, Any]:
-    """
-    获取性能报告
-    """
-    service = await get_feedback_service(db)
-    report = await service.get_performance_report()
-    
-    return report
-
-
 @router.get("/bad-cases/patterns", response_model=List[Dict[str, Any]])
 async def analyze_bad_case_patterns(
     limit: int = 10,

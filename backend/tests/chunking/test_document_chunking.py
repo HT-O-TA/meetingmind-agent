@@ -1,55 +1,49 @@
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from app.services.document_service import DocumentService
+from app.services.semantic_chunker import ChunkingStrategy, SemanticChunker
 
 
 @pytest.mark.asyncio
-async def test_split_document_chunks_uses_basic_chunking_by_default(monkeypatch):
+async def test_split_document_chunks_uses_the_single_formal_strategy(monkeypatch):
     service = DocumentService(MagicMock())
-    service.text_process_service.split_chunks = MagicMock(return_value=["chunk-a", "chunk-b"])
+    chunk_document = AsyncMock(return_value=[
+        SimpleNamespace(
+            content="会议正文",
+            chunk_id="doc-7-0",
+            metadata={"speaker": "speaker_0"},
+        )
+    ])
+    monkeypatch.setattr(SemanticChunker, "chunk_document", chunk_document)
 
+    chunks, metadatas = await service._split_document_chunks("content", document_id=7)
+
+    assert chunks == ["会议正文"]
+    assert metadatas[0]["strategy"] == "speaker_aware_hybrid"
+    assert metadatas[0]["speaker"] == "speaker_0"
+    assert chunk_document.await_args.args == ("content",)
+    assert chunk_document.await_args.kwargs["doc_id"] == "7"
+
+
+@pytest.mark.asyncio
+async def test_split_document_chunks_has_an_explicit_fixed_fallback(monkeypatch):
+    service = DocumentService(MagicMock())
+    service.text_process_service.split_chunks = MagicMock(return_value=["fallback"])
     monkeypatch.setattr(
-        service,
-        "_get_runtime_config",
-        lambda key, fallback: False if key == "processing.enable_semantic_chunking" else fallback,
+        SemanticChunker,
+        "chunk_document",
+        AsyncMock(side_effect=RuntimeError("semantic unavailable")),
     )
 
-    chunks, metadatas = await service._split_document_chunks("content", document_id=1)
+    chunks, metadatas = await service._split_document_chunks("content", document_id=8)
 
-    assert chunks == ["chunk-a", "chunk-b"]
-    assert metadatas == [{}, {}]
+    assert chunks == ["fallback"]
+    assert metadatas == [{"chunking": "fixed_fallback"}]
     service.text_process_service.split_chunks.assert_called_once_with("content")
 
 
-@pytest.mark.asyncio
-async def test_split_document_chunks_uses_semantic_chunking_when_enabled(monkeypatch):
-    service = DocumentService(MagicMock())
-    service.text_process_service.split_chunks = MagicMock(return_value=["fallback"])
-
-    runtime_config = {
-        "processing.enable_semantic_chunking": True,
-        "processing.semantic_chunk_strategy": "paragraph",
-        "processing.semantic_chunk_use_llm": False,
-        "processing.semantic_chunk_preserve_structure": False,
-        "processing.semantic_chunk_min_size": 10,
-        "processing.semantic_chunk_max_size": 200,
-        "processing.semantic_chunk_overlap": 20,
-        "processing.semantic_chunk_build_hierarchy": True,
-    }
-    monkeypatch.setattr(
-        service,
-        "_get_runtime_config",
-        lambda key, fallback: runtime_config.get(key, fallback),
-    )
-
-    content = "第一段内容。\n\n第二段内容。"
-    chunks, metadatas = await service._split_document_chunks(content, document_id=7)
-
-    assert chunks
-    assert service.text_process_service.split_chunks.call_count == 0
-    assert all(metadata["chunking"] == "semantic" for metadata in metadatas)
-    assert all(metadata["strategy"] == "paragraph" for metadata in metadatas)
-    assert all(metadata["use_llm"] is False for metadata in metadatas)
-    assert all("chunk_id" in metadata for metadata in metadatas)
+def test_formal_chunking_enum_is_speaker_aware_hybrid():
+    assert ChunkingStrategy.SPEAKER_AWARE_HYBRID.value == "speaker_aware_hybrid"

@@ -1,5 +1,5 @@
-# 默认启动可复现轻量核心：Web、Worker、前端、PostgreSQL、Redis、RabbitMQ。
-# Neo4j 与观测组件使用 profile；模型/ASR 服务独立于 Web 镜像。
+# 默认启动可复现主链：Web、Worker、前端、PostgreSQL、Redis、RabbitMQ。
+# 本地模型、ASR 与微调环境独立于 Web 镜像。
 
 x-backend-environment: &backend-environment
   APP_NAME: MeetingMind
@@ -18,16 +18,11 @@ x-backend-environment: &backend-environment
   LLM_MODEL: ${LLM_MODEL:-qwen3.6-plus}
   EMBEDDING_DEVICE: cpu
   USE_GPU: "false"
-  ENABLE_AGENT_WORKER: "false"
-  ENABLE_KNOWLEDGE_GRAPH: "false"
-  ENABLE_NEO4J_PERSISTENCE: "false"
   ENABLE_ASR: "false"
-  ENABLE_MULTIMODAL: "false"
-  ENABLE_MCP_SERVER: "false"
-  JIRA_MCP_ENABLED: ${JIRA_MCP_ENABLED:-false}
-  JIRA_MCP_URL: ${JIRA_MCP_URL:-}
-  JIRA_MCP_USERNAME: ${JIRA_MCP_USERNAME:-}
-  JIRA_MCP_API_TOKEN: ${JIRA_MCP_API_TOKEN:-}
+  JIRA_ENABLED: ${JIRA_ENABLED:-false}
+  JIRA_URL: ${JIRA_URL:-}
+  JIRA_USERNAME: ${JIRA_USERNAME:-}
+  JIRA_API_TOKEN: ${JIRA_API_TOKEN:-}
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
 services:
@@ -149,59 +144,6 @@ services:
       start_period: 10s
     networks: [meetingmind-network]
 
-  neo4j:
-    profiles: ["knowledge-graph"]
-    image: neo4j:5.15.0
-    container_name: meetingmind-neo4j
-    restart: unless-stopped
-    environment:
-      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-password}
-    volumes:
-      - neo4j_data:/data
-    ports:
-      - "127.0.0.1:${NEO4J_HTTP_PORT:-7474}:7474"
-      - "127.0.0.1:${NEO4J_BOLT_PORT:-7687}:7687"
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:7474"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
-    networks: [meetingmind-network]
-
-  prometheus:
-    profiles: ["observability"]
-    image: prom/prometheus:v2.51.0
-    container_name: meetingmind-prometheus
-    restart: unless-stopped
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    ports:
-      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks: [meetingmind-network]
-
-  grafana:
-    profiles: ["observability"]
-    image: grafana/grafana:10.4.0
-    container_name: meetingmind-grafana
-    restart: unless-stopped
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
-      GF_USERS_ALLOW_SIGN_UP: "false"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports:
-      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
-    depends_on: [prometheus]
-    networks: [meetingmind-network]
-
 networks:
   meetingmind-network:
     driver: bridge
@@ -211,6 +153,3 @@ volumes:
   redis_data:
   rabbitmq_data:
   backend_uploads:
-  neo4j_data:
-  prometheus_data:
-  grafana_data:

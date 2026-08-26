@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useUserStore } from '@/stores/user'
 
 const routes = [
   { path: '/login', component: () => import('@/views/LoginPage.vue') },
@@ -16,11 +15,9 @@ const routes = [
       { path: 'documents', component: () => import('@/views/DocumentList.vue') },
       { path: 'tasks', component: () => import('@/views/TaskQueuePage.vue') },
       { path: 'feedback', component: () => import('@/views/BadCasePage.vue') },
-      { path: 'graph', component: () => import('@/views/GraphPage.vue') },
       { path: 'query', component: () => import('@/views/QueryPage.vue') },
       { path: 'agent', component: () => import('@/views/AgentDemo.vue') },
       { path: 'trace', component: () => import('@/views/TracePage.vue') },
-      { path: 'users', component: () => import('@/views/UserList.vue') },
     ],
   },
 ]
@@ -30,9 +27,7 @@ const router = createRouter({
   routes,
 })
 
-let isTokenValidating = false
-
-router.beforeEach(async (to, from, next) => {
+router.beforeEach((to, from, next) => {
   if (to.path === '/login') {
     next()
     return

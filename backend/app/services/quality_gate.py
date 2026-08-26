@@ -4,11 +4,13 @@
 1. Gate 1: 结构性检查（确定性，无 LLM）
 2. Gate 2: 质量评估（单次 LLM 调用）
 3. 决策分支：score < 0.5 → replan | 0.5-0.7 → polish | >= 0.7 → pass
-4. 向后兼容：可关闭统一门禁走原有串联逻辑
+4. 失败边界：评估器不可用时返回明确降级结果
 """
 import json
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any
+
+from app.core.config import settings
 from app.core.logger import app_logger
 
 
@@ -56,8 +58,6 @@ QUALITY_GATE_PROMPT = """请从以下5个通用维度评估 Agent 执行结果�
 - 待办：{todo_count} 个
 - 争议点：{controversy_count} 个
 - 当前重试次数：{retry_count}/{max_retries}
-
-【历史反思参考】{history_reflections}
 
 请输出 JSON，确保所有分数都在 0.0-1.0 之间：
 {{
@@ -135,9 +135,6 @@ class QualityGate:
         # 如果已达最大重试次数，不再触发 replan
         can_retry = retry_count < self._max_retries
 
-        # 获取历史反思参考
-        history_reflections = self._get_history_reflections(state)
-
         # Gate 2: LLM 质量评估
         if llm_service and answer:
             result = await self._llm_evaluate(
@@ -147,7 +144,6 @@ class QualityGate:
                 todos=todos,
                 controversies=controversies,
                 retry_count=retry_count,
-                history_reflections=history_reflections,
                 llm_service=llm_service,
                 structural_errors=structural_errors,
                 can_retry=can_retry,
@@ -170,7 +166,6 @@ class QualityGate:
         todos: list,
         controversies: list,
         retry_count: int,
-        history_reflections: str,
         llm_service: Any,
         structural_errors: List[str],
         can_retry: bool,
@@ -184,7 +179,6 @@ class QualityGate:
             controversy_count=len(controversies),
             retry_count=retry_count,
             max_retries=self._max_retries,
-            history_reflections=history_reflections,
         )
 
         messages = [
@@ -196,7 +190,11 @@ class QualityGate:
         ]
 
         try:
-            response = await llm_service.chat(messages=messages, temperature=0.3)
+            response = await llm_service.chat(
+                messages=messages,
+                model=settings.QUALITY_GATE_MODEL,
+                temperature=0.3,
+            )
             return self._parse_llm_result(
                 response, structural_errors, can_retry, retry_count
             )
@@ -323,40 +321,6 @@ class QualityGate:
 
         return errors
 
-    def _get_history_reflections(self, state: Dict[str, Any]) -> str:
-        """获取历史反思参考"""
-        try:
-            from app.services.reflection_memory_service import get_reflection_memory_service
-            import asyncio
-
-            question = state.get("question", "")
-            if not question:
-                return "无"
-
-            service = get_reflection_memory_service()
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # 在事件循环中，使用 fire-and-forget
-                return "无（异步查询中）"
-            else:
-                _top_k = getattr(__import__('app.core.config', fromlist=['settings']).settings, 'REFLECTION_MEMORY_TOP_K', 3)
-                reflections = loop.run_until_complete(
-                    service.query_similar_reflections(question, top_k=_top_k)
-                )
-                if reflections:
-                    items = []
-                    for r in reflections:
-                        items.append(
-                            f"- 相似问题: score={r.get('quality_score', 'N/A')}, "
-                            f"错误类型: {r.get('error_types', [])}, "
-                            f"建议: {r.get('suggestions', [])[:1]}"
-                        )
-                    return "\n".join(items)
-        except Exception as e:
-            app_logger.debug(f"[QualityGate] 获取历史反思失败: {e}")
-
-        return "无"
-
     def _fallback_evaluate(
         self,
         answer: str,
@@ -404,10 +368,9 @@ def get_quality_gate() -> QualityGate:
     """获取全局 QualityGate 实例"""
     global _gate_instance
     if _gate_instance is None:
-        from app.core.config import settings
         _gate_instance = QualityGate(
             replan_threshold=getattr(settings, "QUALITY_GATE_REPLAN_THRESHOLD", 0.5),
             polish_threshold=getattr(settings, "QUALITY_GATE_POLISH_THRESHOLD", 0.7),
-            max_retries=getattr(settings, "MAX_REFLECTION_ITERATIONS", 2),
+            max_retries=1,
         )
     return _gate_instance

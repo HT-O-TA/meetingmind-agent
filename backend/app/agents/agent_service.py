@@ -3,17 +3,14 @@
 from typing import Optional, List, Dict, Any, TypedDict
 import uuid
 from app.agents.state import AgentState, AgentResult, ChunkMetadata, TaskType, RiskLevel, Plan, ReflectionResult
-from app.agents.graph import create_agent_graph, print_agent_architecture
+from app.agents.graph import create_agent_graph
 from app.agents.nodes import AgentNodes
 from app.agents.memory import MemoryManager
 from app.agents.tools import ToolManager
-from app.agents.prompts import PromptManager
-from app.agents.errors import ErrorRecoveryManager
-from app.agents.monitor import AgentMonitor
-from app.agents.session_context import SessionContext, generate_session_id, generate_conversation_id
+from app.agents.session_context import SessionContext
+from app.agents.trace_integration import get_trace_store
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
-from app.services.unified_memory_service import get_unified_memory
 from app.core.logger import app_logger
 
 
@@ -38,28 +35,12 @@ class AgentService:
         self,
         llm_service: LLMService,
         vector_search_service: VectorSearchService,
-        enable_checkpointer: bool = False,
-        enable_memory: bool = True,
         enable_human_in_the_loop: bool = True,
-        enable_tool_calling: bool = True,
-        max_short_term_turns: int = 20,
-        max_long_term_items: int = 1000,
-        enable_compression: bool = True,
-        enable_monitoring: bool = True,
+        max_short_term_turns: int = 10,
     ):
         self.llm_service = llm_service
         self.vector_search_service = vector_search_service
-        self.enable_checkpointer = enable_checkpointer
-        self.enable_memory = enable_memory
-        self.enable_compression = enable_compression
-        self.enable_monitoring = enable_monitoring
         self.enable_human_in_the_loop = enable_human_in_the_loop
-        self.enable_tool_calling = enable_tool_calling
-
-        # 初始化核心模块
-        self.prompt_manager = PromptManager()
-        self.error_manager = ErrorRecoveryManager()
-        self.monitor = AgentMonitor() if enable_monitoring else None
 
         # 人机协作服务
         from app.agents.human_in_the_loop import get_hitl_service
@@ -71,43 +52,31 @@ class AgentService:
         self.graph = create_agent_graph(
             llm_service,
             self.tool_manager,
-            enable_react=False,
-            enable_cot=False,
-            enable_fallback=True,
-            enable_reflection=False,
-            use_checkpointer=enable_checkpointer,
         )
-        print_agent_architecture()
+        app_logger.info("Agent 主线: route -> safety -> retrieve/business or policy/HITL/tool -> validate")
         self.app = self.graph
 
-        # 记忆管理
-        self.memory_manager = MemoryManager(
-            max_short_term_turns=max_short_term_turns,
-            max_long_term_items=max_long_term_items,
-            enable_compression=enable_compression,
-            llm_service=llm_service if enable_compression else None
-        )
-        
-        # 统一记忆服务（Phase 3: 替代旧 long_term_memory 接口）
-        self.unified_memory = get_unified_memory()
-
-        # 每个会话的记忆管理器
+        self.max_short_term_turns = max_short_term_turns
         self.session_memories: Dict[str, MemoryManager] = {}
 
-        if enable_checkpointer:
-            self.memory_manager.enable_checkpoint()
+    def refresh_dependencies(
+        self,
+        llm_service: LLMService,
+        vector_search_service: VectorSearchService,
+    ) -> None:
+        """刷新请求级依赖，同时保留有界会话窗口。"""
+        if self.llm_service is llm_service and self.vector_search_service is vector_search_service:
+            return
+        self.llm_service = llm_service
+        self.vector_search_service = vector_search_service
+        self.tool_manager = ToolManager(llm_service, vector_search_service)
+        self.graph = create_agent_graph(llm_service, self.tool_manager)
+        self.app = self.graph
 
     def _get_session_memory(self, session_id: str) -> MemoryManager:
         """获取或创建会话记忆管理器"""
         if session_id not in self.session_memories:
-            self.session_memories[session_id] = MemoryManager(
-                max_short_term_turns=self.memory_manager.short_term.max_raw_turns,
-                max_long_term_items=self.memory_manager.long_term.max_items,
-                enable_compression=self.enable_compression,
-                llm_service=self.llm_service if self.enable_compression else None,
-            )
-            if self.enable_checkpointer:
-                self.session_memories[session_id].enable_checkpoint()
+            self.session_memories[session_id] = MemoryManager(self.max_short_term_turns)
         return self.session_memories[session_id]
 
     async def process_query(
@@ -118,251 +87,24 @@ class AgentService:
         config: Optional[Dict[str, Any]] = None,
         event_callback: Optional[callable] = None,
     ) -> AgentResult:
-        """处理用户查询
-        """
-        span_id = None
-        if self.monitor:
-            self.monitor.info(f"开始处理查询: {question}")
-            self.monitor.info(f"Tool Calling: True (默认启用)")
-            span_id = self.monitor.start_span("agent_process_query", attributes={"question": question[:50]})
-
-        session_id = config.get("thread_id") if config else None
-        memory = self._get_session_memory(session_id or "default")
-
-        async def emit_event(event_type, data):
-            if event_callback:
-                await event_callback(event_type, data)
-
-        try:
-            await emit_event("start", {"question": question, "phase": "初始化"})
-
-            # 获取会话记忆上下文
-            memory_context = ""
-            if self.enable_memory:
-                memory_context = memory.get_context_for_query(question, n_recent=3)
-
-            # 获取长期记忆上下文
-            long_term_context = ""
-            try:
-                long_term_context = await self.unified_memory.generate_context_prompt(question)
-            except Exception as e:
-                app_logger.warning(f"获取长期记忆上下文失败: {e}")
-
-            # 文档检索已迁移到图内 retrieve_node；这里仅注入会话记忆和长期记忆上下文。
-            raw_context = []
-            if long_term_context:
-                raw_context.insert(0, long_term_context)
-            if memory_context and self.enable_memory:
-                raw_context.insert(0, f"【相关记忆】\n{memory_context}")
-
-            # 初始化状态
-            initial_state: AgentState = {
-                "question": question,
-                "agent_run_id": str(uuid.uuid4()),
-                "approved_tool_call": None,
-                "resume_from_tool_index": None,
-                "meeting_id": meeting_id,
-                "document_ids": document_ids,
-                "context": [],
-                "raw_context": raw_context,
-                "current_phase": "plan",
-                "task_type": TaskType.QA,
-                "workflow_type": None,
-                "reasoning_mode": None,
-                "complexity_score": 0.0,
-                "complexity_level": None,
-                "is_multi_task": False,
-                "route_reason": "",
-                "retrieval_required": True,
-                "retrieval_confidence": 0.0,
-                "citations": [],
-                "validation_errors": [],
-                "policy_results": [],
-                "repair_count": 0,
-                "max_repair_attempts": 1,
-                "risk_level": RiskLevel.LOW,
-                "requires_confirmation": False,
-                "confirmation_status": "not_required",
-                "pending_action": None,
-                "plan": None,
-                "task_contexts": {},
-                "minutes": None,
-                "todos": None,
-                "controversies": None,
-                "answer": None,
-                "reflection": None,
-                "error": None,
-                "cot_thoughts": [],
-                "agents_involved": [],
-                "last_strategy": None,
-                "fallback_count": 0,
-                "event_callback": event_callback,
-                "human_confirmations": [],
-                "enable_human_in_the_loop": self.enable_human_in_the_loop,
-                "session_context": None,
-                "access_scope": context.access_scope,
-            }
-
-            # 执行
-            await emit_event("phase", {"phase": "execute", "message": "开始执行Agent..."})
-            invoke_config = {"configurable": config} if config else None
-            final_state = await self.app.ainvoke(initial_state, config=invoke_config)
-
-            # 确保 final_state 中的关键字段类型正确
-            if not isinstance(final_state.get("cot_thoughts"), list):
-                final_state["cot_thoughts"] = []
-            if not isinstance(final_state.get("agents_involved"), list):
-                final_state["agents_involved"] = []
-                
-            # 构建结果 - 先全面清理状态
-            # 确保 final_state 中的所有字段都是可哈希的
-            safe_final_state = {}
-            for key, value in final_state.items():
-                if isinstance(value, slice):
-                    app_logger.warning(f"⚠️ 检测到 slice 对象在字段 {key}，已重置")
-                    if key == "cot_thoughts" or key == "agents_involved" or key == "human_confirmations":
-                        safe_final_state[key] = []
-                    elif key == "task_contexts":
-                        safe_final_state[key] = {}
-                    elif key == "todos" or key == "controversies":
-                        safe_final_state[key] = None
-                    else:
-                        safe_final_state[key] = None
-                else:
-                    safe_final_state[key] = value
-            final_state = safe_final_state
-            
-            task_type = final_state.get("task_type") or TaskType.QA
-            reflection = final_state.get("reflection")
-
-            plan = final_state.get("plan")
-            formatted_plan = None
-            if plan:
-                formatted_plan = {
-                    "analysis": plan.get("analysis", ""),
-                    "tasks": plan.get("tasks", []),
-                    "execution_order": plan.get("execution_order", []),
-                    "parallel_groups": plan.get("parallel_groups", []),
-                    "tool_calls": plan.get("tool_calls", [])
-                }
-
-            # 确保 reflection 包含 quality_score 字段（向后兼容）
-            if reflection and isinstance(reflection, dict):
-                reflection = reflection.copy()
-                # 确保所有数值字段都是 float 类型
-                if 'overall_score' in reflection:
-                    reflection['overall_score'] = float(reflection['overall_score'])
-                    reflection['quality_score'] = reflection['overall_score']  # 向后兼容
-                if 'confidence' in reflection:
-                    reflection['confidence'] = float(reflection['confidence'])
-                if 'metrics' in reflection and isinstance(reflection['metrics'], dict):
-                    metrics = reflection['metrics']
-                    for key in ['accuracy', 'relevance', 'completeness', 'coherence']:
-                        if key in metrics:
-                            metrics[key] = float(metrics[key])
-            
-            result = AgentResult(
-                success=True,
-                task_type=task_type,
-                answer=final_state.get("answer"),
-                minutes=final_state.get("minutes"),
-                todos=final_state.get("todos"),
-                controversies=final_state.get("controversies"),
-                thoughts=final_state.get("cot_thoughts"),
-                reflection=reflection,
-                plan=formatted_plan,
-                workflow_type=final_state.get("workflow_type"),
-                route_reason=final_state.get("route_reason"),
-                citations=final_state.get("citations"),
-                validation_errors=final_state.get("validation_errors"),
-                policy_results=final_state.get("policy_results"),
-                retrieval_confidence=final_state.get("retrieval_confidence"),
-                risk_level=final_state.get("risk_level"),
-                requires_confirmation=bool(final_state.get("requires_confirmation", False)),
-                confirmation_status=final_state.get("confirmation_status"),
-                pending_action=final_state.get("pending_action"),
-                route_decision=final_state.get("route_decision"),
-                structured_outputs=final_state.get("structured_outputs"),
-            )
-
-            # 保存会话记忆
-            if self.enable_memory:
-                memory.add_conversation(
-                    question=question,
-                    answer=result.answer or "",
-                    plan=formatted_plan,
-                    reflection=reflection,
-                    task_type=task_type.value if task_type else "qa",
-                    success=result.success
-                )
-                if self.enable_compression:
-                    compressed = await memory.compress_if_needed()
-                    if compressed:
-                        self.monitor.info("[Agent] 记忆已自动压缩") if self.monitor else app_logger.info("[Agent] 记忆已自动压缩")
-
-                stats = memory.short_term.get_summary()
-                self.monitor.info(f"[Agent] 记忆: {stats['raw_turns']} 原始 + {stats['summarized_turns']} 摘要") if self.monitor else app_logger.info(f"[Agent] 记忆: {stats['raw_turns']} 原始 + {stats['summarized_turns']} 摘要")
-
-            # 保存长期记忆（会议总结、决策、待办）
-            try:
-                if result.minutes or result.todos:
-                    await self.unified_memory.add_memory(
-                        content=result.minutes or result.answer or question,
-                        memory_type="meeting_summary",
-                        meeting_id=meeting_id,
-                        metadata={"topic": question},
-                        importance_score=0.7,
-                    )
-                if result.todos:
-                    for todo in result.todos:
-                        content = todo.get("content", "")
-                        if content:
-                            await self.unified_memory.add_action_item(
-                                content=content,
-                                meeting_id=meeting_id,
-                                entities=[todo.get("assignee", "")] if todo.get("assignee") else [],
-                            )
-            except Exception as e:
-                app_logger.warning(f"保存长期记忆失败: {e}")
-
-            # 统计
-            thoughts = final_state.get("cot_thoughts", [])
-            phases = {}
-            for t in thoughts:
-                phase = t.get("phase", "unknown")
-                phases[phase] = phases.get(phase, 0) + 1
-
-            self.monitor.info(f"[Agent] 处理完成 - 任务: {result.task_type.value}, 思维链: {len(thoughts)} 步") if self.monitor else app_logger.info(f"[Agent] 处理完成 - 任务: {result.task_type.value}, 思维链: {len(thoughts)} 步")
-            if result.reflection:
-                overall_score = result.reflection.get('overall_score', 0)
-                metrics = result.reflection.get('metrics', {})
-                confidence = result.reflection.get('confidence', 0)
-                self.monitor.info(f"[Agent] 综合评分: {overall_score:.2f} (置:{confidence:.2f})") if self.monitor else app_logger.info(f"[Agent] 综合评分: {overall_score:.2f} (置:{confidence:.2f})")
-                if metrics:
-                    metrics_str = f"  准:{metrics.get('accuracy',0):.2f} 相:{metrics.get('relevance',0):.2f} 完:{metrics.get('completeness',0):.2f} 贯:{metrics.get('coherence',0):.2f}"
-                    self.monitor.info(metrics_str) if self.monitor else app_logger.info(metrics_str)
-
-            if span_id:
-                self.monitor.finish_span(span_id, {"success": True, "task_type": result.task_type.value})
-                
-            return result
-
-        except Exception as e:
-            import traceback
-            stack_trace = traceback.format_exc()
-            self.monitor.error(f"[Agent] 处理失败: {e}\n{stack_trace}") if self.monitor else app_logger.error(f"[Agent] 处理失败: {e}\n{stack_trace}")
-            
-            # 记录错误
-            error_info = self.error_manager.handle_error(e, {"question": question})
-            
-            if span_id:
-                self.monitor.finish_span(span_id, {"success": False, "error": str(e)})
-            
-            return AgentResult(
-                success=False,
-                task_type=TaskType.QA,
-                error=str(e),
-            )
+        """兼容入口；统一转入带 SessionContext 的执行主链。"""
+        config = config or {}
+        configurable = config.get("configurable", {})
+        thread_id = config.get("thread_id") or configurable.get("thread_id") or ""
+        session_id, conversation_id = SessionContext.parse_thread_id(thread_id)
+        context = SessionContext(
+            user_id=configurable.get("user_id"),
+            session_id=session_id,
+            conversation_id=conversation_id,
+            meeting_id=meeting_id,
+            access_scope=configurable.get("access_scope"),
+        )
+        return await self.process_query_with_context(
+            question=question,
+            context=context,
+            document_ids=document_ids,
+            event_callback=event_callback,
+        )
 
     async def process_query_with_context(
         self,
@@ -378,17 +120,8 @@ class AgentService:
         - session_id: 浏览器会话（记忆系统隔离）
         - meeting_id: 业务域过滤
         """
-        span_id = None
-        if self.monitor:
-            self.monitor.info(f"开始处理查询 (context): {question}")
-            span_id = self.monitor.start_span(
-                "agent_process_query_with_context",
-                attributes={
-                    "question": question[:50],
-                    "thread_id": context.thread_id,
-                    "session_id": context.session_id,
-                }
-            )
+        trace_store = get_trace_store()
+        span_id = trace_store.start("agent_query", "agent")
 
         memory = self._get_session_memory(context.session_id)
 
@@ -404,26 +137,8 @@ class AgentService:
                 "session_id": context.session_id,
             })
 
-            # 获取会话记忆上下文
-            memory_context = ""
-            if self.enable_memory:
-                memory_context = memory.get_context_for_query(question, n_recent=3)
-
-            # 获取长期记忆上下文
-            long_term_context = ""
-            try:
-                long_term_context = await self.unified_memory.generate_context_prompt(
-                    question,
-                    meeting_id=context.meeting_id,
-                )
-            except Exception as e:
-                app_logger.warning(f"获取长期记忆上下文失败: {e}")
-
-            raw_context = []
-            if long_term_context:
-                raw_context.insert(0, long_term_context)
-            if memory_context and self.enable_memory:
-                raw_context.insert(0, f"【相关记忆】\n{memory_context}")
+            memory_context = memory.get_context_for_query(question, n_recent=3)
+            raw_context = [f"【本轮会话上下文】\n{memory_context}"] if memory_context else []
 
             initial_state: AgentState = {
                 "question": question,
@@ -494,45 +209,15 @@ class AgentService:
                     safe_final_state[key] = value
             final_state = safe_final_state
 
-            # 保存对话到会话记忆
-            if self.enable_memory:
-                try:
-                    memory.add_exchange(question, final_state.get("answer", ""))
-                except Exception as e:
-                    app_logger.warning(f"保存会话记忆失败: {e}")
-
-            # 异步写入长期记忆
-            answer = final_state.get("answer")
-            if answer and context.meeting_id:
-                try:
-                    import asyncio
-                    asyncio.create_task(
-                        self.unified_memory.add_meeting_memory(
-                            meeting_id=str(context.meeting_id),
-                            title=question[:80],
-                            content=answer,
-                            session_id=context.session_id,
-                        )
-                    )
-                except Exception as e:
-                    app_logger.warning(f"异步写入长期记忆失败: {e}")
-
-            # 构建结果
-            result_payload = self._state_to_result_payload(final_state)
-            result_payload.update({
-                "session_id": context.session_id,
-                "conversation_id": context.conversation_id,
-                "thread_id": context.thread_id,
-                "meeting_id": context.meeting_id,
-            })
+            memory.add_exchange(question, final_state.get("answer") or "")
 
             await emit_event("complete", {
                 "phase": "完成",
                 "answer_length": len(str(final_state.get("answer", ""))),
             })
 
-            if span_id:
-                self.monitor.finish_span(span_id, {"success": True})
+            trace_store.update(span_id, output=str(final_state.get("answer") or "")[:500])
+            trace_store.finish(span_id)
 
             task_type = final_state.get("task_type") or TaskType.QA
             reflection = final_state.get("reflection")
@@ -581,8 +266,7 @@ class AgentService:
 
         except Exception as e:
             app_logger.error(f"Agent 执行失败: {e}")
-            if span_id:
-                self.monitor.finish_span(span_id, {"success": False, "error": str(e)})
+            trace_store.finish(span_id, str(e))
             return AgentResult(
                 success=False,
                 task_type=TaskType.QA,
@@ -613,113 +297,6 @@ class AgentService:
             results.append(result)
         return results
 
-    def get_memory_context(self, session_id: str, question: str) -> str:
-        memory = self._get_session_memory(session_id)
-        return memory.get_context_for_query(question)
-
-    def get_memory_stats(self, session_id: Optional[str] = None) -> Dict[str, Any]:
-        if session_id:
-            memory = self._get_session_memory(session_id)
-            return memory.get_memory_stats()
-
-        return {
-            "sessions": len(self.session_memories),
-            "total_short_term_turns": sum(
-                len(m.short_term.raw_turns) for m in self.session_memories.values()
-            ),
-            "total_long_term_items": sum(
-                len(m.long_term.items) for m in self.session_memories.values()
-            )
-        }
-
-    def clear_session_memory(self, session_id: str):
-        if session_id in self.session_memories:
-            self.session_memories[session_id].clear_all()
-
-    def save_checkpoint(self, session_id: str) -> Dict[str, Any]:
-        """保存会话记忆检查点"""
-        memory = self._get_session_memory(session_id)
-        return memory.save_checkpoint(session_id)
-
-    def load_checkpoint(self, session_id: str, checkpoint: Dict[str, Any]):
-        """加载会话记忆检查点"""
-        memory = self._get_session_memory(session_id)
-        memory.load_checkpoint(checkpoint)
-
-    def get_tools_info(self) -> Dict[str, Any]:
-        """获取工具信息"""
-        return self.tool_manager.get_tools_info()
-
-    def get_tool_history(self) -> List[Dict[str, Any]]:
-        """获取工具调用历史"""
-        return self.tool_manager.executor.get_history()
-
-    def get_agent_architecture(self) -> Dict[str, Any]:
-        return {
-            "pattern": "Plan-Execute-Replan + Tool Calling",
-            "recommended_pattern": "Intent Routing + Direct Workflows + Plan-Execute-Replan for complex tasks",
-            "tool_calling_enabled": True,
-            "memory_enabled": self.enable_memory,
-            "checkpointer_enabled": self.enable_checkpointer,
-            "compression_enabled": self.enable_compression,
-            "monitoring_enabled": self.enable_monitoring,
-            "phases": [
-                {
-                    "name": "Plan",
-                    "description": "分析问题，制定执行计划",
-                    "capabilities": ["问题分析", "任务拆解", "工具选择"]
-                },
-                {
-                    "name": "Execute",
-                    "description": "按计划执行任务",
-                    "capabilities": ["任务执行", "工具调用", "并行处理"]
-                },
-                {
-                    "name": "Replan",
-                    "description": "评估执行结果质量，决定是否重新规划",
-                    "capabilities": ["质量评估", "缺陷检测", "重新规划", "循环改进"]
-                }
-            ],
-            "tools": self.get_tools_info()
-        }
-        
-    def get_prompt_templates(self) -> List[Dict[str, Any]]:
-        """获取所有 Prompt 模板
-        
-        Returns:
-            模板列表
-        """
-        return self.prompt_manager.list_templates()
-        
-    def get_error_stats(self) -> Dict[str, Any]:
-        """获取错误统计
-        
-        Returns:
-            统计信息
-        """
-        return self.error_manager.get_error_stats()
-        
-    def get_monitor_status(self) -> Dict[str, Any]:
-        """获取监控状态
-        
-        Returns:
-            监控状态
-        """
-        if self.monitor:
-            return self.monitor.get_monitor_status()
-        return {"monitoring_enabled": False}
-        
-    def get_recent_errors(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """获取最近的错误
-        
-        Args:
-            limit: 返回数量限制
-            
-        Returns:
-            错误列表
-        """
-        return self.error_manager.get_recent_errors(limit)
-    
     # ==================== 人机协作相关方法 ====================
     
     async def respond_to_confirmation(

@@ -51,20 +51,28 @@ def _base_app_packages():
         "app.core": _package("app.core"),
         "app.db": _package("app.db"),
         "app.models": _package("app.models"),
+        "app.schemas": _package("app.schemas"),
         "app.services": _package("app.services"),
     }
 
 
 class TestRAGServiceContract(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
+        class FakeSchema:
+            def __init__(self, **data):
+                self.data = data
+
+            @classmethod
+            def model_validate(cls, data):
+                return cls(**data)
+
+            def model_dump(self):
+                return self.data
+
         self.settings = SimpleNamespace(
-            ENABLE_KNOWLEDGE_GRAPH=False,
             ENABLE_RERANK=False,
             RERANK_TOP_N=10,
         )
-
-        async def unused_graph_enhancement(*args, **kwargs):
-            raise AssertionError("关闭知识图谱时不应执行图谱增强")
 
         stubs = _base_app_packages()
         stubs.update({
@@ -74,18 +82,14 @@ class TestRAGServiceContract(unittest.IsolatedAsyncioTestCase):
             "app.services.llm_service": _module(
                 "app.services.llm_service", LLMService=object
             ),
-            "app.services.knowledge_graph": _module(
-                "app.services.knowledge_graph",
-                enhance_search_results=unused_graph_enhancement,
-                get_knowledge_graph_index=MagicMock(
-                    side_effect=AssertionError("关闭知识图谱时不应初始化图谱")
-                ),
-            ),
             "app.services.enhanced_retrieval_fusion": _module(
                 "app.services.enhanced_retrieval_fusion",
                 get_enhanced_retrieval_fusion=MagicMock(
                     side_effect=AssertionError("关闭重排序时不应初始化 Reranker")
                 ),
+            ),
+            "app.schemas.rag": _module(
+                "app.schemas.rag", Citation=FakeSchema, RAGResult=FakeSchema
             ),
             "app.core.logger": _module(
                 "app.core.logger", app_logger=MagicMock()
@@ -137,10 +141,7 @@ class TestRAGServiceContract(unittest.IsolatedAsyncioTestCase):
             "meeting_id": 12,
             "department": "研发部",
             "similarity_threshold": 0.2,
-            "enable_bm25": True,
-            "enable_vector": True,
             "enable_rerank": False,
-            "strategy": "A",
             "access_context": None,
         })
         self.assertEqual(result["count"], 1)
@@ -216,9 +217,7 @@ class TestRetrievalDataContract(unittest.IsolatedAsyncioTestCase):
         settings = SimpleNamespace(
             BM25_WEIGHT=0.3,
             VECTOR_WEIGHT=0.7,
-            RRF_K=60,
             RERANK_TOP_N=20,
-            LOCAL_EMBEDDING_MODEL_PATH="",
         )
         stubs = _base_app_packages()
         stubs.update({
@@ -235,6 +234,8 @@ class TestRetrievalDataContract(unittest.IsolatedAsyncioTestCase):
             stubs,
         )
         fusion = object.__new__(fusion_module.EnhancedMultiRetrievalFusion)
+        fusion.bm25_weight = 0.3
+        fusion.vector_weight = 0.7
 
         full_text = "完整正文-" + "用于生成答案的上下文。" * 30
         result = fusion._weighted_fusion(

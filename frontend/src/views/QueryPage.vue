@@ -15,13 +15,6 @@
         style="margin-bottom:12px"
       />
       <el-button type="primary" :loading="searchLoading" @click="search">查询</el-button>
-      <el-button type="info" style="margin-left:8px" @click="checkStatus">检查服务</el-button>
-
-      <div v-if="statusInfo" style="margin-top:16px">
-        <el-tag :type="statusInfo.mode === 'pgvector' ? 'success' : 'warning'">
-          {{ statusInfo.mode === 'pgvector' ? 'pgvector 模式' : '轻量模式' }}
-        </el-tag>
-      </div>
 
       <!-- AI 回答区域 -->
       <div v-if="aiAnswer" style="margin-top:24px">
@@ -69,7 +62,6 @@
 <script setup>
 import { ref } from 'vue'
 import { ragApi } from '@/api/rag'
-import { vectorSearchApi } from '@/api/vectorSearch'
 import { ElMessage } from 'element-plus'
 
 const query = ref('')
@@ -77,18 +69,6 @@ const aiAnswer = ref('')
 const searchResults = ref([])
 const searchLoading = ref(false)
 const searched = ref(false)
-const statusInfo = ref(null)
-
-async function checkStatus() {
-  try {
-    const res = await vectorSearchApi.getStatus()
-    statusInfo.value = res.data
-    ElMessage.success('服务状态检查完成')
-  } catch (e) {
-    ElMessage.error('服务状态检查失败')
-  }
-}
-
 async function search() {
   if (!query.value.trim()) return ElMessage.warning('请输入查询内容')
   searchLoading.value = true

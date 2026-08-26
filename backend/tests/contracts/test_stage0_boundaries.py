@@ -51,10 +51,10 @@ class TestRouterPolicy(unittest.TestCase):
             name for name, _, _ in self.policy.enabled_router_specs("production")
         }
         self.assertEqual(names, {
-            "users", "meetings", "documents", "todos", "text_process",
-            "rag", "agents", "feedback", "tasks",
+            "users", "meetings", "documents", "todos", "rag", "agents",
+            "feedback", "tasks",
         })
-        self.assertTrue(names.isdisjoint(self.policy.RETIRED_ROUTERS))
+        self.assertTrue(names.isdisjoint(self.policy.REMOVED_ROUTERS))
 
     def test_internal_routers_are_development_or_test_only(self):
         production = {
@@ -67,20 +67,11 @@ class TestRouterPolicy(unittest.TestCase):
         self.assertTrue(internal.isdisjoint(production))
         self.assertTrue(internal.issubset(development))
 
-    def test_optional_routers_require_explicit_flags(self):
-        defaults = {
-            name for name, _, _ in self.policy.enabled_router_specs("production")
+    def test_removed_routers_cannot_be_enabled_by_configuration(self):
+        exposed = {
+            name for name, _, _ in self.policy.enabled_router_specs("development")
         }
-        enabled = {
-            name for name, _, _ in self.policy.enabled_router_specs(
-                "production",
-                enable_knowledge_graph=True,
-                enable_mcp_server=True,
-            )
-        }
-        self.assertNotIn("graph", defaults)
-        self.assertNotIn("mcp", defaults)
-        self.assertTrue({"graph", "mcp"}.issubset(enabled))
+        self.assertTrue(exposed.isdisjoint(self.policy.REMOVED_ROUTERS))
 
 
 class TestAgentGraphContract(unittest.TestCase):
@@ -161,9 +152,6 @@ class TestAgentGraphContract(unittest.TestCase):
             "app.agents.tools": _module(
                 "app.agents.tools", ToolManager=object
             ),
-            "app.agents.checkpointer": _module(
-                "app.agents.checkpointer", get_checkpointer=lambda: None
-            ),
             "app.services.llm_service": _module(
                 "app.services.llm_service", LLMService=object
             ),
@@ -199,8 +187,8 @@ class TestAgentGraphContract(unittest.TestCase):
         self.assertIn("self.app = self.graph", source)
 
 
-class TestOptionalDefaults(unittest.TestCase):
-    def test_unproven_optional_capabilities_default_to_disabled(self):
+class TestRemovedCapabilities(unittest.TestCase):
+    def test_removed_capabilities_are_not_kept_as_dead_flags(self):
         source_path = BACKEND_ROOT / "app/core/config.py"
         tree = ast.parse(source_path.read_text(encoding="utf-8"))
         settings_class = next(
@@ -215,7 +203,7 @@ class TestOptionalDefaults(unittest.TestCase):
             and node.value is not None
             and isinstance(node.value, ast.Constant)
         }
-        for name in (
+        removed_names = {
             "ENABLE_QUERY_REWRITE",
             "ENABLE_HYDE",
             "ENABLE_MULTI_QUERY",
@@ -225,10 +213,10 @@ class TestOptionalDefaults(unittest.TestCase):
             "ENABLE_KNOWLEDGE_GRAPH",
             "ENABLE_NEO4J_PERSISTENCE",
             "ENABLE_MCP_SERVER",
-            "ENABLE_AGENT_WORKER",
             "ENABLE_SPARSE_RETRIEVAL",
-        ):
-            self.assertIs(defaults[name], False, name)
+        }
+        self.assertTrue(removed_names.isdisjoint(defaults))
+        self.assertNotIn("ENABLE_AGENT_WORKER", defaults)
 
 
 if __name__ == "__main__":

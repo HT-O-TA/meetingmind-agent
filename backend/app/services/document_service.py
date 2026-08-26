@@ -32,14 +32,6 @@ class DocumentService:
             self._embedding_service = EmbeddingService()
         return self._embedding_service
 
-    def _get_runtime_config(self, key: str, fallback: Any) -> Any:
-        """读取配置中心运行时配置，失败时回退到 settings。"""
-        try:
-            from app.core.config_center import get_config
-            return get_config(key, fallback)
-        except Exception:
-            return fallback
-
     async def get_by_id(self, doc_id: int) -> Document:
         result = await self.db.execute(select(Document).where(Document.id == doc_id))
         doc = result.scalar_one_or_none()
@@ -266,36 +258,17 @@ class DocumentService:
         - 语气词过滤
         - 无说话人信息时自动回退为纯语义分块
         """
-        enable_semantic = self._get_runtime_config("processing.enable_semantic_chunking", False)
-        if not enable_semantic:
-            chunks = self.text_process_service.split_chunks(content)
-            return chunks, [{} for _ in chunks]
-
-        strategy_name = self._get_runtime_config("processing.semantic_chunk_strategy", "speaker_aware_hybrid")
-        use_llm = self._get_runtime_config("processing.semantic_chunk_use_llm", False)
-        preserve_structure = self._get_runtime_config("processing.semantic_chunk_preserve_structure", False)
-        min_size = self._get_runtime_config("processing.semantic_chunk_min_size", settings.SEMANTIC_CHUNK_MIN_SIZE)
-        max_size = self._get_runtime_config("processing.semantic_chunk_max_size", settings.SEMANTIC_CHUNK_MAX_SIZE)
-        overlap = self._get_runtime_config("processing.semantic_chunk_overlap", settings.SEMANTIC_CHUNK_OVERLAP)
-        build_hierarchy = self._get_runtime_config("processing.semantic_chunk_build_hierarchy", False)
-
         try:
             from app.services.semantic_chunker import (
                 ChunkingConfig,
-                ChunkingStrategy,
                 SemanticChunker,
             )
 
-            strategy = getattr(ChunkingStrategy, strategy_name.upper(), ChunkingStrategy.SPEAKER_AWARE_HYBRID)
             chunking_config = ChunkingConfig(
-                strategy=strategy,
-                min_chunk_size=min_size,
-                max_chunk_size=max_size,
-                chunk_overlap=overlap,
+                min_chunk_size=settings.SEMANTIC_CHUNK_MIN_SIZE,
+                max_chunk_size=settings.SEMANTIC_CHUNK_MAX_SIZE,
+                chunk_overlap=settings.SEMANTIC_CHUNK_OVERLAP,
                 semantic_threshold=settings.SEMANTIC_CHUNK_THRESHOLD,
-                use_llm_split=use_llm,
-                preserve_structure=preserve_structure,
-                build_hierarchy=build_hierarchy,
             )
 
             semantic_chunker = SemanticChunker(config=chunking_config)
@@ -310,8 +283,8 @@ class DocumentService:
                     **chunk.metadata,
                     "chunk_id": chunk.chunk_id,
                     "chunking": "semantic",
-                    "strategy": strategy_name,
-                    "use_llm": use_llm,
+                    "strategy": "speaker_aware_hybrid",
+                    "use_llm": False,
                 }
                 for chunk in semantic_chunks
                 if chunk.content and chunk.content.strip()

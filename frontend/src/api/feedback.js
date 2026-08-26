@@ -101,13 +101,6 @@ export async function verifyImprovement(improvementId, result) {
   })
 }
 
-export async function getPerformanceReport() {
-  return request({
-    url: '/api/v1/performance',
-    method: 'get'
-  })
-}
-
 export async function analyzeBadCasePatterns(limit = 10) {
   return request({
     url: `/api/v1/bad-cases/patterns?limit=${limit}`,

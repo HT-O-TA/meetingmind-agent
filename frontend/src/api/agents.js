@@ -6,6 +6,19 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+function dispatchSseLine(line, onMessage) {
+  const trimmed = line.trim()
+  if (!trimmed.startsWith('data: ')) return false
+  const dataStr = trimmed.slice(6)
+  if (dataStr === '[DONE]') return true
+  try {
+    onMessage(JSON.parse(dataStr))
+  } catch {
+    // 单个畸形事件不应中断后续合法事件。
+  }
+  return false
+}
+
 export const agentApi = {
   query(data) {
     return request.post('/agents/query', data)
@@ -35,6 +48,9 @@ export const agentApi = {
         const { done, value } = await reader.read()
         if (done) {
           buffer += decoder.decode()
+          for (const line of buffer.split('\n')) {
+            if (dispatchSseLine(line, onMessage)) return
+          }
           return
         }
 
@@ -43,16 +59,7 @@ export const agentApi = {
         buffer = lines.pop() || ''
 
         for (const line of lines) {
-          const trimmed = line.trim()
-          if (!trimmed.startsWith('data: ')) continue
-          const dataStr = trimmed.slice(6)
-          if (dataStr === '[DONE]') return
-
-          try {
-            onMessage(JSON.parse(dataStr))
-          } catch (e) {
-            // Ignore malformed events
-          }
+          if (dispatchSseLine(line, onMessage)) return
         }
       } catch (e) {
         if (e.name === 'AbortError') {
@@ -61,22 +68,6 @@ export const agentApi = {
         throw e
       }
     }
-  },
-
-  batchQuery(data) {
-    return request.post('/agents/batch', data)
-  },
-  
-  getPrompts() {
-    return request.get('/agents/prompts')
-  },
-  
-  getErrorStats() {
-    return request.get('/agents/errors/recent')
-  },
-  
-  getMonitorStatus() {
-    return request.get('/agents/monitor/status')
   },
 
   getPendingConfirmations() {

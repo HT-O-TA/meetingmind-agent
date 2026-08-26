@@ -1,5 +1,5 @@
 """反馈与 Bad Case 数据模型"""
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float, JSON, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Text, DateTime, JSON, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from enum import Enum as PyEnum
@@ -98,17 +98,3 @@ class ImprovementRecord(Base):
     
     # 关联的 Bad Case
     bad_case = relationship("BadCase", back_populates="improvements")
-
-
-class PerformanceMetric(Base):
-    """性能指标模型"""
-    __tablename__ = "performance_metrics"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    timestamp = Column(DateTime, default=datetime.now)
-    total_interactions = Column(Integer, default=0)
-    avg_rating = Column(Float, default=0.0)
-    success_rate = Column(Float, default=0.0)
-    bad_case_count = Column(Integer, default=0)
-    improvement_score = Column(Float, default=0.0)
-    metrics = Column(JSON)

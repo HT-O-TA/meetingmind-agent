@@ -66,13 +66,13 @@ class JiraClient:
         max_retries: Optional[int] = None,
         max_retry_delay: Optional[float] = None,
     ) -> None:
-        self.base_url = (base_url if base_url is not None else settings.JIRA_MCP_URL).rstrip("/")
-        self.username = username if username is not None else settings.JIRA_MCP_USERNAME
+        self.base_url = (base_url if base_url is not None else settings.JIRA_URL).rstrip("/")
+        self.username = username if username is not None else settings.JIRA_USERNAME
         self.api_token = (
             api_token
             if api_token is not None
-            else get_secret_provider().get("JIRA_MCP_API_TOKEN")
-            or settings.JIRA_MCP_API_TOKEN
+            else get_secret_provider().get("JIRA_API_TOKEN")
+            or settings.JIRA_API_TOKEN
         )
         self.max_retries = max_retries if max_retries is not None else settings.JIRA_MAX_RETRIES
         self.max_retry_delay = (
@@ -88,9 +88,9 @@ class JiraClient:
         missing = [
             name
             for name, value in (
-                ("JIRA_MCP_URL", self.base_url),
-                ("JIRA_MCP_USERNAME", self.username),
-                ("JIRA_MCP_API_TOKEN", self.api_token),
+                ("JIRA_URL", self.base_url),
+                ("JIRA_USERNAME", self.username),
+                ("JIRA_API_TOKEN", self.api_token),
             )
             if not value
         ]
@@ -99,9 +99,9 @@ class JiraClient:
 
         parsed = urlparse(self.base_url)
         if parsed.scheme != "https" or not parsed.netloc:
-            raise JiraConfigurationError("JIRA_MCP_URL 必须是合法的 HTTPS Jira 站点地址")
+            raise JiraConfigurationError("JIRA_URL 必须是合法的 HTTPS Jira 站点地址")
         if parsed.username or parsed.password:
-            raise JiraConfigurationError("JIRA_MCP_URL 不得包含用户名或密码")
+            raise JiraConfigurationError("JIRA_URL 不得包含用户名或密码")
 
     def _get_client(self) -> httpx.AsyncClient:
         self._validate_configuration()
@@ -350,7 +350,7 @@ def _jira_metadata(
 
 def get_enterprise_tools() -> List[Tool]:
     """只注册已经实现真实适配器且由配置显式开启的企业工具。"""
-    if not settings.JIRA_MCP_ENABLED:
+    if not settings.JIRA_ENABLED:
         return []
 
     return [
