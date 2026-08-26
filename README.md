@@ -5,8 +5,9 @@ MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。�
 当前仓库的正式主线是：
 
 ```text
-会议文本/文档
-→ 解析与说话人感知分块
+会议文本/文档或 WAV 音频
+→ 文本解析，或 RabbitMQ + FunASR 转写与匿名说话人时间线
+→ 说话人感知分块
 → PostgreSQL 正文存储与 Milvus Dense 索引
 → PostgreSQL 关键词召回 + Dense 召回
 → 加权融合 + BGE Reranker
@@ -29,7 +30,8 @@ MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。�
 | RAG 评估 | 离线命令已统一 | 支持 RAG/抽取/工具/路由/系统指标；当前没有可对外引用的真实效果数字 |
 | KG / Neo4j | 可选增强，默认关闭 | 不进入正式 RAG 请求路径 |
 | MCP | 可选框架，默认关闭 | 尚未完成唯一真实外部 Server 联调 |
-| ASR / 多模态 | 骨架，默认关闭 | 尚未形成真实音频转写闭环 |
+| ASR | 真实本地闭环，可选启用 | WAV → RabbitMQ → FunASR → 会议正文/时间戳/匿名说话人；公开烟测已完成，会议领域基线待真实数据 |
+| 图片/视频多模态 | 骨架，默认关闭 | 不计入已实现能力 |
 | LoRA / QLoRA | 尚未完成 | 训练目录、数据和对比实验仍待建设 |
 
 文档 ACL、软删除回查和答案引用已完成代码/契约及 PostgreSQL 集成验证。当前仍不能将 Sparse/RRF、完整多模态、真实企业系统写入、端到端生产部署或合成样例/历史性能数字宣传为已完成能力。
@@ -61,6 +63,7 @@ POST /api/v1/rag/ask
 - [阶段 1 RAG 权限、路由与统一评估](docs/优化路径记录/05_阶段1_RAG权限路由与统一评估.md)
 - [阶段 2 Agent 安全工具闭环](docs/优化路径记录/06_阶段2_Agent安全工具闭环.md)
 - [阶段 3 RabbitMQ 失败恢复与容量基线](docs/优化路径记录/07_阶段3_RabbitMQ失败恢复与容量基线.md)
+- [阶段 4 真实 ASR 与音频证据闭环](docs/优化路径记录/08_阶段4_真实ASR与音频证据闭环.md)
 
 ## 正式 Agent 边界
 
@@ -128,6 +131,7 @@ ENABLE_STEP_BACK=false
 ENABLE_KNOWLEDGE_GRAPH=false
 ENABLE_NEO4J_PERSISTENCE=false
 ENABLE_MULTIMODAL=false
+ENABLE_ASR=false
 ENABLE_MCP_SERVER=false
 ENABLE_AGENT_WORKER=false
 ```
@@ -168,7 +172,7 @@ pip install -r requirements-core.txt
 ./scripts/run_core_tests.sh -q
 ```
 
-2026-08-26 完成阶段 3 代码收敛后的轻量核心基线为 `165 passed, 2 skipped`；另有 Jira 客户端单元测试 `8 passed`。真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`。两个核心跳过项依赖未安装的模型能力；Milvus、真实评估集、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
+2026-08-26 完成阶段 4 代码收敛后的轻量核心基线为 `171 passed, 2 skipped`；另有 Jira 客户端单元测试 `8 passed`。真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`，并另行完成一次真实 FunASR 队列业务烟测。两个核心跳过项依赖未安装的模型能力；Milvus、会议领域真值、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
 
 统一离线评估命令：
 
@@ -220,12 +224,13 @@ npm run dev
 
 ## 当前未满足的完成标准
 
-- 尚无一条经过当前环境复现的无 mock 端到端业务链路；
+- 已有无 mock 的 WAV → RabbitMQ → FunASR → PostgreSQL 证据链路；尚无从会议输入到真实 Jira 写入的完整外部业务闭环；
 - 已有统一评估命令，但尚无冻结真实数据生成的正式指标；
 - 文档 ACL 和答案引用已完成，Milvus/真实数据规模下的效果与容量仍待验证；
 - Jira 已替换为真实 REST v3 客户端并完成合同测试，但因缺少站点凭据与项目权限，尚未完成真实外部写演示；
 - RabbitMQ 单机失败恢复与轻量容量基线已完成；多节点 quorum 高可用和真实文档/模型容量尚未验证；
-- ASR 和 LoRA/QLoRA 对比实验尚未完成；
+- 真实 FunASR 与公开样例/队列烟测已完成，但缺少脱敏多人会议真值，尚无会议领域 CER/DER；
+- LoRA/QLoRA 对比实验尚未完成；
 - Docker 一键部署尚未完成验证。
 
 这些限制会随路线执行逐项关闭，并在每个里程碑中留下代码、测试和学习记录。

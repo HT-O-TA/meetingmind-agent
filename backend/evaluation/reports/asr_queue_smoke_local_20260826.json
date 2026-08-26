@@ -1,0 +1,18 @@
+{
+  "schema_version": "meetingmind.asr-queue-smoke.v1",
+  "generated_at": "2026-08-26T01:44:31.902258+00:00",
+  "sample_kind": "public_smoke",
+  "task_status": "completed",
+  "task_attempt_count": 1,
+  "meeting_persisted": true,
+  "transcript": "甚至出现交易几乎停滞的情况。",
+  "metadata_schema": "meetingmind.asr-evidence.v1",
+  "speech_record_count": 1,
+  "timestamps_preserved": true,
+  "speaker_labels_preserved": true,
+  "minutes_is_review_draft": true,
+  "limitations": [
+    "公开单句样例，不是会议领域数据。",
+    "临时用户、会议和发言记录已在报告生成后清理。"
+  ]
+}

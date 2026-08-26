@@ -33,6 +33,7 @@ class TaskType(str, Enum):
     VECTOR_EMBED = "vector_embed"
     KNOWLEDGE_GRAPH = "knowledge_graph"
     AGENT_EXECUTE = "agent_execute"
+    AUDIO_TRANSCRIBE = "audio_transcribe"
 
 
 @dataclass
@@ -96,6 +97,7 @@ class TaskQueueService:
             TaskType.VECTOR_EMBED: settings.QUEUE_VECTOR_EMBED,
             TaskType.KNOWLEDGE_GRAPH: settings.QUEUE_KNOWLEDGE_GRAPH,
             TaskType.AGENT_EXECUTE: settings.QUEUE_AGENT_EXECUTE,
+            TaskType.AUDIO_TRANSCRIBE: settings.QUEUE_AUDIO_TRANSCRIBE,
         }[normalized]
 
     async def _save_task(self, task: TaskInfo) -> None:
@@ -438,6 +440,29 @@ async def create_knowledge_graph_task(
     return await task_queue_service.create_task(
         TaskType.KNOWLEDGE_GRAPH,
         {"document_id": document_id, "chunk_ids": chunk_ids, "user_id": user_id},
+        metadata,
+        user_id=user_id,
+        idempotency_key=idempotency_key,
+    )
+
+
+async def create_audio_transcribe_task(
+    meeting_id: int,
+    file_path: str,
+    original_filename: str,
+    user_id: int,
+    *,
+    metadata: Optional[Dict[str, Any]] = None,
+    idempotency_key: Optional[str] = None,
+) -> TaskInfo:
+    return await task_queue_service.create_task(
+        TaskType.AUDIO_TRANSCRIBE,
+        {
+            "meeting_id": meeting_id,
+            "file_path": file_path,
+            "original_filename": original_filename,
+            "user_id": user_id,
+        },
         metadata,
         user_id=user_id,
         idempotency_key=idempotency_key,

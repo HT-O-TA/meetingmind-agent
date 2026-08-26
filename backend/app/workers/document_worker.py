@@ -406,6 +406,16 @@ async def start_workers():
             failure_callback=task_queue_service.record_delivery_failure,
         ),
     ]
+    if settings.ENABLE_ASR:
+        from app.workers.audio_worker import process_audio_message
+
+        handles.append(
+            await rabbitmq_manager.consume_messages(
+                settings.QUEUE_AUDIO_TRANSCRIBE,
+                process_audio_message,
+                failure_callback=task_queue_service.record_delivery_failure,
+            )
+        )
     
     logger.info("All workers started successfully")
     return handles

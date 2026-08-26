@@ -82,6 +82,8 @@ class SpeechRecordOut(BaseModel):
     sequence: Optional[int]
     sentiment: Optional[str]
     is_key_point: Optional[int] = None
+    source_type: Optional[str] = None
+    source_task_id: Optional[str] = None
     created_at: datetime
 
     class Config:

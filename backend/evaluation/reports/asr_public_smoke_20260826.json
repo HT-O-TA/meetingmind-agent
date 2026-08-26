@@ -1,0 +1,54 @@
+{
+  "schema_version": "meetingmind.asr-eval.v1",
+  "generated_at": "2026-08-26T01:42:00.189063+00:00",
+  "manifest": "backend/evaluation/datasets/asr_public_smoke.jsonl",
+  "model": {
+    "provider": "funasr",
+    "configured_model": "paraformer-zh",
+    "package_version": "1.4.3",
+    "device": "cuda:0"
+  },
+  "metrics": {
+    "sample_count": 1,
+    "real_meeting_sample_count": 0,
+    "macro_cer": 0.0,
+    "macro_wer_jieba": 0.0
+  },
+  "claim_status": "public_smoke_only",
+  "limitations": [
+    "公开单句样例只证明真实模型和评测链路可运行，不能代表会议领域质量。",
+    "中文 WER 使用 jieba 分词，必须与该归一化规则一起解读；CER 是主要指标。",
+    "没有带真值的多人会议样本，因此不报告 DER 或说话人准确率。",
+    "每条样例连续执行两次：第一次记录缓存模型的进程冷启动，第二次记录热推理。"
+  ],
+  "samples": [
+    {
+      "id": "funasr_aishell_BAC009S0764W0121",
+      "source_url": "https://isv-data.oss-cn-hangzhou.aliyuncs.com/ics/MaaS/ASR/test_audio/BAC009S0764W0121.wav",
+      "reference": "甚至出现交易几乎停滞的情况",
+      "language": "zh",
+      "sample_kind": "public_smoke",
+      "provenance": "FunASR 官方教程引用的 AISHELL 样例；仅作安装与接口烟测，不代表会议场景",
+      "source_page": "https://github.com/modelscope/FunASR/blob/main/examples/industrial_data_pretraining/sense_voice/README_zh.md",
+      "hypothesis": "甚至出现交易几乎停滞的情况。",
+      "cer": 0.0,
+      "wer_jieba": 0.0,
+      "audio_sha256": "46dbc998c9d1d48111267c40741dd3200f2e5bcf4075f8c4c97f4451160dce50",
+      "duration_seconds": 4.204,
+      "cold_start_latency_seconds": 27.992,
+      "cold_model_load_seconds": 27.369,
+      "latency_seconds": 0.079,
+      "model_load_seconds": 0.0,
+      "inference_seconds": 0.079,
+      "realtime_factor": 0.0188,
+      "segment_count": 1,
+      "speaker_count": 1,
+      "timestamp_source": "funasr.sentence_info",
+      "diarization_available": true,
+      "uncertainties": [
+        "speaker_N 是匿名聚类标签，不等同于真实姓名或身份"
+      ],
+      "cold_and_warm_hypotheses_match": true
+    }
+  ]
+}

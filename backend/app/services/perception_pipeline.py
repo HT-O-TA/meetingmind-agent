@@ -4,18 +4,20 @@
 1. 三类附件来源（文档库上传、会议附件、Agent附件）统一经过接入治理
 2. 媒体类型路由按文件类型分发到对应感知管线
 3. 图片路径：Qwen3-VL 结构化提取
-4. 音频路径：soundfile/soxr 标准化 → FunASR 管线
+4. 音频路径：WAV 校验 → 统一 FunASR 适配器
 5. 视频路径：ffprobe 校验 → 双路并行（画面 Qwen3-VL + 音轨 FunASR）→ 音画融合
 6. 三条路径产出格式一致：带来源的非可信 Markdown 证据
 7. 降级处理：模型缺失、无音轨、解码失败、Prompt Injection
 
 外部依赖（当前为骨架预留）：
 - Qwen3-VL：图片/视频画面结构化提取
-- FunASR：音频 ASR + VAD + 标点恢复 + 句级时间戳 + CAM++ 声纹
+- FunASR：音频 ASR + VAD + 标点恢复 + 句级时间戳 + CAM++ 匿名说话人聚类
 - FFmpeg/ffprobe：视频媒体信息校验与音频抽取
 - soundfile/soxr：音频格式标准化
 """
 import time
+import tempfile
+from pathlib import Path
 from typing import Optional, Dict, List, Any
 from dataclasses import dataclass, field
 from enum import Enum
@@ -284,10 +286,8 @@ class ImagePerception:
 class AudioPerception:
     """音频感知管线
 
-    流程：soundfile/soxr 格式标准化 → FunASR 管线
-    FunASR 管线：ASR 转写 → VAD 长音频切分 → 标点恢复 → 句级时间戳 → CAM++ 声纹嵌入 → 说话人聚类
-
-    外部依赖：soundfile, soxr, FunASR（含 CAM++ 声纹模型）
+    流程：WAV 校验 → 统一 FunASR 服务 → 版本化证据。
+    MP3/M4A 和视频音轨仍延后到 ffmpeg 进入受管部署以后。
     """
 
     MODEL_BACKEND = "funasr"
@@ -298,83 +298,34 @@ class AudioPerception:
         filename: str,
         content: bytes,
     ) -> EvidenceDocument:
-        """音频转写与说话人分离
-
-        TODO: 接入 soundfile/soxr 和 FunASR
-        当前返回降级证据。
-        """
+        """音频转写与匿名说话人聚类。"""
         timestamp = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.gmtime())
-
+        temp_path: Optional[Path] = None
         try:
-            # 1. 格式标准化
-            normalized = await self._normalize_audio(content)
-            # 2. FunASR 管线
-            asr_result = await self._call_funasr(normalized)
-            # 3. 构建证据
-            markdown = self._build_markdown(filename, asr_result)
+            if Path(filename).suffix.lower() != ".wav":
+                raise ValueError("音频感知正式路径当前只支持 WAV")
+            from app.services.asr_service import funasr_service
+
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temporary:
+                temporary.write(content)
+                temp_path = Path(temporary.name)
+            result = await funasr_service.transcribe(temp_path)
             return EvidenceDocument(
                 source_file=filename,
                 evidence_type=EvidenceType.AUDIO,
-                model_backend=self.MODEL_BACKEND,
+                model_backend=f"funasr:{result.model}",
                 timestamp=timestamp,
-                markdown_content=markdown,
-                speakers=asr_result.get("speakers", []),
-                verifiable_facts=asr_result.get("facts", []),
-                decisions=asr_result.get("decisions", []),
-                todos=asr_result.get("todos", []),
-                uncertainties=asr_result.get("uncertainties", []),
+                markdown_content=result.to_evidence_markdown(filename),
+                speakers=[item.model_dump(mode="json") for item in result.speakers],
+                uncertainties=result.uncertainties,
+                metadata=result.model_dump(mode="json", exclude={"text", "segments"}),
             )
         except Exception as e:
             app_logger.warning(f"[AudioPerception] FunASR 调用失败，降级: {e}")
             return self._degrade(filename, timestamp, str(e))
-
-    async def _normalize_audio(self, content: bytes) -> bytes:
-        """使用 soundfile + soxr 标准化音频格式
-
-        - 统一采样率为 16kHz
-        - 转为单声道（如需）
-        - 格式转为 wav
-
-        TODO: 实现实际标准化
-        import soundfile as sf
-        import soxr
-        audio, sr = sf.read(io.BytesIO(content))
-        if sr != self.TARGET_SAMPLE_RATE:
-            audio = soxr.resample(audio, sr, self.TARGET_SAMPLE_RATE)
-        """
-        raise NotImplementedError("soundfile/soxr 标准化待实现")
-
-    async def _call_funasr(self, audio: bytes) -> Dict[str, Any]:
-        """调用 FunASR 管线
-
-        TODO: 实现实际调用
-        - ASR 转写（paraformer 模型）
-        - VAD 长音频切分（fsmn-vad 模型）
-        - 标点恢复（ct-punc 模型）
-        - 句级时间戳
-        - CAM++ 声纹嵌入（speech_campplus 模型）+ 说话人聚类
-
-        返回结构：
-        {
-            "text": "完整转写文本",
-            "segments": [{"start": 0.0, "end": 2.5, "text": "...", "speaker": "spk1"}],
-            "speakers": [{"id": "spk1", "duration": 120.5}],
-            "facts": [], "decisions": [], "todos": []
-        }
-        """
-        raise NotImplementedError("FunASR 集成待实现（需部署 FunASR 服务）")
-
-    def _build_markdown(self, filename: str, result: Dict[str, Any]) -> str:
-        """构建带说话人和时间戳的非可信 Markdown 证据"""
-        parts = [f"# 音频证据：{filename}\n"]
-        parts.append(f"> ⚠️ 非可信证据：由 {self.MODEL_BACKEND} 生成，需人工核验\n")
-        segments = result.get("segments", [])
-        if segments:
-            parts.append("## 转写内容（按时间线）\n")
-            for seg in segments:
-                speaker = seg.get("speaker", "未知")
-                parts.append(f"**[{speaker}]** ({seg.get('start', 0):.1f}s-{seg.get('end', 0):.1f}s): {seg.get('text', '')}")
-        return "\n".join(parts)
+        finally:
+            if temp_path is not None:
+                temp_path.unlink(missing_ok=True)
 
     def _degrade(self, filename: str, timestamp: str, reason: str) -> EvidenceDocument:
         return EvidenceDocument(

@@ -86,6 +86,7 @@ class Settings(BaseSettings):
     QUEUE_VECTOR_EMBED: str = "vector_embed"  # 向量化队列
     QUEUE_KNOWLEDGE_GRAPH: str = "knowledge_graph"  # 知识图谱构建队列
     QUEUE_AGENT_EXECUTE: str = "agent_execute"  # Agent执行队列
+    QUEUE_AUDIO_TRANSCRIBE: str = "audio_transcribe"  # 本地 ASR 转写队列
     QUEUE_TASK_TIMEOUT: int = 3600  # 任务默认超时时间（秒）
     QUEUE_PREFETCH_COUNT: int = 1  # 消费者预取消息数量
     QUEUE_MAX_RETRIES: int = 2  # 消费失败后的额外投递次数；总尝试数=3
@@ -170,6 +171,22 @@ class Settings(BaseSettings):
     MULTIMODAL_MAX_AUDIO_SIZE_MB: int = 50  # 音频最大大小（MB）
     MULTIMODAL_SUPPORTED_FORMATS: str = "png,jpg,jpeg,gif,webp,bmp,mp3,wav,m4a,ogg,flac,pdf,docx,txt,md"
     MULTIMODAL_ENABLE_SAFETY_CHECK: bool = True  # 是否启用多模态安全检测
+
+    # ==================== 本地 ASR 配置 ====================
+    # 可选重型能力：普通 Web/Worker 冷启动不导入 torch/FunASR，仅消费音频任务时懒加载。
+    ENABLE_ASR: bool = False
+    ASR_PROVIDER: str = "funasr"
+    ASR_MODEL: str = "paraformer-zh"
+    ASR_VAD_MODEL: str = "fsmn-vad"
+    ASR_PUNC_MODEL: str = "ct-punc"
+    ASR_SPK_MODEL: str = "cam++"
+    ASR_DEVICE: str = "auto"  # auto/cpu/cuda/cuda:0
+    ASR_HUB: str = "ms"
+    ASR_BATCH_SIZE_S: int = 300
+    ASR_MAX_AUDIO_SIZE_BYTES: int = 209715200  # 200 MiB
+    ASR_MAX_DURATION_SECONDS: int = 14400  # 4 小时
+    ASR_DELETE_UPLOAD_AFTER_SUCCESS: bool = True
+    ASR_ALLOWED_EXTENSIONS: str = "wav"
 
     # ==================== 安全护栏配置 ====================
     ENABLE_SEMANTIC_RISK_CHECK: bool = True  # 是否启用语义风险检测

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Float
+from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Float, JSON
 from sqlalchemy.sql import func
 from app.db.database import Base
 
@@ -21,6 +21,8 @@ class Meeting(Base):
     location = Column(String(128), nullable=True)
     participants = Column(Text, nullable=True)  # JSON array of participant names
     raw_transcript = Column(Text, nullable=True)
+    # ASR 证据元数据（模型/版本、音频哈希、时长、评估边界）；正文仍在 raw_transcript。
+    transcript_metadata = Column(JSON, nullable=True)
     summary = Column(Text, nullable=True)
     minutes = Column(Text, nullable=True)  # 会议纪要
     keywords = Column(Text, nullable=True)  # JSON array
@@ -42,4 +44,6 @@ class SpeechRecord(Base):
     sequence = Column(Integer, nullable=True)  # 发言顺序
     sentiment = Column(String(16), nullable=True)  # positive/negative/neutral
     is_key_point = Column(Integer, default=0)  # 0/1 是否关键发言
+    source_type = Column(String(16), nullable=True)  # manual/asr
+    source_task_id = Column(String(64), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

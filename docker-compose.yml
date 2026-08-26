@@ -184,6 +184,12 @@ services:
       ENABLE_AGENT_WORKER: ${ENABLE_AGENT_WORKER:-false}
       ENABLE_KNOWLEDGE_GRAPH: ${ENABLE_KNOWLEDGE_GRAPH:-false}
       ENABLE_NEO4J_PERSISTENCE: ${ENABLE_NEO4J_PERSISTENCE:-false}
+      ENABLE_ASR: ${ENABLE_ASR:-false}
+      ASR_DEVICE: ${ASR_DEVICE:-cpu}
+      ASR_MODEL: ${ASR_MODEL:-paraformer-zh}
+      ASR_VAD_MODEL: ${ASR_VAD_MODEL:-fsmn-vad}
+      ASR_PUNC_MODEL: ${ASR_PUNC_MODEL:-ct-punc}
+      ASR_SPK_MODEL: ${ASR_SPK_MODEL:-cam++}
     volumes:
       - ./backend:/app
       - backend_uploads:/app/uploads

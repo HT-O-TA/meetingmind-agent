@@ -65,6 +65,7 @@ env/
 meetingmind/
 backend/venv/
 backend/env/
+backend/.venv-asr/
 
 # Logs
 logs/
