@@ -1,6 +1,6 @@
 """任务队列 API 端点"""
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Header
 from pydantic import BaseModel
 from app.services.task_queue import (
     task_queue_service,
@@ -11,6 +11,9 @@ from app.services.task_queue import (
 )
 from app.core.deps import get_current_user
 from app.models.user import User
+from app.models.document import Document
+from app.db.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["任务队列"])
 
@@ -32,6 +35,10 @@ class TaskResponse(BaseModel):
     error: Optional[str] = None
     created_at: str
     updated_at: str
+    attempt_count: int = 0
+    max_attempts: int = 1
+    error_category: Optional[str] = None
+    published_at: Optional[str] = None
 
 
 class TaskListResponse(BaseModel):
@@ -50,14 +57,20 @@ def task_info_to_response(task_info: TaskInfo) -> TaskResponse:
         result=task_info.result,
         error=task_info.error,
         created_at=task_info.created_at,
-        updated_at=task_info.updated_at
+        updated_at=task_info.updated_at,
+        attempt_count=task_info.attempt_count,
+        max_attempts=task_info.max_attempts,
+        error_category=task_info.error_category,
+        published_at=task_info.published_at,
     )
 
 
-@router.post("/documents", response_model=TaskResponse, summary="创建文档处理任务")
+@router.post("/documents", response_model=TaskResponse, status_code=202, summary="创建文档处理任务")
 async def create_document_task(
     request: CreateTaskRequest,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     创建文档异步处理任务
@@ -67,13 +80,22 @@ async def create_document_task(
     - **metadata**: 额外元数据
     """
     try:
+        document = await db.get(Document, request.document_id)
+        if not document or document.deleted_at is not None:
+            raise HTTPException(status_code=404, detail="Document not found")
+        role = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+        if document.uploader_id != current_user.id and role != "admin":
+            raise HTTPException(status_code=403, detail="No permission to process this document")
         task_info = await create_document_process_task(
             document_id=request.document_id,
-            file_path=request.file_path,
+            file_path=document.file_path,
             user_id=current_user.id,
-            metadata=request.metadata
+            metadata=request.metadata,
+            idempotency_key=idempotency_key,
         )
         return task_info_to_response(task_info)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -88,7 +110,7 @@ async def get_task_status(
     
     - **task_id**: 任务ID
     """
-    task_info = await task_queue_service.get_task_status(task_id)
+    task_info = await task_queue_service.get_task_status(task_id, current_user.id)
     if not task_info:
         raise HTTPException(status_code=404, detail="Task not found")
     return task_info_to_response(task_info)
@@ -116,7 +138,8 @@ async def list_tasks(
         tasks = await task_queue_service.list_tasks(
             task_type=task_type_enum,
             status=status_enum,
-            limit=limit
+            limit=limit,
+            user_id=current_user.id,
         )
         
         return TaskListResponse(
@@ -137,7 +160,7 @@ async def cancel_task(
     
     - **task_id**: 任务ID
     """
-    success = await task_queue_service.cancel_task(task_id)
+    success = await task_queue_service.cancel_task(task_id, current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"message": "Task cancelled successfully", "task_id": task_id}
@@ -153,10 +176,24 @@ async def delete_task(
     
     - **task_id**: 任务ID
     """
-    success = await task_queue_service.delete_task(task_id)
+    success = await task_queue_service.delete_task(task_id, current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
     return {"message": "Task deleted successfully", "task_id": task_id}
+
+
+@router.post("/{task_id}/retry-publish", response_model=TaskResponse, summary="重发发布失败任务")
+async def retry_publish_task(
+    task_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        task = await task_queue_service.republish_task(task_id, current_user.id)
+        return task_info_to_response(task)
+    except LookupError:
+        raise HTTPException(status_code=404, detail="Task not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail=str(exc))
 
 
 @router.get("/{task_id}/wait", summary="等待任务完成")
@@ -177,15 +214,23 @@ async def wait_task_complete(
     start_time = time.time()
     
     while time.time() - start_time < timeout:
-        task_info = await task_queue_service.get_task_status(task_id)
+        task_info = await task_queue_service.get_task_status(task_id, current_user.id)
         
         if not task_info:
             raise HTTPException(status_code=404, detail="Task not found")
         
-        if task_info.status in [TaskStatus.COMPLETED.value, TaskStatus.FAILED.value, TaskStatus.CANCELLED.value]:
+        if task_info.status in [
+            TaskStatus.COMPLETED.value,
+            TaskStatus.CANCELLED.value,
+            TaskStatus.DEAD_LETTER.value,
+            TaskStatus.PUBLISH_FAILED.value,
+        ]:
             return task_info_to_response(task_info)
         
         await asyncio.sleep(1)
     
     # 超时
-    return task_info_to_response(await task_queue_service.get_task_status(task_id))
+    final_task = await task_queue_service.get_task_status(task_id, current_user.id)
+    if not final_task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task_info_to_response(final_task)

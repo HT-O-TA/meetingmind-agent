@@ -1,16 +1,13 @@
 """文档处理Worker - 消费消息队列中的任务"""
-import asyncio
-import json
 import logging
-from typing import Dict, Any, Optional
+import hashlib
+from typing import Dict, Any
 
-from aio_pika import IncomingMessage
 from app.core.rabbitmq import rabbitmq_manager
 from app.core.config import settings
 from app.services.task_queue import (
     task_queue_service,
     TaskStatus,
-    TaskType,
     create_vector_embed_task,
     create_knowledge_graph_task
 )
@@ -24,7 +21,6 @@ class DocumentWorker:
     """文档处理Worker"""
 
     def __init__(self):
-        self.embedding_service = EmbeddingService()
         self.is_running = False
 
     async def process_document(self, task_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -90,14 +86,32 @@ class DocumentWorker:
                 # 触发向量化任务
                 vector_task = await create_vector_embed_task(
                     document_id=document_id,
-                    chunk_ids=chunk_ids
+                    chunk_ids=chunk_ids,
+                    user_id=user_id,
+                    idempotency_key=self._child_idempotency_key(
+                        "vector", document_id, chunk_ids
+                    ),
                 )
+                if vector_task.status == TaskStatus.PUBLISH_FAILED.value:
+                    raise RuntimeError(
+                        f"Vector child task publish failed: {vector_task.task_id}"
+                    )
                 
                 # 触发知识图谱构建任务
-                kg_task = await create_knowledge_graph_task(
-                    document_id=document_id,
-                    chunk_ids=chunk_ids
-                )
+                kg_task = None
+                if settings.ENABLE_KNOWLEDGE_GRAPH:
+                    kg_task = await create_knowledge_graph_task(
+                        document_id=document_id,
+                        chunk_ids=chunk_ids,
+                        user_id=user_id,
+                        idempotency_key=self._child_idempotency_key(
+                            "kg", document_id, chunk_ids
+                        ),
+                    )
+                    if kg_task.status == TaskStatus.PUBLISH_FAILED.value:
+                        raise RuntimeError(
+                            f"Knowledge graph child task publish failed: {kg_task.task_id}"
+                        )
                 
                 await task_queue_service.update_task_status(
                     task_id,
@@ -110,6 +124,8 @@ class DocumentWorker:
                 "document_id": document_id,
                 "chunks_created": len(chunks),
                 "chunk_ids": chunk_ids,
+                "vector_task_id": vector_task.task_id if chunk_ids else None,
+                "knowledge_graph_task_id": kg_task.task_id if chunk_ids and kg_task else None,
                 "message": "Document processed successfully"
             }
             
@@ -131,12 +147,19 @@ class DocumentWorker:
             )
             raise
 
+    @staticmethod
+    def _child_idempotency_key(kind: str, document_id: int, chunk_ids: list[int]) -> str:
+        digest = hashlib.sha256(
+            ",".join(str(item) for item in sorted(chunk_ids)).encode("utf-8")
+        ).hexdigest()[:16]
+        return f"document:{document_id}:{kind}:{digest}"
+
 
 class VectorWorker:
     """向量化Worker"""
     
     def __init__(self):
-        self.embedding_service = EmbeddingService()
+        self.embedding_service = None
         self.is_running = False
     
     async def process_vector_embed(self, task_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -144,6 +167,8 @@ class VectorWorker:
         try:
             document_id = payload.get("document_id")
             chunk_ids = payload.get("chunk_ids", [])
+            if self.embedding_service is None:
+                self.embedding_service = EmbeddingService()
             
             logger.info(f"Embedding chunks for document {document_id}, count: {len(chunk_ids)}")
             
@@ -155,6 +180,7 @@ class VectorWorker:
             
             # 向量化处理
             embedded_count = 0
+            failures = []
             for i, chunk_id in enumerate(chunk_ids):
                 try:
                     await self.embedding_service.embed_chunk(chunk_id)
@@ -169,6 +195,12 @@ class VectorWorker:
                     )
                 except Exception as e:
                     logger.warning(f"Failed to embed chunk {chunk_id}: {e}")
+                    failures.append({"chunk_id": chunk_id, "error": str(e)})
+
+            if failures:
+                raise RuntimeError(
+                    f"{len(failures)}/{len(chunk_ids)} chunks embedding failed: {failures[:3]}"
+                )
             
             result = {
                 "document_id": document_id,
@@ -318,86 +350,65 @@ vector_worker = VectorWorker()
 knowledge_graph_worker = KnowledgeGraphWorker()
 
 
-async def process_document_message(message: IncomingMessage):
+async def _run_claimed_task(message_body: Dict[str, Any], processor) -> Any:
+    task_id = message_body.get("task_id")
+    claim = await task_queue_service.claim_task(task_id)
+    if claim == "terminal":
+        logger.info("Skip terminal duplicate task: %s", task_id)
+        return None
+    if claim == "missing":
+        raise ValueError(f"Task status missing: {task_id}")
+    if claim == "busy":
+        raise RuntimeError(f"Task already claimed: {task_id}")
+    worker_id = claim.split(":", 1)[1]
+    try:
+        return await processor(task_id, message_body.get("payload", {}))
+    finally:
+        await task_queue_service.release_claim(task_id, worker_id)
+
+
+async def process_document_message(message_body: Dict[str, Any]):
     """处理文档处理队列消息"""
-    async with message.process():
-        try:
-            body = json.loads(message.body.decode())
-            task_id = body.get("task_id")
-            payload = body.get("payload", {})
-            
-            logger.info(f"Received document task: {task_id}")
-            
-            await document_worker.process_document(task_id, payload)
-            
-        except Exception as e:
-            logger.error(f"Error processing document message: {e}")
-            raise  # NACK: message returns to queue instead of being silently ACK'd
+    logger.info("Received document task: %s", message_body.get("task_id"))
+    return await _run_claimed_task(message_body, document_worker.process_document)
 
 
-async def process_vector_message(message: IncomingMessage):
+async def process_vector_message(message_body: Dict[str, Any]):
     """处理向量化队列消息"""
-    async with message.process():
-        try:
-            body = json.loads(message.body.decode())
-            task_id = body.get("task_id")
-            payload = body.get("payload", {})
-            
-            logger.info(f"Received vector task: {task_id}")
-            
-            await vector_worker.process_vector_embed(task_id, payload)
-            
-        except Exception as e:
-            logger.error(f"Error processing vector message: {e}")
-            raise  # NACK: message returns to queue instead of being silently ACK'd
+    logger.info("Received vector task: %s", message_body.get("task_id"))
+    return await _run_claimed_task(message_body, vector_worker.process_vector_embed)
 
 
-async def process_kg_message(message: IncomingMessage):
+async def process_kg_message(message_body: Dict[str, Any]):
     """处理知识图谱队列消息"""
-    async with message.process():
-        try:
-            body = json.loads(message.body.decode())
-            task_id = body.get("task_id")
-            payload = body.get("payload", {})
-            
-            logger.info(f"Received KG task: {task_id}")
-            
-            await knowledge_graph_worker.process_knowledge_graph(task_id, payload)
-            
-        except Exception as e:
-            logger.error(f"Error processing KG message: {e}")
-            raise  # NACK: message returns to queue instead of being silently ACK'd
+    logger.info("Received KG task: %s", message_body.get("task_id"))
+    return await _run_claimed_task(message_body, knowledge_graph_worker.process_knowledge_graph)
 
 
 async def start_workers():
     """启动所有Worker"""
     logger.info("Starting message queue workers...")
     
-    # 启动文档处理Worker
-    asyncio.create_task(
-        rabbitmq_manager.consume_messages(
+    handles = [
+        await rabbitmq_manager.consume_messages(
             settings.QUEUE_DOCUMENT_PROCESS,
-            process_document_message
-        )
-    )
-    
-    # 启动向量化Worker
-    asyncio.create_task(
-        rabbitmq_manager.consume_messages(
+            process_document_message,
+            failure_callback=task_queue_service.record_delivery_failure,
+        ),
+        await rabbitmq_manager.consume_messages(
             settings.QUEUE_VECTOR_EMBED,
-            process_vector_message
-        )
-    )
-    
-    # 启动知识图谱Worker
-    asyncio.create_task(
-        rabbitmq_manager.consume_messages(
+            process_vector_message,
+            failure_callback=task_queue_service.record_delivery_failure,
+        ),
+        await rabbitmq_manager.consume_messages(
             settings.QUEUE_KNOWLEDGE_GRAPH,
-            process_kg_message
-        )
-    )
+            process_kg_message,
+            failure_callback=task_queue_service.record_delivery_failure,
+        ),
+    ]
     
     logger.info("All workers started successfully")
+    return handles
 
 
 async def stop_workers():

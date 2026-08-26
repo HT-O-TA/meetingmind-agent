@@ -1,0 +1,44 @@
+{
+  "schema_version": "queue-benchmark.v1",
+  "sample_kind": "local_single_node",
+  "created_at": "2026-08-26T01:14:06.899645+00:00",
+  "environment": {
+    "python": "3.12.13",
+    "platform": "Linux-6.8.0-136-generic-x86_64-with-glibc2.35",
+    "rabbitmq_url_host": "127.0.0.1",
+    "broker": {
+      "product": "RabbitMQ",
+      "version": "3.13.7",
+      "platform": "Erlang/OTP 26.2.5.16"
+    },
+    "topology": "durable classic main/retry/dead"
+  },
+  "config": {
+    "messages": 500,
+    "concurrency": 50,
+    "prefetch": 50,
+    "payload_bytes": 1024
+  },
+  "metrics": {
+    "duration_seconds": 0.14,
+    "throughput_messages_per_second": 3580.778,
+    "publisher_confirm": {
+      "mean_ms": 12.1,
+      "p50_ms": 10.916,
+      "p95_ms": 18.619,
+      "max_ms": 20.789
+    },
+    "end_to_end": {
+      "mean_ms": 11.399,
+      "p50_ms": 10.307,
+      "p95_ms": 17.746,
+      "max_ms": 20.33
+    },
+    "received": 500,
+    "errors": 0
+  },
+  "limitations": [
+    "本报告只测单机本地 broker 和轻量回调，不代表文档解析、Embedding 或 LLM 吞吐。",
+    "单节点 classic queue 不提供集群副本高可用；生产环境需单独验证 quorum queue。"
+  ]
+}

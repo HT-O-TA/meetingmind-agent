@@ -78,6 +78,8 @@ class Settings(BaseSettings):
     RABBITMQ_POOL_SIZE: int = 10  # RabbitMQ连接池大小
     RABBITMQ_MAX_RETRIES: int = 3  # 最大重试次数
     RABBITMQ_RETRY_DELAY: int = 5  # 重试延迟（秒）
+    RABBITMQ_CONNECT_TIMEOUT_SECONDS: float = 10.0
+    RABBITMQ_PUBLISH_TIMEOUT_SECONDS: float = 10.0
     
     # 任务队列配置
     QUEUE_DOCUMENT_PROCESS: str = "document_process"  # 文档处理队列
@@ -86,6 +88,12 @@ class Settings(BaseSettings):
     QUEUE_AGENT_EXECUTE: str = "agent_execute"  # Agent执行队列
     QUEUE_TASK_TIMEOUT: int = 3600  # 任务默认超时时间（秒）
     QUEUE_PREFETCH_COUNT: int = 1  # 消费者预取消息数量
+    QUEUE_MAX_RETRIES: int = 2  # 消费失败后的额外投递次数；总尝试数=3
+    QUEUE_RETRY_DELAY_SECONDS: int = 5  # 固定延迟重试队列 TTL
+    QUEUE_MAX_LENGTH: int = 10000  # 满队列拒绝新发布并由 publisher confirm 暴露错误
+    QUEUE_DLX_NAME: str = "meetingmind.dlx"
+    QUEUE_TASK_RETENTION_SECONDS: int = 86400  # Redis 中终态/查询状态保留 24 小时
+    QUEUE_CLAIM_TTL_SECONDS: int = 3660  # 略长于单任务超时，防止并发重复消费
 
     # ==================== 向量化配置 ====================
     EMBEDDING_MODEL: str = "BAAI/bge-m3"  # HuggingFace模型标识（用于远程下载）

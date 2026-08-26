@@ -3,8 +3,6 @@
 # 包含：后端(backend)、前端(frontend)、PostgreSQL、Redis、Neo4j
 # ============================================
 
-version: '3.8'
-
 services:
   # PostgreSQL 数据库
   postgres:
@@ -93,6 +91,7 @@ services:
 
   # 后端服务
   backend:
+    image: meetingmind-backend:local
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -159,6 +158,43 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    networks:
+      - meetingmind-network
+
+  # 独立异步 Worker：Web 进程只发布任务，Worker 负责 manual ack/retry/DLQ
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: meetingmind-backend:local
+    container_name: meetingmind-worker
+    command: ["python", "-m", "app.workers.run"]
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-here-change-in-production}
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/meetingmind
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin123}@rabbitmq:5672
+      LLM_API_BASE: ${LLM_API_BASE:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-qwen3.6-plus}
+      EMBEDDING_DEVICE: ${EMBEDDING_DEVICE:-cpu}
+      ENABLE_AGENT_WORKER: ${ENABLE_AGENT_WORKER:-false}
+      ENABLE_KNOWLEDGE_GRAPH: ${ENABLE_KNOWLEDGE_GRAPH:-false}
+      ENABLE_NEO4J_PERSISTENCE: ${ENABLE_NEO4J_PERSISTENCE:-false}
+    volumes:
+      - ./backend:/app
+      - backend_uploads:/app/uploads
+      - backend_model:/app/model
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - meetingmind-network
 

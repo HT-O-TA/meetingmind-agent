@@ -24,6 +24,13 @@ async def agent_execute_consumer(message_body: Dict[str, Any]):
     """
     task_id = message_body.get("task_id")
     payload = message_body.get("payload", {})
+    claim = await task_queue_service.claim_task(task_id)
+    if claim == "terminal":
+        logger.info("Skip terminal duplicate Agent task: %s", task_id)
+        return
+    if claim in {"missing", "busy"}:
+        raise RuntimeError(f"Agent task cannot be claimed: {task_id} ({claim})")
+    worker_id = claim.split(":", 1)[1]
 
     try:
         await task_queue_service.update_task_status(
@@ -101,6 +108,12 @@ async def agent_execute_consumer(message_body: Dict[str, Any]):
             "human_confirmations": [],
             "enable_human_in_the_loop": False,
             "session_context": None,
+            "access_scope": {
+                "user_id": message_body.get("user_id"),
+                "department": None,
+                "allow_public": True,
+                "document_scope": document_ids or None,
+            },
         }
 
         await task_queue_service.update_task_status(
@@ -131,21 +144,26 @@ async def agent_execute_consumer(message_body: Dict[str, Any]):
     except Exception as e:
         logger.error(f"Agent task failed: {task_id}, error: {str(e)}", exc_info=True)
         await task_queue_service.update_task_status(
-            task_id, TaskStatus.FAILED, error=str(e)
+            task_id,
+            TaskStatus.FAILED,
+            error=str(e),
+            error_category=e.__class__.__name__,
         )
+        raise
+    finally:
+        await task_queue_service.release_claim(task_id, worker_id)
 
 
 async def start_agent_worker():
     """启动Agent执行消费者"""
-    try:
-        await rabbitmq_manager.register_consumer(
-            queue_name=settings.QUEUE_AGENT_EXECUTE,
-            callback=agent_execute_consumer,
-            prefetch_count=settings.QUEUE_PREFETCH_COUNT,
-        )
-        app_logger.info(f"✅ Agent执行消费者已启动，队列: {settings.QUEUE_AGENT_EXECUTE}")
-    except Exception as e:
-        app_logger.error(f"❌ Agent执行消费者启动失败: {e}")
+    handle = await rabbitmq_manager.consume_messages(
+        queue_name=settings.QUEUE_AGENT_EXECUTE,
+        callback=agent_execute_consumer,
+        prefetch_count=settings.QUEUE_PREFETCH_COUNT,
+        failure_callback=task_queue_service.record_delivery_failure,
+    )
+    app_logger.info(f"Agent执行消费者已启动，队列: {settings.QUEUE_AGENT_EXECUTE}")
+    return handle
 
 
 async def create_agent_task(
@@ -153,6 +171,8 @@ async def create_agent_task(
     document_ids: list = None,
     meeting_id: int = None,
     metadata: dict = None,
+    user_id: int = None,
+    idempotency_key: str = None,
 ) -> dict:
     """
     创建Agent异步执行任务
@@ -177,6 +197,8 @@ async def create_agent_task(
         TaskType.AGENT_EXECUTE,
         payload,
         metadata=metadata,
+        user_id=user_id,
+        idempotency_key=idempotency_key,
     )
 
     return {

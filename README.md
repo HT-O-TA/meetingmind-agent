@@ -25,7 +25,7 @@ MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。�
 | Fusion + Reranker | 已实现契约测试 | 0.3 关键词权重 + 0.7 Dense 权重，权重仍需离线评测 |
 | Agent | 已收敛默认边界 | 默认只保留 Simple RAG、确定性业务节点和 Tool Agent；检索继承用户 ACL |
 | ToolPolicy / HITL | 安全链路与持久审计已验证 | Jira Cloud 为唯一正式目标；缺少本机凭据，真实站点联调待完成 |
-| RabbitMQ 任务 | 有框架，待失败恢复基线 | 重试、死信、幂等和容量测试仍需完成 |
+| RabbitMQ 任务 | 可靠性基线已完成 | Confirm、manual ACK、延迟重试、DLQ、幂等、用户隔离及单机轻量容量已验证 |
 | RAG 评估 | 离线命令已统一 | 支持 RAG/抽取/工具/路由/系统指标；当前没有可对外引用的真实效果数字 |
 | KG / Neo4j | 可选增强，默认关闭 | 不进入正式 RAG 请求路径 |
 | MCP | 可选框架，默认关闭 | 尚未完成唯一真实外部 Server 联调 |
@@ -60,6 +60,7 @@ POST /api/v1/rag/ask
 - [Agent 主链路与阶段 0 运行基线](docs/优化路径记录/04_Agent主链路与阶段0基线.md)
 - [阶段 1 RAG 权限、路由与统一评估](docs/优化路径记录/05_阶段1_RAG权限路由与统一评估.md)
 - [阶段 2 Agent 安全工具闭环](docs/优化路径记录/06_阶段2_Agent安全工具闭环.md)
+- [阶段 3 RabbitMQ 失败恢复与容量基线](docs/优化路径记录/07_阶段3_RabbitMQ失败恢复与容量基线.md)
 
 ## 正式 Agent 边界
 
@@ -167,7 +168,7 @@ pip install -r requirements-core.txt
 ./scripts/run_core_tests.sh -q
 ```
 
-2026-08-26 完成阶段 2 代码收敛后的轻量核心基线为 `155 passed, 2 skipped`；另有 Jira 客户端单元测试 `8 passed`。真实 PostgreSQL ACL/软删除事务集成测试和工具审计/幂等事务集成测试各 `1 passed`。两个核心跳过项依赖未安装的模型能力；Milvus、真实评估集和真实 Jira 站点仍需单独验收，不能把当前通过数解释为完整生产验收。
+2026-08-26 完成阶段 3 代码收敛后的轻量核心基线为 `165 passed, 2 skipped`；另有 Jira 客户端单元测试 `8 passed`。真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`。两个核心跳过项依赖未安装的模型能力；Milvus、真实评估集、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
 
 统一离线评估命令：
 
@@ -223,7 +224,7 @@ npm run dev
 - 已有统一评估命令，但尚无冻结真实数据生成的正式指标；
 - 文档 ACL 和答案引用已完成，Milvus/真实数据规模下的效果与容量仍待验证；
 - Jira 已替换为真实 REST v3 客户端并完成合同测试，但因缺少站点凭据与项目权限，尚未完成真实外部写演示；
-- RabbitMQ 失败恢复与幂等测试尚未完成；
+- RabbitMQ 单机失败恢复与轻量容量基线已完成；多节点 quorum 高可用和真实文档/模型容量尚未验证；
 - ASR 和 LoRA/QLoRA 对比实验尚未完成；
 - Docker 一键部署尚未完成验证。
 

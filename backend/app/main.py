@@ -15,6 +15,7 @@ from app.core.exceptions import (
 )
 from app.db.database import init_db
 from app.core.cache_init import init_all_caches, close_redis, redis_health
+from app.core.rabbitmq import close_rabbitmq
 from app.core.middleware import AccessLogMiddleware
 from app.api.v1.router import api_router
 
@@ -102,6 +103,7 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
+    await close_rabbitmq()
     await close_redis()
 
 

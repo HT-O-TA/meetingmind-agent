@@ -12,7 +12,9 @@ class InMemoryRedis:
     def __init__(self):
         self.data = {}
 
-    async def set(self, key, value, ex=None):
+    async def set(self, key, value, ex=None, nx=False):
+        if nx and key in self.data:
+            return False
         self.data[key] = value
         return True
 
@@ -22,7 +24,7 @@ class InMemoryRedis:
     async def delete(self, key):
         return int(self.data.pop(key, None) is not None)
 
-    async def scan_iter(self, match="*"):
+    async def scan_iter(self, match="*", count=None):
         for key in list(self.data):
             if fnmatch.fnmatch(key, match):
                 yield key
