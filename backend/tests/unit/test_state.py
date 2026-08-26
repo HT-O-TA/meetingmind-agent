@@ -77,6 +77,10 @@ class TestCreateInitialState:
         assert state["risk_level"] == RiskLevel.LOW
         assert state["requires_confirmation"] is False
         assert state["confirmation_status"] == "not_required"
+        assert state["input_envelope"] is None
+        assert state["task_anchor"] is None
+        assert state["input_blocked"] is False
+        assert state["injection_blocked"] is False
 
     def test_with_meeting_id(self):
         state = create_initial_state("问题", meeting_id=42)

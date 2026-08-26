@@ -3,6 +3,7 @@
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command
 
 from app.agents.nodes import AgentNodes
 from app.agents.state import AgentState, ComplexityLevel, ReasoningMode, WorkflowType
@@ -18,21 +19,26 @@ def create_agent_graph(
     nodes = AgentNodes(llm_service, tool_manager)
     graph = StateGraph(AgentState)
 
+    async def input_gate(state: AgentState) -> Command:
+        updated = await nodes.input_node(state)
+        target = "rejection_node" if updated.get("input_blocked", False) else "prompt_injection_node"
+        return Command(update=updated, goto=target)
+
+    async def injection_gate(state: AgentState) -> Command:
+        updated = await nodes.prompt_injection_node(state)
+        target = "rejection_node" if updated.get("injection_blocked", False) else "route_node"
+        return Command(update=updated, goto=target)
+
+    graph.add_node("input_node", input_gate)
     graph.add_node("route_node", nodes.route_agent)
-    graph.add_node("prompt_injection_node", nodes.prompt_injection_node)
+    graph.add_node("prompt_injection_node", injection_gate)
     graph.add_node("rejection_node", nodes.rejection_node)
-    graph.add_node("risk_node", nodes.risk_node)
-    graph.add_node("confirmation_node", nodes.confirmation_node)
-    graph.add_node("retrieve_node", nodes.retrieve_node)
     graph.add_node("simple_qa_node", nodes.simple_qa_node)
     graph.add_node("minutes_node", nodes.minutes_node)
     graph.add_node("todos_node", nodes.todos_node)
     graph.add_node("controversy_node", nodes.controversy_node)
     graph.add_node("plan_node", nodes.plan_agent)
-    graph.add_node("tool_risk_node", nodes.tool_risk_node)
     graph.add_node("execute_node", nodes.execute_agent)
-    graph.add_node("replan_node", nodes.replan_agent)
-    graph.add_node("validate_node", nodes.validate_node)
     graph.add_node("repair_node", nodes.repair_node)
 
     def route_workflow(state: AgentState) -> str:
@@ -94,42 +100,40 @@ def create_agent_graph(
             return "repair_node"
         return END
 
-    def after_injection_check(state: AgentState) -> str:
-        return "rejection_node" if state.get("injection_blocked", False) else "risk_node"
+    async def risk_gate(state: AgentState) -> Command:
+        updated = await nodes.risk_node(state)
+        return Command(update=updated, goto=should_confirm(updated))
 
-    direct_destinations = {
-        "simple_qa_node": "simple_qa_node",
-        "minutes_node": "minutes_node",
-        "todos_node": "todos_node",
-        "controversy_node": "controversy_node",
-        "plan_node": "plan_node",
-    }
+    async def confirmation_gate(state: AgentState) -> Command:
+        updated = await nodes.confirmation_node(state)
+        return Command(update=updated, goto=after_confirmation(updated))
 
-    graph.add_edge(START, "route_node")
-    graph.add_edge("route_node", "prompt_injection_node")
-    graph.add_conditional_edges(
-        "prompt_injection_node",
-        after_injection_check,
-        {"rejection_node": "rejection_node", "risk_node": "risk_node"},
-    )
+    async def retrieve_gate(state: AgentState) -> Command:
+        updated = await nodes.retrieve_node(state)
+        return Command(update=updated, goto=route_workflow(updated))
+
+    async def tool_risk_gate(state: AgentState) -> Command:
+        updated = await nodes.tool_risk_node(state)
+        return Command(update=updated, goto=after_tool_risk(updated))
+
+    async def replan_gate(state: AgentState) -> Command:
+        updated = await nodes.replan_agent(state)
+        return Command(update=updated, goto=after_replan(updated))
+
+    async def validate_gate(state: AgentState) -> Command:
+        updated = await nodes.validate_node(state)
+        return Command(update=updated, goto=should_repair(updated))
+
+    graph.add_node("risk_node", risk_gate)
+    graph.add_node("confirmation_node", confirmation_gate)
+    graph.add_node("retrieve_node", retrieve_gate)
+    graph.add_node("tool_risk_node", tool_risk_gate)
+    graph.add_node("replan_node", replan_gate)
+    graph.add_node("validate_node", validate_gate)
+
+    graph.add_edge(START, "input_node")
+    graph.add_edge("route_node", "risk_node")
     graph.add_edge("rejection_node", END)
-
-    graph.add_conditional_edges(
-        "risk_node",
-        should_confirm,
-        {"confirmation_node": "confirmation_node", "retrieve_node": "retrieve_node", **direct_destinations},
-    )
-    graph.add_conditional_edges(
-        "confirmation_node",
-        after_confirmation,
-        {
-            "retrieve_node": "retrieve_node",
-            "validate_node": "validate_node",
-            "execute_node": "execute_node",
-            **direct_destinations,
-        },
-    )
-    graph.add_conditional_edges("retrieve_node", route_workflow, direct_destinations)
 
     for node_name in (
         "simple_qa_node",
@@ -140,25 +144,6 @@ def create_agent_graph(
         graph.add_edge(node_name, "validate_node")
 
     graph.add_edge("plan_node", "tool_risk_node")
-    graph.add_conditional_edges(
-        "tool_risk_node",
-        after_tool_risk,
-        {
-            "confirmation_node": "confirmation_node",
-            "execute_node": "execute_node",
-        },
-    )
     graph.add_edge("execute_node", "replan_node")
-    graph.add_conditional_edges(
-        "replan_node",
-        after_replan,
-        {"plan_node": "plan_node", "validate_node": "validate_node"},
-    )
-
-    graph.add_conditional_edges(
-        "validate_node",
-        should_repair,
-        {"repair_node": "repair_node", END: END},
-    )
     graph.add_edge("repair_node", "validate_node")
     return graph.compile()

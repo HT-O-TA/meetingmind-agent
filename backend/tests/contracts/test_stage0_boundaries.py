@@ -105,6 +105,11 @@ class TestAgentGraphContract(unittest.TestCase):
             def __init__(self, builder):
                 self.builder = builder
 
+        class FakeCommand:
+            def __init__(self, update=None, goto=None):
+                self.update = update
+                self.goto = goto
+
         class FakeStateGraph:
             last_instance = None
 
@@ -135,6 +140,7 @@ class TestAgentGraphContract(unittest.TestCase):
                 START="__start__",
                 END="__end__",
             ),
+            "langgraph.types": _module("langgraph.types", Command=FakeCommand),
             "app": _package("app"),
             "app.agents": _package("app.agents"),
             "app.services": _package("app.services"),
@@ -171,7 +177,7 @@ class TestAgentGraphContract(unittest.TestCase):
 
         self.assertEqual(builder.compile_count, 1)
         self.assertTrue({
-            "route_node", "retrieve_node", "simple_qa_node",
+            "input_node", "route_node", "retrieve_node", "simple_qa_node",
             "plan_node", "tool_risk_node", "execute_node", "validate_node",
         }.issubset(builder.nodes))
         self.assertTrue({

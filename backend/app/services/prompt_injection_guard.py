@@ -61,6 +61,7 @@ INJECTION_PATTERNS = {
     InjectionType.INSTRUCTION_OVERRIDE: {
         "patterns": [
             r"ignore\s+(previous|all)\s+(instructions?|prompts?|commands?)",
+            r"ignore\s+all\s+previous\s+(instructions?|prompts?|commands?)",
             r"forget\s+(about\s+)?(previous|all)\s+(instructions?|prompts?)",
             r"disregard\s+(previous|all)\s+(instructions?|prompts?)",
             r"override\s+(previous|all)\s+(instructions?|prompts?)",

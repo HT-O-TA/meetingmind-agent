@@ -212,6 +212,17 @@ class AgentState(TypedDict):
     """Agent 执行状态 - 支持复杂任务拆分"""
     question: str
     agent_run_id: str
+    user_id: Optional[int]
+    session_id: Optional[str]
+    conversation_id: Optional[str]
+    thread_id: Optional[str]
+    input_envelope: Optional[Dict[str, Any]]
+    task_anchor: Optional[Dict[str, Any]]
+    input_blocked: bool
+    input_block_reason: Optional[str]
+    injection_check: Optional[Dict[str, Any]]
+    injection_blocked: bool
+    injection_block_reason: Optional[str]
     approved_tool_call: Optional[Dict[str, Any]]
     resume_from_tool_index: Optional[int]
     meeting_id: Optional[int]
@@ -383,6 +394,17 @@ def create_initial_state(
     return {
         "question": question,
         "agent_run_id": str(uuid.uuid4()),
+        "user_id": None,
+        "session_id": None,
+        "conversation_id": None,
+        "thread_id": None,
+        "input_envelope": None,
+        "task_anchor": None,
+        "input_blocked": False,
+        "input_block_reason": None,
+        "injection_check": None,
+        "injection_blocked": False,
+        "injection_block_reason": None,
         "meeting_id": meeting_id,
         "document_ids": document_ids or [],
         "context": [],
