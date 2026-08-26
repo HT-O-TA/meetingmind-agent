@@ -96,6 +96,7 @@ jobs:
         env: &integration-env
           APP_ENV: test
           DEBUG: "false"
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
           SECRET_KEY: test-secret-key-at-least-32-characters
           DATABASE_URL: postgresql+asyncpg://postgres:testpassword@127.0.0.1:5432/meetingmind_test
           REDIS_URL: redis://127.0.0.1:6379/1
