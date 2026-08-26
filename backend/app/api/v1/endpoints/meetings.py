@@ -10,6 +10,8 @@ from app.schemas.meeting import (
 from app.core.response import Response, PageResponse
 from app.core.deps import get_current_user
 from app.models.user import User
+from app.core.security import is_admin_user, require_write_user
+from app.core.exceptions import AppException
 
 router = APIRouter()
 
@@ -23,10 +25,11 @@ async def list_meetings(
     department: Optional[str] = None,
     meeting_type: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     svc = MeetingService(db)
     meetings, total, total_pages = await svc.list_meetings(
-        page, page_size, status, keyword, department, meeting_type
+        page, page_size, status, keyword, department, meeting_type, current_user
     )
     return PageResponse(
         data=[MeetingOut.model_validate(m) for m in meetings],
@@ -40,6 +43,11 @@ async def create_meeting(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
+    if not is_admin_user(current_user):
+        if data.department is not None and data.department != current_user.department:
+            raise AppException("不能为其他部门创建会议", 403)
+        data = data.model_copy(update={"department": current_user.department})
     svc = MeetingService(db)
     organizer_id = cast(int, current_user.id) if current_user else None
     meeting = await svc.create(data, organizer_id)
@@ -47,9 +55,13 @@ async def create_meeting(
 
 
 @router.get("/{meeting_id}", response_model=Response)
-async def get_meeting(meeting_id: int, db: AsyncSession = Depends(get_db)):
+async def get_meeting(
+    meeting_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = MeetingService(db)
-    meeting = await svc.get_by_id(meeting_id)
+    meeting = await svc.get_for_user(meeting_id, current_user)
     return Response.ok(MeetingOut.model_validate(meeting))
 
 
@@ -60,8 +72,9 @@ async def update_meeting(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = MeetingService(db)
-    meeting = await svc.update(meeting_id, data)
+    meeting = await svc.update(meeting_id, data, current_user)
     return Response.ok(MeetingOut.model_validate(meeting))
 
 
@@ -72,12 +85,13 @@ async def update_status(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     allowed = {"draft", "processing", "completed", "archived"}
     if status not in allowed:
         from app.core.exceptions import AppException
         raise AppException(f"无效状态，可选: {', '.join(allowed)}", 400)
     svc = MeetingService(db)
-    meeting = await svc.update_meeting_status(meeting_id, status)
+    meeting = await svc.update_meeting_status(meeting_id, status, current_user)
     return Response.ok(MeetingOut.model_validate(meeting))
 
 
@@ -87,17 +101,22 @@ async def delete_meeting(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = MeetingService(db)
-    await svc.delete(meeting_id)
+    await svc.delete(meeting_id, current_user)
     return Response.ok(message="删除成功")
 
 
 # ---- 发言记录 ----
 
 @router.get("/{meeting_id}/speeches", response_model=Response)
-async def list_speeches(meeting_id: int, db: AsyncSession = Depends(get_db)):
+async def list_speeches(
+    meeting_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     svc = MeetingService(db)
-    speeches = await svc.list_speeches(meeting_id)
+    speeches = await svc.list_speeches(meeting_id, current_user)
     return Response.ok([SpeechRecordOut.model_validate(s) for s in speeches])
 
 
@@ -108,8 +127,9 @@ async def create_speech(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = MeetingService(db)
-    speech = await svc.create_speech(meeting_id, data)
+    speech = await svc.create_speech(meeting_id, data, current_user)
     return Response.created(SpeechRecordOut.model_validate(speech))
 
 
@@ -120,8 +140,9 @@ async def bulk_create_speeches(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = MeetingService(db)
-    speeches = await svc.bulk_create_speeches(meeting_id, data)
+    speeches = await svc.bulk_create_speeches(meeting_id, data, current_user)
     return Response.created([SpeechRecordOut.model_validate(s) for s in speeches])
 
 
@@ -133,8 +154,9 @@ async def update_speech(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = MeetingService(db)
-    speech = await svc.update_speech(speech_id, data)
+    speech = await svc.update_speech(meeting_id, speech_id, data, current_user)
     return Response.ok(SpeechRecordOut.model_validate(speech))
 
 
@@ -145,6 +167,7 @@ async def delete_speech(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = MeetingService(db)
-    await svc.delete_speech(speech_id)
+    await svc.delete_speech(meeting_id, speech_id, current_user)
     return Response.ok(message="删除成功")

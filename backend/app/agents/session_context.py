@@ -3,7 +3,7 @@
 ID 分层设计：
   层级1: user_id         用户身份（JWT Token）
   层级2: session_id      浏览器会话（前端生成，uuid4）
-  层级3: thread_id       Agent 对话线程（session_id:conversation_id）
+  层级3: thread_id       Agent 对话线程（user_id:session_id:conversation_id）
   层级4: meeting_id      业务域（数据库主键）
 """
 from dataclasses import dataclass, field
@@ -27,7 +27,7 @@ class SessionContext:
     """统一的会话上下文管理
 
     封装四层 ID，确保会话隔离和业务过滤的正确性。
-    通过 thread_id = f"{session_id}:{conversation_id}" 确保 LangGraph 状态唯一。
+    通过 thread_id = f"{user_id}:{session_id}:{conversation_id}" 确保跨用户状态隔离。
     """
 
     user_id: Optional[int] = None
@@ -46,18 +46,21 @@ class SessionContext:
     def thread_id(self) -> str:
         """
         生成 LangGraph thread_id
-        格式: session_id:conversation_id
-        确保同一浏览器标签页的不同对话隔离
+        格式: user_id:session_id:conversation_id
+        确保不同用户与不同对话同时隔离
         """
-        return f"{self.session_id}:{self.conversation_id}"
+        owner = str(self.user_id) if self.user_id is not None else "anonymous"
+        return f"{owner}:{self.session_id}:{self.conversation_id}"
 
     @staticmethod
     def parse_thread_id(thread_id: str) -> tuple:
-        """解析 thread_id 为 (session_id, conversation_id)"""
+        """解析 thread_id 为 (session_id, conversation_id)，并兼容旧两段格式。"""
         if not thread_id:
             return ("default", "default")
-        if ":" in thread_id:
-            parts = thread_id.split(":", 1)
+        parts = thread_id.split(":")
+        if len(parts) >= 3:
+            return (parts[-2], parts[-1])
+        if len(parts) == 2:
             return (parts[0], parts[1])
         return (thread_id, "default")
 

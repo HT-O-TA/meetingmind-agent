@@ -60,6 +60,15 @@ class ToolManager:
         audit_context = audit_context or {}
         audit_id = None
 
+        access_scope = audit_context.get("access_scope") or {}
+        if is_external_write and access_scope.get("can_write") is False:
+            return ToolExecutionResult(
+                tool_id=tool_name,
+                success=False,
+                error="只读账号不能执行外部写操作",
+                metadata={"error_category": "readonly_user"},
+            )
+
         if is_external_write and not audit_context.get("idempotency_key"):
             return ToolExecutionResult(
                 tool_id=tool_name,

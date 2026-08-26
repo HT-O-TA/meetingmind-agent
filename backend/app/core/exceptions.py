@@ -55,5 +55,5 @@ async def global_exception_handler(request: Request, exc: Exception):
     app_logger.error(f"UnhandledException: {str(exc)} | path={request.url.path}\n{error_details}")
     return JSONResponse(
         status_code=500,
-        content={"code": 500, "message": f"服务器内部错误: {str(exc)[:200]}", "data": None},
+        content={"code": 500, "message": "服务器内部错误", "data": None},
     )

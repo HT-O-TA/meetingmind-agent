@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -18,12 +20,27 @@ from app.core.rabbitmq import close_rabbitmq
 from app.core.middleware import AccessLogMiddleware
 from app.api.v1.router import api_router
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    app_logger.info(f"Starting {settings.APP_NAME} in {settings.APP_ENV} mode")
+    await init_db()
+    app_logger.info("Database initialized")
+    cache_results = await init_all_caches()
+    app_logger.info(f"Cache systems initialized: {cache_results}")
+    try:
+        yield
+    finally:
+        await close_rabbitmq()
+        await close_redis()
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="会议文档 RAG 与安全工具 Agent API",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -40,21 +57,6 @@ app.add_exception_handler(AppException, app_exception_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(Exception, global_exception_handler)
-
-@app.on_event("startup")
-async def startup():
-    app_logger.info(f"Starting {settings.APP_NAME} in {settings.APP_ENV} mode")
-    await init_db()
-    app_logger.info("Database initialized")
-    
-    # 初始化混合缓存系统（原生Redis + LLM缓存 + FastAPI-Cache）
-    cache_results = await init_all_caches()
-    app_logger.info(f"Cache systems initialized: {cache_results}")
-    
-@app.on_event("shutdown")
-async def shutdown():
-    await close_rabbitmq()
-    await close_redis()
 
 
 @app.get("/health")

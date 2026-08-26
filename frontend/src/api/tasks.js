@@ -32,13 +32,12 @@ export async function deleteTask(taskId) {
   })
 }
 
-export async function createDocumentTask(documentId, filePath, metadata = null) {
+export async function createDocumentTask(documentId, metadata = null) {
   return request({
     url: '/api/v1/tasks/documents',
     method: 'post',
     data: {
       document_id: documentId,
-      file_path: filePath,
       metadata
     }
   })

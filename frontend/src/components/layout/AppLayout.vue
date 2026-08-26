@@ -27,13 +27,13 @@
         <el-menu-item index="/tasks">
           <el-icon><Clock /></el-icon><span>任务队列</span>
         </el-menu-item>
-        <el-menu-item index="/feedback">
+        <el-menu-item v-if="isAdmin" index="/feedback">
           <el-icon><ChatDotSquare /></el-icon><span>反馈管理</span>
         </el-menu-item>
         <el-menu-item index="/agent">
           <el-icon><Cpu /></el-icon><span>Agent演示</span>
         </el-menu-item>
-        <el-menu-item index="/trace">
+        <el-menu-item v-if="isAdmin" index="/trace">
           <el-icon><Monitor /></el-icon><span>Trace监控</span>
         </el-menu-item>
         <el-menu-item index="/query">
@@ -75,6 +75,7 @@ import { Cpu, List, Upload, Checked, Folder, Search, Clock, ChatDotSquare, Monit
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const isAdmin = computed(() => userStore.userInfo?.role === 'admin')
 
 const titleMap = {
   '/meetings': '会议列表',

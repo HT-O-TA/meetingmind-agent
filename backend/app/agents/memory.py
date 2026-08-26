@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from collections import OrderedDict
 from typing import Any, Dict, List
 
 
@@ -69,3 +70,28 @@ class MemoryManager:
 
     def clear_all(self) -> None:
         self.short_term.clear()
+
+
+class SessionMemoryStore:
+    """有界的 LRU 会话容器。
+
+    每个对话内部只保留固定轮数，同时限制进程内会话总数，
+    避免不断提交新 session_id 造成无界内存增长。
+    """
+
+    def __init__(self, max_sessions: int = 1000, max_raw_turns: int = 10):
+        self.max_sessions = max(1, max_sessions)
+        self.max_raw_turns = max(1, max_raw_turns)
+        self._items: "OrderedDict[str, MemoryManager]" = OrderedDict()
+
+    def get(self, key: str) -> MemoryManager:
+        memory = self._items.pop(key, None)
+        if memory is None:
+            memory = MemoryManager(self.max_raw_turns)
+        self._items[key] = memory
+        while len(self._items) > self.max_sessions:
+            self._items.popitem(last=False)
+        return memory
+
+    def __len__(self) -> int:
+        return len(self._items)

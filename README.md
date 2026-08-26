@@ -127,6 +127,13 @@ cd backend
 ./scripts/run_core_tests.sh -q
 ```
 
+Compose 启动后，运行四项固定真实 Demo（HTTP 业务闭环、队列恢复、公开 WAV ASR、LoRA 抽取）：
+
+```bash
+cd /home/lenovo/A/meetingmind-agent
+backend/venv/bin/python scripts/run_fixed_demos.py
+```
+
 前端：
 
 ```bash

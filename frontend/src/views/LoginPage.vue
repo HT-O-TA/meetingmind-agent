@@ -61,15 +61,8 @@ async function login() {
     loading.value = false
     ElMessage.success('登录成功')
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/meetings'
-    console.log('=== 登录成功，准备跳转 ===')
-    console.log('跳转目标:', redirect)
-    console.log('当前token:', userStore.token?.substring(0, 20) + '...')
-    console.log('isTokenValidated:', userStore.isTokenValidated)
-    console.log('localStorage token:', localStorage.getItem('token')?.substring(0, 20) + '...')
-    
     setTimeout(() => {
       const fullUrl = `${window.location.protocol}//${window.location.host}${redirect}`
-      console.log('执行跳转:', fullUrl)
       window.location.href = fullUrl
     }, 500)
   } catch (err) {

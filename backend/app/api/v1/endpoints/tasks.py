@@ -21,6 +21,8 @@ from app.models.user import User
 from app.models.document import Document
 from app.models.meeting import Meeting
 from app.db.database import get_db
+from app.core.logger import app_logger
+from app.core.security import require_write_user
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["任务队列"])
@@ -29,7 +31,6 @@ router = APIRouter(tags=["任务队列"])
 class CreateTaskRequest(BaseModel):
     """创建任务请求"""
     document_id: int
-    file_path: str
     metadata: Optional[dict] = None
 
 
@@ -84,9 +85,9 @@ async def create_document_task(
     创建文档异步处理任务
     
     - **document_id**: 文档ID
-    - **file_path**: 文件路径
     - **metadata**: 额外元数据
     """
+    require_write_user(current_user)
     try:
         document = await db.get(Document, request.document_id)
         if not document or document.deleted_at is not None:
@@ -105,7 +106,8 @@ async def create_document_task(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        app_logger.exception(f"Unable to queue document task: {e}")
+        raise HTTPException(status_code=500, detail="Unable to queue document task") from e
 
 
 def _is_admin(user: User) -> bool:
@@ -128,6 +130,7 @@ async def create_audio_task(
     db: AsyncSession = Depends(get_db),
 ):
     """上传受管 WAV，异步产出带说话人/时间戳的会议证据。"""
+    require_write_user(current_user)
     if not settings.ENABLE_ASR:
         raise HTTPException(status_code=503, detail="Local ASR is disabled (ENABLE_ASR=false)")
     meeting = await db.get(Meeting, meeting_id)
@@ -186,7 +189,8 @@ async def create_audio_task(
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except Exception as exc:
         destination.unlink(missing_ok=True)
-        raise HTTPException(status_code=500, detail=f"Unable to queue audio task: {exc}") from exc
+        app_logger.exception(f"Unable to queue audio task: {exc}")
+        raise HTTPException(status_code=500, detail="Unable to queue audio task") from exc
     finally:
         await file.close()
 
@@ -251,6 +255,7 @@ async def cancel_task(
     
     - **task_id**: 任务ID
     """
+    require_write_user(current_user)
     success = await task_queue_service.cancel_task(task_id, current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -267,6 +272,7 @@ async def delete_task(
     
     - **task_id**: 任务ID
     """
+    require_write_user(current_user)
     success = await task_queue_service.delete_task(task_id, current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -278,6 +284,7 @@ async def retry_publish_task(
     task_id: str,
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     try:
         task = await task_queue_service.republish_task(task_id, current_user.id)
         return task_info_to_response(task)

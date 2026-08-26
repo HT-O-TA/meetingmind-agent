@@ -1,6 +1,7 @@
 """文本向量化服务"""
 from typing import List, Optional
 import os
+import json
 import numpy as np
 import jieba
 from app.core.config import settings
@@ -187,13 +188,38 @@ class EmbeddingService:
         
         if self.use_fallback:
             return [self._fallback_encode(text) for text in texts]
-        
+
         try:
             embeddings = self.model.encode(texts, batch_size=32, show_progress_bar=False)
             return embeddings.tolist()
         except Exception as e:
             app_logger.error(f"Failed to encode batch texts: {e}")
             return [self._fallback_encode(text) for text in texts]
+
+    async def embed_chunk(self, chunk_id: int) -> None:
+        """为数据库中的单个文档块重新生成向量。
+
+        这是 RabbitMQ ``vector_embed`` Worker 的正式执行入口；找不到块时
+        明确失败，避免任务被误报为成功。
+        """
+        from app.db.database import AsyncSessionLocal
+        from app.models.vector import VectorChunk
+
+        async with AsyncSessionLocal() as db:
+            chunk = await db.get(VectorChunk, int(chunk_id))
+            if chunk is None or chunk.deleted_at is not None:
+                raise LookupError(f"Vector chunk not found: {chunk_id}")
+            embedding = self.encode_text(chunk.chunk_text)
+            if not embedding:
+                raise ValueError(f"Vector chunk is empty: {chunk_id}")
+            chunk.embedding = json.dumps(embedding)
+            chunk.embedding_array = embedding
+            chunk.embedding_model = (
+                "fallback-word-frequency-v1"
+                if self.use_fallback
+                else settings.EMBEDDING_MODEL_NAME
+            )
+            await db.commit()
     
     def cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
         """

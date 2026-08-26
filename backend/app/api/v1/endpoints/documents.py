@@ -1,20 +1,23 @@
 from fastapi import APIRouter, Depends, Query, UploadFile, File, Form, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, cast, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.db.database import get_db
 from app.services.document_service import DocumentService
 from app.schemas.document import DocumentOut, DocumentUpdate
 from app.core.response import Response, PageResponse
-from app.core.deps import get_current_user, get_optional_user
+from app.core.deps import get_current_user
 from app.models.user import User
 from app.core.config import settings
+from app.core.exceptions import AppException
+from app.core.security import is_admin_user, require_write_user
+from app.services.meeting_service import MeetingService
 
 router = APIRouter()
 
 
 class ContentUpdate(BaseModel):
-    content: str
+    content: str = Field(min_length=1, max_length=2_000_000)
 
 
 class BatchUploadResponse(BaseModel):
@@ -32,10 +35,12 @@ async def list_documents(
     file_type: Optional[str] = None,
     status: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     svc = DocumentService(db)
-    docs, total, total_pages = await svc.list_documents(page, page_size, meeting_id, department, file_type, status)
+    docs, total, total_pages = await svc.list_documents(
+        page, page_size, meeting_id, department, file_type, status, current_user
+    )
     return PageResponse(
         data=[DocumentOut.model_validate(d) for d in docs],
         total=total or 0, page=page, page_size=page_size, total_pages=total_pages,
@@ -50,6 +55,13 @@ async def upload_document(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
+    if meeting_id is not None:
+        await MeetingService(db).get_for_user(meeting_id, current_user, write=True)
+    if not is_admin_user(current_user):
+        if department is not None and department != current_user.department:
+            raise AppException("不能为其他部门上传文档", 403)
+        department = current_user.department
     svc = DocumentService(db)
     uploader_id = cast(int, current_user.id)
     doc = await svc.upload(file, meeting_id, department, uploader_id)
@@ -59,7 +71,7 @@ async def upload_document(
 @router.get("/{doc_id}", response_model=Response)
 async def get_document(doc_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     svc = DocumentService(db)
-    doc = await svc.get_by_id(doc_id)
+    doc = await svc.get_for_user(doc_id, current_user)
     return Response.ok(DocumentOut.model_validate(doc))
 
 
@@ -70,7 +82,9 @@ async def update_content(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = DocumentService(db)
+    await svc.get_for_user(doc_id, current_user, write=True)
     doc = await svc.update_content(doc_id, data.content)
     return Response.ok(DocumentOut.model_validate(doc))
 
@@ -82,11 +96,21 @@ async def update_document(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = DocumentService(db)
+    await svc.get_for_user(doc_id, current_user, write=True)
+    if data.meeting_id is not None:
+        await MeetingService(db).get_for_user(data.meeting_id, current_user, write=True)
+    department = data.department
+    if not is_admin_user(current_user):
+        if department is not None and department != current_user.department:
+            raise AppException("不能把文档转移到其他部门", 403)
+        department = current_user.department
     doc = await svc.update_document_metadata(
         doc_id,
         meeting_id=data.meeting_id,
-        department=data.department
+        department=department,
+        is_public=data.is_public,
     )
     return Response.ok(DocumentOut.model_validate(doc))
 
@@ -97,7 +121,9 @@ async def delete_document(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    require_write_user(current_user)
     svc = DocumentService(db)
+    await svc.get_for_user(doc_id, current_user, write=True)
     await svc.delete(doc_id)
     return Response.ok(message="删除成功")
 
@@ -116,6 +142,13 @@ async def batch_upload_documents(
     
     start_time = time.time()
     uploader_id = cast(int, current_user.id)
+    require_write_user(current_user)
+    if meeting_id is not None:
+        await MeetingService(db).get_for_user(meeting_id, current_user, write=True)
+    if not is_admin_user(current_user):
+        if department is not None and department != current_user.department:
+            raise AppException("不能为其他部门上传文档", 403)
+        department = current_user.department
     
     app_logger.info(f"=== 批量上传开始 ===")
     app_logger.info(f"上传用户: {current_user.id} ({current_user.username if hasattr(current_user, 'username') else '未知'})")
@@ -124,6 +157,8 @@ async def batch_upload_documents(
     app_logger.info(f"部门: {department}")
     
     # 验证文件数量
+    if not files:
+        raise HTTPException(status_code=400, detail="至少选择一个文件")
     if len(files) > settings.MAX_FILE_COUNT:
         error_msg = f"单次上传文件数量不能超过 {settings.MAX_FILE_COUNT} 个"
         app_logger.error(f"批量上传失败: {error_msg}")
@@ -163,7 +198,7 @@ async def batch_upload_documents(
             success_count += 1
             app_logger.info(f"[{idx}/{len(files)}] ✅ 上传成功: {file.filename} -> ID: {doc.id}")
         except Exception as e:
-            error_detail = str(e)
+            error_detail = e.message if isinstance(e, AppException) and e.code < 500 else "上传失败"
             results.append({
                 "filename": file.filename,
                 "document_id": None,
@@ -172,7 +207,7 @@ async def batch_upload_documents(
             })
             failed_files.append(f"{file.filename}: {error_detail}")
             fail_count += 1
-            app_logger.error(f"[{idx}/{len(files)}] ❌ 上传失败: {file.filename} - {error_detail}")
+            app_logger.exception(f"[{idx}/{len(files)}] 上传失败: {file.filename}: {e}")
     
     end_time = time.time()
     duration = end_time - start_time

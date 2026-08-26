@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any, Optional
 from app.db.database import get_db
-from app.core.deps import get_current_user
+from app.core.deps import get_current_user, get_admin_user
 from app.models.user import User
 from app.models.feedback import FeedbackType, BadCaseCategory, ResolutionStatus
 from app.services.feedback_service import get_feedback_service, FeedbackService
@@ -51,7 +51,7 @@ async def get_feedbacks(
     limit: int = 20,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> List[Dict[str, Any]]:
     """
     获取反馈列表
@@ -93,7 +93,7 @@ async def add_bad_case(
     expected_output: Optional[str] = None,
     priority: str = "medium",
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> Dict[str, Any]:
     """
     添加 Bad Case
@@ -127,7 +127,7 @@ async def get_bad_cases(
     limit: int = 20,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> List[Dict[str, Any]]:
     """
     获取 Bad Case 列表
@@ -177,7 +177,7 @@ async def get_bad_cases(
 async def get_bad_case(
     bad_case_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> Dict[str, Any]:
     """
     获取单个 Bad Case 详情
@@ -212,7 +212,7 @@ async def update_bad_case(
     resolution_status: Optional[str] = None,
     priority: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> Dict[str, Any]:
     """
     更新 Bad Case
@@ -248,7 +248,7 @@ async def update_bad_case(
 async def analyze_bad_case(
     bad_case_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> Dict[str, Any]:
     """
     分析 Bad Case 并生成改进建议
@@ -276,7 +276,7 @@ async def add_improvement(
     description: str,
     details: Optional[Dict[str, Any]] = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> Dict[str, Any]:
     """
     添加改进记录
@@ -305,7 +305,7 @@ async def verify_improvement(
     improvement_id: str,
     result: str,  # passed, failed, pending
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> Dict[str, Any]:
     """
     验证改进效果
@@ -328,11 +328,11 @@ async def verify_improvement(
     }
 
 
-@router.get("/bad-cases/patterns", response_model=List[Dict[str, Any]])
+@router.get("/bad-cases/analysis/patterns", response_model=List[Dict[str, Any]])
 async def analyze_bad_case_patterns(
     limit: int = 10,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_admin_user)
 ) -> List[Dict[str, Any]]:
     """
     分析 Bad Case 模式

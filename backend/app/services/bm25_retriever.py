@@ -1,7 +1,7 @@
 """BM25 检索器 - 基于 PostgreSQL tsvector 全文索引"""
 from typing import List, Dict, Optional, Any
 from sqlalchemy import text
-from app.db.database import async_session
+from app.db.database import AsyncSessionLocal
 from app.core.logger import app_logger
 from app.core.security import AccessContext
 
@@ -51,15 +51,12 @@ class BM25Retriever:
         if not query or not query.strip():
             return []
         
-        async with async_session() as session:
-            # 检测可用的分词配置
-            ts_config = 'chinese'
-            try:
-                test_result = await session.execute(text("SELECT to_tsvector('chinese', '测试');"))
-                if test_result.scalar() is None:
-                    ts_config = 'simple'
-            except:
-                ts_config = 'simple'
+        async with AsyncSessionLocal() as session:
+            # 查询配置目录不会触发“事务已中止”，避免缺少 zhparser 时后续 SQL 必然失败。
+            config_result = await session.execute(
+                text("SELECT EXISTS (SELECT 1 FROM pg_ts_config WHERE cfgname = 'chinese')")
+            )
+            ts_config = "chinese" if config_result.scalar() else "simple"
             
             # 构建基本查询
             sql = """
@@ -69,10 +66,14 @@ class BM25Retriever:
                     vc.chunk_text,
                     vc.meeting_id,
                     vc.department,
-                    ts_rank_cd(vc.tsv_content, plainto_tsquery(CAST(:ts_config AS regconfig), :query)) as rank
+                    ts_rank_cd(
+                        to_tsvector(CAST(:ts_config AS regconfig), COALESCE(vc.chunk_text, '')),
+                        plainto_tsquery(CAST(:ts_config AS regconfig), :query)
+                    ) as rank
                 FROM vector_chunks vc
                 JOIN documents d ON d.id = vc.document_id
-                WHERE vc.tsv_content @@ plainto_tsquery(CAST(:ts_config AS regconfig), :query)
+                WHERE to_tsvector(CAST(:ts_config AS regconfig), COALESCE(vc.chunk_text, ''))
+                      @@ plainto_tsquery(CAST(:ts_config AS regconfig), :query)
                   AND vc.deleted_at IS NULL
                   AND d.deleted_at IS NULL
             """
@@ -174,7 +175,7 @@ class BM25Retriever:
     
     async def get_document_count(self) -> int:
         """获取文档数量"""
-        async with async_session() as session:
+        async with AsyncSessionLocal() as session:
             result = await session.execute(text("SELECT COUNT(*) FROM vector_chunks"))
             return result.scalar()
     

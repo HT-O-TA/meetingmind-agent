@@ -70,6 +70,8 @@ class TaskQueueService:
     async def _get_redis(self):
         if self.redis is None:
             self.redis = get_redis()
+        if self.redis is None:
+            raise RuntimeError("Redis is not initialized for task queue operations")
         return self.redis
 
     @staticmethod
@@ -164,6 +166,10 @@ class TaskQueueService:
             "user_id": user_id,
             "created_at": now,
         }
+        # 必须在 publish 前保存发布意图。Broker confirm 返回后消费者可能已经
+        # 完成任务；此时再写入当前这个旧的 pending 对象会把 completed 覆盖掉。
+        task.published_at = datetime.now().isoformat()
+        await self._save_task(task)
         try:
             await self.publisher.publish_message(
                 queue_name=self._get_task_queue(task_type),
@@ -174,18 +180,22 @@ class TaskQueueService:
                 },
             )
         except Exception as exc:
+            latest = await self.get_task_status(task_id)
+            # confirm 异常存在“消息实际已被消费”的不确定窗口；不覆盖消费者状态。
+            if latest and latest.status != TaskStatus.PENDING.value:
+                return latest
+            task = latest or task
             task.status = TaskStatus.PUBLISH_FAILED.value
             task.error_category = "publish_failed"
             task.error = f"{exc.__class__.__name__}: {exc}"[:2000]
+            task.published_at = None
             task.updated_at = datetime.now().isoformat()
             await self._save_task(task)
             logger.error("Task publish failed task_id=%s: %s", task_id, exc)
             return task
 
-        task.published_at = datetime.now().isoformat()
-        await self._save_task(task)
         logger.info("Task published task_id=%s type=%s", task_id, task_type.value)
-        return task
+        return await self.get_task_status(task_id) or task
 
     async def republish_task(
         self,
@@ -206,6 +216,12 @@ class TaskQueueService:
             "user_id": task.user_id,
             "created_at": task.created_at,
         }
+        task.status = TaskStatus.PENDING.value
+        task.error = None
+        task.error_category = None
+        task.published_at = datetime.now().isoformat()
+        task.updated_at = task.published_at
+        await self._save_task(task)
         try:
             await self.publisher.publish_message(
                 queue_name=self._get_task_queue(task.task_type),
@@ -216,17 +232,18 @@ class TaskQueueService:
                 },
             )
         except Exception as exc:
+            latest = await self.get_task_status(task.task_id)
+            if latest and latest.status != TaskStatus.PENDING.value:
+                return latest
+            task = latest or task
+            task.status = TaskStatus.PUBLISH_FAILED.value
             task.error = f"{exc.__class__.__name__}: {exc}"[:2000]
+            task.error_category = "publish_failed"
+            task.published_at = None
             task.updated_at = datetime.now().isoformat()
             await self._save_task(task)
             return task
-        task.status = TaskStatus.PENDING.value
-        task.error = None
-        task.error_category = None
-        task.published_at = datetime.now().isoformat()
-        task.updated_at = task.published_at
-        await self._save_task(task)
-        return task
+        return await self.get_task_status(task.task_id) or task
 
     async def get_task_status(
         self,

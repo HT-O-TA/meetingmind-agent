@@ -20,8 +20,7 @@ class LLMService:
         app_logger.info(f"[LLMService] Initializing with api_key length: {len(api_key) if api_key else 0}, base_url: {base_url}")
 
         if not api_key:
-            app_logger.error("[LLMService] LLM_API_KEY is empty!")
-            raise ValueError("LLM_API_KEY must be set")
+            app_logger.info("[LLMService] LLM_API_KEY 未配置；仅真实生成调用不可用")
 
         # 客户端延迟到首次真实调用时创建。这样 API 依赖注入和离线测试
         # 不会因为宿主机代理、网络后端等与请求无关的环境差异而失败。
@@ -42,6 +41,8 @@ class LLMService:
 
     def _get_client(self) -> AsyncOpenAI:
         if self.client is None:
+            if not settings.LLM_API_KEY:
+                raise ValueError("LLM_API_KEY must be set for model generation")
             self.client = self._create_client(settings.LLM_API_KEY, settings.LLM_API_BASE)
         return self.client
 
@@ -70,8 +71,11 @@ class LLMService:
         """
         # 如果传入了不同的api_key或api_base，创建一个临时的client
         if api_key or api_base:
+            selected_api_key = api_key or settings.LLM_API_KEY
+            if not selected_api_key:
+                raise ValueError("LLM_API_KEY must be set for model generation")
             temp_client = self._create_client(
-                api_key or settings.LLM_API_KEY,
+                selected_api_key,
                 api_base or settings.LLM_API_BASE,
             )
             try:

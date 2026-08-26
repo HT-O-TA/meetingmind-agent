@@ -464,7 +464,8 @@ async def redis_health() -> dict:
             "fastapi_cache": _fastapi_cache_enabled,
         }
     except Exception as e:
-        return {"status": "error", "detail": str(e)}
+        app_logger.warning(f"[Redis] 健康检查失败: {e}")
+        return {"status": "error"}
 
 
 # ============================================================================

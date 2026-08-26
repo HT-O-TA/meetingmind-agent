@@ -14,10 +14,10 @@ const routes = [
       { path: 'todos', component: () => import('@/views/TodoList.vue') },
       { path: 'documents', component: () => import('@/views/DocumentList.vue') },
       { path: 'tasks', component: () => import('@/views/TaskQueuePage.vue') },
-      { path: 'feedback', component: () => import('@/views/BadCasePage.vue') },
+      { path: 'feedback', component: () => import('@/views/BadCasePage.vue'), meta: { requiresAdmin: true } },
       { path: 'query', component: () => import('@/views/QueryPage.vue') },
       { path: 'agent', component: () => import('@/views/AgentDemo.vue') },
-      { path: 'trace', component: () => import('@/views/TracePage.vue') },
+      { path: 'trace', component: () => import('@/views/TracePage.vue'), meta: { requiresAdmin: true } },
     ],
   },
 ]
@@ -38,6 +38,14 @@ router.beforeEach((to, from, next) => {
   if (!token) {
     next({ path: '/login', query: { redirect: to.fullPath } })
     return
+  }
+
+  if (to.meta.requiresAdmin) {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null')
+    if (userInfo?.role !== 'admin') {
+      next('/meetings')
+      return
+    }
   }
   
   next()

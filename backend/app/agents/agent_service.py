@@ -5,7 +5,7 @@ import uuid
 from app.agents.state import AgentState, AgentResult, ChunkMetadata, TaskType, RiskLevel, Plan, ReflectionResult
 from app.agents.graph import create_agent_graph
 from app.agents.nodes import AgentNodes
-from app.agents.memory import MemoryManager
+from app.agents.memory import MemoryManager, SessionMemoryStore
 from app.agents.tools import ToolManager
 from app.agents.session_context import SessionContext
 from app.agents.trace_integration import get_trace_store
@@ -37,6 +37,7 @@ class AgentService:
         vector_search_service: VectorSearchService,
         enable_human_in_the_loop: bool = True,
         max_short_term_turns: int = 10,
+        memory_store: Optional[SessionMemoryStore] = None,
     ):
         self.llm_service = llm_service
         self.vector_search_service = vector_search_service
@@ -57,27 +58,14 @@ class AgentService:
         self.app = self.graph
 
         self.max_short_term_turns = max_short_term_turns
-        self.session_memories: Dict[str, MemoryManager] = {}
+        self.memory_store = memory_store or SessionMemoryStore(
+            max_sessions=1000,
+            max_raw_turns=max_short_term_turns,
+        )
 
-    def refresh_dependencies(
-        self,
-        llm_service: LLMService,
-        vector_search_service: VectorSearchService,
-    ) -> None:
-        """刷新请求级依赖，同时保留有界会话窗口。"""
-        if self.llm_service is llm_service and self.vector_search_service is vector_search_service:
-            return
-        self.llm_service = llm_service
-        self.vector_search_service = vector_search_service
-        self.tool_manager = ToolManager(llm_service, vector_search_service)
-        self.graph = create_agent_graph(llm_service, self.tool_manager)
-        self.app = self.graph
-
-    def _get_session_memory(self, session_id: str) -> MemoryManager:
-        """获取或创建会话记忆管理器"""
-        if session_id not in self.session_memories:
-            self.session_memories[session_id] = MemoryManager(self.max_short_term_turns)
-        return self.session_memories[session_id]
+    def _get_session_memory(self, memory_key: str) -> MemoryManager:
+        """按包含 user_id 的 thread_id 获取有界会话记忆。"""
+        return self.memory_store.get(memory_key)
 
     async def process_query(
         self,
@@ -116,14 +104,14 @@ class AgentService:
         """使用 SessionContext 处理用户查询（推荐入口）
 
         通过 SessionContext 统一管理四层 ID，确保会话隔离。
-        - thread_id: session_id:conversation_id（LangGraph 唯一标识）
-        - session_id: 浏览器会话（记忆系统隔离）
+        - thread_id: user_id:session_id:conversation_id（LangGraph 唯一标识）
+        - session_id: 浏览器会话
         - meeting_id: 业务域过滤
         """
         trace_store = get_trace_store()
         span_id = trace_store.start("agent_query", "agent")
 
-        memory = self._get_session_memory(context.session_id)
+        memory = self._get_session_memory(context.thread_id)
 
         async def emit_event(event_type, data):
             if event_callback:
@@ -247,7 +235,7 @@ class AgentService:
                 minutes=final_state.get("minutes"),
                 todos=final_state.get("todos"),
                 controversies=final_state.get("controversies"),
-                thoughts=final_state.get("cot_thoughts"),
+                thoughts=None,
                 reflection=reflection,
                 plan=formatted_plan,
                 workflow_type=final_state.get("workflow_type"),
@@ -270,7 +258,7 @@ class AgentService:
             return AgentResult(
                 success=False,
                 task_type=TaskType.QA,
-                error=str(e),
+                error="Agent execution failed",
             )
 
     async def process_batch(
@@ -389,8 +377,6 @@ class AgentService:
             "todos": state.get("todos"),
             "controversies": state.get("controversies"),
             "error": state.get("error"),
-            "thoughts": state.get("cot_thoughts"),
-            "reflection": state.get("reflection"),
             "plan": state.get("plan"),
             "route_decision": state.get("route_decision").to_dict() if state.get("route_decision") and hasattr(state.get("route_decision"), "to_dict") else None,
             "route_confidence": state.get("route_confidence"),

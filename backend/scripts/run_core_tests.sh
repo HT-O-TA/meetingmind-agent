@@ -17,5 +17,6 @@ export PYTEST_DISABLE_PLUGIN_AUTOLOAD=1
 export APP_ENV=production
 export DEBUG=false
 export SECRET_KEY="${SECRET_KEY:-meetingmind-core-test-secret-at-least-32-characters}"
+export CORS_ORIGINS='["https://tests.invalid"]'
 
 exec "$PYTHON_BIN" -m pytest -p pytest_asyncio.plugin "$@"

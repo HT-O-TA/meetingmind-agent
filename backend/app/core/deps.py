@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 from app.db.database import get_db
-from app.core.security import decode_access_token
+from app.core.security import decode_access_token, is_admin_user
 from app.core.exceptions import AppException
 from app.models.user import User
 
@@ -27,7 +27,12 @@ async def get_current_user(
     payload = decode_access_token(token)
     if not payload:
         raise AppException("令牌无效或已过期", 401)
-    user_id = int(payload.get("sub", 0))
+    try:
+        user_id = int(payload.get("sub", 0))
+    except (TypeError, ValueError) as exc:
+        raise AppException("令牌无效或已过期", 401) from exc
+    if user_id <= 0:
+        raise AppException("令牌无效或已过期", 401)
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user or not user.is_active:
@@ -45,3 +50,10 @@ async def get_optional_user(
         return await get_current_user(authorization, db)
     except AppException:
         return None
+
+
+async def get_admin_user(current_user: User = Depends(get_current_user)) -> User:
+    """仅管理员可访问的依赖。"""
+    if not is_admin_user(current_user):
+        raise AppException("仅管理员可执行此操作", 403)
+    return current_user

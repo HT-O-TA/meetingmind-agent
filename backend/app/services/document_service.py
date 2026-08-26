@@ -2,7 +2,7 @@ import os
 import json
 from typing import Optional, List, Tuple, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, delete
+from sqlalchemy import and_, select, func, delete, or_
 from fastapi import UploadFile
 from werkzeug.utils import secure_filename
 from app.models.document import Document
@@ -12,11 +12,13 @@ from app.core.exceptions import AppException
 from app.services.text_process_service import TextProcessService
 from app.services.embedding_service import EmbeddingService
 from app.services.document_parser import DocumentParser
+from app.core.security import is_admin_user, require_write_user
+from app.models.user import User
 import math
 
 
 # 从配置中获取允许的文件类型
-ALLOWED_TYPES = set(settings.allowed_file_extensions_list) | {"mp3", "mp4", "wav"}  # 添加音频视频格式
+ALLOWED_TYPES = set(settings.allowed_file_extensions_list)
 
 
 class DocumentService:
@@ -33,10 +35,29 @@ class DocumentService:
         return self._embedding_service
 
     async def get_by_id(self, doc_id: int) -> Document:
-        result = await self.db.execute(select(Document).where(Document.id == doc_id))
+        result = await self.db.execute(
+            select(Document).where(Document.id == doc_id, Document.deleted_at.is_(None))
+        )
         doc = result.scalar_one_or_none()
         if not doc:
             raise AppException("文档不存在", 404)
+        return doc
+
+    async def get_for_user(self, doc_id: int, user: User, *, write: bool = False) -> Document:
+        doc = await self.get_by_id(doc_id)
+        if write:
+            require_write_user(user)
+            allowed = is_admin_user(user) or doc.uploader_id == user.id
+        else:
+            same_department = bool(user.department) and doc.department == user.department
+            allowed = (
+                is_admin_user(user)
+                or bool(doc.is_public)
+                or doc.uploader_id == user.id
+                or same_department
+            )
+        if not allowed:
+            raise AppException("无权访问该文档", 403)
         return doc
 
     async def list_documents(
@@ -47,6 +68,7 @@ class DocumentService:
         department: Optional[str] = None,
         file_type: Optional[str] = None,
         status: Optional[str] = None,
+        current_user: Optional[User] = None,
     ) -> Tuple[List[Document], int, int]:
         """
         获取文档列表
@@ -54,7 +76,19 @@ class DocumentService:
         Returns:
             Tuple[文档列表, 总数, 总页数]
         """
-        query = select(Document)
+        if current_user is None:
+            raise AppException("需要登录后访问文档", 401)
+        query = select(Document).where(Document.deleted_at.is_(None))
+        if not is_admin_user(current_user):
+            access_rules = [
+                Document.is_public.is_(True),
+                Document.uploader_id == current_user.id,
+            ]
+            if current_user.department:
+                access_rules.append(
+                    and_(Document.department.is_not(None), Document.department == current_user.department)
+                )
+            query = query.where(or_(*access_rules))
         if meeting_id:
             query = query.where(Document.meeting_id == meeting_id)
         if department:
@@ -105,9 +139,8 @@ class DocumentService:
             file_bytes = await file.read()
             app_logger.debug(f"读取文件完成: {filename}, 大小: {len(file_bytes)} bytes")
         except Exception as e:
-            error_msg = f"读取文件失败: {str(e)}"
-            app_logger.error(f"文件读取错误: {filename} -> {error_msg}")
-            raise AppException(error_msg, 500)
+            app_logger.exception(f"文件读取错误: {filename}: {e}")
+            raise AppException("读取文件失败", 500)
 
         # 检查文件大小
         if len(file_bytes) > settings.MAX_FILE_SIZE:
@@ -122,9 +155,8 @@ class DocumentService:
                 f.write(file_bytes)
             app_logger.debug(f"文件保存成功: {file_path}")
         except Exception as e:
-            error_msg = f"保存文件失败: {str(e)}"
-            app_logger.error(f"文件保存错误: {filename} -> {error_msg}")
-            raise AppException(error_msg, 500)
+            app_logger.exception(f"文件保存错误: {filename}: {e}")
+            raise AppException("保存文件失败", 500)
 
         file_size = len(file_bytes)
 
@@ -158,6 +190,7 @@ class DocumentService:
                 file_size=file_size,
                 file_type=ext,
                 department=department,
+                is_public=False,
                 content=content,
                 status="parsed" if content else "uploaded",
             )
@@ -166,12 +199,11 @@ class DocumentService:
             await self.db.refresh(doc)
             app_logger.debug(f"数据库记录创建成功: {filename} -> ID: {doc.id}")
         except Exception as e:
-            error_msg = f"数据库操作失败: {str(e)}"
-            app_logger.error(f"数据库错误: {filename} -> {error_msg}")
+            app_logger.exception(f"数据库错误: {filename}: {e}")
             # 清理已保存的文件
             if os.path.exists(file_path):
                 os.remove(file_path)
-            raise AppException(error_msg, 500)
+            raise AppException("保存文档记录失败", 500)
 
         # 生成向量
         if content:
@@ -231,7 +263,11 @@ class DocumentService:
                     time_offset=time_offset,
                     embedding=json.dumps(embedding),
                     embedding_array=embedding,
-                    embedding_model=settings.EMBEDDING_MODEL,
+                    embedding_model=(
+                        "fallback-word-frequency-v1"
+                        if self.embedding_service.use_fallback
+                        else settings.EMBEDDING_MODEL_NAME
+                    ),
                     department=department,
                     metadata_json=json.dumps(metadata, ensure_ascii=False) if metadata else None,
                 )
@@ -360,6 +396,7 @@ class DocumentService:
         doc_id: int,
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
+        is_public: Optional[bool] = None,
     ) -> Document:
         """
         更新文档的元数据（会议ID、部门），并同步更新向量块
@@ -376,6 +413,8 @@ class DocumentService:
             doc.meeting_id = meeting_id
         if department is not None:
             doc.department = department
+        if is_public is not None:
+            doc.is_public = is_public
         
         await self.db.commit()
         await self.db.refresh(doc)
@@ -398,16 +437,17 @@ class DocumentService:
         """
         doc = await self.get_by_id(doc_id)
         
-        # 删除关联的向量块
-        await self._delete_vector_chunks(doc_id)
-        
-        # 删除物理文件
-        if os.path.exists(doc.file_path):
-            os.remove(doc.file_path)
-            
-        # 删除文档记录
+        # 数据库删除使用同一事务；提交成功后再尽力清理物理文件。
+        await self.db.execute(delete(VectorChunk).where(VectorChunk.document_id == doc_id))
         await self.db.delete(doc)
         await self.db.commit()
+        try:
+            if os.path.exists(doc.file_path):
+                os.remove(doc.file_path)
+        except OSError as exc:
+            from app.core.logger import app_logger
+
+            app_logger.warning(f"文档记录已删除，但物理文件清理失败: {doc.file_path}: {exc}")
 
     async def get_vector_chunks(self, doc_id: int) -> List[VectorChunk]:
         """获取文档的所有向量块"""

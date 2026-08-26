@@ -1,11 +1,14 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import and_, select, func, or_
 from app.models.todo import TodoItem
+from app.models.meeting import Meeting
+from app.models.user import User
 from app.schemas.todo import TodoCreate, TodoUpdate
 from app.core.exceptions import AppException
-from app.core.cache import cache_get, cache_set, cache_delete
+from app.core.cache import cache_get, cache_set, cache_delete_pattern
 from app.utils.cache_utils import make_cache_key
+from app.core.security import is_admin_user, require_write_user
 from datetime import datetime
 import math
 
@@ -21,6 +24,28 @@ class TodoService:
             raise AppException("待办不存在", 404)
         return todo
 
+    def _access_query(self, user: User, *, write: bool = False):
+        query = select(TodoItem).outerjoin(Meeting, TodoItem.meeting_id == Meeting.id)
+        if is_admin_user(user):
+            return query
+        rules = [TodoItem.assignee_id == user.id, Meeting.organizer_id == user.id]
+        if not write and user.department:
+            rules.append(
+                and_(Meeting.department.is_not(None), Meeting.department == user.department)
+            )
+        return query.where(or_(*rules))
+
+    async def get_for_user(self, todo_id: int, user: User, *, write: bool = False) -> TodoItem:
+        if write:
+            require_write_user(user)
+        result = await self.db.execute(
+            self._access_query(user, write=write).where(TodoItem.id == todo_id)
+        )
+        todo = result.scalar_one_or_none()
+        if not todo:
+            raise AppException("待办不存在或无权访问", 404)
+        return todo
+
     async def list_todos(
         self,
         page: int = 1,
@@ -29,8 +54,11 @@ class TodoService:
         status: Optional[str] = None,
         assignee_name: Optional[str] = None,
         priority: Optional[str] = None,
+        current_user: Optional[User] = None,
     ):
-        query = select(TodoItem)
+        if current_user is None:
+            raise AppException("需要登录后访问待办", 401)
+        query = self._access_query(current_user)
         if meeting_id:
             query = query.where(TodoItem.meeting_id == meeting_id)
         if status:
@@ -46,18 +74,24 @@ class TodoService:
         return todos, total, math.ceil(total / page_size) if total else 0
 
     async def _invalidate_stats(self, meeting_id: int = None):
-        await cache_delete(make_cache_key("todos", "stats", meeting_id or "global"))
+        await cache_delete_pattern("todos:stats:*")
 
-    async def create(self, data: TodoCreate) -> TodoItem:
-        todo = TodoItem(**data.model_dump())
+    async def create(self, data: TodoCreate, assignee_id: int | None = None) -> TodoItem:
+        todo = TodoItem(**data.model_dump(), assignee_id=assignee_id)
         self.db.add(todo)
         await self.db.commit()
         await self.db.refresh(todo)
         await self._invalidate_stats(todo.meeting_id)
         return todo
 
-    async def bulk_create(self, items: list[TodoCreate]) -> list[TodoItem]:
-        todos = [TodoItem(**item.model_dump()) for item in items]
+    async def bulk_create(self, items: list[TodoCreate], assignee_id: int | None = None) -> list[TodoItem]:
+        todos = [
+            TodoItem(
+                **item.model_dump(),
+                assignee_id=assignee_id if item.meeting_id is None else None,
+            )
+            for item in items
+        ]
         self.db.add_all(todos)
         await self.db.commit()
         for t in todos:
@@ -68,8 +102,8 @@ class TodoService:
             await self._invalidate_stats(mid)
         return todos
 
-    async def update(self, todo_id: int, data: TodoUpdate) -> TodoItem:
-        todo = await self.get_by_id(todo_id)
+    async def update(self, todo_id: int, data: TodoUpdate, user: User) -> TodoItem:
+        todo = await self.get_for_user(todo_id, user, write=True)
         for field, value in data.model_dump(exclude_none=True).items():
             setattr(todo, field, value)
         if data.status == "done" and not todo.completed_at:
@@ -81,8 +115,8 @@ class TodoService:
         await self._invalidate_stats(todo.meeting_id)
         return todo
 
-    async def delete(self, todo_id: int):
-        todo = await self.get_by_id(todo_id)
+    async def delete(self, todo_id: int, user: User):
+        todo = await self.get_for_user(todo_id, user, write=True)
         meeting_id = todo.meeting_id
         await self.db.delete(todo)
         await self.db.commit()
@@ -96,13 +130,15 @@ class TodoService:
         await self.db.commit()
         await self._invalidate_stats(meeting_id)
 
-    async def get_stats(self, meeting_id: int | None = None) -> dict:
-        cache_key = make_cache_key("todos", "stats", meeting_id or "global")
+    async def get_stats(self, user: User, meeting_id: int | None = None) -> dict:
+        cache_key = make_cache_key(
+            "todos", "stats", user.id, str(user.role), user.department or "none", meeting_id or "global"
+        )
         cached = await cache_get(cache_key)
         if cached is not None:
             return cached
 
-        query = select(TodoItem)
+        query = self._access_query(user)
         if meeting_id:
             query = query.where(TodoItem.meeting_id == meeting_id)
         todos = (await self.db.execute(query)).scalars().all()

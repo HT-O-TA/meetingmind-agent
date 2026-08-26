@@ -14,11 +14,12 @@ class Document(Base):
     original_filename = Column(String(256), nullable=False)
     file_path = Column(String(512), nullable=False)
     file_size = Column(Integer, nullable=True)  # bytes
-    file_type = Column(String(32), nullable=True)  # txt/pdf/docx/mp3/mp4
+    file_type = Column(String(32), nullable=True)  # txt/pdf/docx/md/csv/xlsx
     content = Column(Text, nullable=True)  # 解析后文本内容
     status = Column(String(16), default="uploaded")  # uploaded/parsing/parsed/failed
     department = Column(String(64), nullable=True)
-    is_public = Column(Boolean, default=True)
+    # 安全默认值：上传内容先私有，上传者可通过元数据接口显式公开。
+    is_public = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)

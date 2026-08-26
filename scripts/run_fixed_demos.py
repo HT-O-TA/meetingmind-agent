@@ -1,4 +1,4 @@
-"""按固定输入依次运行队列、ASR、LoRA 三个求职 Demo。"""
+"""按固定输入依次运行 HTTP 主链、队列、ASR、LoRA 四个求职 Demo。"""
 from __future__ import annotations
 
 import argparse
@@ -33,8 +33,8 @@ def main() -> int:
     parser.add_argument(
         "--demo",
         action="append",
-        choices=("queue", "asr", "lora"),
-        help="可重复传入；默认运行全部三个固定 Demo。",
+        choices=("http", "queue", "asr", "lora"),
+        help="可重复传入；默认运行全部四个固定 Demo。",
     )
     parser.add_argument(
         "--output-dir",
@@ -42,7 +42,7 @@ def main() -> int:
         default=REPO_ROOT / "artifacts" / "fixed-demos",
     )
     args = parser.parse_args()
-    selected = args.demo or ["queue", "asr", "lora"]
+    selected = args.demo or ["http", "queue", "asr", "lora"]
     output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -62,6 +62,12 @@ def main() -> int:
     runtime_env.setdefault("REDIS_URL", "redis://127.0.0.1:6379/0")
     runtime_env.setdefault("RABBITMQ_URL", "amqp://admin:admin123@127.0.0.1:5672")
     commands = {
+        "http": [
+            str(BACKEND / "venv" / "bin" / "python"),
+            str(REPO_ROOT / "scripts" / "demo_http_business_flow.py"),
+            "--output",
+            str(output_dir / "00_http_business_flow.json"),
+        ],
         "queue": [
             str(BACKEND / "venv" / "bin" / "python"),
             "scripts/demo_queue_recovery.py",
@@ -112,6 +118,7 @@ def main() -> int:
         "status": "passed" if results and all(r["status"] == "passed" for r in results) else "incomplete",
         "limitations": [
             "输出目录默认被 Git 忽略；正式证据只提交去敏报告与固定命令。",
+            "HTTP 主链 Demo 会在本地开发数据库保留随机后缀的演示用户与业务记录。",
             "ASR 输入是公开单句，不是多人会议真值。",
             "LoRA 输入与训练数据均为项目自编合成样例。",
         ],

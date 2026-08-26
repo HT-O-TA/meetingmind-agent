@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from jose import jwt, JWTError
 from app.core.logger import app_logger
 from app.core.config import settings
+from app.core.exceptions import AppException
 
 try:
     import bcrypt
@@ -16,7 +17,6 @@ except ImportError:
 
 def get_password_hash(password: str) -> str:
     """生成密码哈希"""
-    password = password[:72]
     if HAS_BCRYPT:
         salt = bcrypt.gensalt()
         return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
@@ -28,7 +28,6 @@ def get_password_hash(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码"""
-    plain_password = plain_password[:72]
     if HAS_BCRYPT and hashed_password.startswith('$2'):
         try:
             return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
@@ -60,6 +59,22 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
         return None
 
 
+def user_role_value(user: Any) -> str:
+    """统一处理 SQLAlchemy 字符串角色与 Enum 角色。"""
+    role = getattr(user, "role", "user")
+    return str(role.value if hasattr(role, "value") else role).lower()
+
+
+def is_admin_user(user: Any) -> bool:
+    return user_role_value(user) == "admin"
+
+
+def require_write_user(user: Any) -> None:
+    """只读账号不得执行业务写操作。"""
+    if user_role_value(user) == "readonly":
+        raise AppException("只读账号不能执行写操作", 403)
+
+
 @dataclass
 class AccessContext:
     """访问上下文 - 从 JWT 构造，下推到检索阶段做权限过滤
@@ -83,6 +98,7 @@ class AccessContext:
     document_scope: Optional[List[int]] = None  # None 表示不限制，[] 表示无权限
     is_admin: bool = False
     allow_public: bool = True
+    can_write: bool = True
 
     @staticmethod
     def _integer_ids(values: Any) -> List[int]:
@@ -123,6 +139,7 @@ class AccessContext:
             ),
             is_admin=payload.get("is_admin", False) or payload.get("role") == "admin",
             allow_public=payload.get("allow_public", True),
+            can_write=payload.get("role") != "readonly",
         )
 
     @classmethod
@@ -151,6 +168,7 @@ class AccessContext:
             ),
             is_admin=role_value == "admin",
             allow_public=permissions.get("allow_public", True),
+            can_write=role_value != "readonly",
         )
 
     def to_bm25_filters(self) -> Dict[str, Any]:
@@ -201,4 +219,5 @@ class AccessContext:
             ),
             "is_admin": self.is_admin,
             "allow_public": self.allow_public,
+            "can_write": self.can_write,
         }

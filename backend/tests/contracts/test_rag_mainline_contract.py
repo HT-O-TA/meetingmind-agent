@@ -302,7 +302,7 @@ class TestRetrievalDataContract(unittest.IsolatedAsyncioTestCase):
         stubs.update({
             "sqlalchemy": sqlalchemy,
             "app.db.database": _module(
-                "app.db.database", async_session=lambda: FakeSessionContext()
+                "app.db.database", AsyncSessionLocal=lambda: FakeSessionContext()
             ),
             "app.core.logger": _module(
                 "app.core.logger", app_logger=MagicMock()

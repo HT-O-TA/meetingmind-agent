@@ -150,7 +150,21 @@ def test_mutating_meeting_and_document_routes_require_auth(client):
     ).status_code == 401
     assert client.put("/api/v1/documents/1", json=document_payload).status_code == 401
     assert client.delete("/api/v1/documents/1").status_code == 401
+    assert client.get("/api/v1/meetings").status_code == 401
+    assert client.get("/api/v1/documents").status_code == 401
+    assert client.get("/api/v1/todos").status_code == 401
     assert client.post("/api/v1/agents/query", json={"question": "检索私有文档"}).status_code == 401
+
+
+def test_readonly_user_cannot_mutate_business_data(client):
+    async def fake_readonly_user():
+        return make_user(role="readonly")
+
+    app.dependency_overrides[get_current_user] = fake_readonly_user
+
+    assert client.post("/api/v1/meetings", json={"title": "blocked"}).status_code == 403
+    assert client.post("/api/v1/todos", json={"title": "blocked"}).status_code == 403
+    assert client.put("/api/v1/documents/1/content", json={"content": "blocked"}).status_code == 403
 
 
 def test_meeting_crud_and_speech_routes(authenticated_client, monkeypatch):
@@ -160,38 +174,38 @@ def test_meeting_crud_and_speech_routes(authenticated_client, monkeypatch):
         def __init__(self, db):
             pass
 
-        async def list_meetings(self, page, page_size, status, keyword, department, meeting_type):
+        async def list_meetings(self, page, page_size, status, keyword, department, meeting_type, current_user):
             return [make_meeting()], 1, 1
 
         async def create(self, data, organizer_id):
             assert organizer_id == 1
             return make_meeting(title=data.title, organizer_id=organizer_id)
 
-        async def get_by_id(self, meeting_id):
+        async def get_for_user(self, meeting_id, current_user, write=False):
             return make_meeting(id=meeting_id)
 
-        async def update(self, meeting_id, data):
+        async def update(self, meeting_id, data, current_user):
             return make_meeting(id=meeting_id, title=data.title or "updated")
 
-        async def update_meeting_status(self, meeting_id, status):
+        async def update_meeting_status(self, meeting_id, status, current_user):
             return make_meeting(id=meeting_id, status=status)
 
-        async def delete(self, meeting_id):
+        async def delete(self, meeting_id, current_user):
             self.deleted_id = meeting_id
 
-        async def list_speeches(self, meeting_id):
+        async def list_speeches(self, meeting_id, current_user):
             return [make_speech(meeting_id=meeting_id)]
 
-        async def create_speech(self, meeting_id, data):
+        async def create_speech(self, meeting_id, data, current_user):
             return make_speech(meeting_id=meeting_id, speaker_name=data.speaker_name)
 
-        async def bulk_create_speeches(self, meeting_id, data):
+        async def bulk_create_speeches(self, meeting_id, data, current_user):
             return [make_speech(meeting_id=meeting_id, speaker_name=item.speaker_name) for item in data]
 
-        async def update_speech(self, speech_id, data):
+        async def update_speech(self, meeting_id, speech_id, data, current_user):
             return make_speech(id=speech_id, speaker_name=data.speaker_name or "Alice")
 
-        async def delete_speech(self, speech_id):
+        async def delete_speech(self, meeting_id, speech_id, current_user):
             self.deleted_speech_id = speech_id
 
     monkeypatch.setattr(meetings_endpoint, "MeetingService", FakeMeetingService)
@@ -210,14 +224,14 @@ def test_meeting_crud_and_speech_routes(authenticated_client, monkeypatch):
     ).json()["data"]["speaker_name"] == "Bob"
 
 
-def test_document_routes_cover_upload_metadata_and_delete(authenticated_client, monkeypatch):
+def test_document_routes_cover_upload_metadata_and_delete(admin_client, monkeypatch):
     from app.api.v1.endpoints import documents as documents_endpoint
 
     class FakeDocumentService:
         def __init__(self, db):
             pass
 
-        async def list_documents(self, page, page_size, meeting_id, department, file_type, status):
+        async def list_documents(self, page, page_size, meeting_id, department, file_type, status, current_user):
             return [make_document()], 1, 1
 
         async def upload(self, file, meeting_id, department, uploader_id):
@@ -228,71 +242,85 @@ def test_document_routes_cover_upload_metadata_and_delete(authenticated_client, 
                 uploader_id=uploader_id,
             )
 
-        async def get_by_id(self, doc_id):
+        async def get_for_user(self, doc_id, current_user, write=False):
             return make_document(id=doc_id)
 
         async def update_content(self, doc_id, content):
             return make_document(id=doc_id, status="parsed")
 
-        async def update_document_metadata(self, doc_id, meeting_id, department):
-            return make_document(id=doc_id, meeting_id=meeting_id, department=department)
+        async def update_document_metadata(self, doc_id, meeting_id, department, is_public=None):
+            return make_document(
+                id=doc_id, meeting_id=meeting_id, department=department, is_public=is_public
+            )
 
         async def delete(self, doc_id):
             self.deleted_id = doc_id
 
     monkeypatch.setattr(documents_endpoint, "DocumentService", FakeDocumentService)
 
-    assert authenticated_client.get("/api/v1/documents").json()["total"] == 1
-    uploaded = authenticated_client.post(
+    class FakeMeetingService:
+        def __init__(self, db):
+            pass
+
+        async def get_for_user(self, meeting_id, current_user, write=False):
+            return make_meeting(id=meeting_id)
+
+    monkeypatch.setattr(documents_endpoint, "MeetingService", FakeMeetingService)
+
+    assert admin_client.get("/api/v1/documents").json()["total"] == 1
+    uploaded = admin_client.post(
         "/api/v1/documents/upload",
         data={"meeting_id": "10", "department": "QA"},
         files={"file": ("notes.txt", b"hello", "text/plain")},
     ).json()
     assert uploaded["code"] == 201
     assert uploaded["data"]["original_filename"] == "notes.txt"
-    assert authenticated_client.get("/api/v1/documents/30").json()["data"]["id"] == 30
-    assert authenticated_client.put("/api/v1/documents/30/content", json={"content": "parsed"}).json()["data"]["status"] == "parsed"
-    assert authenticated_client.put("/api/v1/documents/30", json={"meeting_id": 11, "department": "Ops"}).json()["data"]["department"] == "Ops"
-    assert authenticated_client.delete("/api/v1/documents/30").json()["message"] == "删除成功"
+    assert admin_client.get("/api/v1/documents/30").json()["data"]["id"] == 30
+    assert admin_client.put("/api/v1/documents/30/content", json={"content": "parsed"}).json()["data"]["status"] == "parsed"
+    assert admin_client.put(
+        "/api/v1/documents/30",
+        json={"meeting_id": 11, "department": "Ops", "is_public": False},
+    ).json()["data"]["is_public"] is False
+    assert admin_client.delete("/api/v1/documents/30").json()["message"] == "删除成功"
 
 
-def test_todo_routes_cover_crud_bulk_and_stats(client, monkeypatch):
+def test_todo_routes_cover_crud_bulk_and_stats(authenticated_client, monkeypatch):
     from app.api.v1.endpoints import todos as todos_endpoint
 
     class FakeTodoService:
         def __init__(self, db):
             pass
 
-        async def list_todos(self, page, page_size, meeting_id, status, assignee_name, priority):
+        async def list_todos(self, page, page_size, meeting_id, status, assignee_name, priority, current_user):
             return [make_todo()], 1, 1
 
-        async def create(self, data):
+        async def create(self, data, assignee_id=None):
             return make_todo(title=data.title)
 
-        async def bulk_create(self, data):
+        async def bulk_create(self, data, assignee_id=None):
             return [make_todo(title=item.title) for item in data]
 
-        async def get_stats(self, meeting_id):
+        async def get_stats(self, current_user, meeting_id):
             return {"total": 1, "pending": 1, "done": 0}
 
-        async def get_by_id(self, todo_id):
+        async def get_for_user(self, todo_id, current_user, write=False):
             return make_todo(id=todo_id)
 
-        async def update(self, todo_id, data):
+        async def update(self, todo_id, data, current_user):
             return make_todo(id=todo_id, status=data.status or "pending")
 
-        async def delete(self, todo_id):
+        async def delete(self, todo_id, current_user):
             self.deleted_id = todo_id
 
     monkeypatch.setattr(todos_endpoint, "TodoService", FakeTodoService)
 
-    assert client.get("/api/v1/todos").json()["total"] == 1
-    assert client.post("/api/v1/todos", json={"title": "One"}).json()["data"]["title"] == "One"
-    assert len(client.post("/api/v1/todos/bulk", json=[{"title": "One"}, {"title": "Two"}]).json()["data"]) == 2
-    assert client.get("/api/v1/todos/summary/stats").json()["data"]["pending"] == 1
-    assert client.get("/api/v1/todos/40").json()["data"]["id"] == 40
-    assert client.put("/api/v1/todos/40", json={"status": "done"}).json()["data"]["status"] == "done"
-    assert client.delete("/api/v1/todos/40").json()["message"] == "删除成功"
+    assert authenticated_client.get("/api/v1/todos").json()["total"] == 1
+    assert authenticated_client.post("/api/v1/todos", json={"title": "One"}).json()["data"]["title"] == "One"
+    assert len(authenticated_client.post("/api/v1/todos/bulk", json=[{"title": "One"}, {"title": "Two"}]).json()["data"]) == 2
+    assert authenticated_client.get("/api/v1/todos/summary/stats").json()["data"]["pending"] == 1
+    assert authenticated_client.get("/api/v1/todos/40").json()["data"]["id"] == 40
+    assert authenticated_client.put("/api/v1/todos/40", json={"status": "done"}).json()["data"]["status"] == "done"
+    assert authenticated_client.delete("/api/v1/todos/40").json()["message"] == "删除成功"
 
 
 def test_user_routes_cover_register_login_and_profile(admin_client, monkeypatch):

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -10,6 +10,8 @@ class DocumentUpdate(BaseModel):
 
 
 class DocumentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     meeting_id: Optional[int]
     uploader_id: Optional[int]
@@ -21,6 +23,3 @@ class DocumentOut(BaseModel):
     department: Optional[str]
     is_public: Optional[bool] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True

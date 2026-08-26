@@ -20,6 +20,22 @@ class FakePublisher:
         return kwargs["queue_name"]
 
 
+class CompletingPublisher:
+    """模拟 consumer 在 publisher confirm 返回前已经完成任务。"""
+
+    def __init__(self):
+        self.service = None
+
+    async def publish_message(self, **kwargs):
+        assert self.service is not None
+        await self.service.update_task_status(
+            kwargs["headers"]["task_id"],
+            TaskStatus.COMPLETED,
+            progress=100,
+        )
+        return kwargs["queue_name"]
+
+
 class FakeIncomingMessage:
     def __init__(self, body, headers=None):
         self.body = body if isinstance(body, bytes) else json.dumps(body).encode()
@@ -80,6 +96,41 @@ async def test_publish_failure_is_visible_in_task_state(fake_redis):
 
 
 @pytest.mark.asyncio
+async def test_fast_consumer_completion_is_not_overwritten_by_publisher(fake_redis):
+    publisher = CompletingPublisher()
+    service = TaskQueueService(redis_client=fake_redis, publisher=publisher)
+    publisher.service = service
+
+    task = await service.create_task(
+        TaskType.VECTOR_EMBED,
+        {"document_id": 1, "chunk_ids": [1]},
+        user_id=7,
+    )
+
+    assert task.status == TaskStatus.COMPLETED.value
+    stored = await service.get_task_status(task.task_id)
+    assert stored.status == TaskStatus.COMPLETED.value
+
+
+@pytest.mark.asyncio
+async def test_fast_consumer_completion_is_not_overwritten_on_republish(fake_redis):
+    service = TaskQueueService(
+        redis_client=fake_redis,
+        publisher=FakePublisher(ConnectionError("broker down")),
+    )
+    failed = await service.create_task(TaskType.VECTOR_EMBED, {}, user_id=7)
+    publisher = CompletingPublisher()
+    publisher.service = service
+    service.publisher = publisher
+
+    task = await service.republish_task(failed.task_id, user_id=7)
+
+    assert task.status == TaskStatus.COMPLETED.value
+    stored = await service.get_task_status(task.task_id)
+    assert stored.status == TaskStatus.COMPLETED.value
+
+
+@pytest.mark.asyncio
 async def test_task_status_and_listing_are_owner_scoped(fake_redis):
     service = TaskQueueService(redis_client=fake_redis, publisher=FakePublisher())
     task = await service.create_task(TaskType.DOCUMENT_PROCESS, {}, user_id=7)
@@ -88,6 +139,15 @@ async def test_task_status_and_listing_are_owner_scoped(fake_redis):
     assert await service.list_tasks(user_id=8) == []
     assert await service.cancel_task(task.task_id, user_id=8) is False
     assert len(await service.list_tasks(user_id=7)) == 1
+
+
+@pytest.mark.asyncio
+async def test_task_queue_fails_clearly_without_initialized_redis(monkeypatch):
+    monkeypatch.setattr("app.services.task_queue.get_redis", lambda: None)
+    service = TaskQueueService(publisher=FakePublisher())
+
+    with pytest.raises(RuntimeError, match="Redis is not initialized"):
+        await service.get_task_status("missing")
 
 
 @pytest.mark.asyncio
@@ -158,6 +218,22 @@ async def test_consumer_exhaustion_confirms_dead_queue_before_ack():
     failure_callback.assert_awaited_once_with(
         {"task_id": "t1"}, 2, "RuntimeError: poison", True
     )
+
+
+@pytest.mark.asyncio
+async def test_failure_callback_error_does_not_break_confirmed_retry():
+    manager = RabbitMQManager()
+    manager._publish_retry = AsyncMock()
+    failure_callback = AsyncMock(side_effect=RuntimeError("state store down"))
+    message = FakeIncomingMessage({"task_id": "t1"})
+
+    async def fail(body):
+        raise RuntimeError("boom")
+
+    await manager._process_delivery("test.queue", message, fail, failure_callback)
+
+    assert message.acked == 1
+    assert message.nacked == []
 
 
 @pytest.mark.asyncio

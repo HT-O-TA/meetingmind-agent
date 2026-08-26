@@ -103,7 +103,7 @@ export async function verifyImprovement(improvementId, result) {
 
 export async function analyzeBadCasePatterns(limit = 10) {
   return request({
-    url: `/api/v1/bad-cases/patterns?limit=${limit}`,
+    url: `/api/v1/bad-cases/analysis/patterns?limit=${limit}`,
     method: 'get'
   })
 }

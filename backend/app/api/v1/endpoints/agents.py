@@ -1,10 +1,10 @@
 """Agent 查询、流式事件与高风险工具确认端点。"""
 import asyncio
 import time
-from typing import Optional, List, Dict, Any
+from typing import Annotated, Optional, List, Dict, Any
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
 from app.agents.agent_service import AgentService
@@ -14,6 +14,7 @@ from app.core.logger import app_logger
 from app.core.deps import get_current_user
 from app.core.security import AccessContext
 from app.models.user import User
+from app.agents.memory import SessionMemoryStore
 import json
 
 
@@ -31,11 +32,9 @@ class ConfirmationResumeRequest(BaseModel):
 
 router = APIRouter(tags=["Agent"])
 
-# 进程级单例缓存按人机确认策略隔离。
-# VectorSearchService 持有 db session，不能跨请求复用，每次请求注入新实例。
-# AgentService 本身（含 session_memories）跨请求持久化。
-_agent_service_cache: Dict[tuple, AgentService] = {}
-_cache_lock = asyncio.Lock()
+# AgentService/ToolManager/VectorSearchService 都持有请求级依赖，禁止跨请求复用。
+# 只共享不持有 db session 的有界短期会话容器。
+_memory_store = SessionMemoryStore(max_sessions=1000, max_raw_turns=10)
 
 
 async def get_agent_service(
@@ -43,21 +42,14 @@ async def get_agent_service(
     vector_search_service: VectorSearchService,
     enable_human_in_the_loop: bool = False,
 ) -> AgentService:
-    """获取或复用 AgentService 实例，保证 session_memories 跨请求持久化"""
-    cache_key = (enable_human_in_the_loop,)
-    async with _cache_lock:
-        if cache_key not in _agent_service_cache:
-            _agent_service_cache[cache_key] = AgentService(
-                llm_service=llm_service,
-                vector_search_service=vector_search_service,
-                enable_human_in_the_loop=enable_human_in_the_loop,
-                max_short_term_turns=10,
-            )
-        else:
-            # 图节点和工具都可能捕获请求级 db session，必须整体刷新依赖。
-            svc = _agent_service_cache[cache_key]
-            svc.refresh_dependencies(llm_service, vector_search_service)
-    return _agent_service_cache[cache_key]
+    """构造请求级 AgentService；只有短期记忆容器跨请求共享。"""
+    return AgentService(
+        llm_service=llm_service,
+        vector_search_service=vector_search_service,
+        enable_human_in_the_loop=enable_human_in_the_loop,
+        max_short_term_turns=10,
+        memory_store=_memory_store,
+    )
 
 
 class AgentQueryRequest(BaseModel):
@@ -66,26 +58,26 @@ class AgentQueryRequest(BaseModel):
     ID 体系说明：
     - session_id: 浏览器会话（前端生成，隔离标签页）
     - conversation_id: 对话ID（可选，用于恢复对话）
-    - thread_id 由后端自动生成: f"{session_id}:{conversation_id}"
+    - thread_id 由后端自动生成: f"{user_id}:{session_id}:{conversation_id}"
     - meeting_id: 业务域过滤（可选）
     """
-    question: str
+    question: str = Field(min_length=1, max_length=20000)
     meeting_id: Optional[int] = None
     document_ids: Optional[List[int]] = None
-    session_id: Optional[str] = None
-    conversation_id: Optional[str] = None
-    user_id: Optional[int] = None
+    session_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    conversation_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     enable_human_in_the_loop: bool = False
 
 
 class AgentBatchRequest(BaseModel):
     """Agent 批量查询请求"""
-    questions: List[str]
+    questions: List[Annotated[str, Field(min_length=1, max_length=20000)]] = Field(
+        min_length=1, max_length=20
+    )
     meeting_id: Optional[int] = None
     document_ids: Optional[List[int]] = None
-    session_id: Optional[str] = None
-    conversation_id: Optional[str] = None
-    user_id: Optional[int] = None
+    session_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    conversation_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
 
 
 @router.post("/query")
@@ -139,8 +131,6 @@ async def agent_query(
         "todos": result.todos,
         "controversies": result.controversies,
         "error": result.error,
-        "thoughts": result.thoughts,
-        "reflection": result.reflection,
         "plan": result.plan,
         "latency_ms": round(latency_ms, 2),
         # 返回会话上下文信息，供前端保存
@@ -170,13 +160,20 @@ async def agent_query_stream(
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
     current_user: User = Depends(get_current_user),
 ):
-    """Agent流式查询 - 实时返回思维链和中间结果"""
+    """Agent 流式查询；仅返回可公开进度、确认请求和最终结果。"""
     
     async def generate():
         queue: asyncio.Queue[Dict[str, Any]] = asyncio.Queue()
         task: Optional[asyncio.Task] = None
 
         async def event_callback(event_type, data):
+            if event_type == "thought":
+                event_type = "progress"
+                data = {
+                    "phase": data.get("phase"),
+                    "action": data.get("action"),
+                    "step": data.get("step"),
+                }
             await queue.put({"type": event_type, "data": data})
 
         agent_service = await get_agent_service(
@@ -234,8 +231,6 @@ async def agent_query_stream(
                 "todos": result.todos,
                 "controversies": result.controversies,
                 "error": result.error,
-                "thoughts": result.thoughts,
-                "reflection": result.reflection,
                 "plan": result.plan,
                 # 返回会话上下文信息，供前端保存
                 "session_id": context.session_id,
@@ -254,7 +249,10 @@ async def agent_query_stream(
             app_logger.exception(f"[API] Agent流式查询失败: {e}")
             if task and not task.done():
                 task.cancel()
-            error = json.dumps({"type": "error", "data": {"message": str(e)}}, ensure_ascii=False)
+            error = json.dumps(
+                {"type": "error", "data": {"message": "Agent stream failed"}},
+                ensure_ascii=False,
+            )
             yield f"data: {error}\n\n"
             yield "data: [DONE]\n\n"
     

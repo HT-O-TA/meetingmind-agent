@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 
@@ -31,6 +31,8 @@ class MeetingUpdate(BaseModel):
 
 
 class MeetingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     title: str
     description: Optional[str]
@@ -49,10 +51,6 @@ class MeetingOut(BaseModel):
     keywords: Optional[str]
     created_at: datetime
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
 
 class SpeechRecordCreate(BaseModel):
     speaker_name: str
@@ -73,6 +71,8 @@ class SpeechRecordUpdate(BaseModel):
 
 
 class SpeechRecordOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     meeting_id: int
     speaker_name: str
@@ -85,6 +85,3 @@ class SpeechRecordOut(BaseModel):
     source_type: Optional[str] = None
     source_task_id: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True

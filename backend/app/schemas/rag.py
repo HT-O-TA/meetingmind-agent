@@ -9,7 +9,7 @@ from app.core.response import Response
 class RAGAskRequest(BaseModel):
     """RAG 问答请求。"""
 
-    question: str = Field(..., description="用户问题", min_length=1)
+    question: str = Field(..., description="用户问题", min_length=1, max_length=20000)
     top_k: Optional[int] = Field(None, description="检索返回数量", ge=1, le=50)
     meeting_id: Optional[int] = Field(None, description="指定会议 ID")
     department: Optional[str] = Field(None, description="指定部门")

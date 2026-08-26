@@ -32,7 +32,7 @@ class UserService:
         user = User(
             username=data.username,
             email=data.email,
-            hashed_password=get_password_hash(data.password[:72]),
+            hashed_password=get_password_hash(data.password),
             full_name=data.full_name,
             department=data.department,
             role=UserRole.user.value,
@@ -44,7 +44,7 @@ class UserService:
 
     async def authenticate(self, username: str, password: str) -> User:
         user = await self.get_by_username(username)
-        if not user or not verify_password(password[:72], user.hashed_password):
+        if not user or not verify_password(password, user.hashed_password):
             raise AppException("用户名或密码错误", 401)
         if not user.is_active:
             raise AppException("账号已被禁用", 403)

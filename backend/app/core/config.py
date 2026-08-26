@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # JWT访问令牌过期时间（分钟）
 
     # ==================== 数据库配置 ====================
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:123456@localhost:5432/meetingmind"  # PostgreSQL数据库连接字符串
+    DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5432/meetingmind"  # PostgreSQL数据库连接字符串
 
     # ==================== CORS跨域配置 ====================
     CORS_ORIGINS: str = '["http://localhost:5173","http://127.0.0.1:5173","http://localhost:3000","http://127.0.0.1:3000"]'  # 允许的前端跨域地址列表（JSON格式）
@@ -173,6 +173,8 @@ class Settings(BaseSettings):
                 raise ValueError("生产环境禁止开启 DEBUG")
             if "*" in self.cors_origins_list:
                 raise ValueError("生产环境 CORS_ORIGINS 禁止通配符")
+            if any("localhost" in origin or "127.0.0.1" in origin for origin in self.cors_origins_list):
+                raise ValueError("生产环境 CORS_ORIGINS 禁止本机开发地址")
         return self
     
     def _get_backend_dir(self) -> str:

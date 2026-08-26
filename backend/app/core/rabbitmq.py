@@ -287,6 +287,26 @@ class RabbitMQManager:
             self.dead_queue_name(queue_name),
         )
 
+    @staticmethod
+    async def _notify_failure(
+        failure_callback: Optional[FailureCallback],
+        body: Dict[str, Any],
+        retry_count: int,
+        error: str,
+        dead_lettered: bool,
+    ) -> None:
+        """状态回写失败不能破坏已经完成的 broker 确认流程。"""
+        if not failure_callback:
+            return
+        try:
+            await failure_callback(body, retry_count, error, dead_lettered)
+        except Exception:
+            logger.exception(
+                "Failure callback failed task_id=%s dead_lettered=%s",
+                body.get("task_id"),
+                dead_lettered,
+            )
+
     async def _process_delivery(
         self,
         queue_name: str,
@@ -324,8 +344,9 @@ class RabbitMQManager:
                     await message.nack(requeue=True)
                     raise
                 await message.ack()
-                if failure_callback:
-                    await failure_callback(body, next_retry, error, False)
+                await self._notify_failure(
+                    failure_callback, body, next_retry, error, False
+                )
                 logger.warning(
                     "Task scheduled for retry queue=%s task_id=%s retry=%s/%s",
                     queue_name,
@@ -348,8 +369,9 @@ class RabbitMQManager:
                 await message.nack(requeue=True)
                 raise
             await message.ack()
-            if failure_callback:
-                await failure_callback(body, retry_count, error, True)
+            await self._notify_failure(
+                failure_callback, body, retry_count, error, True
+            )
             logger.error(
                 "Task moved to confirmed dead queue=%s task_id=%s attempts=%s",
                 queue_name,

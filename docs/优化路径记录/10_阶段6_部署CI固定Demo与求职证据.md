@@ -4,7 +4,7 @@
 
 ## 1. 本阶段结论
 
-阶段 6 已完成可由当前机器独立验证的部分：轻量 Web/Worker 与模型能力解耦、开发 Compose、生产配置失败关闭、前后端镜像、CI 门禁、三组固定 Demo、可核验指标索引和简历描述边界。
+阶段 6 已完成可由当前机器独立验证的部分：轻量 Web/Worker 与模型能力解耦、开发 Compose、生产配置失败关闭、前后端镜像、CI 门禁、四组固定 Demo、可核验指标索引和简历描述边界。
 
 这不是“生产环境已经上线”。本机没有验证 TLS、备份恢复、多节点 PostgreSQL/Redis/RabbitMQ、Milvus 容量、外部 Secret Manager 或真实流量；`docker-compose.prod.yml` 只是带安全前置条件的生产参考覆盖层。
 
@@ -19,7 +19,7 @@
 | 真实基础设施集成 | 4 passed | PostgreSQL、Redis、RabbitMQ |
 | 前端生产构建 | 通过，存在非阻断的大包告警 | Vite |
 | 中危/高危静态扫描 | 0 | Bandit `-ll` |
-| 固定 Demo | 3/3 通过 | 队列恢复、ASR 证据、LoRA 抽取 |
+| 固定 Demo | 4/4 通过 | HTTP 主链、队列恢复、ASR 证据、LoRA 抽取 |
 
 阶段 6 当时的汇总原始值见 `backend/evaluation/reports/stage6_delivery_local_20260826.json`；它只用于追溯当时运行，不应复制为当前简历数字。
 
@@ -94,7 +94,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
 
 镜像发布只在 `v*` Tag 或手工触发时执行，使用 `GITHUB_TOKEN` 发布到 GHCR；普通 main push 不发布可变镜像，也不依赖个人 Docker Hub 密钥。
 
-## 6. 三个固定 Demo
+## 6. 四个固定 Demo
 
 ### 6.1 准备
 
@@ -122,6 +122,7 @@ backend/venv/bin/python scripts/run_fixed_demos.py
 也可以单独运行：
 
 ```bash
+backend/venv/bin/python scripts/run_fixed_demos.py --demo http
 backend/venv/bin/python scripts/run_fixed_demos.py --demo queue
 backend/venv/bin/python scripts/run_fixed_demos.py --demo asr
 backend/venv/bin/python scripts/run_fixed_demos.py --demo lora
@@ -129,7 +130,14 @@ backend/venv/bin/python scripts/run_fixed_demos.py --demo lora
 
 输出默认进入被 Git 忽略的 `artifacts/fixed-demos/`，避免把临时 ID 和重复运行结果混入正式报告。
 
-### 6.2 Demo A：RabbitMQ 失败恢复
+### 6.2 Demo A：真实 HTTP 业务闭环
+
+1. 先启动完整 Compose，再运行 `--demo http`。
+2. 脚本真实注册两个不同部门用户，并完成会议、TXT 上传、RAG 引用、待办创建。
+3. 继续等待文档父任务与向量子任务都完成，证明 HTTP 202 后不是“假完成”。
+4. 最后验证私有文档和跨部门会议均为 403，私有文档不会从列表泄漏。
+
+### 6.3 Demo B：RabbitMQ 失败恢复
 
 录制顺序控制在 90 秒：
 
@@ -138,7 +146,7 @@ backend/venv/bin/python scripts/run_fixed_demos.py --demo lora
 3. 指出实测 `attempt_count=2`、延迟重试 1 次、确认死信 1 次。
 4. 指出拓扑在 finally 删除；故障是确定性注入，不是生产成功率。
 
-### 6.3 Demo B：WAV 到持久证据
+### 6.4 Demo C：WAV 到持久证据
 
 录制顺序控制在 2 分钟：
 
@@ -147,7 +155,7 @@ backend/venv/bin/python scripts/run_fixed_demos.py --demo lora
 3. 展示 `meetingmind.asr-evidence.v1`、正文、时间戳、匿名说话人和“需人工核验”纪要。
 4. 明确这是一条公开单句烟测，不是会议 CER/DER；临时数据库记录会自动删除。
 
-### 6.4 Demo C：LoRA 严格抽取
+### 6.5 Demo D：LoRA 严格抽取
 
 录制顺序控制在 90 秒：
 

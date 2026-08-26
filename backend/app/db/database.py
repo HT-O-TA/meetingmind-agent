@@ -8,6 +8,7 @@
 """
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import text
 from app.core.config import settings
 
 
@@ -111,6 +112,14 @@ async def get_db():
 # 使用 engine.begin() 开启事务上下文
 # ============================================================================
 async def init_db():
-    """创建所有 ORM 模型对应的数据库表"""
+    """创建 ORM 表，并确保无需手工迁移即可使用基础全文索引。"""
+    import app.models  # noqa: F401 - 注册所有 ORM metadata
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("""
+            CREATE INDEX IF NOT EXISTS ix_vector_chunks_fts_simple
+            ON vector_chunks USING GIN (
+                to_tsvector('simple', COALESCE(chunk_text, ''))
+            )
+        """))
