@@ -146,15 +146,22 @@ class ErrorRecoveryManager:
         Returns:
             (错误分类, 严重程度)
         """
-        from aiohttp import ClientError
         from sqlalchemy.exc import SQLAlchemyError, OperationalError
+
+        # aiohttp 不是核心运行依赖。仅在已安装时识别其网络异常，避免
+        # 错误处理器在处理原始异常时再次因可选依赖缺失而失败。
+        try:
+            from aiohttp import ClientError
+            network_errors = (ClientError, ConnectionError)
+        except ImportError:
+            network_errors = (ConnectionError,)
 
         exc_type = type(exception).__name__
 
         if "Timeout" in exc_type or isinstance(exception, asyncio.TimeoutError):
             return ErrorCategory.TIMEOUT_ERROR, ErrorSeverity.WARNING
         
-        if isinstance(exception, (ClientError, ConnectionError)):
+        if isinstance(exception, network_errors):
             return ErrorCategory.NETWORK_ERROR, ErrorSeverity.ERROR
         
         if isinstance(exception, (SQLAlchemyError, OperationalError)):

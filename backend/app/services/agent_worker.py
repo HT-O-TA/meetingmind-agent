@@ -44,10 +44,10 @@ async def agent_execute_consumer(message_body: Dict[str, Any]):
         graph = create_agent_graph(
             llm_service=llm_service,
             tool_manager=tool_manager,
-            enable_react=True,
-            enable_cot=True,
+            enable_react=False,
+            enable_cot=False,
             enable_fallback=True,
-            enable_reflection=True,
+            enable_reflection=False,
             use_checkpointer=True,
         )
 

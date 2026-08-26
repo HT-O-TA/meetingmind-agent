@@ -56,7 +56,6 @@ class Memory(Base):
     __table_args__ = (
         Index('ix_memories_user_type', 'user_id', 'memory_type'),
         Index('ix_memories_type_status', 'memory_type', 'memory_status'),
-        Index('ix_memories_created_at', 'created_at'),
     )
 
     def to_dict(self):

@@ -1,8 +1,36 @@
 """pytest 配置文件"""
+import fnmatch
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
+
+
+class InMemoryRedis:
+    """覆盖 HITL 契约所需的最小异步 Redis 行为。"""
+
+    def __init__(self):
+        self.data = {}
+
+    async def set(self, key, value, ex=None):
+        self.data[key] = value
+        return True
+
+    async def get(self, key):
+        return self.data.get(key)
+
+    async def delete(self, key):
+        return int(self.data.pop(key, None) is not None)
+
+    async def scan_iter(self, match="*"):
+        for key in list(self.data):
+            if fnmatch.fnmatch(key, match):
+                yield key
+
+
+@pytest.fixture
+def fake_redis():
+    return InMemoryRedis()
 
 
 @pytest.fixture

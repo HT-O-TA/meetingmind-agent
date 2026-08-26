@@ -10,7 +10,6 @@ import json
 import re
 from enum import Enum
 from typing import Optional, Tuple, Dict, Any, TypedDict
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from app.core.logger import app_logger
 
 try:
@@ -53,13 +52,16 @@ class ComplexityClassifier:
         self._max_same_outputs = 3  # 连续相同输出阈值
     
     async def initialize(self):
-        """初始化模型"""
+        """按需初始化本地模型；依赖或模型不可用时保留规则降级。"""
         if self._initialized:
             return
         
         from app.core.config import settings
         
         try:
+            # Transformers 是本地模型增强依赖，不应阻塞轻量 API、测试或规则路由。
+            from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+
             model_path = settings.COMPLEXITY_MODEL_PATH
             app_logger.info(f"[COMPLEXITY] 正在加载本地模型: {model_path}")
             

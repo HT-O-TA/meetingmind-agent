@@ -25,7 +25,12 @@ class LLMService:
             app_logger.error("[LLMService] LLM_API_KEY is empty!")
             raise ValueError("LLM_API_KEY must be set")
 
-        self.client = AsyncOpenAI(
+        # 客户端延迟到首次真实调用时创建。这样 API 依赖注入和离线测试
+        # 不会因为宿主机代理、网络后端等与请求无关的环境差异而失败。
+        self.client: Optional[AsyncOpenAI] = None
+
+    def _create_client(self, api_key: str, base_url: str) -> AsyncOpenAI:
+        return AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,
             timeout=Timeout(
@@ -36,6 +41,11 @@ class LLMService:
             ),
             max_retries=0,  # 禁用自动重试，避免重试叠加超时；由本层指数退避接管
         )
+
+    def _get_client(self) -> AsyncOpenAI:
+        if self.client is None:
+            self.client = self._create_client(settings.LLM_API_KEY, settings.LLM_API_BASE)
+        return self.client
 
     async def chat(
         self,
@@ -62,16 +72,9 @@ class LLMService:
         """
         # 如果传入了不同的api_key或api_base，创建一个临时的client
         if api_key or api_base:
-            temp_client = AsyncOpenAI(
-                api_key=api_key or settings.LLM_API_KEY,
-                base_url=api_base or settings.LLM_API_BASE,
-                timeout=Timeout(
-                    connect=10,
-                    read=settings.LLM_TIMEOUT,
-                    write=10,
-                    pool=5,
-                ),
-                max_retries=0,
+            temp_client = self._create_client(
+                api_key or settings.LLM_API_KEY,
+                api_base or settings.LLM_API_BASE,
             )
             try:
                 response = await temp_client.chat.completions.create(
@@ -89,7 +92,7 @@ class LLMService:
         for attempt in range(_LLM_MAX_RETRIES):
             try:
                 llm_start_time = time.time()
-                response = await self.client.chat.completions.create(
+                response = await self._get_client().chat.completions.create(
                     model=model or settings.LLM_MODEL,
                     messages=messages,
                     temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,

@@ -432,7 +432,7 @@ class WorkflowEngine:
         workflow.status = WorkflowStatus.PENDING_APPROVAL
 
         try:
-            approved = await self._hitl_service.request_confirmation(
+            request_id = await self._hitl_service.request_confirmation(
                 confirm_type=ConfirmationType.PLAN_APPROVAL,
                 title=f"会议纪要审批: {meeting_topic}",
                 message="请审批以下会议纪要内容",
@@ -440,19 +440,10 @@ class WorkflowEngine:
                 timeout_seconds=300
             )
 
-            if approved:
-                step.status = WorkflowStatus.APPROVED
-                approval_request.status = ConfirmationStatus.APPROVED
-                workflow.context["approval_result"] = "approved"
-                app_logger.info(f"[Workflow] 审批通过: {step.step_id}")
-                await self._execute_next_step(workflow)
-            else:
-                step.status = WorkflowStatus.REJECTED
-                approval_request.status = ConfirmationStatus.REJECTED
-                workflow.status = WorkflowStatus.REJECTED
-                workflow.context["approval_result"] = "rejected"
-                workflow.completed_at = datetime.now().isoformat()
-                app_logger.info(f"[Workflow] 审批拒绝: {step.step_id}")
+            approval_request.status = ConfirmationStatus.PENDING
+            workflow.context["approval_result"] = "pending"
+            workflow.context["confirmation_request_id"] = request_id
+            app_logger.info(f"[Workflow] 审批请求已挂起: {step.step_id}, request_id={request_id}")
 
         except Exception as e:
             step.status = WorkflowStatus.FAILED

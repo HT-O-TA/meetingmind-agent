@@ -1,4 +1,4 @@
-"""LangGraph 图定义 - 统一版本（使用 Tool Calling + ReAct + CoT + 4级复杂度 + Checkpointer）
+"""LangGraph 正式图定义：Simple RAG + Tool Agent。
 
 支持功能：
 - 工具调用系统
@@ -7,13 +7,9 @@
 - 并行执行
 - 上下文传递
 - 质量评估
-- ReAct 推理引擎（思考-行动-观察循环）
-- CoT 思维链推理（详细链式推理）
-- 4级复杂度分类（S/R/C/A）
-- 策略回退机制
-- Checkpointer 状态持久化
-- LLM深度评估与事实一致性校验
+ReAct、CoT 和深度反思代码暂时保留为显式可选能力，默认不进入正式路径。
 """
+from typing import Any
 from langgraph.graph import StateGraph, START, END
 from app.agents.state import AgentState, WorkflowType, ReasoningMode, ComplexityLevel
 from app.agents.nodes import AgentNodes
@@ -26,14 +22,17 @@ from app.core.logger import app_logger
 def create_agent_graph(
     llm_service: LLMService,
     tool_manager: ToolManager,
-    enable_react: bool = True,
-    enable_cot: bool = True,
+    enable_react: bool = False,
+    enable_cot: bool = False,
     enable_fallback: bool = True,
-    enable_reflection: bool = True,
-    use_checkpointer: bool = True,
-) -> StateGraph:
+    enable_reflection: bool = False,
+    use_checkpointer: bool = False,
+) -> Any:
     """
-    创建统一的 Agent 图，支持 ReAct 和 CoT 推理模式，以及策略回退机制
+    创建并编译唯一 Agent 图。
+
+    正式默认只保留 Simple RAG、确定性业务节点和 Plan-Execute Tool Agent。
+    本函数是唯一图编译入口，调用方不得再次调用 ``compile()``。
     
     Args:
         llm_service: LLM 服务实例
@@ -141,7 +140,7 @@ def create_agent_graph(
         return "validate_node"
 
     def should_repair(state: AgentState):
-        if state.get("confirmation_status") in ["required_but_disabled", "rejected"]:
+        if state.get("confirmation_status") in ["required_but_disabled", "pending", "rejected"]:
             return END
         validation_errors = state.get("validation_errors") or []
         repair_count = int(state.get("repair_count", 0))
@@ -393,64 +392,13 @@ def create_agent_graph(
 
 def print_agent_architecture():
     app_logger.info("=" * 70)
-    app_logger.info("📊 Agent 架构（统一版本 - 4级复杂度 + ReAct + CoT + 策略回退 + Checkpointer）")
+    app_logger.info("📊 Agent 架构（正式主线：Simple RAG + Tool Agent）")
     app_logger.info("=" * 70)
-    
-    app_logger.info("\n📋 PLAN 阶段 - 规划 Agent")
-    app_logger.info("   能力：问题分析 | 任务拆解 | 工具选择 | 依赖分析 | 并行规划")
-    app_logger.info("   输出：执行计划 | 工具调用列表")
-    
-    app_logger.info("\n⚡ EXECUTE 阶段 - 执行 Agent")
-    app_logger.info("   能力：任务执行 | 工具调用 | 并行执行 | 上下文传递 | 依赖管理")
-    app_logger.info("   工具：search_meeting | extract_todos | generate_minutes | detect_controversies | answer_question")
-    
-    app_logger.info("\n🔄 REPLAN 阶段 - 重新规划 Agent")
-    app_logger.info("   能力：质量评估 | 重新规划 | 循环迭代 | 持续改进")
-    
-    app_logger.info("\n🧐 REFLECTION 阶段 - 反思评估节点（LLM深度评估）")
-    app_logger.info("   能力：LLM深度评估 | 事实一致性校验 | 幻觉检测 | 自我校正 | 针对性优化")
-    app_logger.info("   评估维度：准确性 | 相关性 | 完整性 | 连贯性 | 一致性 | 幻觉程度")
-    app_logger.info("   机制：置信度阈值触发(0.7) | 最大迭代次数(2次) | 自动重生成")
-    
-    app_logger.info("\n🧠 REACT 推理引擎")
-    app_logger.info("   能力：思考-行动-观察循环 | 动态决策 | 工具调用")
-    app_logger.info("   适用场景：复杂问题推理、多步骤任务、需要探索的场景（复杂度 >= 0.75）")
-    
-    app_logger.info("\n🔗 CoT 思维链推理")
-    app_logger.info("   能力：详细推理链展示 | 逻辑分解 | 置信度评估")
-    app_logger.info("   适用场景：需要解释推理过程、中等复杂问答（复杂度 0.5-0.75）")
-    
-    app_logger.info("\n🔍 RAG 检索")
-    app_logger.info("   能力：文档检索 | 事实查询 | 引用生成")
-    app_logger.info("   适用场景：事实型问题、需要查资料（复杂度 0.3-0.5）")
-    
-    app_logger.info("\n💬 Simple QA")
-    app_logger.info("   能力：直接问答 | 快速响应")
-    app_logger.info("   适用场景：简单问题、无需检索（复杂度 < 0.3）")
-    
-    app_logger.info("\n" + "=" * 70)
-    app_logger.info("工作流程：")
-    app_logger.info("  1. ROUTE 智能分类：复杂度评估 + 多任务判断")
-    app_logger.info("  2. 判断多任务？→ PLAN 拆解 → 子任务路由")
-    app_logger.info("  3. 单任务 → 按复杂度路由（S/R/C/A）")
-    app_logger.info("  4. RETRIEVE （可选）检索相关文档上下文")
-    app_logger.info("  5. EXECUTE 根据复杂度级别执行推理")
-    app_logger.info("  6. REFLECTION（可选）LLM深度评估 + 事实一致性校验 + 自动优化")
-    app_logger.info("  7. REPLAN/回退 评估结果，必要时降级策略或重新生成")
-    app_logger.info("  8. VALIDATE 验证输出格式和内容")
+    app_logger.info("1. ROUTE：任务类型与复杂度分类；模型不可用时规则降级")
+    app_logger.info("2. SAFETY：Prompt Injection 与风险规则检查")
+    app_logger.info("3a. SIMPLE：按需检索 → 问答/纪要/待办/争议 → 确定性校验")
+    app_logger.info("3b. TOOL：计划 → ToolPolicy → 必要时 HITL pending → 执行 → 质量门禁")
+    app_logger.info("4. HITL：批准后通过持久化快照恢复；未批准绝不执行高风险工具")
+    app_logger.info("默认关闭：ReAct、CoT、深度反思、持久化 Checkpointer")
+    app_logger.info("可选 Checkpointer 当前为进程内 MemorySaver，不宣称跨进程恢复")
     app_logger.info("=" * 70)
-    
-    app_logger.info("\n4级复杂度分类策略：")
-    app_logger.info("  - S (Simple): 0.0-0.3 → Simple QA（直接答，无需检索）")
-    app_logger.info("  - R (Retrieval): 0.3-0.5 → RAG（检索+直接回答）")
-    app_logger.info("  - C (CoT): 0.5-0.75 → CoT + 可选检索")
-    app_logger.info("  - A (Agent): 0.75-1.0 → ReAct（内含CoT+行动+观察）")
-    
-    app_logger.info("\n策略回退机制：")
-    app_logger.info("  - ReAct 失败 → 降级到 CoT")
-    app_logger.info("  - CoT 失败 → 降级到 RAG/Simple QA")
-    
-    app_logger.info("\n🔄 Checkpointer 状态持久化：")
-    app_logger.info("  - 基于 Redis 的状态持久化")
-    app_logger.info("  - 支持断点续传和任务恢复")
-    app_logger.info("  - HITL 异步等待人工确认")

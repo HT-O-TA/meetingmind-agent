@@ -95,8 +95,13 @@ class TraceSpan:
 class AgentMonitor:
     """Agent 监控器"""
     
-    def __init__(self, max_history: int = 1000, max_spans: int = 1000):
-        self.logger = self._setup_logger()
+    def __init__(
+        self,
+        max_history: int = 1000,
+        max_spans: int = 1000,
+        log_file: Optional[str] = None,
+    ):
+        self.logger = self._setup_logger(log_file)
         self.metrics: Dict[str, List[Metric]] = defaultdict(list)
         self.metric_history = deque(maxlen=max_history)
         self.spans: Dict[str, TraceSpan] = {}
@@ -122,7 +127,7 @@ class AgentMonitor:
             "hallucination_risk_scores": []
         }
         
-    def _setup_logger(self) -> logging.Logger:
+    def _setup_logger(self, log_file: Optional[str]) -> logging.Logger:
         """设置日志记录器
         
         Returns:
@@ -140,12 +145,12 @@ class AgentMonitor:
             console_handler.setLevel(logging.INFO)
             console_handler.setFormatter(formatter)
             
-            file_handler = logging.FileHandler("agent_monitor.log")
-            file_handler.setLevel(logging.DEBUG)
-            file_handler.setFormatter(formatter)
-            
             logger.addHandler(console_handler)
-            logger.addHandler(file_handler)
+            if log_file:
+                file_handler = logging.FileHandler(log_file)
+                file_handler.setLevel(logging.DEBUG)
+                file_handler.setFormatter(formatter)
+                logger.addHandler(file_handler)
         
         return logger
     

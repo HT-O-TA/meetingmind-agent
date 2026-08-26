@@ -210,6 +210,22 @@ class HumanInTheLoopService:
                     requests.append(request)
         
         return requests
+
+    async def list_request_history(self, limit: int = 50) -> List[ConfirmationRequest]:
+        """列出已处理请求，最近的请求优先。"""
+        redis = await self._get_redis()
+        requests = []
+
+        async for key in redis.scan_iter(match="hitl:request:*"):
+            request_data = await redis.get(key)
+            if not request_data:
+                continue
+            request = json.loads(request_data)
+            if request["status"] != ConfirmationStatus.PENDING.value:
+                requests.append(request)
+
+        requests.sort(key=lambda item: item.get("timestamp", ""), reverse=True)
+        return requests[:limit]
     
     async def cancel_request(self, request_id: str) -> bool:
         """取消确认请求"""
@@ -223,6 +239,9 @@ class HumanInTheLoopService:
         
         if request["thread_id"]:
             await redis.delete(self._get_thread_request_key(request["thread_id"]))
+
+        self._pending_requests.pop(request_id, None)
+        self._request_callbacks.pop(request_id, None)
         
         app_logger.info(f"[HITL] 请求已取消: {request_id}")
         return True

@@ -535,7 +535,7 @@ async def get_pending_confirmations(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
     )
-    return {"pending_requests": agent_service.get_pending_confirmations()}
+    return {"pending_requests": await agent_service.get_pending_confirmations()}
 
 
 @router.get("/confirmations/history")
@@ -549,7 +549,7 @@ async def get_confirmation_history(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
     )
-    return {"history": agent_service.get_confirmation_history(limit)}
+    return {"history": await agent_service.get_confirmation_history(limit)}
 
 
 @router.get("/confirmations/{request_id}")
@@ -563,7 +563,7 @@ async def get_confirmation_by_id(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
     )
-    result = agent_service.get_confirmation_by_id(request_id)
+    result = await agent_service.get_confirmation_by_id(request_id)
     if result:
         return result
     return {"error": f"确认请求 {request_id} 不存在"}
@@ -581,7 +581,7 @@ async def respond_to_confirmation(
         vector_search_service=vector_search_service,
     )
     
-    success = agent_service.respond_to_confirmation(request.request_id, request.response)
+    success = await agent_service.respond_to_confirmation(request.request_id, request.response)
     
     if success:
         return {"message": f"已响应确认请求 {request.request_id}", "response": request.response}

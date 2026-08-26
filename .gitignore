@@ -69,6 +69,7 @@ backend/env/
 # Logs
 logs/
 backend/logs/
+*.log
 
 # Node.js
 node_modules/

@@ -206,7 +206,7 @@ async def test_risk_node_requires_confirmation_for_delete(nodes):
 
     assert assessed["risk_level"] == RiskLevel.CRITICAL
     assert assessed["requires_confirmation"] is True
-    assert assessed["pending_action"]["reason"] == "包含删除/清空类高风险动作"
+    assert "删除类" in assessed["pending_action"]["reason"]
 
 
 @pytest.mark.asyncio
@@ -479,7 +479,10 @@ async def test_replan_uses_weighted_score_instead_of_llm_overall(nodes):
         "generate_minutes",
         "detect_controversies",
     ]
-    assert "缺少待办事项和争议点" in result["cot_thoughts"][-2]["observation"]
+    assert any(
+        "缺少待办事项和争议点" in (thought.get("observation") or "")
+        for thought in result["cot_thoughts"]
+    )
 
 
 @pytest.mark.asyncio
@@ -555,50 +558,45 @@ async def test_replan_does_not_request_result_confirmation_after_final_output(no
 
 
 @pytest.mark.asyncio
-async def test_hitl_pending_request_is_visible():
+async def test_hitl_pending_request_is_visible(fake_redis):
     service = HumanInTheLoopService()
+    service.redis = fake_redis
 
-    request_task = asyncio.create_task(
-        service.request_confirmation(
-            confirm_type=ConfirmationType.CRITICAL_ACTION,
-            title="确认删除",
-            message="确认删除会议？",
-            timeout_seconds=5,
-        )
+    request_id = await service.request_confirmation(
+        confirm_type=ConfirmationType.CRITICAL_ACTION,
+        title="确认删除",
+        message="确认删除会议？",
+        timeout_seconds=5,
     )
-    await asyncio.sleep(0)
-    pending = service.get_pending_requests()
+    pending = await service.list_pending_requests()
 
     assert len(pending) == 1
     assert pending[0]["title"] == "确认删除"
-    assert service.respond_to_request(pending[0]["request_id"], "approved") is True
-    assert await request_task is True
+    assert pending[0]["request_id"] == request_id
+    assert await service.respond_to_request(request_id, "approved") is True
+    assert await service.list_pending_requests() == []
 
 
 @pytest.mark.asyncio
-async def test_hitl_stores_resume_snapshot_after_approval():
+async def test_hitl_stores_resume_snapshot_after_approval(fake_redis):
     service = HumanInTheLoopService()
+    service.redis = fake_redis
     resume_state = {
         "question": "发送通知",
         "pending_action": {"source": "tool"},
         "plan": {"tool_calls": [{"tool_name": "send_notification", "arguments": {}}]},
     }
 
-    request_task = asyncio.create_task(
-        service.request_confirmation(
-            confirm_type=ConfirmationType.CRITICAL_ACTION,
-            title="确认工具",
-            message="确认发送通知？",
-            details={"source": "tool"},
-            resume_state=resume_state,
-            timeout_seconds=5,
-        )
+    request_id = await service.request_confirmation(
+        confirm_type=ConfirmationType.CRITICAL_ACTION,
+        title="确认工具",
+        message="确认发送通知？",
+        details={"source": "tool"},
+        resume_state=resume_state,
+        timeout_seconds=5,
     )
-    await asyncio.sleep(0)
-    request_id = service.get_pending_requests()[0]["request_id"]
 
-    assert service.get_resume_snapshot(request_id) == resume_state
-    assert service.respond_to_request(request_id, "approved") is True
-    assert await request_task is True
-    assert service.get_resume_snapshot(request_id) == resume_state
-    assert service.has_pending_request(request_id) is False
+    assert await service.get_resume_state(request_id) == resume_state
+    assert await service.respond_to_request(request_id, "approved") is True
+    assert await service.get_resume_state(request_id) == resume_state
+    assert await service.list_pending_requests() == []

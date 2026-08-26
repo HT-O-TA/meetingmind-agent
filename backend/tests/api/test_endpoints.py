@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.agents.state import AgentResult, TaskType, WorkflowType, RiskLevel
 from app.core.deps import get_current_user
+from app.core.dependencies import get_llm_service, get_vector_search_service
 from app.db.database import get_db
 from app.main import app
 
@@ -110,6 +111,8 @@ def client():
         yield SimpleNamespace()
 
     app.dependency_overrides[get_db] = fake_db
+    app.dependency_overrides[get_llm_service] = lambda: SimpleNamespace()
+    app.dependency_overrides[get_vector_search_service] = lambda: SimpleNamespace()
     test_client = TestClient(app)
     yield test_client
     test_client.close()
@@ -328,52 +331,24 @@ def test_user_routes_cover_register_login_profile_and_list(admin_client, monkeyp
     assert admin_client.get("/api/v1/users").json()["total"] == 1
 
 
-def test_rag_vector_and_embedding_routes_are_covered(client, monkeypatch):
-    from app.api.v1.endpoints import embedding, rag, vector_search
+def test_rag_is_public_and_low_level_retrieval_routes_are_internal(client):
+    from app.api.v1.endpoints import rag
 
     fake_rag_service = SimpleNamespace(
         ask=AsyncMock(return_value={"answer": "A", "sources": [{"id": 1}]})
     )
     app.dependency_overrides[rag.get_rag_service] = lambda: fake_rag_service
 
-    fake_vector_service = SimpleNamespace(
-        use_pgvector=False,
-        search_by_text=AsyncMock(return_value=[{"document_id": 1, "similarity": 0.9}]),
-        get_document_chunks=AsyncMock(return_value=[{"chunk_text": "hello"}]),
-        check_pgvector_support=AsyncMock(return_value=None),
-    )
-    app.dependency_overrides[vector_search.get_vector_search_service] = lambda: fake_vector_service
-
-    class FakeEmbeddingService:
-        def encode_text(self, text):
-            return [1.0, 0.0] if text else [0.0, 0.0]
-
-        def encode_batch(self, texts):
-            return [[float(index), 1.0] for index, _ in enumerate(texts)]
-
-        def cosine_similarity(self, vec1, vec2):
-            return 0.75
-
-        def get_status(self):
-            return {"status": "online", "dimension": 2}
-
-    monkeypatch.setattr(embedding, "EmbeddingService", FakeEmbeddingService)
-
     assert client.post("/api/v1/rag/ask", json={"question": "What?", "use_llm": False}).json()["data"]["answer"] == "A"
-    assert client.post("/api/v1/vector-search/search", json={"content": "query"}).json()["data"]["count"] == 1
-    assert client.get("/api/v1/vector-search/chunks/1").json()["data"]["count"] == 1
-    assert client.get("/api/v1/vector-search/status").json()["data"]["status"] == "online"
-    assert client.post("/api/v1/embedding/encode", json={"content": "hello"}).json()["data"]["dimension"] == 2
-    assert client.post("/api/v1/embedding/batch-encode", json={"texts": ["a", "b"]}).json()["data"]["count"] == 2
-    assert client.post("/api/v1/embedding/similarity", json={"text1": "a", "text2": "b"}).json()["data"]["similarity"] == 0.75
-    assert client.get("/api/v1/embedding/status").json()["data"]["status"] == "online"
+    assert client.post("/api/v1/vector-search/search", json={"content": "query"}).status_code == 404
+    assert client.post("/api/v1/embedding/encode", json={"content": "hello"}).status_code == 404
 
 
 def test_agent_query_returns_policy_and_pending_action(client, monkeypatch):
     from app.api.v1.endpoints import agents as agents_endpoint
 
     class FakeAgentService:
-        async def process_query(self, question, meeting_id=None, document_ids=None, config=None, event_callback=None):
+        async def process_query_with_context(self, question, context, document_ids=None, event_callback=None):
             return AgentResult(
                 success=True,
                 task_type=TaskType.MULTI,

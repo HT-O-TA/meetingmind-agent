@@ -128,10 +128,10 @@ class Settings(BaseSettings):
     ENABLE_RERANK: bool = True  # 是否启用重排序
 
     # ==================== Query Rewrite 配置 ====================
-    ENABLE_QUERY_REWRITE: bool = True   # 是否启用 Query Rewrite（HyDE + MultiQuery + Step-back）
-    ENABLE_HYDE: bool = True            # 是否启用 HyDE 假设文档生成
-    ENABLE_MULTI_QUERY: bool = True     # 是否启用 MultiQuery 子问题分解
-    ENABLE_STEP_BACK: bool = True       # 是否启用 Step-back 泛化改写
+    ENABLE_QUERY_REWRITE: bool = False  # 未经评测，不进入正式 Agent 检索路径
+    ENABLE_HYDE: bool = False           # 可选实验，默认关闭
+    ENABLE_MULTI_QUERY: bool = False    # 可选实验，默认关闭
+    ENABLE_STEP_BACK: bool = False      # 可选实验，默认关闭
     QUERY_REWRITE_MAX_QUERIES: int = 5  # 最多并发检索的扩展 query 数量（防止 token 爆炸）
     QUERY_REWRITE_ONLY_COMPLEX: bool = True  # True=只对复杂查询做 Rewrite，False=所有查询
     
@@ -157,7 +157,7 @@ class Settings(BaseSettings):
     WHISPER_API_BASE: str = "https://api.openai.com/v1"  # Whisper API基础URL
     WHISPER_API_KEY: str = ""  # Whisper API密钥
     WHISPER_MODEL: str = "whisper-1"  # Whisper模型名称
-    ENABLE_MULTIMODAL: bool = True  # 是否启用多模态服务
+    ENABLE_MULTIMODAL: bool = False  # 真实 ASR 接入前，多模态骨架默认关闭
     MULTIMODAL_MAX_IMAGE_SIZE_MB: int = 10  # 图片最大大小（MB）
     MULTIMODAL_MAX_AUDIO_SIZE_MB: int = 50  # 音频最大大小（MB）
     MULTIMODAL_SUPPORTED_FORMATS: str = "png,jpg,jpeg,gif,webp,bmp,mp3,wav,m4a,ogg,flac,pdf,docx,txt,md"
@@ -203,7 +203,7 @@ class Settings(BaseSettings):
     ENABLE_CROSS_MODEL_VALIDATION: bool = False  # 是否启用跨模型交叉验证
 
     # ==================== 反思记忆配置 ====================
-    ENABLE_REFLECTION_MEMORY: bool = True  # 是否启用反思记忆持久化
+    ENABLE_REFLECTION_MEMORY: bool = False  # 可选实验，不进入默认答案路径
     REFLECTION_MEMORY_TOP_K: int = 3  # 查询相似反思的最大数量
     REFLECTION_MEMORY_ASYNC: bool = True  # 是否异步写入（不阻塞主流程）
     REFLECTION_MEMORY_CACHE_SIZE: int = 500  # 内存缓存大小
@@ -220,11 +220,14 @@ class Settings(BaseSettings):
     NEO4J_USER: str = "neo4j"  # Neo4j 用户名
     NEO4J_PASSWORD: str = "password"  # Neo4j 密码
     NEO4J_DATABASE: str = "neo4j"  # 数据库名称
-    ENABLE_NEO4J_PERSISTENCE: bool = True  # 是否启用 Neo4j 持久化
+    ENABLE_NEO4J_PERSISTENCE: bool = False  # 随 KG 默认关闭
 
     # ==================== MCP Server 配置 ====================
-    ENABLE_MCP_SERVER: bool = True  # 是否启用 MCP Server
+    ENABLE_MCP_SERVER: bool = False  # 接入一个真实外部 Server 后再显式开启
     MCP_SERVER_PATH: str = "/mcp"  # MCP Server 挂载路径
+
+    # ==================== 后台消费者配置 ====================
+    ENABLE_AGENT_WORKER: bool = False  # 需要 RabbitMQ 的 Agent 消费者显式启动
 
     # 飞书 MCP 配置
     FEISHU_MCP_ENABLED: bool = False  # 是否启用飞书 MCP

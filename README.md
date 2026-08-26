@@ -1,324 +1,217 @@
-# MeetingMind - 会议智能 Agent 系统
+# MeetingMind
 
-基于 **RAG + Agent** 的智能会议助手，支持会议问答、纪要生成、待办抽取、争议点分析、知识图谱增强等核心功能。
+MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。项目目标不是堆叠 AI 概念，而是形成一条可运行、可评估、可部署、可用于技术讲解的会议知识处理闭环。
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green.svg)
-![Vue](https://img.shields.io/badge/Vue-3-orange.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+当前仓库的正式主线是：
 
----
-
-## 🌟 核心特性
-
-### 🤖 智能 Agent 架构
-
-```
-用户输入 → 复杂度分类 → 路由决策 → 执行 → 结果整合 → 质量评估
-              ↓           ↓
-        四级分类      Plan/执行
-                    ↓
-              子任务并行执行
+```text
+会议文本/文档
+→ 解析与说话人感知分块
+→ PostgreSQL 正文存储与 Milvus Dense 索引
+→ PostgreSQL 关键词召回 + Dense 召回
+→ 加权融合 + BGE Reranker
+→ Simple RAG 或 LangGraph Tool Agent
+→ ToolPolicy / HITL / 审计（继续完善中）
 ```
 
-- **自适应推理路由**：根据问题复杂度自动选择推理策略（Simple/RAG/CoT/ReAct）
-- **Plan-Execute-Reflect**：三阶段 Agent 工作流，支持多任务拆解
-- **工具调用系统**：支持检索、问答、纪要生成、待办抽取等多种工具
-- **人机协作**：支持人工确认机制，处理高风险操作
+## 当前真实性状态
 
-### 🔍 多路召回 RAG 系统
+| 能力 | 状态 | 说明 |
+|---|---|---|
+| 文档解析与分块 | 已实现，待完整集成基线 | 正式策略为说话人感知混合分块 |
+| RAG HTTP 主链路 | 已建立契约基线 | `/api/v1/rag/ask` 固定使用方案 A |
+| 关键词召回 | 已实现 | PostgreSQL `tsvector + ts_rank_cd`，属于 BM25 风格检索 |
+| Dense 召回 | 已实现，依赖运行环境 | Milvus 优先，失败回退 pgvector 或轻量余弦检索 |
+| Fusion + Reranker | 已实现契约测试 | 0.3 关键词权重 + 0.7 Dense 权重，权重仍需离线评测 |
+| Agent | 已收敛默认边界 | 默认只保留 Simple RAG、确定性业务节点和 Tool Agent |
+| ToolPolicy / HITL | 有实现，待端到端验证 | 真实外部写工具尚未选定和联调 |
+| RabbitMQ 任务 | 有框架，待失败恢复基线 | 重试、死信、幂等和容量测试仍需完成 |
+| RAG 评估 | 有多套历史实现，待统一 | 当前没有可重新生成的正式效果数字 |
+| KG / Neo4j | 可选增强，默认关闭 | 不进入正式 RAG 请求路径 |
+| MCP | 可选框架，默认关闭 | 尚未完成唯一真实外部 Server 联调 |
+| ASR / 多模态 | 骨架，默认关闭 | 尚未形成真实音频转写闭环 |
+| LoRA / QLoRA | 尚未完成 | 训练目录、数据和对比实验仍待建设 |
 
-```
-查询 → 三路召回 → RRF融合 → Reranker精排 → 最终结果
-       ↓
-  ├─ BM25（关键词检索）
-  ├─ BGE-M3稠密（语义向量）
-  └─ BGE-M3稀疏（lexical_weights）
-```
+因此，当前不能将 Sparse/RRF、完整多模态、真实企业系统写入、文档 ACL、端到端生产部署或历史性能数字宣传为已完成能力。
 
-- **三路召回**：BM25 + BGE-M3稠密 + BGE-M3稀疏向量
-- **RRF融合**：Reciprocal Rank Fusion 算法融合多路召回结果
-- **Reranker精排**：BGE-Reranker-v2-m3 对结果进行精排
-- **知识图谱增强**：实体/关系抽取，图谱扩展检索结果
-- **SPEAKER_AWARE_HYBRID 分块**：说话人感知的混合分块策略
-- **RAGAS 评估**：Faithfulness、Answer Relevancy、Context Precision 等 6 项指标
+## 正式 RAG 路径
 
-### 🧠 四级复杂度分类
-
-| 等级 | 区间 | 特点 | 策略 |
-|------|------|------|------|
-| S (Simple) | 0.0-0.3 | 单事实、无需检索、无推理 | 直接回答 |
-| R (Retrieval) | 0.3-0.5 | 事实型、简单、需查资料 | RAG单轮检索 |
-| C (CoT) | 0.5-0.75 | 需要1-2步推理 | 思维链推理 |
-| A (Agent/ReAct) | 0.75-1.0 | 多跳、多源、需多轮 | ReAct多轮推理 |
-
-### 🛠️ 企业级工程化
-
-- **异步架构**：FastAPI + SQLAlchemy 2.0 async
-- **配置中心**：统一的配置管理和热更新
-- **异常处理**：全局异常处理器 + 多层降级策略
-- **SSE 流式输出**：实时展示 Agent 执行过程
-- **监控系统**：性能指标收集、错误统计、执行追踪
-
----
-
-## 📋 技术栈
-
-| 层次 | 技术选型 |
-|------|---------|
-| 后端框架 | FastAPI + Uvicorn + SQLAlchemy 2.0 async |
-| 数据库 | PostgreSQL (支持 pgvector) |
-| 向量检索 | BM25 + BGE-M3 (稠密+稀疏) + BGE-Reranker |
-| 缓存 | Redis |
-| 消息队列 | RabbitMQ + aio-pika |
-| 异步任务 | Redis 任务状态追踪 + Worker 消费 |
-| Agent 框架 | LangGraph + 自定义状态机 |
-| 评估体系 | RAGAS |
-| 前端框架 | Vue 3 + Vite + Element Plus + Pinia |
-| 文档解析 | pdfplumber + python-docx |
-| 监控 | Prometheus + Grafana |
-
----
-
-## 📁 项目架构
-
-```
-meetingmind-agent/
-├── backend/
-│   ├── app/
-│   │   ├── agents/                 # Agent 核心模块
-│   │   │   ├── agent_service.py    # Agent 服务
-│   │   │   ├── tools/              # 工具系统
-│   │   │   ├── memory.py           # 记忆机制
-│   │   │   └── prompts.py          # Prompt模板
-│   │   ├── services/               # 业务服务层
-│   │   │   ├── enhanced_retrieval_fusion.py  # 三路召回融合
-│   │   │   ├── complexity_classifier.py      # 复杂度分类器
-│   │   │   ├── rag_service.py                # RAG服务
-│   │   │   └── llm_service.py                # LLM服务
-│   │   ├── core/                    # 核心组件
-│   │   ├── api/v1/endpoints/        # API 接口
-│   │   ├── models/                  # 数据模型
-│   │   ├── schemas/                 # 数据模式
-│   │   └── db/                      # 数据库配置
-│   ├── tests/                       # 测试目录
-│   ├── model/                       # 本地模型文件
-│   └── requirements.txt
-│
-├── frontend/                        # Vue 3 前端
-│   └── src/
-│       ├── views/                   # 页面组件
-│       ├── api/                     # 接口封装
-│       ├── stores/                  # 状态管理
-│       └── components/              # 公共组件
-│
-└── docs/                            # 项目文档
+```text
+POST /api/v1/rag/ask
+→ RAGService
+→ Dense 召回
+   → Redis 精确缓存
+   → Milvus 召回 chunk_id
+   → PostgreSQL 回查完整正文
+   → 失败时 pgvector / Python 余弦回退
+→ PostgreSQL 关键词召回
+→ 按 chunk_id 去重和加权融合
+→ 可选 KG 候选扩展（默认关闭）
+→ Reranker 从候选池精排到最终 top_k
+→ LLM 生成或返回检索内容
 ```
 
----
+正式策略明确不包含 Sparse、RRF、Query Rewrite、HyDE、Multi-Query 或 Step-back。这些历史实现只有在离线评测证明收益后才允许重新进入主线。
 
-## ✨ 核心功能
+详细代码走读见：
 
-| 功能 | 描述 | 技术实现 |
-|------|------|---------|
-| **会议问答** | 基于 RAG 的智能问答，支持引用溯源 | BM25 + 向量 + Reranker + 知识图谱 |
-| **纪要生成** | 自动生成结构化会议纪要 | LLM 生成 + 模板优化 |
-| **待办抽取** | 智能识别会议中的待办事项 | 工具调用 + JSON 结构化输出 |
-| **争议分析** | 识别会议中的分歧点和讨论焦点 | 多任务并行 + 结果整合 |
-| **知识图谱** | 实体/关系抽取，增强检索结果 | 图谱扩展 + 上下文关联 |
-| **知识库管理** | 多格式文档解析与向量化存储 | PDF/DOCX/TXT + BGE-M3 |
-| **异步任务处理** | 文档解析/向量化异步执行 | RabbitMQ + Redis 状态追踪 |
-| **RAG评估** | 6项 RAGAS 指标评估 | Faithfulness、Relevancy、Precision 等 |
-| **回归测试** | 性能基准测试和回归检测 | 基准建立 + 差异对比 |
-| **自适应推理** | 根据问题复杂度选择推理策略 | 四级分类 + Plan模式 |
+- [RAG 主链路走读与契约基线](docs/优化路径记录/03_RAG主链路走读与契约基线.md)
+- [主链路真实性审计](docs/优化路径记录/02_主链路真实性审计.md)
+- [Agent 主链路与阶段 0 运行基线](docs/优化路径记录/04_Agent主链路与阶段0基线.md)
 
----
+## 正式 Agent 边界
 
-## 🚀 快速启动
+默认 LangGraph 包含两类业务路径：
 
-### 环境要求
+1. Simple RAG：安全检查、风险判断、检索、确定性问答/纪要/待办/争议节点、质量校验。
+2. Tool Agent：规划、工具风险检查、必要时 HITL、执行、重规划和质量校验。
 
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL 14+（建议安装 pgvector 扩展）
-- Redis 6+（可选，用于缓存）
-- 模型文件：BGE-M3、BGE-Reranker-v2-m3（放置于 `backend/model/`）
+ReAct、CoT 和深度 LLM 反思代码暂时保留，但默认不注册到正式图中。Query Rewrite、反思记忆和 Multi-Agent 同样默认关闭或退出默认 Router。
 
-### 后端启动
+## API 暴露边界
+
+生产环境默认只注册：
+
+- 用户、会议、文档、待办；
+- 文本处理；
+- RAG 与 Agent；
+- 用户反馈；
+- 异步任务状态。
+
+Embedding、底层向量检索、评估、运行配置、Prompt 模板、Trace、性能、记忆、动态工具、反思和成本接口只在 `development` 或 `test` 环境注册。
+
+以下历史 Router 不再进入默认应用：
+
+- HTTP 测试执行器；
+- Workflow mock；
+- Agent Collaboration；
+- Multi-Agent。
+
+KG 和 MCP Router 只有在对应配置显式开启时才注册。
+
+## 技术栈
+
+| 层次 | 当前选型 |
+|---|---|
+| API | FastAPI、Pydantic、Uvicorn |
+| 数据访问 | SQLAlchemy 2.0 Async、PostgreSQL |
+| 关键词检索 | PostgreSQL tsvector / ts_rank_cd |
+| Dense 检索 | Milvus，pgvector/轻量模式降级 |
+| Embedding / Reranker | BGE-M3、BGE-Reranker（运行时依赖模型） |
+| Agent | LangGraph、自定义状态与工具体系 |
+| 缓存与状态 | Redis |
+| 异步任务 | RabbitMQ、aio-pika、Worker |
+| 可选图谱 | Neo4j |
+| 前端 | Vue 3、Vite、Element Plus、Pinia |
+| 观测 | Trace、Prometheus 指标框架 |
+
+## 配置原则
+
+复制示例配置后再填入本机信息：
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+以下能力默认关闭：
+
+```dotenv
+RETRIEVAL_STRATEGY=A
+ENABLE_SPARSE_RETRIEVAL=false
+ENABLE_QUERY_REWRITE=false
+ENABLE_HYDE=false
+ENABLE_MULTI_QUERY=false
+ENABLE_STEP_BACK=false
+ENABLE_KNOWLEDGE_GRAPH=false
+ENABLE_NEO4J_PERSISTENCE=false
+ENABLE_MULTIMODAL=false
+ENABLE_MCP_SERVER=false
+ENABLE_AGENT_WORKER=false
+```
+
+`.env` 是本机私有文件，不应提交 API Key、Token 或密码。可公开配置应同步到 `.env.example`，真实密钥只通过环境变量或后续的 SecretProvider 注入。
+
+## 测试
+
+### 零外部依赖契约测试
+
+当前最小基线不要求 FastAPI、数据库、Milvus、Redis 或模型：
 
 ```bash
 cd backend
+python3 -m unittest discover -s tests/contracts -v
+```
 
-# 安装依赖
+该基线验证：
+
+- RAG 层与检索层的方法和字段契约；
+- Milvus 成功路径的缓存写入；
+- BM25/Dense 融合后的完整正文；
+- 精排候选池与最终 `top_k`；
+- Agent 图只编译一次；
+- 正式 Agent 默认节点边界；
+- 生产、内部、可选和退役 Router 的暴露策略；
+- 未经验证的可选能力默认关闭。
+
+### 完整测试
+
+当前轻量核心测试不要求数据库、Redis、Milvus 或本地模型。首次创建环境：
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements-core.txt
+./scripts/run_core_tests.sh -q
+```
+
+2026-08-26 的阶段 0 基线为 `133 passed, 2 skipped`。两个跳过项依赖未安装的模型能力；数据库、Redis、Milvus 与真实外部服务集成测试仍需在后续阶段单独建立，不能把当前通过数解释为完整生产验收。
+
+## 开发启动
+
+Python 依赖：
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# 配置环境变量
-# 创建 .env 文件，参考 .env.example 设置：
-# - DATABASE_URL: 数据库连接地址
-# - LLM_API_KEY: LLM API Key
-# - LLM_API_BASE: LLM API 地址
-
-# 启动服务
+cp .env.example .env
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 前端启动
+前端：
 
 ```bash
 cd frontend
-
 npm install
 npm run dev
 ```
 
-访问 `http://localhost:5173` 即可使用。
+阶段 0 已使用全新 Compose PostgreSQL/Redis 数据卷验证后端冷启动和 `/health`。完整一键部署、模型服务拆分、Milvus 编排及前端联动仍在收敛中，因此暂不能把整套 Compose 视为生产部署验收完成。
 
----
+## 项目路线
 
-## 📊 关键指标
+后续工作严格按照[JD 对标与项目收敛路线](docs/JD对标与项目收敛路线.md)推进：
 
-| 指标 | 数值 | 说明 |
-|------|------|------|
-| 检索 Recall | 86.1% | 三路召回 + RRF融合后 |
-| 系统延迟 | < 3s | 端到端响应时间 |
-| 支持工具数 | 5+ | 会议专用工具 |
-| RAGAS 指标 | 6 项 | 完整评估体系 |
-| 测试数据集 | 263 题 | 覆盖各类场景 |
+1. 完成真实性审计、主链路和测试环境收敛；
+2. 建立 RAG 离线评估、引用、ACL 和指标；
+3. 完成 ToolPolicy、HITL、审计和一个真实企业写工具；
+4. 完成 RabbitMQ 失败恢复和容量基线；
+5. 接入一种真实 ASR；
+6. 建立会议抽取 LoRA/QLoRA 对比实验；
+7. 完成可复现部署、Demo、报告和简历证据。
 
----
+所有对外描述和简历数字都必须能绑定到代码、测试命令、数据版本和实验报告。
 
-## 💡 面试亮点
+## 当前未满足的完成标准
 
-1. **RAG 优化**：三路召回（BM25 + BGE-M3稠密 + BGE-M3稀疏）+ RRF融合 + Reranker精排
-2. **自适应推理**：四级复杂度分类（S/R/C/A）+ Plan模式处理多任务
-3. **Agent 架构**：完整的工具调用系统、状态管理、人机协作机制
-4. **工程实践**：异步架构、统一异常处理、配置中心、SSE 流式输出
-5. **评估体系**：RAGAS 6 项指标 + 回归测试框架 + Bad Case 分析闭环
-6. **知识图谱**：实体/关系抽取集成到检索流程，提升上下文相关性
-7. **异步任务处理**：RabbitMQ 消息队列 + Redis 任务状态追踪，支持文档解析、向量化等耗时任务异步执行
-8. **全栈能力**：完整的前后端实现，API 设计规范
+- 尚无一条经过当前环境复现的无 mock 端到端业务链路；
+- 尚无统一的 RAG/抽取/工具评估命令和正式指标；
+- 文档 ACL 和答案引用尚未完成；
+- 尚未联调真实企业写工具；
+- RabbitMQ 失败恢复与幂等测试尚未完成；
+- ASR 和 LoRA/QLoRA 对比实验尚未完成；
+- Docker 一键部署尚未完成验证。
 
----
-
-## 📝 API 接口
-
-### Agent 接口
-
-| 接口 | 方法 | 描述 |
-|------|------|------|
-| `/api/v1/agents/query` | POST | Agent 问答接口 |
-| `/api/v1/agents/query-stream` | POST | 流式问答接口 |
-| `/api/v1/agents/confirmations/pending` | GET | 获取待确认请求 |
-| `/api/v1/agents/confirmations/respond` | POST | 响应确认请求 |
-
-### RAG 接口
-
-| 接口 | 方法 | 描述 |
-|------|------|------|
-| `/api/v1/rag/ask` | POST | RAG 问答 |
-| `/api/v1/evaluation/evaluate-all` | POST | 评估全部数据集 |
-| `/api/v1/evaluation/regression` | POST | 运行回归测试 |
-| `/api/v1/evaluation/baseline` | POST | 建立基准 |
-
-### 任务队列接口
-
-| 接口 | 方法 | 描述 |
-|------|------|------|
-| `/api/v1/tasks/documents` | POST | 创建文档处理任务 |
-| `/api/v1/tasks/{task_id}` | GET | 获取任务状态 |
-| `/api/v1/tasks/` | GET | 获取任务列表 |
-| `/api/v1/tasks/{task_id}` | DELETE | 取消/删除任务 |
-
-### 会议接口
-
-| 接口 | 方法 | 描述 |
-|------|------|------|
-| `/api/v1/meetings` | GET/POST | 会议列表/创建 |
-| `/api/v1/meetings/{id}` | GET/PUT/DELETE | 会议详情/更新/删除 |
-| `/api/v1/todos` | GET/POST | 待办事项管理 |
-
----
-
-## 🔧 配置说明
-
-### 主要配置项
-
-```bash
-# .env 文件示例
-
-# 数据库配置
-DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/meetingmind
-
-# LLM 配置
-LLM_API_KEY=your-api-key
-LLM_API_BASE=https://api.example.com/v1
-LLM_MODEL=qwen3.6-plus
-
-# 向量检索配置
-TOP_K_DEFAULT=5
-SIMILARITY_THRESHOLD=0.5
-ENABLE_KNOWLEDGE_GRAPH=false  # 可选增强，默认不进入正式 RAG 主链路
-
-# 复杂度分类阈值
-COMPLEXITY_SIMPLE=0.3
-COMPLEXITY_RETRIEVAL=0.5
-COMPLEXITY_COT=0.75
-
-# 安全配置
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
----
-
-## 🧪 测试运行
-
-```bash
-cd backend
-
-# 运行所有测试
-pytest
-
-# 运行指定测试
-pytest tests/services/test_rag_regression.py -v
-
-# 运行单元测试
-pytest tests/unit/ -v
-
-# 运行 Agent 测试
-pytest tests/agent/ -v
-
-# 运行分块测试
-pytest tests/chunking/ -v
-
-# 运行检索策略对比测试
-pytest tests/experiments/test_retrieval_strategy.py -v
-```
-
----
-
-## 📄 License
-
-MIT License
-
----
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
----
-
-*项目已完成核心功能开发，包含完整的 RAG 系统、Agent 框架、自适应推理路由和前后端实现，适合作为 AI 应用开发学习和实践项目。*
-
-```bash
-# 后端启动命令
-cd backend
-conda activate meetingmind
-python run.py
-
-# 前端启动命令
-cd frontend
-npm run dev
-```
-netstat -ano | findstr :8000
-taskkill /F /PID 19504 /T
+这些限制会随路线执行逐项关闭，并在每个里程碑中留下代码、测试和学习记录。

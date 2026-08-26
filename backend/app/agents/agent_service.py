@@ -66,10 +66,18 @@ class AgentService:
 
         # 工具管理器（默认启用 Tool Calling）
         self.tool_manager = ToolManager(llm_service, vector_search_service)
-        self.graph = create_agent_graph(llm_service, self.tool_manager)
+        # create_agent_graph 是唯一编译入口，避免已编译图再次 compile。
+        self.graph = create_agent_graph(
+            llm_service,
+            self.tool_manager,
+            enable_react=False,
+            enable_cot=False,
+            enable_fallback=True,
+            enable_reflection=False,
+            use_checkpointer=enable_checkpointer,
+        )
         print_agent_architecture()
-
-        self.app = self._compile_graph()
+        self.app = self.graph
 
         # 记忆管理
         self.memory_manager = MemoryManager(
@@ -87,15 +95,6 @@ class AgentService:
 
         if enable_checkpointer:
             self.memory_manager.enable_checkpoint()
-
-    def _compile_graph(self):
-        """编译图，支持可选的 checkpointer"""
-        from langgraph.checkpoint.memory import MemorySaver
-
-        if self.enable_checkpointer:
-            checkpointer = MemorySaver()
-            return self.graph.compile(checkpointer=checkpointer)
-        return self.graph.compile()
 
     def _get_session_memory(self, session_id: str) -> MemoryManager:
         """获取或创建会话记忆管理器"""
@@ -703,7 +702,7 @@ class AgentService:
     
     # ==================== 人机协作相关方法 ====================
     
-    def respond_to_confirmation(self, request_id: str, response: str) -> bool:
+    async def respond_to_confirmation(self, request_id: str, response: str) -> bool:
         """
         响应用户确认请求
         
@@ -715,40 +714,38 @@ class AgentService:
             True: 响应成功
             False: 请求不存在或已处理
         """
-        return self.hitl_service.respond_to_request(request_id, response)
+        return await self.hitl_service.respond_to_request(request_id, response)
 
     async def resume_confirmation(self, request_id: str, response: str = "approved") -> Dict[str, Any]:
         """
         响应确认请求，并在没有原始运行请求可继续时从确认点快照恢复执行。
         """
+        request = await self.hitl_service.get_request_status(request_id)
+        if not request:
+            return {"success": False, "mode": "not_found", "message": f"确认请求 {request_id} 不存在"}
+        if request.get("status") != "pending":
+            return {"success": False, "mode": "already_processed", "message": "确认请求已处理"}
+
+        snapshot = await self.hitl_service.get_resume_state(request_id)
+
         if response != "approved":
-            success = self.hitl_service.respond_to_request(request_id, response)
+            success = await self.hitl_service.respond_to_request(request_id, response)
             return {
                 "success": success,
                 "mode": "rejected",
                 "message": "确认请求已拒绝" if success else "确认请求不存在或已处理",
             }
 
-        snapshot = self.hitl_service.get_resume_snapshot(request_id)
-        if self.hitl_service.has_pending_request(request_id):
-            success = self.hitl_service.respond_to_request(request_id, "approved")
-            return {
-                "success": success,
-                "mode": "live_request",
-                "message": "已确认，原 Agent 请求将继续执行" if success else "确认请求不存在或已处理",
-            }
-
-        request = self.hitl_service.get_request_by_id(request_id)
-        if not request:
-            return {"success": False, "mode": "not_found", "message": f"确认请求 {request_id} 不存在"}
-        if request.get("status") != "approved":
-            return {"success": False, "mode": "not_approved", "message": "确认请求尚未批准，无法恢复执行"}
         if not snapshot:
             return {"success": False, "mode": "snapshot_missing", "message": "确认点恢复快照不存在"}
 
         pending_action = snapshot.get("pending_action") or {}
         if pending_action.get("source") != "tool":
             return {"success": False, "mode": "unsupported", "message": "当前仅支持从工具确认点恢复执行"}
+
+        success = await self.hitl_service.respond_to_request(request_id, "approved")
+        if not success:
+            return {"success": False, "mode": "respond_failed", "message": "确认请求批准失败"}
 
         nodes = AgentNodes(self.llm_service, self.tool_manager)
         resumed_state = snapshot.copy()
@@ -797,16 +794,16 @@ class AgentService:
             "route_decision_trace": state.get("route_decision_trace"),
         }
     
-    def get_pending_confirmations(self) -> List[Dict[str, Any]]:
+    async def get_pending_confirmations(self) -> List[Dict[str, Any]]:
         """
         获取所有待处理的确认请求
         
         Returns:
             待处理请求列表
         """
-        return self.hitl_service.get_pending_requests()
+        return await self.hitl_service.list_pending_requests()
     
-    def get_confirmation_history(self, limit: int = 50) -> List[Dict[str, Any]]:
+    async def get_confirmation_history(self, limit: int = 50) -> List[Dict[str, Any]]:
         """
         获取确认请求历史
         
@@ -816,9 +813,9 @@ class AgentService:
         Returns:
             请求历史列表
         """
-        return self.hitl_service.get_request_history(limit)
+        return await self.hitl_service.list_request_history(limit)
     
-    def get_confirmation_by_id(self, request_id: str) -> Optional[Dict[str, Any]]:
+    async def get_confirmation_by_id(self, request_id: str) -> Optional[Dict[str, Any]]:
         """
         根据ID获取确认请求
         
@@ -828,4 +825,4 @@ class AgentService:
         Returns:
             请求详情，不存在返回None
         """
-        return self.hitl_service.get_request_by_id(request_id)
+        return await self.hitl_service.get_request_status(request_id)

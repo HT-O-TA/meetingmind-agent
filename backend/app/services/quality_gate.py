@@ -224,7 +224,33 @@ class QualityGate:
             app_logger.warning("[QualityGate] LLM 返回解析失败，走降级评估")
             return self._fallback_evaluate(response, structural_errors, can_retry)
 
-        score = float(data.get("overall_score", 0.5))
+        weights = {
+            "task_completion": 0.35,
+            "correctness": 0.25,
+            "process_efficiency": 0.15,
+            "expression": 0.15,
+            "risk": 0.10,
+        }
+        raw_dimensions = data.get("metrics", {})
+        dimensions = {}
+        if isinstance(raw_dimensions, dict):
+            for name in weights:
+                value = raw_dimensions.get(name, 0.0)
+                try:
+                    dimensions[name] = max(0.0, min(1.0, float(value)))
+                except (TypeError, ValueError):
+                    dimensions[name] = 0.0
+
+        has_all_dimensions = isinstance(raw_dimensions, dict) and all(
+            name in raw_dimensions for name in weights
+        )
+        if has_all_dimensions:
+            score = sum(dimensions[name] * weight for name, weight in weights.items())
+        else:
+            try:
+                score = max(0.0, min(1.0, float(data.get("overall_score", 0.5))))
+            except (TypeError, ValueError):
+                score = 0.5
         needs_replan_flag = bool(data.get("needs_replan", False))
         needs_polish_flag = bool(data.get("needs_polish", False))
 
@@ -253,7 +279,7 @@ class QualityGate:
             suggestions=data.get("suggestions", []),
             polishing_prompt=data.get("polishing_prompt", ""),
             replan_prompt=data.get("replan_prompt", ""),
-            dimensions=data.get("metrics", {}),
+            dimensions=dimensions,
             structural_errors=structural_errors,
             evaluation_method="unified",
         )

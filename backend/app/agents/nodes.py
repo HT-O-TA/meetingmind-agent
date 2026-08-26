@@ -26,6 +26,7 @@ from app.services.risk_rule_service import get_risk_rule_service
 from app.services.semantic_risk_service import get_semantic_risk_service
 from app.services.prompt_injection_guard import get_prompt_injection_guard, InjectionType
 from app.services.unified_memory_service import get_unified_memory
+from app.core.config import settings
 from app.core.logger import app_logger
 
 
@@ -903,7 +904,7 @@ class AgentNodes:
             state["complexity_score"] = 0.0
             state["complexity_level"] = ComplexityLevel.SIMPLE
             state["is_multi_task"] = False
-            state["workflow_type"] = WorkflowType.QA
+            state["workflow_type"] = WorkflowType.SIMPLE_QA
             state["task_type"] = TaskType.QA
             state["route_reason"] = "规则短路：问候语直接走 simple_qa_node"
             state["retrieval_required"] = False
@@ -1654,7 +1655,7 @@ class AgentNodes:
         if state.get("event_callback") is None:
             app_logger.error("[CONFIRMATION] event_callback 为 None，无法发送确认事件！")
         
-        approved = await self.hitl_service.request_confirmation(
+        request_id = await self.hitl_service.request_confirmation(
             confirm_type=ConfirmationType.CRITICAL_ACTION,
             title="高风险操作确认",
             message=f"请求包含高风险操作：{details.get('reason', '')}\n\n用户请求：{state.get('question', '')}",
@@ -1662,17 +1663,20 @@ class AgentNodes:
             resume_state=resume_state,
             event_callback=state.get("event_callback"),
         )
-        state["confirmation_status"] = "approved" if approved else "rejected"
-        if not approved:
-            state["validation_errors"].append("高风险操作未获得人工确认")
+        state["confirmation_status"] = "pending"
+        state["pending_action"] = {
+            **details,
+            "confirmation_request_id": request_id,
+        }
+        state["validation_errors"].append(f"confirmation_pending: {request_id}")
         self._add_thought(
             state,
             "confirmation_node",
             "confirm",
-            "高风险操作已确认" if approved else "高风险操作被拒绝或超时",
-            action="人工确认",
+            "已创建人工确认请求，等待用户批准",
+            action="等待人工确认",
         )
-        app_logger.info(f"[CONFIRMATION] 确认完成 - approved={approved}")
+        app_logger.info(f"[CONFIRMATION] 请求已挂起 - request_id={request_id}")
         return self._sanitize_state(state)
 
     def _build_resume_state(self, state: AgentState) -> Dict[str, Any]:
@@ -2308,16 +2312,16 @@ class AgentNodes:
                     # 请求单个工具确认
                     approved = await self._request_tool_confirmation(state, tool_name, tool_risk)
                     if not approved:
-                        app_logger.warning(f"[EXECUTE] 工具 {tool_name} 未获得确认，跳过")
+                        app_logger.warning(f"[EXECUTE] 工具 {tool_name} 等待确认，本轮不执行")
                         self._add_thought(
                             state,
                             "execute_agent",
                             "execute",
-                            f"工具 {tool_name} 未获得人工确认，跳过",
-                            action="工具确认拒绝"
+                            f"工具 {tool_name} 等待人工确认，本轮不执行",
+                            action="工具确认挂起"
                         )
                         self._record_policy_result(
-                            state, tool_name, "rejected", False, "用户拒绝确认", "execute"
+                            state, tool_name, "confirmation_pending", False, "等待用户确认", "execute"
                         )
                         continue
             
@@ -2544,7 +2548,7 @@ class AgentNodes:
             state, "execute_agent", "confirm", f"等待工具 {tool_name} 人工确认...", action="工具确认"
         )
         
-        approved = await self.hitl_service.request_confirmation(
+        request_id = await self.hitl_service.request_confirmation(
             confirm_type=ConfirmationType.CRITICAL_ACTION,
             title=f"工具调用确认: {tool_name}",
             message=f"即将调用工具 {tool_name}，风险等级: {tool_risk.value}\n\n用户请求：{state.get('question', '')}",
@@ -2553,11 +2557,16 @@ class AgentNodes:
             event_callback=state.get("event_callback"),
         )
         
+        state["confirmation_status"] = "pending"
+        state["pending_action"] = {
+            **details,
+            "confirmation_request_id": request_id,
+        }
         self._add_thought(
-            state, "execute_agent", "confirm", f"工具 {tool_name} 确认结果: {'通过' if approved else '拒绝'}", action="工具确认完成"
+            state, "execute_agent", "confirm", f"工具 {tool_name} 已挂起，确认请求: {request_id}", action="等待人工确认"
         )
-        
-        return approved
+
+        return False
 
     async def _execute_with_parallel(self, state: AgentState, tasks: Dict, parallel_groups: List[List[str]]):
         """按并行分组执行任务 - 确保所有任务都被执行"""
@@ -2957,33 +2966,47 @@ class AgentNodes:
                     retry_count = int(reflection.get("retry_count", 0)) if reflection else 0
                     MAX_RETRIES = getattr(_settings, "MAX_REFLECTION_ITERATIONS", 2)
 
+                    repair_plan = self._build_repair_plan(
+                        state,
+                        gate_result.issues,
+                        gate_result.suggestions,
+                        gate_result.dimensions,
+                    )
+                    needs_retry = gate_result.needs_replan or (
+                        bool(repair_plan["missing_outputs"]) and retry_count < MAX_RETRIES
+                    )
+
                     state["reflection"] = {
                         **reflection,
                         "overall_score": gate_result.quality_score,
                         "confidence": gate_result.quality_score,
                         "issues": gate_result.issues,
                         "suggestions": gate_result.suggestions,
-                        "needs_retry": gate_result.needs_replan,
+                        "needs_retry": needs_retry,
                         "needs_polish": gate_result.needs_polish,
                         "polishing_prompt": gate_result.polishing_prompt,
                         "replan_prompt": gate_result.replan_prompt,
-                        "retry_count": retry_count,
+                        "retry_count": retry_count + 1 if needs_retry else retry_count,
                         "dimensions": gate_result.dimensions,
                         "structural_errors": gate_result.structural_errors,
                         "evaluation_method": gate_result.evaluation_method,
+                        "repair_plan": repair_plan,
                     }
 
                     emoji = "🟢" if gate_result.quality_score >= 0.7 else "🟡" if gate_result.quality_score >= 0.5 else "🔴"
                     self._add_thought(
                         state, "replan_agent", "replan",
                         f"统一质量门禁评估完成 {emoji} score={gate_result.quality_score:.2f}, "
-                        f"replan={gate_result.needs_replan}, polish={gate_result.needs_polish}",
+                        f"replan={needs_retry}, polish={gate_result.needs_polish}",
                         action="质量评估",
-                        observation=f"method={gate_result.evaluation_method}, issues={len(gate_result.issues)}"
+                        observation=(
+                            f"method={gate_result.evaluation_method}, issues={len(gate_result.issues)}; "
+                            + "；".join(str(issue) for issue in gate_result.issues[:3])
+                        ),
                     )
                     trace.update_output(
                         f"质量门禁: score={gate_result.quality_score:.2f}, "
-                        f"replan={gate_result.needs_replan}, polish={gate_result.needs_polish}"
+                        f"replan={needs_retry}, polish={gate_result.needs_polish}"
                     )
                     state["agents_involved"].append("replan_agent")
                     return self._sanitize_state(state)
@@ -3243,7 +3266,7 @@ class AgentNodes:
             "reflection": reflection
         }
         
-        confirmed = await self.hitl_service.request_confirmation(
+        request_id = await self.hitl_service.request_confirmation(
             confirm_type=ConfirmationType.RESULT_REVIEW,
             title="执行结果确认",
             message=f"Agent 已完成任务，请确认结果是否满意：\n\n质量评分：{score:.2f} ({score_label})\n\n{chr(10).join(result_summary)}",
@@ -3252,12 +3275,12 @@ class AgentNodes:
         )
         
         confirmation = {
-            "request_id": self.hitl_service.get_request_history(limit=1)[0]["request_id"] if self.hitl_service.get_request_history() else "",
+            "request_id": request_id,
             "type": ConfirmationType.RESULT_REVIEW.value,
             "title": "执行结果确认",
             "message": f"质量评分: {score:.2f}",
-            "status": "approved" if confirmed else "rejected",
-            "user_response": "approved" if confirmed else "rejected",
+            "status": "pending",
+            "user_response": None,
             "timestamp": ""
         }
         
@@ -3265,9 +3288,7 @@ class AgentNodes:
             state["human_confirmations"] = []
         state["human_confirmations"].append(confirmation)
         
-        if not confirmed:
-            self._add_thought(state, "replan_agent", "replan", "用户不满意执行结果", action="用户反馈")
-            app_logger.warning("[REPLAN] 用户不满意执行结果")
+        self._add_thought(state, "replan_agent", "replan", "执行结果确认请求已创建", action="等待用户反馈")
 
     # ==================== ReAct 推理引擎 ====================
     

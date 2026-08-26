@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass
-class TestMeeting:
+class SampleMeeting:
     """测试用会议数据"""
     id: int
     title: str
@@ -29,9 +29,9 @@ class TestMeeting:
 
 
 @pytest.fixture
-def sample_meeting() -> TestMeeting:
+def sample_meeting() -> SampleMeeting:
     """示例会议数据"""
-    return TestMeeting(
+    return SampleMeeting(
         id=1,
         title="项目进度讨论会议",
         content="""
@@ -184,12 +184,12 @@ class TestAgentMemory:
         
         memory = MemorySystem()
         
-        memory.add_long_term_memory(
+        await memory.add_long_term_memory(
             "会议决定使用微服务架构",
             {"type": "decision", "project": "meeting_system"}
         )
         
-        results = memory.search_long_term_memory("架构")
+        results = await memory.search_long_term_memory("架构")
         assert isinstance(results, list)
 
     @pytest.mark.asyncio
@@ -202,7 +202,7 @@ class TestAgentMemory:
         for i in range(5):
             memory.add_short_term_memory(f"对话 {i}", {"turn": i})
         
-        consolidated = memory.consolidate_short_term()
+        consolidated = await memory.consolidate_short_term()
         assert consolidated is not None
 
 

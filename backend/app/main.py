@@ -18,11 +18,16 @@ from app.core.cache_init import init_all_caches, close_redis, redis_health
 from app.core.middleware import AccessLogMiddleware
 from app.api.v1.router import api_router
 
-try:
-    from app.agents.mcp.server import get_mcp_server
-    from app.agents.mcp.initializer import initialize_mcp_servers
-    HAS_MCP = True
-except ImportError:
+if settings.ENABLE_MCP_SERVER:
+    try:
+        from app.agents.mcp.server import get_mcp_server
+        from app.agents.mcp.initializer import initialize_mcp_servers
+        HAS_MCP = True
+    except ImportError:
+        HAS_MCP = False
+        get_mcp_server = None
+        initialize_mcp_servers = None
+else:
     HAS_MCP = False
     get_mcp_server = None
     initialize_mcp_servers = None
@@ -65,7 +70,7 @@ async def startup():
     app_logger.info(f"Cache systems initialized: {cache_results}")
     
     # 初始化 MCP Server
-    if HAS_MCP and get_mcp_server:
+    if settings.ENABLE_MCP_SERVER and HAS_MCP and get_mcp_server:
         try:
             mcp_server = get_mcp_server()
             mcp_app = mcp_server.get_app(path="/")
@@ -85,13 +90,14 @@ async def startup():
         except Exception as e:
             app_logger.error(f"MCP Server 初始化异常: {e}")
     
-    # 启动Agent执行消费者
-    try:
-        from app.services.agent_worker import start_agent_worker
-        await start_agent_worker()
-        app_logger.info("Agent执行消费者启动成功")
-    except Exception as e:
-        app_logger.error(f"Agent执行消费者启动失败: {e}")
+    # Agent 消费者依赖 RabbitMQ，默认不随 Web 进程隐式启动。
+    if settings.ENABLE_AGENT_WORKER:
+        try:
+            from app.services.agent_worker import start_agent_worker
+            await start_agent_worker()
+            app_logger.info("Agent执行消费者启动成功")
+        except Exception as e:
+            app_logger.error(f"Agent执行消费者启动失败: {e}")
 
 
 @app.on_event("shutdown")

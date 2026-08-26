@@ -191,8 +191,7 @@ class TestHumanInTheLoop:
         hitl = HumanInTheLoopService()
         
         assert hitl.default_timeout == 300
-        assert hitl.pending_requests == {}
-        assert hitl.request_history == []
+        assert hitl._pending_requests == {}
 
     def test_generate_request_id(self):
         """测试请求ID生成"""
@@ -205,47 +204,66 @@ class TestHumanInTheLoop:
         assert id1.startswith("confirm_")
         assert id2.startswith("confirm_")
 
-    def test_respond_to_request(self):
+    @pytest.mark.asyncio
+    async def test_respond_to_request(self, fake_redis):
         """测试响应用户请求"""
         hitl = HumanInTheLoopService()
-        
-        # 创建一个pending请求（通过内部方式）
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        future = loop.create_future()
-        hitl.pending_requests["test_req"] = future
-        
-        success = hitl.respond_to_request("test_req", "approved")
-        
-        assert success is True
-        
-        # 清理事件循环
-        loop.close()
+        hitl.redis = fake_redis
+        request_id = await hitl.request_confirmation(
+            ConfirmationType.CRITICAL_ACTION,
+            "确认删除",
+            "确认执行？",
+        )
 
-    def test_respond_to_nonexistent_request(self):
+        success = await hitl.respond_to_request(request_id, "approved")
+
+        assert success is True
+        status = await hitl.get_request_status(request_id)
+        assert status["status"] == "approved"
+        assert status["user_response"] == "approved"
+
+    @pytest.mark.asyncio
+    async def test_respond_to_nonexistent_request(self, fake_redis):
         """测试响应不存在的请求"""
         hitl = HumanInTheLoopService()
-        
-        success = hitl.respond_to_request("nonexistent", "approved")
+        hitl.redis = fake_redis
+
+        success = await hitl.respond_to_request("nonexistent", "approved")
         
         assert success is False
 
-    def test_get_pending_requests(self):
+    @pytest.mark.asyncio
+    async def test_get_pending_requests(self, fake_redis):
         """测试获取待处理请求"""
         hitl = HumanInTheLoopService()
-        
-        requests = hitl.get_pending_requests()
-        
-        assert isinstance(requests, list)
+        hitl.redis = fake_redis
+        await hitl.request_confirmation(
+            ConfirmationType.TOOL_CALL,
+            "确认工具",
+            "确认调用？",
+        )
 
-    def test_get_request_history(self):
+        requests = await hitl.list_pending_requests()
+
+        assert isinstance(requests, list)
+        assert len(requests) == 1
+
+    @pytest.mark.asyncio
+    async def test_get_request_history(self, fake_redis):
         """测试获取请求历史"""
         hitl = HumanInTheLoopService()
-        
-        history = hitl.get_request_history(limit=10)
-        
+        hitl.redis = fake_redis
+        request_id = await hitl.request_confirmation(
+            ConfirmationType.TOOL_CALL,
+            "确认工具",
+            "确认调用？",
+        )
+        await hitl.respond_to_request(request_id, "rejected")
+
+        history = await hitl.list_request_history(limit=10)
+
         assert isinstance(history, list)
+        assert history[0]["status"] == "rejected"
 
 
 class TestConfirmationTypes:
