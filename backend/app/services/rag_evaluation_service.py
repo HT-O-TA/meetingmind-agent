@@ -1,18 +1,10 @@
 """RAG 评估服务"""
 import time
 from typing import List, Dict, Optional
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 from app.services.vector_search_service import VectorSearchService
 from app.services.llm_service import LLMService
 from app.services.embedding_service import EmbeddingService
-try:
-    from tests.rag.rag_eval_dataset import get_eval_dataset, get_question_by_id
-except ImportError:
-    try:
-        from tests.rag_eval_dataset import get_eval_dataset, get_question_by_id
-    except ImportError:
-        from app.tests.data.rag_eval_dataset import get_eval_dataset, get_question_by_id
+from app.data.rag_eval_dataset import get_eval_dataset, get_question_by_id
 from app.core.logger import app_logger
 from app.core.config import settings
 
@@ -182,13 +174,16 @@ class RAGEvaluationService:
         emb_expected = all_embeddings[1]
         emb_contexts = all_embeddings[2:]
 
-        answer_similarity = float(cosine_similarity([emb_answer], [emb_expected])[0][0])
+        answer_similarity = self.embedding_service.cosine_similarity(emb_answer, emb_expected)
 
         context_relevance = 0.0
         max_context_similarity = 0.0
         avg_context_similarity = 0.0
         if emb_contexts:
-            sims = [float(cosine_similarity([emb_answer], [emb_ctx])[0][0]) for emb_ctx in emb_contexts]
+            sims = [
+                self.embedding_service.cosine_similarity(emb_answer, emb_ctx)
+                for emb_ctx in emb_contexts
+            ]
             max_context_similarity = max(sims)
             avg_context_similarity = sum(sims) / len(sims)
             context_relevance = avg_context_similarity
@@ -221,8 +216,7 @@ class RAGEvaluationService:
             if not emb1 or not emb2:
                 return 0.0
 
-            similarity = cosine_similarity([emb1], [emb2])[0][0]
-            return float(similarity)
+            return self.embedding_service.cosine_similarity(emb1, emb2)
         except Exception as e:
             app_logger.warning(f"计算文本相似度失败: {e}")
             return 0.0

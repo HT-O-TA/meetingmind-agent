@@ -1,0 +1,8 @@
+node_modules/
+dist/
+test-report/
+.env*
+.git/
+.idea/
+.vscode/
+*.log

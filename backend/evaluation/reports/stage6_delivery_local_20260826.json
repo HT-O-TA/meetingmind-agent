@@ -1,0 +1,49 @@
+{
+  "schema_version": "meetingmind.stage6-delivery.v1",
+  "generated_at": "2026-08-26T02:55:38+00:00",
+  "sample_kind": "local_single_node",
+  "deployment": {
+    "development_preflight": "passed",
+    "production_missing_secrets": "failed_closed",
+    "docker_server": "29.1.3",
+    "docker_compose": "v5.1.3",
+    "backend_image_size_mb_docker_cli": 448,
+    "frontend_image_size_mb_docker_cli": 50,
+    "backend_build_context_mb_docker_cli": 2.789,
+    "locked_runtime_pip_check": "passed",
+    "compose_default_services_running": 6,
+    "worker_consumers_registered": 3,
+    "backend_health_http": 200,
+    "frontend_http": 200,
+    "frontend_proxy_dataset_http": 200,
+    "frontend_proxy_dataset_bytes": 253099,
+    "heavy_ml_packages_in_web_image": false
+  },
+  "verification": {
+    "core_tests": {
+      "passed": 175,
+      "skipped": 2
+    },
+    "infrastructure_integration_tests": {
+      "passed": 4
+    },
+    "frontend_tests": {
+      "passed": 44
+    },
+    "frontend_production_build": "passed_with_chunk_size_warning",
+    "bandit_medium_or_high_findings_after_fix": 0,
+    "fixed_demos": {
+      "status": "passed",
+      "queue_recovery": "2 attempts, 1 delayed retry, 1 confirmed dead-letter",
+      "asr": "public WAV -> RabbitMQ -> FunASR -> PostgreSQL evidence completed",
+      "lora": "strict schema passed on one synthetic fixed input"
+    }
+  },
+  "claim_boundaries": [
+    "开发 Compose 通过本机复现，不等于生产高可用、TLS、备份或灾备验收。",
+    "默认镜像不包含 Torch、FunASR、本地模型或 Milvus；模型能力必须独立部署。",
+    "ASR 固定 Demo 是公开单句，不是多人会议效果基线。",
+    "LoRA 固定 Demo 和评测使用项目自编合成数据，不能外推真实会议效果。",
+    "Jira 真实站点写入、真实 RAG 效果和会议 CER/DER 仍受外部数据或凭据阻塞。"
+  ]
+}

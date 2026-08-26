@@ -6,10 +6,56 @@ on:
   pull_request:
     branches: [main]
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+jobs:
+  core-tests:
+    name: Core tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: backend/requirements-core.txt
+      - name: Install core dependencies
+        run: pip install -r backend/requirements-core.txt
+      - name: Run the formal lightweight baseline
+        run: backend/scripts/run_core_tests.sh -q
+      - name: Verify synthetic dataset is reproducible
+        run: |
+          python backend/finetuning/build_dataset.py
+          git diff --exit-code -- backend/finetuning/data/
+      - name: Compile application and experiment scripts
+        run: python -m compileall -q backend/app backend/finetuning scripts
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install from lockfile
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+      - name: Test
+        working-directory: frontend
+        run: npm run test:run
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  infrastructure-integration:
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:16-alpine
@@ -17,107 +63,83 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: testpassword
           POSTGRES_DB: meetingmind_test
-        ports:
-          - 5432:5432
+        ports: ["5432:5432"]
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+          --health-cmd "pg_isready -U postgres -d meetingmind_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
+        ports: ["6379:6379"]
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      rabbitmq:
+        image: rabbitmq:3.13-management-alpine
+        env:
+          RABBITMQ_DEFAULT_USER: admin
+          RABBITMQ_DEFAULT_PASS: testpassword
+        ports: ["5672:5672"]
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 5s --health-timeout 5s --health-retries 20
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: backend/requirements.txt
-
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r backend/requirements.txt
-        env:
-          PIP_NO_CACHE_DIR: false
-
-      - name: Run unit tests
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements-core.txt
+      - run: pip install -r backend/requirements-core.txt
+      - name: Initialize current PostgreSQL schema
         working-directory: backend
-        run: |
-          pytest tests/unit/ -v \
-            --cov=app \
-            --cov-report=xml \
-            --cov-report=term-missing \
-            -x
-        env:
+        run: python -c "import asyncio, app.models; from app.db.database import init_db; asyncio.run(init_db())"
+        env: &integration-env
           APP_ENV: test
-          DATABASE_URL: postgresql+asyncpg://postgres:testpassword@localhost:5432/meetingmind_test
-          REDIS_URL: redis://localhost:6379/1
-          SECRET_KEY: test-secret-key-for-ci
-          LLM_API_KEY: test-key
-          LLM_API_BASE: https://api.openai.com/v1
-          LLM_MODEL: gpt-3.5-turbo
+          DEBUG: "false"
+          SECRET_KEY: test-secret-key-at-least-32-characters
+          DATABASE_URL: postgresql+asyncpg://postgres:testpassword@127.0.0.1:5432/meetingmind_test
+          REDIS_URL: redis://127.0.0.1:6379/1
+          RABBITMQ_URL: amqp://admin:testpassword@127.0.0.1:5672
+      - name: Verify ACL, audit, idempotency, retry and DLQ
+        working-directory: backend
+        run: >-
+          python -m pytest -p pytest_asyncio.plugin -q
+          tests/integration/test_retrieval_acl_postgres.py
+          tests/integration/test_tool_audit_postgres.py
+          tests/integration/test_task_queue_redis.py
+          tests/integration/test_rabbitmq_reliability.py
+        env: *integration-env
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: backend/coverage.xml
-          fail_ci_if_error: false
-
-  lint:
+  security-and-compose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.12"
+      - name: High-severity static security scan
+        run: |
+          pip install bandit==1.7.10
+          bandit -r backend/app -ll
+      - name: Validate development Compose and deployment preflight
+        run: python scripts/preflight_deploy.py --mode development
 
-      - name: Install lint tools
-        run: pip install flake8 black isort bandit
-
-      - name: Black format check
-        run: black --check --diff backend/app/
-
-      - name: isort check
-        run: isort --check-only --diff backend/app/
-
-      - name: Flake8 lint
-        run: flake8 backend/app/ --max-line-length=120 --exclude=__pycache__
-
-      - name: Bandit security scan
-        run: bandit -r backend/app/ -ll --exclude backend/app/tests/
-
-  build:
-    needs: [test, lint]
+  images:
+    needs: [core-tests, frontend, infrastructure-integration, security-and-compose]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
+      - uses: docker/setup-buildx-action@v3
       - name: Build backend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./backend
           push: false
           tags: meetingmind-backend:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
       - name: Build frontend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           push: false

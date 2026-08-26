@@ -80,6 +80,7 @@ backend/logs/
 node_modules/
 frontend/node_modules/
 package-lock.json
+!frontend/package-lock.json
 yarn.lock
 dist/
 frontend/dist/
@@ -132,3 +133,6 @@ backend/.langsmith/
 # Local development files
 local/
 backend/local/
+
+# Generated demo/deployment artifacts
+artifacts/

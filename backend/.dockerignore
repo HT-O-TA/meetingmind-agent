@@ -25,6 +25,7 @@ model/
 .env.local
 .env.*.local
 .venv/
+.venv*/
 venv/
 __pycache__/
 *.py[cod]
@@ -68,3 +69,10 @@ build/
 .cache/
 .mypy_cache/
 .pytest_cache/
+
+# 运行时镜像只复制 app/，这些目录也不应进入构建上下文
+finetuning/
+evaluation/
+scripts/
+results/
+wheels/

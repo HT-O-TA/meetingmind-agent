@@ -22,13 +22,7 @@ from app.services.agent_benchmark import (
 )
 from app.agents.monitor import get_monitor
 from app.core.response import Response
-try:
-    from tests.rag.rag_eval_dataset import get_eval_dataset
-except ImportError:
-    try:
-        from tests.rag_eval_dataset import get_eval_dataset
-    except ImportError:
-        from app.tests.data.rag_eval_dataset import get_eval_dataset
+from app.data.rag_eval_dataset import get_eval_dataset
 
 router = APIRouter(tags=["评估"])
 

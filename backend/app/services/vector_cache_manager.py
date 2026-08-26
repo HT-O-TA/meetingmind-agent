@@ -195,7 +195,7 @@ class EmbeddingCache:
         """生成缓存键"""
         # 对文本做规范化处理
         normalized = text.strip().lower()
-        content_hash = hashlib.md5(normalized.encode()).hexdigest()
+        content_hash = hashlib.sha256(normalized.encode()).hexdigest()
         return f"emb:{model_name}:{content_hash}"
 
 
@@ -388,7 +388,7 @@ class SemanticCache:
     def _make_exact_key(query: str) -> str:
         """生成精确缓存键"""
         normalized = query.strip().lower()
-        content_hash = hashlib.md5(normalized.encode()).hexdigest()
+        content_hash = hashlib.sha256(normalized.encode()).hexdigest()
         return f"sem:{content_hash}"
 
 
@@ -464,7 +464,7 @@ class RetrievalCache:
             "results": compact_results,
             "timestamp": time.time(),
             "expires_at": time.time() + ttl,
-            "query_hash": hashlib.md5(query.encode()).hexdigest(),
+            "query_hash": hashlib.sha256(query.encode()).hexdigest(),
         }
 
     def invalidate(self, query: Optional[str] = None) -> int:
@@ -472,7 +472,7 @@ class RetrievalCache:
         if query:
             # 失效所有包含该查询的缓存
             keys_to_delete = []
-            query_hash = hashlib.md5(query.encode()).hexdigest()
+            query_hash = hashlib.sha256(query.encode()).hexdigest()
             for key, value in self._cache.items():
                 if value.get("query_hash") == query_hash:
                     keys_to_delete.append(key)
@@ -520,7 +520,7 @@ class RetrievalCache:
             filter_str = json.dumps(filters, sort_keys=True)
             key_parts.append(filter_str)
 
-        content_hash = hashlib.md5(":".join(key_parts).encode()).hexdigest()
+        content_hash = hashlib.sha256(":".join(key_parts).encode()).hexdigest()
         return f"retrieval:{content_hash}"
 
 

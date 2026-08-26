@@ -292,8 +292,17 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_secrets(self):
         if self.APP_ENV.lower() == "production":
-            if self.SECRET_KEY == "meetingmind-secret-key-change-in-production":
-                raise ValueError("生产环境必须通过环境变量配置安全的 SECRET_KEY")
+            insecure = {
+                "meetingmind-secret-key-change-in-production",
+                "meetingmind-dev-only-secret-change-before-production",
+                "your-secret-key-here-change-in-production",
+            }
+            if self.SECRET_KEY in insecure or len(self.SECRET_KEY) < 32:
+                raise ValueError("生产环境 SECRET_KEY 必须是至少 32 字符的非示例值")
+            if self.DEBUG:
+                raise ValueError("生产环境禁止开启 DEBUG")
+            if "*" in self.cors_origins_list:
+                raise ValueError("生产环境 CORS_ORIGINS 禁止通配符")
         return self
     
     def _get_backend_dir(self) -> str:

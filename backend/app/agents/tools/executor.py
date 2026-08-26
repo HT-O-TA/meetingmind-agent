@@ -394,8 +394,8 @@ class ToolExecutor:
         param_str = json.dumps(params, sort_keys=True, default=str)
         key_str = f"{tool_id}:{param_str}"
         
-        # 生成MD5哈希
-        return hashlib.md5(key_str.encode()).hexdigest()
+        # 使用 SHA-256 生成稳定幂等键，避免可构造的 MD5 碰撞。
+        return hashlib.sha256(key_str.encode()).hexdigest()
     
     def _record_execution(
         self,

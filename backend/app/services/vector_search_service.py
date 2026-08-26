@@ -608,9 +608,9 @@ class VectorSearchService:
     ) -> List[dict]:
         """pgvector模式：使用数据库内置向量运算"""
         try:
-            query_vector_str = "ARRAY[" + ",".join(map(str, query_vector)) + "]::vector"
-            
-            base_query = f"""
+            query_vector_text = "[" + ",".join(str(float(value)) for value in query_vector) + "]"
+
+            base_query = """
                 SELECT
                     vc.id as chunk_id,
                     vc.document_id,
@@ -621,7 +621,7 @@ class VectorSearchService:
                     vc.speaker_name,
                     vc.time_offset,
                     vc.metadata_json,
-                    1 - (vc.embedding_array::vector <=> {query_vector_str}) as similarity
+                    1 - (vc.embedding_array::vector <=> CAST(:query_vector AS vector)) as similarity
                 FROM vector_chunks vc
                 JOIN documents d ON d.id = vc.document_id
                 WHERE vc.embedding_array IS NOT NULL
@@ -629,12 +629,13 @@ class VectorSearchService:
                   AND d.deleted_at IS NULL
             """
 
-            params = {}
+            params = {"query_vector": query_vector_text}
+            expand_document_ids = False
 
             if document_ids:
-                # Integer IDs are safe to inline; avoids SQLAlchemy expanding bindparam complexity
-                id_list = ", ".join(str(int(i)) for i in document_ids)
-                base_query += f" AND vc.document_id IN ({id_list})"
+                base_query += " AND vc.document_id IN :document_ids"
+                params["document_ids"] = [int(document_id) for document_id in document_ids]
+                expand_document_ids = True
 
             if meeting_id:
                 base_query += " AND vc.meeting_id = :meeting_id"
@@ -648,15 +649,20 @@ class VectorSearchService:
             base_query += acl_sql
             params.update(acl_params)
 
-            base_query += f"""
-                AND 1 - (vc.embedding_array::vector <=> {query_vector_str}) >= :similarity_threshold
-                ORDER BY vc.embedding_array::vector <=> {query_vector_str}
+            base_query += """
+                AND 1 - (vc.embedding_array::vector <=> CAST(:query_vector AS vector)) >= :similarity_threshold
+                ORDER BY vc.embedding_array::vector <=> CAST(:query_vector AS vector)
                 LIMIT :top_k
             """
             params["similarity_threshold"] = similarity_threshold
             params["top_k"] = top_k
 
-            result = await self.db.execute(text(base_query), params)
+            statement = text(base_query)
+            if expand_document_ids:
+                from sqlalchemy import bindparam
+
+                statement = statement.bindparams(bindparam("document_ids", expanding=True))
+            result = await self.db.execute(statement, params)
             rows = result.fetchall()
             
             return [

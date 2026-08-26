@@ -48,27 +48,39 @@ async def upgrade():
     # 4. 更新已有数据的 tsvector（独立事务）
     try:
         async with engine.begin() as conn:
-            await conn.execute(text(f"""
+            await conn.execute(text("""
                 UPDATE vector_chunks
-                SET tsv_content = to_tsvector('{ts_config}', chunk_text)
+                SET tsv_content = to_tsvector(CAST(:ts_config AS regconfig), chunk_text)
                 WHERE tsv_content IS NULL;
-            """))
+            """), {"ts_config": ts_config})
         print("✅ 更新已有数据的 tsvector 完成")
     except Exception as e:
         print(f"⚠️ 更新 tsvector 失败: {e}")
 
     # 5. 创建触发器函数（独立事务）
     try:
-        async with engine.begin() as conn:
-            await conn.execute(text(f"""
+        if ts_config == "chinese":
+            trigger_function_sql = """
                 CREATE OR REPLACE FUNCTION update_tsv_content()
                 RETURNS TRIGGER AS $$
                 BEGIN
-                    NEW.tsv_content = to_tsvector('{ts_config}', NEW.chunk_text);
+                    NEW.tsv_content = to_tsvector('chinese', NEW.chunk_text);
                     RETURN NEW;
                 END;
                 $$ LANGUAGE plpgsql;
-            """))
+            """
+        else:
+            trigger_function_sql = """
+                CREATE OR REPLACE FUNCTION update_tsv_content()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    NEW.tsv_content = to_tsvector('simple', NEW.chunk_text);
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+            """
+        async with engine.begin() as conn:
+            await conn.execute(text(trigger_function_sql))
         print("✅ 触发器函数创建成功")
     except Exception as e:
         print(f"⚠️ 创建触发器函数失败: {e}")

@@ -238,7 +238,7 @@ class CostManager:
     
     def generate_cache_key(self, prompt: str, model_name: str) -> str:
         """生成缓存键"""
-        return hashlib.md5(f"{prompt}:{model_name}".encode()).hexdigest()
+        return hashlib.sha256(f"{prompt}:{model_name}".encode()).hexdigest()
     
     def get_cost_stats(self) -> Dict[str, Any]:
         """获取成本统计"""

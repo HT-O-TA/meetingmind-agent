@@ -106,7 +106,7 @@ class ReflectionMemoryService:
             # 计算答案哈希
             final_answer_hash = ""
             if final_answer:
-                final_answer_hash = hashlib.md5(
+                final_answer_hash = hashlib.sha256(
                     final_answer.encode("utf-8")
                 ).hexdigest()[:16]
 
@@ -258,7 +258,7 @@ class ReflectionMemoryService:
     def _make_cache_key(self, question_summary: str, user_id: Optional[int]) -> str:
         """生成缓存 key"""
         content = f"{user_id or 0}:{question_summary}"
-        return hashlib.md5(content.encode("utf-8")).hexdigest()
+        return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
     def _update_cache(self, key: str, record: ReflectionRecord) -> None:
         """更新内存 LRU 缓存"""

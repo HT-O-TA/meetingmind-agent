@@ -62,22 +62,22 @@ class BM25Retriever:
                 ts_config = 'simple'
             
             # 构建基本查询
-            sql = f"""
+            sql = """
                 SELECT 
                     vc.id as chunk_id,
                     vc.document_id,
                     vc.chunk_text,
                     vc.meeting_id,
                     vc.department,
-                    ts_rank_cd(vc.tsv_content, plainto_tsquery('{ts_config}', :query)) as rank
+                    ts_rank_cd(vc.tsv_content, plainto_tsquery(CAST(:ts_config AS regconfig), :query)) as rank
                 FROM vector_chunks vc
                 JOIN documents d ON d.id = vc.document_id
-                WHERE vc.tsv_content @@ plainto_tsquery('{ts_config}', :query)
+                WHERE vc.tsv_content @@ plainto_tsquery(CAST(:ts_config AS regconfig), :query)
                   AND vc.deleted_at IS NULL
                   AND d.deleted_at IS NULL
             """
             
-            params = {"query": query}
+            params = {"query": query, "ts_config": ts_config}
             
             # 添加过滤条件
             filters = []

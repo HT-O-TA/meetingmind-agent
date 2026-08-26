@@ -27,7 +27,7 @@ class MCPServerConfig:
     name: str = "MeetingMind MCP Server"
     version: str = "1.0.0"
     description: str = "企业级会议智能助手 MCP 服务"
-    host: str = "0.0.0.0"
+    host: str = "127.0.0.1"
     port: int = 8000
     enable_auth: bool = False
     api_key: Optional[str] = None

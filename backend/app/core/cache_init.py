@@ -285,7 +285,7 @@ async def cache_delete_pattern(pattern: str) -> int:
 # ============================================================================
 # 功能：对相同 prompt + config 的 LLM 调用进行缓存
 # 原理：
-#   1. 对 prompt 和 config 生成 MD5 哈希作为缓存键
+#   1. 对 prompt 和 config 生成 SHA-256 哈希作为缓存键
 #   2. 相同请求直接返回缓存，避免重复调用 LLM API
 #   3. 节省成本，提高响应速度
 #
@@ -304,7 +304,7 @@ def _llm_cache_key(prompt: str, llm_config: dict = None) -> str:
         缓存键（格式：llm_cache:{md5_hash}）
     """
     key_str = f"prompt:{prompt}:config:{json.dumps(llm_config or {})}",
-    return f"llm_cache:{hashlib.md5(str(key_str).encode()).hexdigest()}"
+    return f"llm_cache:{hashlib.sha256(str(key_str).encode()).hexdigest()}"
 
 
 async def llm_cache_get(prompt: str, llm_config: dict = None) -> Optional[str]:

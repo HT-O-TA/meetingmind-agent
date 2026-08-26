@@ -211,7 +211,7 @@ class SemanticMultiTaskDetector:
         return self._rule_based_detect(text)
 
     def _make_cache_key(self, question: str) -> str:
-        return hashlib.md5(question.encode("utf-8")).hexdigest()
+        return hashlib.sha256(question.encode("utf-8")).hexdigest()
 
     def _update_cache(self, key: str, result: Dict[str, Any]) -> None:
         if len(self._cache) >= self._cache_max_size:

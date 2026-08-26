@@ -23,6 +23,7 @@ from app.agents.tools.tool_metadata import (
 )
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.core.secret_provider import get_secret_provider
 
 
 class JiraConfigurationError(RuntimeError):
@@ -67,7 +68,12 @@ class JiraClient:
     ) -> None:
         self.base_url = (base_url if base_url is not None else settings.JIRA_MCP_URL).rstrip("/")
         self.username = username if username is not None else settings.JIRA_MCP_USERNAME
-        self.api_token = api_token if api_token is not None else settings.JIRA_MCP_API_TOKEN
+        self.api_token = (
+            api_token
+            if api_token is not None
+            else get_secret_provider().get("JIRA_MCP_API_TOKEN")
+            or settings.JIRA_MCP_API_TOKEN
+        )
         self.max_retries = max_retries if max_retries is not None else settings.JIRA_MAX_RETRIES
         self.max_retry_delay = (
             max_retry_delay

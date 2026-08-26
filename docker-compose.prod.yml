@@ -1,31 +1,47 @@
-# ============================================
-# MeetingMind 生产环境 Docker Compose 配置
-# 覆盖开发环境配置：关闭 DEBUG，限制 CORS，优化性能
-# ============================================
-
-version: '3.8'
+# 生产参考覆盖层：仍需外部 TLS、备份、Redis/RabbitMQ 认证轮换与高可用验收。
+# 使用前：python3 scripts/preflight_deploy.py --mode production
 
 services:
+  postgres:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?production POSTGRES_PASSWORD is required}
+
+  rabbitmq:
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?production RABBITMQ_USER is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?production RABBITMQ_PASSWORD is required}
+
   backend:
     environment:
       APP_ENV: production
       DEBUG: "false"
-      CORS_ORIGINS: '["https://your-domain.com"]'
-      LOG_LEVEL: WARNING
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+      SECRET_KEY: ${SECRET_KEY:?production SECRET_KEY is required}
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:?production POSTGRES_PASSWORD is required}@postgres:5432/meetingmind
+      CORS_ORIGINS: ${CORS_ORIGINS:?production CORS_ORIGINS is required}
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:?production RABBITMQ_USER is required}:${RABBITMQ_PASSWORD:?production RABBITMQ_PASSWORD is required}@rabbitmq:5672
+      LLM_API_BASE: ${LLM_API_BASE:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-qwen3.6-plus}
+      ENABLE_AGENT_WORKER: "false"
+      ENABLE_KNOWLEDGE_GRAPH: "false"
+      ENABLE_NEO4J_PERSISTENCE: "false"
+      ENABLE_ASR: "false"
+      ENABLE_MULTIMODAL: "false"
+      ENABLE_MCP_SERVER: "false"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
 
-  frontend:
+  worker:
     environment:
-      NODE_ENV: production
-
-  postgres:
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-  redis:
-    command: ["redis-server", "--appendonly", "yes"]
-
-  neo4j:
-    environment:
-      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
-      NEO4J_dbms_security_procedures_unrestricted: ""
+      APP_ENV: production
+      DEBUG: "false"
+      SECRET_KEY: ${SECRET_KEY:?production SECRET_KEY is required}
+      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:?production POSTGRES_PASSWORD is required}@postgres:5432/meetingmind
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:?production RABBITMQ_USER is required}:${RABBITMQ_PASSWORD:?production RABBITMQ_PASSWORD is required}@rabbitmq:5672
+      ENABLE_AGENT_WORKER: "false"
+      ENABLE_KNOWLEDGE_GRAPH: "false"
+      ENABLE_NEO4J_PERSISTENCE: "false"
+      ENABLE_ASR: "false"
+      ENABLE_MULTIMODAL: "false"
+      ENABLE_MCP_SERVER: "false"

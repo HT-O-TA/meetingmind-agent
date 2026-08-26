@@ -33,6 +33,7 @@ MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。�
 | ASR | 真实本地闭环，可选启用 | WAV → RabbitMQ → FunASR → 会议正文/时间戳/匿名说话人；公开烟测已完成，会议领域基线待真实数据 |
 | 图片/视频多模态 | 骨架，默认关闭 | 不计入已实现能力 |
 | LoRA / QLoRA | 独立教学闭环已完成 | Qwen3-0.6B 两种真实训练和四组公平评测；仅合成数据，不代表真实会议效果，不进入默认线上链路 |
+| 部署 / CI | 开发核心已验证 | 轻量 Web/Worker 镜像、Compose、失败关闭预检和 CI 门禁已完成；不等于生产高可用验收 |
 
 文档 ACL、软删除回查和答案引用已完成代码/契约及 PostgreSQL 集成验证。当前仍不能将 Sparse/RRF、完整多模态、真实企业系统写入、端到端生产部署或合成样例/历史性能数字宣传为已完成能力。
 
@@ -65,6 +66,7 @@ POST /api/v1/rag/ask
 - [阶段 3 RabbitMQ 失败恢复与容量基线](docs/优化路径记录/07_阶段3_RabbitMQ失败恢复与容量基线.md)
 - [阶段 4 真实 ASR 与音频证据闭环](docs/优化路径记录/08_阶段4_真实ASR与音频证据闭环.md)
 - [阶段 5 LoRA / QLoRA 可复现实验](docs/优化路径记录/09_阶段5_LoRA与QLoRA可复现实验.md)
+- [阶段 6 部署、CI、固定 Demo 与求职证据](docs/优化路径记录/10_阶段6_部署CI固定Demo与求职证据.md)
 
 ## 正式 Agent 边界
 
@@ -173,7 +175,7 @@ pip install -r requirements-core.txt
 ./scripts/run_core_tests.sh -q
 ```
 
-2026-08-26 完成阶段 5 代码收敛后的轻量核心基线为 `175 passed, 2 skipped`；另有 Jira 客户端单元测试 `8 passed`。真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`，并另行完成一次真实 FunASR 队列业务烟测、两次单卡 Adapter 训练和四组生成式抽取评测。两个核心跳过项依赖未安装的模型能力；Milvus、真实会议抽取真值、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
+2026-08-26 阶段 6 最终轻量核心基线为 `175 passed, 2 skipped`；真实 PostgreSQL ACL、工具审计/幂等、Redis 任务状态和 RabbitMQ 重试/DLQ 集成测试共 `4 passed`，前端为 `44 passed`。另行完成真实 FunASR 队列业务烟测、两次单卡 Adapter 训练、四组生成式抽取评测、三组固定 Demo 和前后端容器联动。两个核心跳过项依赖未安装的模型能力；Milvus、真实会议抽取真值、真实 Jira 站点与真实文档/模型容量仍需单独验收，不能把当前通过数解释为完整生产验收。
 
 统一离线评估命令：
 
@@ -186,7 +188,31 @@ python3 scripts/evaluate.py --allow-synthetic \
 
 仓库样例明确标记为 `synthetic`，只验证公式和报告格式。真实回归必须换成冻结的 `sample_kind=real` 数据，并显式启用回归阈值。
 
-## 开发启动
+## Compose 一键启动
+
+默认 Compose 启动轻量核心，不包含 Torch、FunASR、本地模型或 Milvus：
+
+```bash
+cp .env.example .env
+python3 scripts/preflight_deploy.py --mode development
+docker-compose up -d --build
+docker-compose ps
+curl --fail http://127.0.0.1:8000/health
+curl --fail http://127.0.0.1:8080/
+```
+
+Neo4j 和观测组件分别使用 `knowledge-graph`、`observability` profile。LLM 调用仍需私有 `LLM_API_KEY`；ASR 与微调推理按阶段 4/5 文档使用独立环境。
+
+生产参考配置必须先执行：
+
+```bash
+python3 scripts/preflight_deploy.py --mode production --env-file /path/to/production.env
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml config --quiet
+```
+
+该覆盖层会在密钥缺失或弱配置时失败；它尚未覆盖 TLS、备份、Secret Manager、多节点高可用和容量验收。
+
+## 源码开发启动
 
 Python 依赖：
 
@@ -207,11 +233,11 @@ npm install
 npm run dev
 ```
 
-阶段 0 已使用全新 Compose PostgreSQL/Redis 数据卷验证后端冷启动和 `/health`。完整一键部署、模型服务拆分、Milvus 编排及前端联动仍在收敛中，因此暂不能把整套 Compose 视为生产部署验收完成。
+开发核心已用 PostgreSQL、Redis、RabbitMQ、后端和前端容器完成冷启动、健康检查与 Nginx API 代理验证。模型服务与 Web 已明确解耦；默认 Compose 没有编排 Milvus/本地模型，因此不能把它描述为完整 AI 生产栈。
 
 ## 项目路线
 
-后续工作严格按照[JD 对标与项目收敛路线](docs/JD对标与项目收敛路线.md)推进：
+阶段 0-6 已按照[JD 对标与项目收敛路线](docs/JD对标与项目收敛路线.md)完成当前机器可独立执行的工作：
 
 1. 完成真实性审计、主链路和测试环境收敛；
 2. 建立 RAG 离线评估、引用、ACL 和指标；
@@ -219,7 +245,7 @@ npm run dev
 4. 完成 RabbitMQ 失败恢复和容量基线；
 5. 接入一种真实 ASR；
 6. 建立会议抽取 LoRA/QLoRA 对比实验；
-7. 完成可复现部署、Demo、报告和简历证据。
+7. 完成可复现开发部署、固定 Demo、报告和简历证据。
 
 所有对外描述和简历数字都必须能绑定到代码、测试命令、数据版本和实验报告。
 
@@ -231,7 +257,8 @@ npm run dev
 - Jira 已替换为真实 REST v3 客户端并完成合同测试，但因缺少站点凭据与项目权限，尚未完成真实外部写演示；
 - RabbitMQ 单机失败恢复与轻量容量基线已完成；多节点 quorum 高可用和真实文档/模型容量尚未验证；
 - 真实 FunASR 与公开样例/队列烟测已完成，但缺少脱敏多人会议真值，尚无会议领域 CER/DER；
-- LoRA/QLoRA 对比实验尚未完成；
-- Docker 一键部署尚未完成验证。
+- LoRA/QLoRA 合成数据实验与推理 Demo 已完成，但尚无双人复核的真实会议标注集；
+- 开发 Compose 和 CI 已验证；生产 TLS、备份恢复、Secret Manager、多节点高可用、SBOM/漏洞扫描与真实容量仍未验收；
+- 三个固定 Demo 的代码和录制脚本已完成，视频文件仍需人工口述录屏并检查隐私。
 
 这些限制会随路线执行逐项关闭，并在每个里程碑中留下代码、测试和学习记录。
