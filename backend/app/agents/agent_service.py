@@ -1,6 +1,7 @@
 """Agent 服务封装 - 支持 Tool Calling
 """
 from typing import Optional, List, Dict, Any, TypedDict
+import uuid
 from app.agents.state import AgentState, AgentResult, ChunkMetadata, TaskType, RiskLevel, Plan, ReflectionResult
 from app.agents.graph import create_agent_graph, print_agent_architecture
 from app.agents.nodes import AgentNodes
@@ -157,6 +158,9 @@ class AgentService:
             # 初始化状态
             initial_state: AgentState = {
                 "question": question,
+                "agent_run_id": str(uuid.uuid4()),
+                "approved_tool_call": None,
+                "resume_from_tool_index": None,
                 "meeting_id": meeting_id,
                 "document_ids": document_ids,
                 "context": [],
@@ -423,6 +427,10 @@ class AgentService:
 
             initial_state: AgentState = {
                 "question": question,
+                "agent_run_id": str(uuid.uuid4()),
+                "approved_tool_call": None,
+                "resume_from_tool_index": None,
+                "thread_id": context.thread_id,
                 "meeting_id": context.meeting_id,
                 "document_ids": document_ids,
                 "context": [],
@@ -462,6 +470,7 @@ class AgentService:
                 "event_callback": event_callback,
                 "human_confirmations": [],
                 "enable_human_in_the_loop": self.enable_human_in_the_loop,
+                "access_scope": context.access_scope,
             }
 
             await emit_event("phase", {"phase": "execute", "message": "开始执行Agent..."})
@@ -713,7 +722,9 @@ class AgentService:
     
     # ==================== 人机协作相关方法 ====================
     
-    async def respond_to_confirmation(self, request_id: str, response: str) -> bool:
+    async def respond_to_confirmation(
+        self, request_id: str, response: str, user_id: Optional[int] = None
+    ) -> bool:
         """
         响应用户确认请求
         
@@ -725,22 +736,27 @@ class AgentService:
             True: 响应成功
             False: 请求不存在或已处理
         """
-        return await self.hitl_service.respond_to_request(request_id, response)
+        return await self.hitl_service.respond_to_request(request_id, response, user_id)
 
-    async def resume_confirmation(self, request_id: str, response: str = "approved") -> Dict[str, Any]:
+    async def resume_confirmation(
+        self,
+        request_id: str,
+        response: str = "approved",
+        user_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
         响应确认请求，并在没有原始运行请求可继续时从确认点快照恢复执行。
         """
-        request = await self.hitl_service.get_request_status(request_id)
+        request = await self.hitl_service.get_request_status(request_id, user_id)
         if not request:
             return {"success": False, "mode": "not_found", "message": f"确认请求 {request_id} 不存在"}
         if request.get("status") != "pending":
             return {"success": False, "mode": "already_processed", "message": "确认请求已处理"}
 
-        snapshot = await self.hitl_service.get_resume_state(request_id)
+        snapshot = await self.hitl_service.get_resume_state(request_id, user_id)
 
         if response != "approved":
-            success = await self.hitl_service.respond_to_request(request_id, response)
+            success = await self.hitl_service.respond_to_request(request_id, response, user_id)
             return {
                 "success": success,
                 "mode": "rejected",
@@ -754,7 +770,7 @@ class AgentService:
         if pending_action.get("source") != "tool":
             return {"success": False, "mode": "unsupported", "message": "当前仅支持从工具确认点恢复执行"}
 
-        success = await self.hitl_service.respond_to_request(request_id, "approved")
+        success = await self.hitl_service.respond_to_request(request_id, "approved", user_id)
         if not success:
             return {"success": False, "mode": "respond_failed", "message": "确认请求批准失败"}
 
@@ -762,7 +778,7 @@ class AgentService:
         resumed_state = snapshot.copy()
         resumed_state["confirmation_status"] = "approved"
         resumed_state["requires_confirmation"] = False
-        resumed_state["enable_human_in_the_loop"] = False
+        resumed_state["enable_human_in_the_loop"] = True
         resumed_state = await nodes.execute_agent(resumed_state)
         resumed_state = await nodes.replan_agent(resumed_state)
         resumed_state = await nodes.validate_node(resumed_state)
@@ -805,16 +821,18 @@ class AgentService:
             "route_decision_trace": state.get("route_decision_trace"),
         }
     
-    async def get_pending_confirmations(self) -> List[Dict[str, Any]]:
+    async def get_pending_confirmations(self, user_id: Optional[int] = None) -> List[Dict[str, Any]]:
         """
         获取所有待处理的确认请求
         
         Returns:
             待处理请求列表
         """
-        return await self.hitl_service.list_pending_requests()
+        return await self.hitl_service.list_pending_requests(user_id)
     
-    async def get_confirmation_history(self, limit: int = 50) -> List[Dict[str, Any]]:
+    async def get_confirmation_history(
+        self, limit: int = 50, user_id: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """
         获取确认请求历史
         
@@ -824,9 +842,11 @@ class AgentService:
         Returns:
             请求历史列表
         """
-        return await self.hitl_service.list_request_history(limit)
+        return await self.hitl_service.list_request_history(limit, user_id)
     
-    async def get_confirmation_by_id(self, request_id: str) -> Optional[Dict[str, Any]]:
+    async def get_confirmation_by_id(
+        self, request_id: str, user_id: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         根据ID获取确认请求
         
@@ -836,4 +856,4 @@ class AgentService:
         Returns:
             请求详情，不存在返回None
         """
-        return await self.hitl_service.get_request_status(request_id)
+        return await self.hitl_service.get_request_status(request_id, user_id)

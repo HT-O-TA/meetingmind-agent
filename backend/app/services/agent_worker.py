@@ -1,6 +1,7 @@
 """Agent执行消费者 - 异步处理Agent任务"""
 import json
 import logging
+import uuid
 from typing import Dict, Any
 from app.core.rabbitmq import rabbitmq_manager
 from app.core.config import settings
@@ -57,6 +58,9 @@ async def agent_execute_consumer(message_body: Dict[str, Any]):
 
         initial_state = {
             "question": question,
+            "agent_run_id": str(uuid.uuid4()),
+            "approved_tool_call": None,
+            "resume_from_tool_index": None,
             "meeting_id": meeting_id,
             "document_ids": document_ids,
             "thread_id": thread_id,

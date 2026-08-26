@@ -9,7 +9,7 @@ import pytest
 from app.agents.nodes import AgentNodes
 from app.agents.state import TaskType, WorkflowType, RiskLevel, create_initial_state
 from app.agents.human_in_the_loop import HumanInTheLoopService, ConfirmationType
-from app.agents.tools.tool_metadata import Tool, ToolMetadata, ToolCategory, ToolRiskLevel
+from app.agents.tools.tool_metadata import Tool, ToolMetadata, ToolCategory, ToolParameter, ToolRiskLevel
 
 
 @pytest.fixture
@@ -318,6 +318,9 @@ async def test_execute_tool_calls_rejects_tool_outside_allowed_workflow(nodes):
             description="生成结构化会议纪要",
             category=ToolCategory.GENERATE,
             allowed_workflows=["minutes"],
+            parameters=[
+                ToolParameter(name="context", type="string", description="会议内容", required=True),
+            ],
         )
     )
     nodes.tool_manager.registry.get.return_value = tool
@@ -380,8 +383,18 @@ async def test_execute_tool_calls_limits_retry_for_non_idempotent_tool(nodes):
     state = create_initial_state("发送会议通知")
     state["workflow_type"] = WorkflowType.COMPLEX
     state["confirmation_status"] = "approved"
+    arguments = {}
+    prepared = nodes._prepare_tool_arguments("send_notification", arguments, state)
+    state["approved_tool_call"] = {
+        "tool_name": "send_notification",
+        "idempotency_key": nodes._tool_idempotency_key(
+            state, "send_notification", 0, prepared
+        ),
+    }
 
-    await nodes._execute_tool_calls(state, [{"tool_name": "send_notification", "arguments": {}}])
+    await nodes._execute_tool_calls(
+        state, [{"tool_name": "send_notification", "arguments": arguments}]
+    )
 
     nodes.tool_manager.execute_tool.assert_awaited_once()
     assert nodes.tool_manager.execute_tool.await_args.kwargs["retry_count"] == 1

@@ -1,5 +1,6 @@
 """Agent 状态定义 - 支持复杂任务拆分（依赖分析 + 上下文传递 + 并行执行）"""
 from typing import TypedDict, List, Dict, Optional, Any, Set
+import uuid
 from dataclasses import dataclass
 from enum import Enum
 
@@ -210,6 +211,9 @@ class HumanConfirmation(TypedDict):
 class AgentState(TypedDict):
     """Agent 执行状态 - 支持复杂任务拆分"""
     question: str
+    agent_run_id: str
+    approved_tool_call: Optional[Dict[str, Any]]
+    resume_from_tool_index: Optional[int]
     meeting_id: Optional[int]
     document_ids: Optional[List[int]]
     context: List[ChunkMetadata]
@@ -378,6 +382,7 @@ def create_initial_state(
     """创建 Agent 初始状态"""
     return {
         "question": question,
+        "agent_run_id": str(uuid.uuid4()),
         "meeting_id": meeting_id,
         "document_ids": document_ids or [],
         "context": [],
@@ -419,4 +424,6 @@ def create_initial_state(
         "enable_human_in_the_loop": enable_human_in_the_loop,
         "session_context": None,
         "access_scope": None,
+        "approved_tool_call": None,
+        "resume_from_tool_index": None,
     }

@@ -45,17 +45,9 @@ class ToolExecutor:
             "get_document_content",
             "search_document",
             "text_processor",
-            "feishu_create_document",
-            "feishu_update_document",
-            "feishu_create_calendar",
-            "feishu_send_message",
             "jira_create_issue",
             "jira_get_issue",
             "jira_update_issue",
-            "notion_create_page",
-            "notion_update_page",
-            "notion_query_database",
-            "send_email",
         }
 
     def get_supported_tool_ids(self) -> List[str]:
@@ -169,6 +161,11 @@ class ToolExecutor:
                         success=False,
                         error=f"执行失败: {str(e)}",
                         execution_time=execution_time,
+                        metadata={
+                            "error_category": getattr(e, "category", e.__class__.__name__),
+                            "status_code": getattr(e, "status_code", None),
+                            "retryable": bool(getattr(e, "retryable", False)),
+                        },
                     )
                 
                 # 指数退避等待后重试: 1s, 2s, 4s
@@ -289,26 +286,12 @@ class ToolExecutor:
                 instance = DocumentSearchTool(vector_search_service)
             elif tool_id == "text_processor":
                 instance = TextProcessorTool()
-            elif tool_id.startswith("feishu_"):
-                from app.agents.tools.enterprise_tools import execute_feishu_tool
-                async def feishu_executor(**kwargs):
-                    return await execute_feishu_tool(tool_id, kwargs)
-                instance = type('FeishuTool', (), {'execute': feishu_executor})()
             elif tool_id.startswith("jira_"):
                 from app.agents.tools.enterprise_tools import execute_jira_tool
-                async def jira_executor(**kwargs):
-                    return await execute_jira_tool(tool_id, kwargs)
-                instance = type('JiraTool', (), {'execute': jira_executor})()
-            elif tool_id.startswith("notion_"):
-                from app.agents.tools.enterprise_tools import execute_notion_tool
-                async def notion_executor(**kwargs):
-                    return await execute_notion_tool(tool_id, kwargs)
-                instance = type('NotionTool', (), {'execute': notion_executor})()
-            elif tool_id == "send_email":
-                from app.agents.tools.enterprise_tools import execute_email_tool
-                async def email_executor(**kwargs):
-                    return await execute_email_tool(tool_id, kwargs)
-                instance = type('EmailTool', (), {'execute': email_executor})()
+                class JiraToolAdapter:
+                    async def execute(self, **kwargs):
+                        return await execute_jira_tool(tool_id, kwargs)
+                instance = JiraToolAdapter()
             else:
                 app_logger.warning(f"[Executor] 未知工具: {tool_id}")
                 return None

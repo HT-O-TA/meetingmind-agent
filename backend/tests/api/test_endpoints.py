@@ -409,11 +409,11 @@ def test_agent_query_returns_policy_and_pending_action(authenticated_client, mon
     assert response["requires_confirmation"] is True
 
 
-def test_agent_confirmation_resume_endpoint(client, monkeypatch):
+def test_agent_confirmation_resume_endpoint(authenticated_client, monkeypatch):
     from app.api.v1.endpoints import agents as agents_endpoint
 
     class FakeAgentService:
-        async def resume_confirmation(self, request_id, response="approved"):
+        async def resume_confirmation(self, request_id, response="approved", user_id=None):
             return {
                 "success": True,
                 "mode": "snapshot",
@@ -430,7 +430,7 @@ def test_agent_confirmation_resume_endpoint(client, monkeypatch):
 
     monkeypatch.setattr(agents_endpoint, "get_agent_service", fake_get_agent_service)
 
-    response = client.post(
+    response = authenticated_client.post(
         "/api/v1/agents/confirmations/resume",
         json={"request_id": "confirm_1", "response": "approved"},
     ).json()

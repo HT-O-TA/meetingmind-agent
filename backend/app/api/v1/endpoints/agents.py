@@ -548,13 +548,14 @@ async def get_monitor_status(
 async def get_pending_confirmations(
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     """获取所有待处理的确认请求"""
     agent_service = await get_agent_service(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
     )
-    return {"pending_requests": await agent_service.get_pending_confirmations()}
+    return {"pending_requests": await agent_service.get_pending_confirmations(current_user.id)}
 
 
 @router.get("/confirmations/history")
@@ -562,13 +563,14 @@ async def get_confirmation_history(
     limit: int = 50,
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     """获取确认请求历史"""
     agent_service = await get_agent_service(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
     )
-    return {"history": await agent_service.get_confirmation_history(limit)}
+    return {"history": await agent_service.get_confirmation_history(limit, current_user.id)}
 
 
 @router.get("/confirmations/{request_id}")
@@ -576,13 +578,14 @@ async def get_confirmation_by_id(
     request_id: str,
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     """根据ID获取确认请求详情"""
     agent_service = await get_agent_service(
         llm_service=llm_service,
         vector_search_service=vector_search_service,
     )
-    result = await agent_service.get_confirmation_by_id(request_id)
+    result = await agent_service.get_confirmation_by_id(request_id, current_user.id)
     if result:
         return result
     return {"error": f"确认请求 {request_id} 不存在"}
@@ -593,6 +596,7 @@ async def respond_to_confirmation(
     request: ConfirmationResponse,
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     """响应用户确认请求"""
     agent_service = await get_agent_service(
@@ -600,7 +604,9 @@ async def respond_to_confirmation(
         vector_search_service=vector_search_service,
     )
     
-    success = await agent_service.respond_to_confirmation(request.request_id, request.response)
+    success = await agent_service.respond_to_confirmation(
+        request.request_id, request.response, current_user.id
+    )
     
     if success:
         return {"message": f"已响应确认请求 {request.request_id}", "response": request.response}
@@ -612,6 +618,7 @@ async def resume_confirmation(
     request: ConfirmationResumeRequest,
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     """确认后恢复 Agent 执行"""
     agent_service = await get_agent_service(
@@ -620,4 +627,6 @@ async def resume_confirmation(
         enable_tool_calling=True,
         enable_human_in_the_loop=True,
     )
-    return await agent_service.resume_confirmation(request.request_id, request.response)
+    return await agent_service.resume_confirmation(
+        request.request_id, request.response, current_user.id
+    )

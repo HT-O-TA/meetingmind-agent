@@ -15,6 +15,7 @@
 import json
 import re
 import asyncio
+import hashlib
 from typing import Dict, List, Optional, Tuple, Any
 from app.agents.state import AgentState, AgentResult, TaskType, WorkflowType, RiskLevel, AgentCard, CoTThought, Plan, TaskItem, TaskContext, TaskStatus, ComplexityLevel
 from app.agents.tools import ToolExecutor, ToolExecutionResult, ToolManager
@@ -193,6 +194,9 @@ class AgentNodes:
             "route_candidates": state.get("route_candidates", []),
             "route_decision_trace": state.get("route_decision_trace", []),
             "explicit_write_authorization": state.get("explicit_write_authorization", False),
+            "agent_run_id": state.get("agent_run_id"),
+            "approved_tool_call": state.get("approved_tool_call"),
+            "resume_from_tool_index": state.get("resume_from_tool_index"),
             # 供 should_reflect_and_regenerate 使用的节点追踪字段
             "last_executed_node": state.get("last_executed_node"),
         }
@@ -1356,6 +1360,7 @@ class AgentNodes:
                 "task_type": state.get("task_type").value if hasattr(state.get("task_type"), "value") else state.get("task_type"),
                 "risk_level": risk_level.value,
                 "reason": reason,
+                "user_id": (state.get("access_scope") or {}).get("user_id"),
             }
             if source == "tool":
                 state["pending_action"]["tool_calls"] = (state.get("plan") or {}).get("tool_calls", [])
@@ -1676,6 +1681,7 @@ class AgentNodes:
             return self._sanitize_state(state)
 
         details = state.get("pending_action") or {}
+        details["user_id"] = (state.get("access_scope") or {}).get("user_id")
         resume_state = self._build_resume_state(state)
         app_logger.info(f"[CONFIRMATION] 请求确认 - details={details}, event_callback={state.get('event_callback')}")
         
@@ -2315,7 +2321,10 @@ class AgentNodes:
         """执行工具调用 - 逐个工具确认"""
         self._add_thought(state, "execute_agent", "execute", f"开始执行 {len(tool_calls)} 个工具调用", action="工具调用")
 
-        for tc in tool_calls:
+        for call_index, tc in enumerate(tool_calls):
+            resume_index = state.get("resume_from_tool_index")
+            if resume_index is not None and call_index < int(resume_index):
+                continue
             try:
                 validated_call = validate_tool_call(
                     tc.get("tool_name") if isinstance(tc, dict) else None,
@@ -2329,47 +2338,73 @@ class AgentNodes:
             tool_name = validated_call.tool_name
             arguments = validated_call.arguments
             tool = self._get_tool_by_name(tool_name)
-            
-            # 检查工具风险并逐个确认
-            tool_risk = RiskLevel.LOW
             metadata = getattr(tool, "metadata", None)
-            if metadata:
-                tool_risk = self._normalize_risk_level(getattr(metadata, "risk_level", RiskLevel.LOW))
-            
-            # HIGH/CRITICAL 必须确认；MEDIUM 由 ToolPolicy 根据授权、可撤销性和外部副作用判断。
-            medium_safe = False
-            if tool_risk == RiskLevel.MEDIUM and metadata:
-                explicit = bool(state.get("explicit_write_authorization", False))
-                if not explicit:
-                    question = str(state.get("question", "")).lower()
-                    explicit = any(word in question for word in ("创建", "新增", "保存", "更新", "修改", "写入", "create", "save", "update"))
-                medium_safe = (
-                    explicit
-                    and bool(getattr(metadata, "reversible", True))
-                    and not bool(getattr(metadata, "external_effect", False))
-                    and not bool(getattr(metadata, "bulk_operation", False))
+
+            if not tool or not metadata:
+                missing = self.tool_policy.validate_tool_call(tool, state)
+                error_message = f"{missing.code}: {missing.reason}"
+                state["validation_errors"].append(error_message)
+                self._record_policy_result(
+                    state, tool_name, missing.code, False, missing.reason, 0
                 )
-            if tool_risk in {RiskLevel.HIGH, RiskLevel.CRITICAL} or (tool_risk == RiskLevel.MEDIUM and not medium_safe):
-                # 检查是否启用人机协作
+                continue
+
+            # 1) Planner 外层结构验证后，先归一参数并按具体工具 Schema 校验。
+            arguments = self._substitute_variables(arguments, state)
+            arguments = self._prepare_tool_arguments(tool_name, arguments, state)
+            parameter_errors = self._validate_tool_parameters(tool, arguments)
+            if parameter_errors:
+                error_message = "parameter_validation_failed: " + "; ".join(parameter_errors)
+                state["validation_errors"].append(error_message)
+                self._record_policy_result(
+                    state, tool_name, "parameter_validation_failed", False, error_message, 0
+                )
+                continue
+
+            # 2) ToolPolicy 先判断注册、工作流、风险和重试边界，但暂不消费确认状态。
+            precheck = self.tool_policy.validate_tool_call(
+                tool, state, enforce_confirmation=False
+            )
+            if not precheck.allowed:
+                error_message = f"{precheck.code}: {precheck.reason}"
+                state["validation_errors"].append(error_message)
+                self._record_policy_result(
+                    state, tool_name, precheck.code, False, precheck.reason, precheck.retry_count
+                )
+                continue
+
+            tool_risk = self._normalize_risk_level(precheck.risk_level)
+            idempotency_key = self._tool_idempotency_key(
+                state, tool_name, call_index, arguments
+            )
+            approved_call = state.get("approved_tool_call") or {}
+            this_call_approved = (
+                state.get("confirmation_status") == "approved"
+                and approved_call.get("idempotency_key") == idempotency_key
+            )
+
+            # 3) 需要确认时，只批准与确认请求绑定的单个调用。
+            if precheck.requires_confirmation and not this_call_approved:
                 if state.get("enable_human_in_the_loop", False):
-                    # 请求单个工具确认
-                    approved = await self._request_tool_confirmation(state, tool_name, tool_risk)
-                    if not approved:
-                        app_logger.warning(f"[EXECUTE] 工具 {tool_name} 等待确认，本轮不执行")
-                        self._add_thought(
-                            state,
-                            "execute_agent",
-                            "execute",
-                            f"工具 {tool_name} 等待人工确认，本轮不执行",
-                            action="工具确认挂起"
-                        )
-                        self._record_policy_result(
-                            state, tool_name, "confirmation_pending", False, "等待用户确认", "execute"
-                        )
-                        continue
-            
-            # 继续工具策略校验
-            policy_decision = self.tool_policy.validate_tool_call(tool, state)
+                    await self._request_tool_confirmation(
+                        state, tool_name, tool_risk, idempotency_key, call_index
+                    )
+                    app_logger.warning(f"[EXECUTE] 工具 {tool_name} 等待确认，本轮不执行")
+                    self._record_policy_result(
+                        state, tool_name, "confirmation_pending", False, "等待用户确认", 0
+                    )
+                    return
+                else:
+                    error_message = "confirmation_required: 当前未启用人工确认，外部写未执行"
+                    state["validation_errors"].append(error_message)
+                    self._record_policy_result(
+                        state, tool_name, "confirmation_required", False, error_message, 0
+                    )
+                continue
+
+            policy_state = dict(state)
+            policy_state["confirmation_status"] = "approved" if this_call_approved else state.get("confirmation_status")
+            policy_decision = self.tool_policy.validate_tool_call(tool, policy_state)
             if not policy_decision.allowed:
                 error_message = f"{policy_decision.code}: {policy_decision.reason}"
                 state["validation_errors"].append(error_message)
@@ -2391,10 +2426,6 @@ class AgentNodes:
                 )
                 continue
 
-            # 替换变量
-            arguments = self._substitute_variables(arguments, state)
-            arguments = self._prepare_tool_arguments(tool_name, arguments, state)
-
             self._add_thought(state, "execute_agent", "execute", f"调用工具: {tool_name}", action=tool_name)
             self._record_policy_result(
                 state,
@@ -2405,27 +2436,24 @@ class AgentNodes:
                 retry_count=policy_decision.retry_count,
             )
 
-            # 局部重试逻辑：工具失败时最多重试 TOOL_MAX_LOCAL_RETRIES 次，避免直接升级为全量 repair
-            _tool_max_retries = getattr(__import__('app.core.config', fromlist=['settings']).settings, 'TOOL_MAX_LOCAL_RETRIES', 2)
-            _tool_retry_delay = getattr(__import__('app.core.config', fromlist=['settings']).settings, 'TOOL_RETRY_DELAY_SECONDS', 1)
-            result: ToolExecutionResult = None  # type: ignore
-            for _attempt in range(1 + _tool_max_retries):
-                if _attempt > 0:
-                    app_logger.warning(f"[EXECUTE] 工具 {tool_name} 第 {_attempt} 次重试...")
-                    self._add_thought(
-                        state, "execute_agent", "execute",
-                        f"工具 {tool_name} 重试 ({_attempt}/{_tool_max_retries})",
-                        action="工具重试",
-                        observation=f"上次错误: {result.error if result else 'unknown'}"
-                    )
-                    await asyncio.sleep(_tool_retry_delay)
-                result = await self.tool_manager.execute_tool(
-                    tool_name,
-                    arguments,
-                    retry_count=policy_decision.retry_count,
-                )
-                if result.success:
-                    break
+            access_scope = state.get("access_scope") or {}
+            result: ToolExecutionResult = await self.tool_manager.execute_tool(
+                tool_name,
+                arguments,
+                retry_count=policy_decision.retry_count,
+                audit_context={
+                    "agent_run_id": state.get("agent_run_id"),
+                    "thread_id": state.get("thread_id"),
+                    "user_id": access_scope.get("user_id") if isinstance(access_scope, dict) else None,
+                    "confirmation_status": "approved" if this_call_approved else "not_required",
+                    "policy_code": policy_decision.code,
+                    "idempotency_key": idempotency_key if metadata and metadata.external_effect else None,
+                },
+            )
+            if this_call_approved:
+                state["approved_tool_call"] = None
+                state["resume_from_tool_index"] = None
+                state["confirmation_status"] = "not_required"
 
             if result.success:
                 self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行成功", observation=str(result.result)[:200])
@@ -2438,9 +2466,34 @@ class AgentNodes:
                 )
                 self._apply_tool_result_to_state(state, tool_name, result.result)
             else:
-                app_logger.error(f"[EXECUTE] 工具 {tool_name} 重试 {_tool_max_retries} 次后仍失败: {result.error}")
-                self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行失败(已重试{_tool_max_retries}次): {result.error}", observation="错误")
+                app_logger.error(f"[EXECUTE] 工具 {tool_name} 执行失败: {result.error}")
+                self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行失败: {result.error}", observation="错误")
                 state["validation_errors"].append(f"工具 {tool_name} 执行失败: {result.error}")
+
+    def _validate_tool_parameters(self, tool: Any, arguments: Dict[str, Any]) -> List[str]:
+        metadata = getattr(tool, "metadata", None)
+        if not metadata:
+            return ["工具不存在或缺少元数据"]
+        expected = {parameter.name for parameter in metadata.parameters}
+        unknown = sorted(set(arguments) - expected)
+        errors = [f"未知参数: {name}" for name in unknown]
+        valid, schema_errors = metadata.validate_parameters(arguments)
+        if not valid:
+            errors.extend(schema_errors)
+        return errors
+
+    def _tool_idempotency_key(
+        self,
+        state: AgentState,
+        tool_name: str,
+        call_index: int,
+        arguments: Dict[str, Any],
+    ) -> str:
+        run_id = state.get("agent_run_id") or state.get("thread_id") or "unscoped"
+        digest = hashlib.sha256(
+            json.dumps(arguments, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()[:16]
+        return f"{run_id}:{call_index}:{tool_name}:{digest}"
 
     def _substitute_variables(self, arguments: Dict[str, Any], state: AgentState) -> Dict[str, Any]:
         """替换变量"""
@@ -2580,7 +2633,14 @@ class AgentNodes:
         elif tool_name == "answer_question" and isinstance(result, str):
             state["answer"] = result
 
-    async def _request_tool_confirmation(self, state: AgentState, tool_name: str, tool_risk: RiskLevel) -> bool:
+    async def _request_tool_confirmation(
+        self,
+        state: AgentState,
+        tool_name: str,
+        tool_risk: RiskLevel,
+        idempotency_key: str,
+        call_index: int,
+    ) -> bool:
         """请求单个工具确认"""
         import uuid
         
@@ -2590,12 +2650,21 @@ class AgentNodes:
             "question": state.get("question", ""),
             "tool_name": tool_name,
             "risk_level": tool_risk.value,
+            "idempotency_key": idempotency_key,
+            "tool_call_index": call_index,
+            "user_id": (state.get("access_scope") or {}).get("user_id"),
             "reason": f"工具 {tool_name} 风险等级: {tool_risk.value}，需要人工确认",
         }
         
         resume_state = self._sanitize_state(state).copy()
         resume_state["event_callback"] = None
-        resume_state["enable_human_in_the_loop"] = False
+        resume_state["enable_human_in_the_loop"] = True
+        resume_state["approved_tool_call"] = {
+            "tool_name": tool_name,
+            "idempotency_key": idempotency_key,
+        }
+        resume_state["resume_from_tool_index"] = call_index
+        resume_state["pending_action"] = details
         
         self._add_thought(
             state, "execute_agent", "confirm", f"等待工具 {tool_name} 人工确认...", action="工具确认"
@@ -3348,7 +3417,8 @@ class AgentNodes:
             "minutes": minutes,
             "todos": todos,
             "controversies": controversies,
-            "reflection": reflection
+            "reflection": reflection,
+            "user_id": (state.get("access_scope") or {}).get("user_id"),
         }
         
         request_id = await self.hitl_service.request_confirmation(

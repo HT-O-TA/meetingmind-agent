@@ -128,7 +128,19 @@ class HumanInTheLoopService:
         
         return request_id
     
-    async def respond_to_request(self, request_id: str, response: str) -> bool:
+    @staticmethod
+    def _owned_by(request: ConfirmationRequest, expected_user_id: Optional[int]) -> bool:
+        if expected_user_id is None:
+            return True
+        owner = (request.get("details") or {}).get("user_id")
+        return owner is not None and str(owner) == str(expected_user_id)
+
+    async def respond_to_request(
+        self,
+        request_id: str,
+        response: str,
+        expected_user_id: Optional[int] = None,
+    ) -> bool:
         """响应确认请求"""
         redis = await self._get_redis()
         request_key = self._get_request_key(request_id)
@@ -139,6 +151,10 @@ class HumanInTheLoopService:
             return False
         
         request: ConfirmationRequest = json.loads(request_data)
+
+        if not self._owned_by(request, expected_user_id):
+            app_logger.warning("[HITL] 用户无权响应确认请求: %s", request_id)
+            return False
         
         if request["status"] != ConfirmationStatus.PENDING.value:
             app_logger.warning(f"[HITL] 请求已处理: {request_id}")
@@ -170,12 +186,17 @@ class HumanInTheLoopService:
         app_logger.info(f"[HITL] 收到响应: {request_id} -> {response}")
         return True
     
-    async def get_request_status(self, request_id: str) -> Optional[ConfirmationRequest]:
+    async def get_request_status(
+        self,
+        request_id: str,
+        expected_user_id: Optional[int] = None,
+    ) -> Optional[ConfirmationRequest]:
         """获取确认请求状态"""
         redis = await self._get_redis()
         request_data = await redis.get(self._get_request_key(request_id))
         if request_data:
-            return json.loads(request_data)
+            request = json.loads(request_data)
+            return request if self._owned_by(request, expected_user_id) else None
         return None
     
     async def get_request_by_thread_id(self, thread_id: str) -> Optional[ConfirmationRequest]:
@@ -186,9 +207,13 @@ class HumanInTheLoopService:
             return await self.get_request_status(request_id)
         return None
     
-    async def get_resume_state(self, request_id: str) -> Optional[Dict[str, Any]]:
+    async def get_resume_state(
+        self,
+        request_id: str,
+        expected_user_id: Optional[int] = None,
+    ) -> Optional[Dict[str, Any]]:
         """获取恢复状态"""
-        request = await self.get_request_status(request_id)
+        request = await self.get_request_status(request_id, expected_user_id)
         if request and request.get("checkpoint_key"):
             redis = await self._get_redis()
             checkpoint_data = await redis.get(request["checkpoint_key"])
@@ -196,7 +221,9 @@ class HumanInTheLoopService:
                 return json.loads(checkpoint_data)
         return None
     
-    async def list_pending_requests(self) -> List[ConfirmationRequest]:
+    async def list_pending_requests(
+        self, expected_user_id: Optional[int] = None
+    ) -> List[ConfirmationRequest]:
         """获取所有待处理请求"""
         redis = await self._get_redis()
         pattern = "hitl:request:*"
@@ -206,12 +233,17 @@ class HumanInTheLoopService:
             request_data = await redis.get(key)
             if request_data:
                 request = json.loads(request_data)
-                if request["status"] == ConfirmationStatus.PENDING.value:
+                if (
+                    request["status"] == ConfirmationStatus.PENDING.value
+                    and self._owned_by(request, expected_user_id)
+                ):
                     requests.append(request)
         
         return requests
 
-    async def list_request_history(self, limit: int = 50) -> List[ConfirmationRequest]:
+    async def list_request_history(
+        self, limit: int = 50, expected_user_id: Optional[int] = None
+    ) -> List[ConfirmationRequest]:
         """列出已处理请求，最近的请求优先。"""
         redis = await self._get_redis()
         requests = []
@@ -221,7 +253,10 @@ class HumanInTheLoopService:
             if not request_data:
                 continue
             request = json.loads(request_data)
-            if request["status"] != ConfirmationStatus.PENDING.value:
+            if (
+                request["status"] != ConfirmationStatus.PENDING.value
+                and self._owned_by(request, expected_user_id)
+            ):
                 requests.append(request)
 
         requests.sort(key=lambda item: item.get("timestamp", ""), reverse=True)

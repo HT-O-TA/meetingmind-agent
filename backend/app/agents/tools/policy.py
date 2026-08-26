@@ -10,6 +10,8 @@ class ToolPolicyDecision:
     code: str = "allowed"
     reason: str = ""
     retry_count: int = 3
+    requires_confirmation: bool = False
+    risk_level: str = "low"
 
 
 class ToolPolicy:
@@ -31,7 +33,13 @@ class ToolPolicy:
             and not bool(getattr(metadata, "bulk_operation", False))
         )
 
-    def validate_tool_call(self, tool: Any, state: Dict[str, Any]) -> ToolPolicyDecision:
+    def validate_tool_call(
+        self,
+        tool: Any,
+        state: Dict[str, Any],
+        *,
+        enforce_confirmation: bool = True,
+    ) -> ToolPolicyDecision:
         if not tool:
             return ToolPolicyDecision(
                 allowed=False,
@@ -67,14 +75,21 @@ class ToolPolicy:
             requires_confirmation = True
         elif risk_value == "medium":
             requires_confirmation = not self._medium_authorized(metadata, state)
-        if requires_confirmation and state.get("confirmation_status") != "approved":
+        if enforce_confirmation and requires_confirmation and state.get("confirmation_status") != "approved":
             return ToolPolicyDecision(
                 allowed=False,
                 code="confirmation_required",
                 reason=getattr(metadata, "risk_reason", "工具风险需要人工确认"),
                 retry_count=0,
+                requires_confirmation=True,
+                risk_level=risk_value,
             )
 
         idempotent = bool(getattr(metadata, "idempotent", True))
         retry_count = 3 if idempotent else 1
-        return ToolPolicyDecision(allowed=True, retry_count=retry_count)
+        return ToolPolicyDecision(
+            allowed=True,
+            retry_count=retry_count,
+            requires_confirmation=requires_confirmation,
+            risk_level=risk_value,
+        )

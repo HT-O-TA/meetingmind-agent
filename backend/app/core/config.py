@@ -243,11 +243,14 @@ class Settings(BaseSettings):
     GITHUB_MCP_URL: str = ""  # GitHub MCP 服务器地址
     GITHUB_MCP_TOKEN: str = ""  # GitHub Access Token
 
-    # Jira MCP 配置
-    JIRA_MCP_ENABLED: bool = False  # 是否启用 Jira MCP
-    JIRA_MCP_URL: str = ""  # Jira MCP 服务器地址
-    JIRA_MCP_USERNAME: str = ""  # Jira 用户名
-    JIRA_MCP_API_TOKEN: str = ""  # Jira API Token
+    # Jira Cloud REST v3 配置（保留 JIRA_MCP_* 名称以兼容已有 .env）
+    JIRA_MCP_ENABLED: bool = False  # 仅凭据齐全并计划真实调用时开启
+    JIRA_MCP_URL: str = ""  # 站点地址，例如 https://example.atlassian.net
+    JIRA_MCP_USERNAME: str = ""  # Atlassian 账号邮箱
+    JIRA_MCP_API_TOKEN: str = ""  # Atlassian API Token，禁止提交到 Git
+    JIRA_HTTP_TIMEOUT_SECONDS: float = 15.0
+    JIRA_MAX_RETRIES: int = 2  # 仅用于 GET/PUT 等幂等请求
+    JIRA_MAX_RETRY_DELAY_SECONDS: float = 10.0
 
     # Notion MCP 配置
     NOTION_MCP_ENABLED: bool = False  # 是否启用 Notion MCP
