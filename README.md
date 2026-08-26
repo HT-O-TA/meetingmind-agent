@@ -19,20 +19,20 @@ MeetingMind 是一个正在收敛中的企业会议智能应用学习项目。�
 | 能力 | 状态 | 说明 |
 |---|---|---|
 | 文档解析与分块 | 已实现，待完整集成基线 | 正式策略为说话人感知混合分块 |
-| RAG HTTP 主链路 | 已建立契约基线 | `/api/v1/rag/ask` 固定使用方案 A |
+| RAG HTTP 主链路 | 已建立版本化契约 | `/api/v1/rag/ask` 使用方案 A，强制认证并返回引用/降级/时延 |
 | 关键词召回 | 已实现 | PostgreSQL `tsvector + ts_rank_cd`，属于 BM25 风格检索 |
 | Dense 召回 | 已实现，依赖运行环境 | Milvus 优先，失败回退 pgvector 或轻量余弦检索 |
 | Fusion + Reranker | 已实现契约测试 | 0.3 关键词权重 + 0.7 Dense 权重，权重仍需离线评测 |
-| Agent | 已收敛默认边界 | 默认只保留 Simple RAG、确定性业务节点和 Tool Agent |
+| Agent | 已收敛默认边界 | 默认只保留 Simple RAG、确定性业务节点和 Tool Agent；检索继承用户 ACL |
 | ToolPolicy / HITL | 有实现，待端到端验证 | 真实外部写工具尚未选定和联调 |
 | RabbitMQ 任务 | 有框架，待失败恢复基线 | 重试、死信、幂等和容量测试仍需完成 |
-| RAG 评估 | 有多套历史实现，待统一 | 当前没有可重新生成的正式效果数字 |
+| RAG 评估 | 离线命令已统一 | 支持 RAG/抽取/工具/路由/系统指标；当前没有可对外引用的真实效果数字 |
 | KG / Neo4j | 可选增强，默认关闭 | 不进入正式 RAG 请求路径 |
 | MCP | 可选框架，默认关闭 | 尚未完成唯一真实外部 Server 联调 |
 | ASR / 多模态 | 骨架，默认关闭 | 尚未形成真实音频转写闭环 |
 | LoRA / QLoRA | 尚未完成 | 训练目录、数据和对比实验仍待建设 |
 
-因此，当前不能将 Sparse/RRF、完整多模态、真实企业系统写入、文档 ACL、端到端生产部署或历史性能数字宣传为已完成能力。
+文档 ACL、软删除回查和答案引用已完成代码/契约及 PostgreSQL 集成验证。当前仍不能将 Sparse/RRF、完整多模态、真实企业系统写入、端到端生产部署或合成样例/历史性能数字宣传为已完成能力。
 
 ## 正式 RAG 路径
 
@@ -58,6 +58,7 @@ POST /api/v1/rag/ask
 - [RAG 主链路走读与契约基线](docs/优化路径记录/03_RAG主链路走读与契约基线.md)
 - [主链路真实性审计](docs/优化路径记录/02_主链路真实性审计.md)
 - [Agent 主链路与阶段 0 运行基线](docs/优化路径记录/04_Agent主链路与阶段0基线.md)
+- [阶段 1 RAG 权限、路由与统一评估](docs/优化路径记录/05_阶段1_RAG权限路由与统一评估.md)
 
 ## 正式 Agent 边界
 
@@ -165,7 +166,18 @@ pip install -r requirements-core.txt
 ./scripts/run_core_tests.sh -q
 ```
 
-2026-08-26 的阶段 0 基线为 `133 passed, 2 skipped`。两个跳过项依赖未安装的模型能力；数据库、Redis、Milvus 与真实外部服务集成测试仍需在后续阶段单独建立，不能把当前通过数解释为完整生产验收。
+2026-08-26 完成阶段 1 后的轻量核心基线为 `151 passed, 2 skipped`。另有真实 PostgreSQL ACL/软删除事务集成测试 `1 passed`。两个核心跳过项依赖未安装的模型能力；Milvus、真实评估集和外部服务集成仍需单独验收，不能把当前通过数解释为完整生产验收。
+
+统一离线评估命令：
+
+```bash
+cd backend
+python3 scripts/evaluate.py --allow-synthetic \
+  --dataset evaluation/datasets/sample_eval.jsonl \
+  --output evaluation/reports/sample_report.json
+```
+
+仓库样例明确标记为 `synthetic`，只验证公式和报告格式。真实回归必须换成冻结的 `sample_kind=real` 数据，并显式启用回归阈值。
 
 ## 开发启动
 
@@ -207,8 +219,8 @@ npm run dev
 ## 当前未满足的完成标准
 
 - 尚无一条经过当前环境复现的无 mock 端到端业务链路；
-- 尚无统一的 RAG/抽取/工具评估命令和正式指标；
-- 文档 ACL 和答案引用尚未完成；
+- 已有统一评估命令，但尚无冻结真实数据生成的正式指标；
+- 文档 ACL 和答案引用已完成，Milvus/真实数据规模下的效果与容量仍待验证；
 - 尚未联调真实企业写工具；
 - RabbitMQ 失败恢复与幂等测试尚未完成；
 - ASR 和 LoRA/QLoRA 对比实验尚未完成；

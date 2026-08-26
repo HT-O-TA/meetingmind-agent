@@ -51,6 +51,20 @@ class ComplexityLevel(str, Enum):
     AGENT = "agent"           # A: 0.75-1.0 - 需要ReAct代理
 
 
+class ModelTier(str, Enum):
+    """双轴模型路由输出档位。"""
+    TURBO = "turbo"
+    PLUS = "plus"
+    MAX = "max"
+
+
+class ExecutionMode(str, Enum):
+    """正式执行模式；通用 ReAct 当前不进入默认主链路。"""
+    FALLBACK = "fallback"
+    DETERMINISTIC = "deterministic"
+    PLAN_EXECUTE = "plan_execute"
+
+
 class AgentConfig(TypedDict):
     """Agent 配置参数 - 控制推理行为"""
     max_react_iterations: int        # ReAct 最大迭代次数
@@ -231,6 +245,7 @@ class AgentState(TypedDict):
     todos: Optional[List[TodoItem]]
     controversies: Optional[List[ControversyItem]]
     answer: Optional[str]
+    structured_outputs: Dict[str, Any]
     
     # 反思阶段
     reflection: Optional[ReflectionResult]
@@ -253,6 +268,7 @@ class AgentState(TypedDict):
 
     # P1 #4: 会话记忆上下文（route_agent 预注入，供所有路径使用）
     session_context: Optional[str]
+    access_scope: Optional[Dict[str, Any]]
 
 
 @dataclass
@@ -279,6 +295,7 @@ class AgentResult:
     confirmation_status: Optional[str] = None
     pending_action: Optional[Dict[str, Any]] = None
     route_decision: Optional["RouteDecision"] = None
+    structured_outputs: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -300,6 +317,15 @@ class RouteDecision:
     requires_reasoning: bool = False
     candidates: List[Dict[str, Any]] = None
     decision_trace: List[str] = None
+    model_tier: ModelTier = ModelTier.PLUS
+    model_name: str = ""
+    execution_mode: ExecutionMode = ExecutionMode.DETERMINISTIC
+    complexity_confidence: float = 0.0
+    rule_matched: bool = False
+    sub_tasks: List[Dict[str, Any]] = None
+    degradation_actions: List[str] = None
+    threshold_policy: Dict[str, Any] = None
+    schema_version: str = "route.v1"
 
     def __post_init__(self):
         if self.detected_tasks is None:
@@ -308,6 +334,12 @@ class RouteDecision:
             self.candidates = []
         if self.decision_trace is None:
             self.decision_trace = []
+        if self.sub_tasks is None:
+            self.sub_tasks = []
+        if self.degradation_actions is None:
+            self.degradation_actions = []
+        if self.threshold_policy is None:
+            self.threshold_policy = {}
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -324,6 +356,15 @@ class RouteDecision:
             "requires_reasoning": self.requires_reasoning,
             "candidates": self.candidates,
             "decision_trace": self.decision_trace,
+            "model_tier": self.model_tier.value,
+            "model_name": self.model_name,
+            "execution_mode": self.execution_mode.value,
+            "complexity_confidence": self.complexity_confidence,
+            "rule_matched": self.rule_matched,
+            "sub_tasks": self.sub_tasks,
+            "degradation_actions": self.degradation_actions,
+            "threshold_policy": self.threshold_policy,
+            "schema_version": self.schema_version,
         }
 
 
@@ -366,6 +407,7 @@ def create_initial_state(
         "todos": None,
         "controversies": None,
         "answer": None,
+        "structured_outputs": {},
         "reflection": None,
         "error": None,
         "cot_thoughts": [],
@@ -376,4 +418,5 @@ def create_initial_state(
         "human_confirmations": [],
         "enable_human_in_the_loop": enable_human_in_the_loop,
         "session_context": None,
+        "access_scope": None,
     }

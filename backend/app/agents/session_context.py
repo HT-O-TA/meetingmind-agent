@@ -7,7 +7,7 @@ ID 分层设计：
   层级4: meeting_id      业务域（数据库主键）
 """
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Dict, Optional
 import uuid
 import re
 
@@ -34,6 +34,7 @@ class SessionContext:
     session_id: Optional[str] = None
     conversation_id: Optional[str] = None
     meeting_id: Optional[int] = None
+    access_scope: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         if not self.session_id:
@@ -98,6 +99,7 @@ class SessionContext:
                 "session_id": self.session_id,
                 "conversation_id": self.conversation_id,
                 "meeting_id": self.meeting_id,
+                "access_scope": self.access_scope,
             }
         }
 
@@ -130,4 +132,5 @@ class SessionContext:
             session_id=session_id,
             conversation_id=conversation_id,
             meeting_id=configurable.get("meeting_id"),
+            access_scope=configurable.get("access_scope"),
         )

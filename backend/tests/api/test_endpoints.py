@@ -150,6 +150,7 @@ def test_mutating_meeting_and_document_routes_require_auth(client):
     ).status_code == 401
     assert client.put("/api/v1/documents/1", json=document_payload).status_code == 401
     assert client.delete("/api/v1/documents/1").status_code == 401
+    assert client.post("/api/v1/agents/query", json={"question": "检索私有文档"}).status_code == 401
 
 
 def test_meeting_crud_and_speech_routes(authenticated_client, monkeypatch):
@@ -331,20 +332,38 @@ def test_user_routes_cover_register_login_profile_and_list(admin_client, monkeyp
     assert admin_client.get("/api/v1/users").json()["total"] == 1
 
 
-def test_rag_is_public_and_low_level_retrieval_routes_are_internal(client):
+def test_rag_requires_auth_and_low_level_retrieval_routes_are_internal(client, authenticated_client):
     from app.api.v1.endpoints import rag
 
     fake_rag_service = SimpleNamespace(
-        ask=AsyncMock(return_value={"answer": "A", "sources": [{"id": 1}]})
+        ask=AsyncMock(return_value={
+            "schema_version": "rag.v1",
+            "answer": "A",
+            "chunks": [],
+            "citations": [],
+            "count": 0,
+            "mode": "lightweight",
+            "query_type": "standard",
+            "original_query": "What?",
+            "rewritten_query": ["What?"],
+        })
     )
     app.dependency_overrides[rag.get_rag_service] = lambda: fake_rag_service
 
-    assert client.post("/api/v1/rag/ask", json={"question": "What?", "use_llm": False}).json()["data"]["answer"] == "A"
+    app.dependency_overrides.pop(get_current_user, None)
+    assert client.post("/api/v1/rag/ask", json={"question": "What?", "use_llm": False}).status_code == 401
+    async def fake_current_user():
+        return make_user()
+    app.dependency_overrides[get_current_user] = fake_current_user
+    response = authenticated_client.post("/api/v1/rag/ask", json={"question": "What?", "use_llm": False})
+    assert response.status_code == 200
+    assert response.json()["data"]["answer"] == "A"
+    assert fake_rag_service.ask.await_args.kwargs["access_context"].user_id == 1
     assert client.post("/api/v1/vector-search/search", json={"content": "query"}).status_code == 404
     assert client.post("/api/v1/embedding/encode", json={"content": "hello"}).status_code == 404
 
 
-def test_agent_query_returns_policy_and_pending_action(client, monkeypatch):
+def test_agent_query_returns_policy_and_pending_action(authenticated_client, monkeypatch):
     from app.api.v1.endpoints import agents as agents_endpoint
 
     class FakeAgentService:
@@ -383,7 +402,7 @@ def test_agent_query_returns_policy_and_pending_action(client, monkeypatch):
 
     monkeypatch.setattr(agents_endpoint, "get_agent_service", fake_get_agent_service)
 
-    response = client.post("/api/v1/agents/query", json={"question": "发送通知"}).json()
+    response = authenticated_client.post("/api/v1/agents/query", json={"question": "发送通知"}).json()
 
     assert response["policy_results"][0]["code"] == "confirmation_required"
     assert response["pending_action"]["source"] == "tool"

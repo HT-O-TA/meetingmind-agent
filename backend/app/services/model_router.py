@@ -27,17 +27,9 @@
     └─────────┴───────┴───────┴───────┴───────┘
 """
 from typing import Optional, Tuple
-from enum import Enum
 from app.core.config import settings
 from app.core.logger import app_logger
-from app.agents.state import TaskType, ComplexityLevel
-
-
-class ModelTier(str, Enum):
-    """模型档位枚举"""
-    TURBO = "turbo"
-    PLUS = "plus"
-    MAX = "max"
+from app.agents.state import TaskType, ComplexityLevel, ModelTier
 
 
 # 档位 → 实际模型名映射（从 settings 读取，便于配置覆盖）

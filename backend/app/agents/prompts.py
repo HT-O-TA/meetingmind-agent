@@ -64,6 +64,8 @@ class PromptTemplate:
     output_schema: Optional[OutputSchema] = None
     requirements: List[str] = field(default_factory=list)
     created_at: str = ""
+    version: str = "1.0.0"
+    evaluation_dataset_id: Optional[str] = None
 
     def render(self, **kwargs) -> str:
         """渲染 Prompt 模板，包含示例数据"""
@@ -699,6 +701,8 @@ class PromptManager:
                 "type": tmpl.type.value,
                 "output_format": tmpl.output_format.value,
                 "variables": tmpl.variables,
+                "version": tmpl.version,
+                "evaluation_dataset_id": tmpl.evaluation_dataset_id,
                 "has_examples": len(tmpl.examples) > 0,
                 "has_schema": tmpl.output_schema is not None
             }

@@ -196,6 +196,7 @@ class AgentService:
                 "human_confirmations": [],
                 "enable_human_in_the_loop": self.enable_human_in_the_loop,
                 "session_context": None,
+                "access_scope": context.access_scope,
             }
 
             # 执行
@@ -277,6 +278,7 @@ class AgentService:
                 confirmation_status=final_state.get("confirmation_status"),
                 pending_action=final_state.get("pending_action"),
                 route_decision=final_state.get("route_decision"),
+                structured_outputs=final_state.get("structured_outputs"),
             )
 
             # 保存会话记忆
@@ -565,6 +567,7 @@ class AgentService:
                 confirmation_status=final_state.get("confirmation_status"),
                 pending_action=final_state.get("pending_action"),
                 route_decision=final_state.get("route_decision"),
+                structured_outputs=final_state.get("structured_outputs"),
             )
 
         except Exception as e:
@@ -582,14 +585,22 @@ class AgentService:
         questions: List[str],
         meeting_id: Optional[int] = None,
         document_ids: Optional[List[int]] = None,
+        context: Optional[SessionContext] = None,
     ) -> List[AgentResult]:
         results = []
         for question in questions:
-            result = await self.process_query(
-                question=question,
-                meeting_id=meeting_id,
-                document_ids=document_ids,
-            )
+            if context is not None:
+                result = await self.process_query_with_context(
+                    question=question,
+                    context=context,
+                    document_ids=document_ids,
+                )
+            else:
+                result = await self.process_query(
+                    question=question,
+                    meeting_id=meeting_id,
+                    document_ids=document_ids,
+                )
             results.append(result)
         return results
 

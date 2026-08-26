@@ -25,4 +25,5 @@ class AgentQueryResponse(BaseModel):
     minutes: Optional[str] = Field(None, description="会议纪要（minutes任务）")
     todos: Optional[List[Dict[str, Any]]] = Field(None, description="待办事项（todo任务）")
     controversies: Optional[List[Dict[str, Any]]] = Field(None, description="争议点（controversy任务）")
+    structured_outputs: Optional[Dict[str, Any]] = Field(None, description="带版本、证据和降级信息的结构化结果")
     error: Optional[str] = Field(None, description="错误信息")

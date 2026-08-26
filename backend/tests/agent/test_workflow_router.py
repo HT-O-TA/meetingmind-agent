@@ -58,6 +58,8 @@ async def test_greeting_skips_retrieval(nodes):
 
     assert routed["workflow_type"] == WorkflowType.SIMPLE_QA
     assert routed["retrieval_required"] is False
+    assert routed["route_decision"] is not None
+    assert routed["route_decision"].schema_version == "route.v1"
 
 
 @pytest.mark.asyncio

@@ -9,9 +9,11 @@
 import time
 from typing import Optional, List, Dict, Any, Tuple
 from app.agents.state import (
-    RouteDecision, WorkflowType, TaskType, ComplexityLevel
+    ExecutionMode, RouteDecision, WorkflowType, TaskType, ComplexityLevel
 )
+from app.core.config import settings
 from app.core.logger import app_logger
+from app.services.model_router import get_model_router
 
 
 # 任务类型关键词映射
@@ -42,10 +44,22 @@ class IntentRouter:
         self,
         complexity_classifier: Optional[Any] = None,
         multi_task_detector: Optional[Any] = None,
+        task_confidence_threshold: Optional[float] = None,
+        complexity_confidence_threshold: Optional[float] = None,
     ):
         self._complexity_classifier = complexity_classifier
         self._multi_task_detector = multi_task_detector
         self._last_decision: Optional[RouteDecision] = None
+        self._task_confidence_threshold = (
+            task_confidence_threshold
+            if task_confidence_threshold is not None
+            else settings.ROUTE_TASK_CONFIDENCE_THRESHOLD
+        )
+        self._complexity_confidence_threshold = (
+            complexity_confidence_threshold
+            if complexity_confidence_threshold is not None
+            else settings.ROUTE_COMPLEXITY_CONFIDENCE_THRESHOLD
+        )
 
     async def route(
         self,
@@ -69,6 +83,9 @@ class IntentRouter:
 
         # Step 1: 问候语检测
         if self._is_greeting(question):
+            tier, model_name = get_model_router().select(
+                TaskType.QA, ComplexityLevel.SIMPLE
+            )
             decision = RouteDecision(
                 workflow_type=WorkflowType.SIMPLE_QA,
                 task_type=TaskType.QA,
@@ -83,6 +100,12 @@ class IntentRouter:
                 requires_reasoning=False,
                 candidates=[{"type": "SIMPLE_QA", "confidence": 1.0}],
                 decision_trace=["Step1: 检测为问候语 → SIMPLE_QA"],
+                model_tier=tier,
+                model_name=model_name,
+                execution_mode=ExecutionMode.DETERMINISTIC,
+                complexity_confidence=1.0,
+                rule_matched=True,
+                threshold_policy=self._threshold_policy(),
             )
             self._last_decision = decision
             self._log_decision(decision, start_time)
@@ -142,11 +165,51 @@ class IntentRouter:
             complexity_confidence, task_confidence, complexity_level, task_type
         )
 
-        # Step 5: 输出 RouteDecision
+        # Step 5: 分层置信度策略。阈值是可配置初值，需由路由评测集标定。
+        rule_matched = detected_type is not None
+        effective_complexity = complexity_level
+        degradation_actions: List[str] = []
+        if (
+            complexity_confidence < self._complexity_confidence_threshold
+            and complexity_level in (ComplexityLevel.COT, ComplexityLevel.AGENT)
+        ):
+            effective_complexity = ComplexityLevel.RETRIEVAL
+            degradation_actions.append(
+                f"complexity_degraded:{complexity_level.value}->retrieval"
+            )
+            decision_trace.append(
+                "Step5: 复杂度置信度不足，降为 retrieval；业务任务类型保持不变"
+            )
+
+        task_uncertain = (
+            task_confidence < self._task_confidence_threshold and not rule_matched
+        )
+        if task_uncertain:
+            execution_mode = ExecutionMode.FALLBACK
+            degradation_actions.append("task_uncertain:external_write_disabled")
+            requires_retrieval = True
+            decision_trace.append("Step5: 任务类型置信度不足，进入保守 fallback")
+        elif final_is_multi or workflow_type == WorkflowType.COMPLEX:
+            execution_mode = ExecutionMode.PLAN_EXECUTE
+        else:
+            execution_mode = ExecutionMode.DETERMINISTIC
+
+        tier, model_name = get_model_router().select(task_type, effective_complexity)
+        sub_tasks = [
+            {
+                "task_id": f"route-task-{index}",
+                "task_type": self._task_type_for_label(label).value,
+                "description": label,
+                "priority": index,
+            }
+            for index, label in enumerate(detected_tasks, start=1)
+        ] if final_is_multi else []
+
+        # Step 6: 输出唯一 RouteDecision
         decision = RouteDecision(
             workflow_type=workflow_type,
             task_type=task_type,
-            complexity_level=complexity_level,
+            complexity_level=effective_complexity,
             complexity_score=complexity_score,
             confidence=final_confidence,
             reason=final_reason,
@@ -157,6 +220,14 @@ class IntentRouter:
             requires_reasoning=requires_reasoning,
             candidates=candidates,
             decision_trace=decision_trace,
+            model_tier=tier,
+            model_name=model_name,
+            execution_mode=execution_mode,
+            complexity_confidence=complexity_confidence,
+            rule_matched=rule_matched,
+            sub_tasks=sub_tasks,
+            degradation_actions=degradation_actions,
+            threshold_policy=self._threshold_policy(),
         )
 
         self._last_decision = decision
@@ -219,9 +290,6 @@ class IntentRouter:
 
         return None, 0.0, []
 
-    # 置信度熔断阈值：低于此值时，COMPLEX 路由降级为 SIMPLE_QA，避免简单问题走高代价路径
-    _COMPLEX_CONFIDENCE_THRESHOLD = 0.65
-
     def _arbitrate(
         self,
         complexity_level: ComplexityLevel,
@@ -234,8 +302,7 @@ class IntentRouter:
     ) -> Tuple[WorkflowType, TaskType, bool, str]:
         """冲突仲裁 - 解决复杂度分类和任务检测的冲突
 
-        包含置信度熔断：当仲裁结果为 COMPLEX 但综合置信度低于阈值时，
-        降级为 SIMPLE_QA，避免低置信度问题走高代价路径。
+        本方法只做业务意图仲裁；置信度降级由 route() 的统一策略处理。
         """
 
         # === 核心仲裁逻辑 ===
@@ -267,23 +334,21 @@ class IntentRouter:
                 (WorkflowType.SIMPLE_QA, TaskType.QA, False, "默认简单问答")
             )
 
-        # === 置信度熔断 ===
-        wf, tt, multi, reason = result
-        if wf == WorkflowType.COMPLEX:
-            combined_confidence = max(complexity_confidence, task_confidence)
-            if combined_confidence < self._COMPLEX_CONFIDENCE_THRESHOLD:
-                app_logger.info(
-                    f"[IntentRouter] 置信度熔断: conf={combined_confidence:.2f} "
-                    f"< {self._COMPLEX_CONFIDENCE_THRESHOLD}, COMPLEX→SIMPLE_QA"
-                )
-                return (
-                    WorkflowType.SIMPLE_QA,
-                    TaskType.QA,
-                    False,
-                    f"置信度熔断(原: {reason}, conf={combined_confidence:.2f})"
-                )
-
         return result
+
+    def _threshold_policy(self) -> Dict[str, Any]:
+        return {
+            "task_confidence": self._task_confidence_threshold,
+            "complexity_confidence": self._complexity_confidence_threshold,
+            "source": "config_provisional_until_route_eval",
+        }
+
+    @staticmethod
+    def _task_type_for_label(label: str) -> TaskType:
+        for task_type, config in TASK_KEYWORDS.items():
+            if config["label"] == label:
+                return task_type
+        return TaskType.QA
 
     def _build_candidates(
         self,
@@ -419,6 +484,7 @@ class IntentRouter:
             f"workflow={decision.workflow_type.value}, "
             f"task={decision.task_type.value}, "
             f"confidence={decision.confidence:.2f}, "
+            f"tier={decision.model_tier.value}, mode={decision.execution_mode.value}, "
             f"multi={decision.is_multi_task}, "
             f"耗时={elapsed_ms:.1f}ms"
         )

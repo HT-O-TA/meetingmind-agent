@@ -28,6 +28,14 @@ from app.services.prompt_injection_guard import get_prompt_injection_guard, Inje
 from app.services.unified_memory_service import get_unified_memory
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.schemas.structured_output import (
+    MinutesOutput,
+    StructuredOutputEnvelope,
+    ValidationError,
+    repair_json_text,
+    validate_structured_data,
+    validate_tool_call,
+)
 
 
 class AgentCards:
@@ -97,6 +105,12 @@ class AgentNodes:
         self.max_retries = max_retries
         self.hitl_service = get_hitl_service()
         self.tool_policy = ToolPolicy()
+        self.output_validation_stats = {
+            "attempts": 0,
+            "valid": 0,
+            "repaired": 0,
+            "invalid": 0,
+        }
 
         # 新增：可配置风险规则服务
         self.risk_rule_service = get_risk_rule_service()
@@ -157,6 +171,7 @@ class AgentNodes:
             "todos": state.get("todos"),
             "controversies": state.get("controversies"),
             "answer": state.get("answer"),
+            "structured_outputs": state.get("structured_outputs", {}),
             "reflection": state.get("reflection"),
             "error": state.get("error"),
             "cot_thoughts": state.get("cot_thoughts", []),
@@ -172,6 +187,12 @@ class AgentNodes:
             "last_strategy": state.get("last_strategy"),
             "fallback_count": state.get("fallback_count", 0),
             "session_context": state.get("session_context"),
+            "access_scope": state.get("access_scope"),
+            "route_decision": state.get("route_decision"),
+            "route_confidence": state.get("route_confidence", 0.0),
+            "route_candidates": state.get("route_candidates", []),
+            "route_decision_trace": state.get("route_decision_trace", []),
+            "explicit_write_authorization": state.get("explicit_write_authorization", False),
             # 供 should_reflect_and_regenerate 使用的节点追踪字段
             "last_executed_node": state.get("last_executed_node"),
         }
@@ -206,6 +227,8 @@ class AgentNodes:
             safe_state["validation_errors"] = []
         if not isinstance(safe_state["citations"], list):
             safe_state["citations"] = []
+        if not isinstance(safe_state["structured_outputs"], dict):
+            safe_state["structured_outputs"] = {}
         
         return safe_state
     
@@ -290,26 +313,58 @@ class AgentNodes:
         return truncated
 
     def _parse_json_response(self, response: str, expected_type: str) -> Tuple[bool, Any]:
-        response = response.strip()
-        if "```json" in response:
-            match = re.search(r"```json\s*(.*?)\s*```", response, re.DOTALL)
-            if match:
-                response = match.group(1).strip()
-        elif "```" in response:
-            match = re.search(r"```\s*(.*?)\s*```", response, re.DOTALL)
-            if match:
-                response = match.group(1).strip()
-        try:
-            return True, json.loads(response)
-        except json.JSONDecodeError:
-            json_match = re.search(r'\[[\s\S]*\]|\{[\s\S]*\}', response)
-            if json_match:
-                try:
-                    return True, json.loads(json_match.group())
-                except json.JSONDecodeError:
-                    pass
-            app_logger.warning(f"[JSON解析] {expected_type} 格式解析失败")
-            return False, None
+        self.output_validation_stats["attempts"] += 1
+        original = response.strip()
+        repaired = repair_json_text(original)
+        candidates = [original]
+        if repaired != original:
+            candidates.append(repaired)
+
+        for index, candidate in enumerate(candidates):
+            try:
+                parsed = json.loads(candidate)
+                normalized = validate_structured_data(parsed, expected_type)
+                self.output_validation_stats["valid"] += 1
+                if index > 0:
+                    self.output_validation_stats["repaired"] += 1
+                    app_logger.info(f"[JSON解析] {expected_type} 经确定性修复后通过 Schema")
+                return True, normalized
+            except (json.JSONDecodeError, ValidationError, TypeError, ValueError):
+                continue
+
+        self.output_validation_stats["invalid"] += 1
+        app_logger.warning(f"[JSON解析] {expected_type} JSON/Pydantic Schema 校验失败")
+        return False, None
+
+    def _record_structured_output(
+        self,
+        state: AgentState,
+        output_type: str,
+        data: Any,
+        prompt_version: str,
+        model_version: str,
+        degradation_info: Optional[List[str]] = None,
+    ) -> None:
+        """将业务结果连同版本和首条证据写入 Agent 状态。"""
+        citations = state.get("citations") or []
+        citation = citations[0] if citations else {}
+        envelope = StructuredOutputEnvelope(
+            output_type=output_type,
+            data=data,
+            prompt_version=prompt_version,
+            model_version=model_version,
+            source_id=(
+                str(citation.get("source_id") or citation.get("chunk_id") or citation.get("document_id"))
+                if citation
+                else None
+            ),
+            source_type=citation.get("source_type", "unknown") if citation else "unknown",
+            speaker=citation.get("speaker") or citation.get("speaker_name") if citation else None,
+            timestamp=citation.get("timestamp") or citation.get("time_offset") if citation else None,
+            uncertainties=[] if citations else ["no_source_citation_available"],
+            degradation_info=degradation_info or [],
+        )
+        state.setdefault("structured_outputs", {})[output_type] = envelope.model_dump()
 
     def _is_document_multi_deliverable_request(self, question: str) -> bool:
         if not self._extract_document_ids_from_question(question):
@@ -895,36 +950,7 @@ class AgentNodes:
         state = self._sanitize_state(state)
         question = state.get("question", "")
 
-        # ── 规则短路通道 ──────────────────────────────────────────────
-        # 问候语/寒暄等简单模式直接走 simple_qa_node，不进入分类流程，
-        # 节省一次 IntentRouter / ComplexityClassifier 调用。
-        if self._is_greeting(question):
-            app_logger.info("[RouteAgent] 规则短路命中（问候语），跳过分类器")
-            state["route_decision"] = None
-            state["complexity_score"] = 0.0
-            state["complexity_level"] = ComplexityLevel.SIMPLE
-            state["is_multi_task"] = False
-            state["workflow_type"] = WorkflowType.SIMPLE_QA
-            state["task_type"] = TaskType.QA
-            state["route_reason"] = "规则短路：问候语直接走 simple_qa_node"
-            state["retrieval_required"] = False
-            state["route_confidence"] = 1.0
-            state["route_candidates"] = []
-            state["route_decision_trace"] = ["rule_short_circuit(greeting) → simple_qa_node"]
-            state["retrieval_confidence"] = 1.0
-            state.setdefault("citations", self._build_citations(state))
-            state.setdefault("validation_errors", [])
-            state.setdefault("policy_results", [])
-            state["current_phase"] = "route"
-            state["agents_involved"].append("route_agent")
-            self._add_thought(
-                state, "route_agent", "route",
-                "规则短路命中（问候语），跳过分类器，直接路由到 simple_qa_node",
-                action="规则短路", observation="未调用 IntentRouter 或 ComplexityClassifier"
-            )
-            return self._sanitize_state(state)
-
-        # 使用统一 IntentRouter
+        # 所有请求（包括问候语规则）统一产出 RouteDecision。
         from app.services.intent_router import get_intent_router
         try:
             router = await get_intent_router()
@@ -1151,6 +1177,7 @@ class AgentNodes:
                         meeting_id=meeting_id,
                         document_ids=document_ids,
                         vector_search_service=vector_search_service,
+                        access_scope=state.get("access_scope"),
                     )
                 else:
                     import asyncio
@@ -1160,6 +1187,7 @@ class AgentNodes:
                             meeting_id=meeting_id,
                             document_ids=document_ids,
                             vector_search_service=vector_search_service,
+                            access_scope=state.get("access_scope"),
                         )
                         for q in search_queries
                     ]
@@ -1739,8 +1767,12 @@ class AgentNodes:
         document_ids: Optional[List[int]],
         vector_search_service,
         top_k: int = 5,
+        access_scope: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         from app.core.config import settings
+        from app.core.security import AccessContext
+
+        access_context = AccessContext(**access_scope) if access_scope else None
 
         mentioned_ids = self._extract_document_ids_from_question(question)
 
@@ -1748,7 +1780,9 @@ class AgentNodes:
             app_logger.info(f"[RETRIEVE] 检测到文档全文摘要意图，document_ids={mentioned_ids}")
             all_chunks: List[dict] = []
             for doc_id in mentioned_ids:
-                chunks = await vector_search_service.get_document_chunks(doc_id)
+                chunks = await vector_search_service.get_document_chunks(
+                    doc_id, access_context=access_context
+                )
                 all_chunks.extend(chunks)
             if all_chunks:
                 return self._raw_results_to_search_results(all_chunks)
@@ -1769,6 +1803,7 @@ class AgentNodes:
                 enable_bm25=settings.ENABLE_BM25,
                 enable_vector=True,
                 enable_rerank=settings.ENABLE_RERANK,
+                access_context=access_context,
             )
         else:
             search_results = await vector_search_service.search_by_text(
@@ -1776,6 +1811,7 @@ class AgentNodes:
                 top_k=top_k,
                 document_ids=effective_doc_ids if effective_doc_ids else None,
                 meeting_id=meeting_id,
+                access_context=access_context,
             )
 
         return self._raw_results_to_search_results(search_results)
@@ -2280,11 +2316,18 @@ class AgentNodes:
         self._add_thought(state, "execute_agent", "execute", f"开始执行 {len(tool_calls)} 个工具调用", action="工具调用")
 
         for tc in tool_calls:
-            tool_name = tc.get("tool_name")
-            arguments = tc.get("arguments", {})
-            if not tool_name:
-                state["validation_errors"].append("工具调用缺少 tool_name")
+            try:
+                validated_call = validate_tool_call(
+                    tc.get("tool_name") if isinstance(tc, dict) else None,
+                    tc.get("arguments", {}) if isinstance(tc, dict) else None,
+                )
+            except ValidationError as validation_error:
+                state["validation_errors"].append(
+                    f"invalid_tool_arguments: {validation_error.errors(include_url=False)}"
+                )
                 continue
+            tool_name = validated_call.tool_name
+            arguments = validated_call.arguments
             tool = self._get_tool_by_name(tool_name)
             
             # 检查工具风险并逐个确认
@@ -2520,10 +2563,20 @@ class AgentNodes:
                 state["raw_context"] = list(dict.fromkeys((state.get("raw_context") or []) + self._format_chunks_to_text(result)))
         elif tool_name == "extract_todos" and isinstance(result, list):
             state["todos"] = result
+            self._record_structured_output(
+                state, "todos", result, "tool.extract_todos.v1", f"tool:{tool_name}"
+            )
         elif tool_name == "generate_minutes" and isinstance(result, str):
             state["minutes"] = result
+            minutes_output = MinutesOutput(content=result).model_dump()
+            self._record_structured_output(
+                state, "minutes", minutes_output, "tool.generate_minutes.v1", f"tool:{tool_name}"
+            )
         elif tool_name == "detect_controversies" and isinstance(result, list):
             state["controversies"] = result
+            self._record_structured_output(
+                state, "controversies", result, "tool.detect_controversies.v1", f"tool:{tool_name}"
+            )
         elif tool_name == "answer_question" and isinstance(result, str):
             state["answer"] = result
 
@@ -2855,6 +2908,14 @@ class AgentNodes:
         tool_result = state["task_contexts"].get("generate_minutes")
         if tool_result:
             state["minutes"] = tool_result.get("data", "")
+            self._record_structured_output(
+                state,
+                "minutes",
+                MinutesOutput(content=state["minutes"] or "未生成有效纪要").model_dump(),
+                "tool.generate_minutes.v1",
+                "tool:generate_minutes",
+                [] if state["minutes"] else ["empty_tool_result"],
+            )
             return state["minutes"]
 
         prompt = f"请生成会议纪要：\n{context}"
@@ -2864,6 +2925,13 @@ class AgentNodes:
         _tier, _minutes_model = get_model_router().select(TaskType.MINUTES, state.get("complexity_level"))
         minutes = await self.llm_service.chat(messages=messages, model=_minutes_model, temperature=0.7)
         state["minutes"] = minutes
+        self._record_structured_output(
+            state,
+            "minutes",
+            MinutesOutput(content=minutes).model_dump(),
+            "agent.minutes.v1",
+            _minutes_model,
+        )
         state["agents_involved"].append("execute_agent")
         return minutes
 
@@ -2888,6 +2956,9 @@ class AgentNodes:
                 success, todos = self._parse_json_response(response, "待办事项")
                 if success and isinstance(todos, list):
                     state["todos"] = todos
+                    self._record_structured_output(
+                        state, "todos", todos, "agent.todos.v1", _todo_model
+                    )
                     state["agents_involved"].append("execute_agent")
                     return json.dumps(todos, ensure_ascii=False)
             except Exception as e:
@@ -2917,6 +2988,13 @@ class AgentNodes:
                 success, controversies = self._parse_json_response(response, "争议点")
                 if success and isinstance(controversies, list):
                     state["controversies"] = controversies
+                    self._record_structured_output(
+                        state,
+                        "controversies",
+                        controversies,
+                        "agent.controversies.v1",
+                        _controversy_model,
+                    )
                     state["agents_involved"].append("execute_agent")
                     return json.dumps(controversies, ensure_ascii=False)
             except Exception as e:
@@ -3161,6 +3239,13 @@ class AgentNodes:
                         "retry_count": int(retry_count + 1) if needs_retry else int(retry_count)
                     }
                     state["reflection"] = new_reflection
+                    self._record_structured_output(
+                        state,
+                        "reflection",
+                        new_reflection,
+                        "agent.reflection.v1",
+                        getattr(settings, "EVAL_LLM_MODEL", "") or getattr(settings, "LLM_MODEL", "unknown"),
+                    )
                     
                     score = new_reflection["overall_score"]
                     emoji = "🟢" if score >= 0.8 else "🟡" if score >= 0.6 else "🔴"

@@ -1,6 +1,7 @@
 """安全与合规系统 - 支持权限控制、数据脱敏和审计日志"""
 import re
 import hashlib
+import json
 from typing import Dict, List, Any, Optional, Tuple, Union
 from enum import Enum
 from datetime import datetime, timedelta
@@ -97,22 +98,81 @@ class AccessContext:
         results = await bm25.search(query, access_context=ctx)
     """
     user_id: Optional[int] = None
+    department: Optional[str] = None
     department_ids: List[int] = field(default_factory=list)
     project_ids: List[int] = field(default_factory=list)
     meeting_ids: List[int] = field(default_factory=list)
     document_scope: Optional[List[int]] = None  # None 表示不限制，[] 表示无权限
     is_admin: bool = False
+    allow_public: bool = True
+
+    @staticmethod
+    def _integer_ids(values: Any) -> List[int]:
+        """只保留可安全用于 SQL/Milvus 过滤表达式的整数 ID。"""
+        if not isinstance(values, (list, tuple, set)):
+            return []
+        normalized: List[int] = []
+        for value in values:
+            try:
+                normalized.append(int(value))
+            except (TypeError, ValueError):
+                app_logger.warning("[Security] 权限范围包含非整数 ID，已忽略")
+        return normalized
+
+    @staticmethod
+    def _integer_id(value: Any) -> Optional[int]:
+        if value is None:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            app_logger.warning("[Security] 用户 ID 不是整数，已按匿名范围处理")
+            return None
 
     @classmethod
     def from_jwt_payload(cls, payload: Dict[str, Any]) -> "AccessContext":
         """从 JWT payload 构造访问上下文"""
         return cls(
-            user_id=payload.get("user_id") or payload.get("sub"),
-            department_ids=payload.get("department_ids", []),
-            project_ids=payload.get("project_ids", []),
-            meeting_ids=payload.get("meeting_ids", []),
-            document_scope=payload.get("document_scope"),
+            user_id=cls._integer_id(payload.get("user_id") or payload.get("sub")),
+            department=payload.get("department"),
+            department_ids=cls._integer_ids(payload.get("department_ids", [])),
+            project_ids=cls._integer_ids(payload.get("project_ids", [])),
+            meeting_ids=cls._integer_ids(payload.get("meeting_ids", [])),
+            document_scope=(
+                cls._integer_ids(payload["document_scope"])
+                if payload.get("document_scope") is not None
+                else None
+            ),
             is_admin=payload.get("is_admin", False) or payload.get("role") == "admin",
+            allow_public=payload.get("allow_public", True),
+        )
+
+    @classmethod
+    def from_user(cls, user: Any) -> "AccessContext":
+        """从已认证用户构造检索权限上下文。"""
+        permissions: Dict[str, Any] = {}
+        raw_permissions = getattr(user, "permissions", None)
+        if raw_permissions:
+            try:
+                parsed = json.loads(raw_permissions)
+                if isinstance(parsed, dict):
+                    permissions = parsed
+            except (TypeError, json.JSONDecodeError):
+                app_logger.warning("[Security] 用户 permissions 不是合法 JSON 对象，忽略扩展范围")
+
+        role = getattr(user, "role", "user")
+        role_value = role.value if hasattr(role, "value") else str(role)
+        return cls(
+            user_id=cls._integer_id(getattr(user, "id", None)),
+            department=getattr(user, "department", None),
+            meeting_ids=cls._integer_ids(permissions.get("meeting_ids", [])),
+            document_scope=(
+                cls._integer_ids(permissions["document_scope"])
+                if permissions.get("document_scope") is not None
+                else None
+            ),
+            is_admin=role_value == "admin",
+            allow_public=permissions.get("allow_public", True),
         )
 
     def to_bm25_filters(self) -> Dict[str, Any]:
@@ -120,6 +180,9 @@ class AccessContext:
         if self.is_admin:
             return {}  # 管理员不限制
         filters = {}
+        filters["user_id"] = self.user_id
+        filters["department"] = self.department
+        filters["allow_public"] = self.allow_public
         if self.department_ids:
             filters["department_ids"] = self.department_ids
         if self.meeting_ids:
@@ -137,9 +200,8 @@ class AccessContext:
         if self.is_admin:
             return None  # 管理员不限制
         parts = []
-        if self.department_ids:
-            ids = ", ".join(str(d) for d in self.department_ids)
-            parts.append(f"department_id in [{ids}]")
+        # 公共/上传者/部门 ACL 由 PostgreSQL 权威回查执行。Milvus 仅下推
+        # 能无损表达的显式会议与文档范围，避免排除其他部门的公开文档。
         if self.meeting_ids:
             ids = ", ".join(str(m) for m in self.meeting_ids)
             parts.append(f"meeting_id in [{ids}]")
@@ -149,6 +211,19 @@ class AccessContext:
         elif self.document_scope is not None and len(self.document_scope) == 0:
             parts.append("document_id in [-1]")  # 空列表 = 无权限
         return " and ".join(parts) if parts else None
+
+    def cache_scope(self) -> Dict[str, Any]:
+        """返回稳定、无敏感正文的缓存隔离范围。"""
+        return {
+            "user_id": self.user_id,
+            "department": self.department,
+            "meeting_ids": sorted(self.meeting_ids),
+            "document_scope": (
+                sorted(self.document_scope) if self.document_scope is not None else None
+            ),
+            "is_admin": self.is_admin,
+            "allow_public": self.allow_public,
+        }
 
 
 class AuditAction(str, Enum):

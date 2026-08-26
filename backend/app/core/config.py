@@ -187,6 +187,9 @@ class Settings(BaseSettings):
     PLAN_MAX_TASKS: int = 8  # 规划最大任务数（动态调整）
     PLAN_MIN_TOKENS: int = 500  # 规划最小可用 token
     PLAN_COMPLEXITY_THRESHOLD: float = 0.7  # 触发渐进式规划的复杂度阈值
+    # 路由阈值当前是保守初始值，必须由 route_eval 数据集重新标定后再写入报告。
+    ROUTE_TASK_CONFIDENCE_THRESHOLD: float = 0.65
+    ROUTE_COMPLEXITY_CONFIDENCE_THRESHOLD: float = 0.65
 
     # ==================== 统一质量门禁配置 ====================
     ENABLE_UNIFIED_QUALITY_GATE: bool = True  # 是否启用统一质量门禁（替代 replan+reflection 双重评估）

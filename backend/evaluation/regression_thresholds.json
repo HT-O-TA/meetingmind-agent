@@ -1,0 +1,20 @@
+{
+  "status": "provisional_targets_not_measured_baseline",
+  "usage": "仅在真实冻结评估集上通过 --enforce-thresholds 启用",
+  "minimum": {
+    "retrieval.recall_at_k": 0.7,
+    "retrieval.mrr": 0.55,
+    "retrieval.ndcg_at_k": 0.6,
+    "generation.citation_accuracy": 0.8,
+    "extraction.f1": 0.8,
+    "extraction.json_valid_rate": 0.98,
+    "tool.selection_accuracy": 0.95,
+    "tool.parameter_accuracy": 0.9,
+    "tool.hitl_trigger_accuracy": 1.0,
+    "route.task_accuracy": 0.9
+  },
+  "maximum": {
+    "system.error_rate": 0.01,
+    "system.p95_latency_ms": 3000.0
+  }
+}

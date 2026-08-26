@@ -141,6 +141,7 @@ class TestRAGServiceContract(unittest.IsolatedAsyncioTestCase):
             "enable_vector": True,
             "enable_rerank": False,
             "strategy": "A",
+            "access_context": None,
         })
         self.assertEqual(result["count"], 1)
         self.assertEqual(result["mode"], "milvus")
@@ -335,6 +336,8 @@ class TestVectorCacheContract(unittest.IsolatedAsyncioTestCase):
         sqlalchemy.text = MagicMock()
         sqlalchemy.func = MagicMock()
         sqlalchemy.and_ = MagicMock()
+        sqlalchemy.or_ = MagicMock()
+        sqlalchemy.false = MagicMock()
         sqlalchemy_ext = _package("sqlalchemy.ext")
         sqlalchemy_asyncio = _module(
             "sqlalchemy.ext.asyncio",

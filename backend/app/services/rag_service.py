@@ -1,5 +1,6 @@
 """RAG 服务：方案 A（PostgreSQL BM25 + Milvus Dense + Reranker）。"""
-from typing import List, Optional, Dict
+import time
+from typing import Any, List, Optional, Dict
 from app.services.vector_search_service import VectorSearchService
 from app.services.llm_service import LLMService
 from app.services.knowledge_graph import enhance_search_results
@@ -7,6 +8,7 @@ from app.services.knowledge_graph import get_knowledge_graph_index
 from app.services.enhanced_retrieval_fusion import get_enhanced_retrieval_fusion
 from app.core.logger import app_logger
 from app.core.config import settings
+from app.schemas.rag import Citation, RAGResult
 
 
 class RAGService:
@@ -37,6 +39,33 @@ class RAGService:
             return "pgvector"
         return "lightweight"
 
+    @staticmethod
+    def _build_citations(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """从最终排序后的片段生成稳定、可追溯的引用。"""
+        citations = []
+        for index, result in enumerate(results, start=1):
+            chunk_id = result.get("chunk_id") or result.get("id")
+            document_id = result.get("document_id")
+            meeting_id = result.get("meeting_id")
+            source_id = chunk_id if chunk_id is not None else document_id
+            content = result.get("chunk_text") or result.get("content") or ""
+            citation = Citation(
+                citation_id=f"[{index}]",
+                source_id=str(source_id if source_id is not None else f"rank-{index}"),
+                source_type="meeting_chunk" if meeting_id is not None else "document_chunk",
+                chunk_id=chunk_id,
+                document_id=document_id,
+                meeting_id=meeting_id,
+                chunk_index=result.get("chunk_index"),
+                speaker=result.get("speaker_name") or result.get("speaker"),
+                time_offset=result.get("time_offset"),
+                score=float(result.get("score", result.get("similarity", 0.0)) or 0.0),
+                retrieval_sources=sorted(result.get("sources", [])),
+                text_excerpt=str(content)[:240],
+            )
+            citations.append(citation.model_dump())
+        return citations
+
     async def ask(
         self,
         question: str,
@@ -45,6 +74,7 @@ class RAGService:
         department: Optional[str] = None,
         similarity_threshold: float = 0.0,
         use_llm: bool = True,
+        access_context: Optional[Any] = None,
     ) -> Dict:
         """
         RAG 问答：BM25 + Dense 多路召回、融合、Reranker 精排和可选图谱增强。
@@ -66,6 +96,10 @@ class RAGService:
         Returns:
             包含 answer、chunks、mode 等信息的字典
         """
+        started_at = time.perf_counter()
+        degradation_reasons: List[str] = []
+        degradation_actions: List[str] = []
+
         # 方案 A：单一查询走 PostgreSQL BM25 + Milvus dense，统一融合后由 Reranker 精排。
         # HyDE、问题分解和复杂查询编排保留在 Query Optimizer 中，后续按评测结果接入。
         search_queries = [question]
@@ -80,10 +114,15 @@ class RAGService:
             enable_vector=True,
             enable_rerank=False,
             strategy="A",
+            access_context=access_context,
+        )
+        retrieval_stage_metrics = dict(
+            getattr(self.vector_service, "last_retrieval_trace", {}) or {}
         )
         
         # KG 在 Reranker 前扩展候选；复杂 NER/分类后续接入当前分析接口。
         if settings.ENABLE_KNOWLEDGE_GRAPH and merged_results:
+            kg_started_at = time.perf_counter()
             try:
                 kg_analysis = get_knowledge_graph_index().get_graph().analyze_query(question)
                 primary_query = search_queries[0] if search_queries else question
@@ -94,27 +133,57 @@ class RAGService:
                 app_logger.info(f"[RAG] 知识图谱增强完成，结果数: {len(merged_results)}")
             except Exception as e:
                 app_logger.warning(f"[RAG] 知识图谱增强失败: {e}")
+                degradation_reasons.append("knowledge_graph_failed")
+            finally:
+                retrieval_stage_metrics["knowledge_graph_latency_ms"] = (
+                    time.perf_counter() - kg_started_at
+                ) * 1000
 
         if settings.ENABLE_RERANK and merged_results:
+            rerank_started_at = time.perf_counter()
             fusion = get_enhanced_retrieval_fusion(strategy="A")
             merged_results = await fusion.rerank_candidates(question, merged_results, top_k=top_k)
+            retrieval_stage_metrics["rerank_latency_ms"] = (
+                time.perf_counter() - rerank_started_at
+            ) * 1000
+
+        retrieval_latency_ms = (time.perf_counter() - started_at) * 1000
 
         # 4. 提取文本片段
         chunks = [r["chunk_text"] for r in merged_results if r.get("chunk_text")]
+        citations = self._build_citations(merged_results)
 
         # 5. 如果没有检索到结果
         if not chunks:
-            return {
+            degradation_reasons.append("no_retrieval_results")
+            degradation_actions.append("returned_knowledge_base_miss_message")
+            result = {
                 "answer": "抱歉，我在知识库中没有找到与您问题相关的内容。",
                 "chunks": [],
+                "citations": [],
                 "count": 0,
                 "mode": self._retrieval_mode(),
                 "query_type": "standard",
                 "original_query": question,
                 "rewritten_query": search_queries,
+                "expanded_query_count": 1,
+                "retrieval_strategy": "A",
+                "retrieval_sources": [],
+                "retrieval_stage_metrics": retrieval_stage_metrics,
+                "retrieval_latency_ms": retrieval_latency_ms,
+                "generation_latency_ms": 0.0,
+                "total_latency_ms": (time.perf_counter() - started_at) * 1000,
+                "degradation": {
+                    "applied": True,
+                    "reasons": degradation_reasons,
+                    "actions": degradation_actions,
+                },
+                "provenance": {"citation_count": 0, "access_control_applied": access_context is not None},
             }
+            return RAGResult.model_validate(result).model_dump()
 
         # 6. LLM 生成回答
+        generation_started_at = time.perf_counter()
         if use_llm:
             try:
                 answer = await self.llm_service.generate_answer(
@@ -123,6 +192,8 @@ class RAGService:
                 )
             except Exception as e:
                 app_logger.error(f"LLM 生成失败: {e}")
+                degradation_reasons.append("llm_generation_failed")
+                degradation_actions.append("returned_ranked_retrieval_excerpts")
                 answer = "抱歉，AI 生成回答失败。以下是检索到的相关内容：\n\n" + "\n\n".join(
                     [f"[{i+1}] {c}" for i, c in enumerate(chunks[:3])]
                 )
@@ -130,10 +201,12 @@ class RAGService:
             answer = "以下是检索到的相关内容：\n\n" + "\n\n".join(
                 [f"[{i+1}] {c}" for i, c in enumerate(chunks[:3])]
             )
+        generation_latency_ms = (time.perf_counter() - generation_started_at) * 1000
 
         result = {
             "answer": answer,
             "chunks": merged_results,
+            "citations": citations,
             "count": len(merged_results),
             "mode": self._retrieval_mode(),
             "query_type": "standard",
@@ -142,6 +215,19 @@ class RAGService:
             "expanded_query_count": 1,
             "retrieval_strategy": "A",
             "retrieval_sources": sorted({source for r in merged_results for source in r.get("sources", [])}),
+            "retrieval_stage_metrics": retrieval_stage_metrics,
+            "retrieval_latency_ms": retrieval_latency_ms,
+            "generation_latency_ms": generation_latency_ms,
+            "total_latency_ms": (time.perf_counter() - started_at) * 1000,
+            "degradation": {
+                "applied": bool(degradation_reasons),
+                "reasons": degradation_reasons,
+                "actions": degradation_actions,
+            },
+            "provenance": {
+                "citation_count": len(citations),
+                "access_control_applied": access_context is not None,
+            },
         }
 
         # 如果启用评估，添加评估指标
@@ -160,5 +246,5 @@ class RAGService:
             except Exception as e:
                 app_logger.warning(f"评估失败: {e}")
 
-        return result
+        return RAGResult.model_validate(result).model_dump()
     

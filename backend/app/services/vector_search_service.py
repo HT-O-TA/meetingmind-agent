@@ -6,10 +6,11 @@
 - 避免跨库关联查询，保持数据一致性
 """
 import json
+import time
 import numpy as np
 from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy import select, text, func, and_
+from sqlalchemy import select, text, func, and_, or_, false
 from app.models.vector import VectorChunk
 from app.models.document import Document
 from app.core.config import settings
@@ -32,6 +33,9 @@ class VectorCacheManager:
             filters['document_id'] = [str(d) for d in kwargs['document_ids']]
         if 'department' in kwargs and kwargs['department']:
             filters['department'] = kwargs['department']
+        access_context = kwargs.get('access_context')
+        if access_context:
+            filters['acl'] = access_context.cache_scope()
         
         top_k = kwargs.get('top_k', 10)
         return await _get_cached_result(query, top_k=top_k, filters=filters or None)
@@ -46,6 +50,9 @@ class VectorCacheManager:
             filters['document_id'] = [str(d) for d in kwargs['document_ids']]
         if 'department' in kwargs and kwargs['department']:
             filters['department'] = kwargs['department']
+        access_context = kwargs.get('access_context')
+        if access_context:
+            filters['acl'] = access_context.cache_scope()
         
         top_k = kwargs.get('top_k', 10)
         await _set_cached_result(query, results, top_k=top_k, filters=filters or None)
@@ -60,6 +67,7 @@ class VectorSearchService:
         self.db = db
         self.use_pgvector = False
         self.use_milvus = False
+        self.last_retrieval_trace: Dict[str, Any] = {}
         
     async def check_pgvector_support(self) -> bool:
         """检查数据库是否支持pgvector"""
@@ -145,11 +153,33 @@ class VectorSearchService:
         # 1. 尝试精确缓存（仅高频简单查询）
         cached_result = await VectorCacheManager.get_cached_result(
             query_text, top_k=top_k, meeting_id=meeting_id, 
-            document_ids=document_ids, department=department
+            document_ids=document_ids, department=department,
+            access_context=access_context,
         )
         if cached_result is not None:
-            app_logger.debug(f"[VectorSearch] 精确缓存命中: {query_text[:50]}...")
-            return cached_result
+            # 缓存只保存 ID/分数；每次命中仍回 PostgreSQL 做存活和 ACL 校验。
+            cached_ids = [item.get("chunk_id") for item in cached_result if item.get("chunk_id")]
+            live_chunks = await self._fetch_chunks_from_pg(
+                cached_ids,
+                document_ids=document_ids,
+                meeting_id=meeting_id,
+                department=department,
+                access_context=access_context,
+            )
+            cached_scores = {item.get("chunk_id"): item.get("score", 0.0) for item in cached_result}
+            app_logger.debug(f"[VectorSearch] 精确缓存命中并完成 PG 校验: {query_text[:50]}...")
+            return [
+                {
+                    **chunk,
+                    "chunk_id": chunk["id"],
+                    "content": chunk["chunk_text"],
+                    "full_text": chunk["chunk_text"],
+                    "score": cached_scores.get(chunk["id"], 0.0),
+                    "similarity": cached_scores.get(chunk["id"], 0.0),
+                    "sources": ["dense_cache"],
+                }
+                for chunk in live_chunks
+            ]
         
         # 2. 优先使用 Milvus 混合检索
         if self.use_milvus:
@@ -157,7 +187,7 @@ class VectorSearchService:
                 # Step 1: Milvus 检索，获取 Top-K 的 ID 和分数
                 milvus_results = await self._milvus_retrieve_ids(
                     query_text=query_text,
-                    top_k=top_k * 2,  # 多取一些，PG 过滤后可能不足
+                    top_k=top_k * 4,  # 多取候选，PG 权威 ACL/存活过滤后可能不足
                     document_ids=document_ids,
                     meeting_id=meeting_id,
                     department=department,
@@ -168,7 +198,7 @@ class VectorSearchService:
                     app_logger.debug("[VectorSearch] Milvus 无结果，回退到 PG")
                     return await self._search_fallback(
                         query_text, top_k, document_ids, meeting_id, 
-                        department, similarity_threshold
+                        department, similarity_threshold, access_context
                     )
                 
                 # Step 2: 用 chunk_ids 去 PostgreSQL 做精确过滤和完整读取
@@ -178,6 +208,7 @@ class VectorSearchService:
                     document_ids=document_ids,
                     meeting_id=meeting_id,
                     department=department,
+                    access_context=access_context,
                 )
                 
                 # Step 3: 合并结果（保留 Milvus 分数 + PG 完整信息）
@@ -207,7 +238,8 @@ class VectorSearchService:
                 await VectorCacheManager.set_cached_result(
                     query_text, final_results,
                     top_k=top_k, meeting_id=meeting_id,
-                    document_ids=document_ids, department=department
+                    document_ids=document_ids, department=department,
+                    access_context=access_context,
                 )
                 
                 app_logger.info(
@@ -223,7 +255,7 @@ class VectorSearchService:
         # 3. 回退：PG 向量检索或轻量模式
         return await self._search_fallback(
             query_text, top_k, document_ids, meeting_id, 
-            department, similarity_threshold
+            department, similarity_threshold, access_context
         )
     
     async def _milvus_retrieve_ids(
@@ -295,6 +327,7 @@ class VectorSearchService:
         document_ids: Optional[List[int]] = None,
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
+        access_context: Optional["AccessContext"] = None,
     ) -> List[Dict[str, Any]]:
         """
         从 PostgreSQL 获取完整的 chunk 数据
@@ -308,6 +341,7 @@ class VectorSearchService:
         
         # 构建查询：用 chunk_ids 做精确过滤
         query = select(VectorChunk).where(VectorChunk.id.in_(chunk_ids))
+        query = self._apply_live_document_filters(query, access_context)
         
         # 添加额外过滤条件
         conditions = []
@@ -344,6 +378,70 @@ class VectorSearchService:
         chunk_list.sort(key=lambda c: id_order.get(c["id"], len(chunk_ids)))
         
         return chunk_list
+
+    def _apply_live_document_filters(self, query, access_context: Optional["AccessContext"] = None):
+        """为 ORM 查询追加文档存活校验和权威 ACL。"""
+        query = query.join(Document, Document.id == VectorChunk.document_id).where(
+            VectorChunk.deleted_at.is_(None),
+            Document.deleted_at.is_(None),
+        )
+        if not access_context or access_context.is_admin:
+            return query
+
+        acl_terms = []
+        if access_context.allow_public:
+            acl_terms.append(Document.is_public.is_(True))
+        if access_context.user_id is not None:
+            acl_terms.append(Document.uploader_id == access_context.user_id)
+        if access_context.department:
+            acl_terms.append(Document.department == access_context.department)
+        query = query.where(or_(*acl_terms) if acl_terms else false())
+
+        if access_context.document_scope is not None:
+            if access_context.document_scope:
+                query = query.where(VectorChunk.document_id.in_(access_context.document_scope))
+            else:
+                query = query.where(false())
+        if access_context.meeting_ids:
+            query = query.where(VectorChunk.meeting_id.in_(access_context.meeting_ids))
+        return query
+
+    @staticmethod
+    def _build_acl_sql(access_context: Optional["AccessContext"] = None) -> Tuple[str, Dict[str, Any]]:
+        """为 pgvector 原生 SQL 构建参数化 ACL；PostgreSQL 是权限权威来源。"""
+        if not access_context or access_context.is_admin:
+            return "", {}
+
+        params: Dict[str, Any] = {}
+        acl_terms: List[str] = []
+        if access_context.allow_public:
+            acl_terms.append("d.is_public IS TRUE")
+        if access_context.user_id is not None:
+            acl_terms.append("d.uploader_id = :acl_user_id")
+            params["acl_user_id"] = access_context.user_id
+        if access_context.department:
+            acl_terms.append("d.department = :acl_department")
+            params["acl_department"] = access_context.department
+
+        clauses = [f" AND ({' OR '.join(acl_terms)})" if acl_terms else " AND FALSE"]
+        if access_context.document_scope is not None:
+            if not access_context.document_scope:
+                clauses.append(" AND FALSE")
+            else:
+                placeholders = []
+                for index, document_id in enumerate(access_context.document_scope):
+                    key = f"acl_document_id_{index}"
+                    placeholders.append(f":{key}")
+                    params[key] = document_id
+                clauses.append(f" AND vc.document_id IN ({', '.join(placeholders)})")
+        if access_context.meeting_ids:
+            placeholders = []
+            for index, meeting_scope_id in enumerate(access_context.meeting_ids):
+                key = f"acl_meeting_id_{index}"
+                placeholders.append(f":{key}")
+                params[key] = meeting_scope_id
+            clauses.append(f" AND vc.meeting_id IN ({', '.join(placeholders)})")
+        return "".join(clauses), params
     
     async def _search_fallback(
         self,
@@ -353,6 +451,7 @@ class VectorSearchService:
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
         similarity_threshold: float = 0.0,
+        access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """回退检索：PG 向量检索或轻量模式"""
         try:
@@ -368,12 +467,12 @@ class VectorSearchService:
             if self.use_pgvector:
                 return await self._search_pgvector(
                     query_vector, top_k, document_ids, meeting_id,
-                    department, similarity_threshold
+                    department, similarity_threshold, access_context
                 )
             else:
                 return await self._search_lightweight(
                     query_vector, top_k, document_ids, meeting_id,
-                    department, similarity_threshold
+                    department, similarity_threshold, access_context
                 )
                 
         except Exception as e:
@@ -388,6 +487,7 @@ class VectorSearchService:
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
         similarity_threshold: float = 0.0,
+        access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """
         根据向量进行检索
@@ -411,6 +511,7 @@ class VectorSearchService:
                 meeting_id=meeting_id,
                 department=department,
                 similarity_threshold=similarity_threshold,
+                access_context=access_context,
             )
         else:
             return await self._search_lightweight(
@@ -420,6 +521,7 @@ class VectorSearchService:
                 meeting_id=meeting_id,
                 department=department,
                 similarity_threshold=similarity_threshold,
+                access_context=access_context,
             )
     
     async def _search_lightweight(
@@ -430,6 +532,7 @@ class VectorSearchService:
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
         similarity_threshold: float = 0.0,
+        access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """轻量模式：在Python中计算余弦相似度"""
         # 只选择需要的字段，避免选择 embedding_array（可能是pgvector类型导致解析错误）
@@ -445,6 +548,7 @@ class VectorSearchService:
             VectorChunk.metadata_json,
             VectorChunk.embedding,  # 使用JSON格式的embedding
         )
+        query = self._apply_live_document_filters(query, access_context)
         
         if document_ids:
             query = query.where(VectorChunk.document_id.in_(document_ids))
@@ -500,6 +604,7 @@ class VectorSearchService:
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
         similarity_threshold: float = 0.0,
+        access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """pgvector模式：使用数据库内置向量运算"""
         try:
@@ -518,7 +623,10 @@ class VectorSearchService:
                     vc.metadata_json,
                     1 - (vc.embedding_array::vector <=> {query_vector_str}) as similarity
                 FROM vector_chunks vc
+                JOIN documents d ON d.id = vc.document_id
                 WHERE vc.embedding_array IS NOT NULL
+                  AND vc.deleted_at IS NULL
+                  AND d.deleted_at IS NULL
             """
 
             params = {}
@@ -535,6 +643,10 @@ class VectorSearchService:
             if department:
                 base_query += " AND vc.department = :department"
                 params["department"] = department
+
+            acl_sql, acl_params = self._build_acl_sql(access_context)
+            base_query += acl_sql
+            params.update(acl_params)
 
             base_query += f"""
                 AND 1 - (vc.embedding_array::vector <=> {query_vector_str}) >= :similarity_threshold
@@ -586,11 +698,14 @@ class VectorSearchService:
             app_logger.error(f"Error calculating cosine similarity: {e}")
             return 0.0
     
-    async def get_document_chunks(self, document_id: int) -> List[dict]:
+    async def get_document_chunks(
+        self,
+        document_id: int,
+        access_context: Optional["AccessContext"] = None,
+    ) -> List[dict]:
         """获取文档的所有向量块（按 chunk_index 顺序，不做相似度过滤）"""
         try:
-            result = await self.db.execute(
-                select(
+            query = select(
                     VectorChunk.id,
                     VectorChunk.document_id,
                     VectorChunk.meeting_id,
@@ -600,10 +715,9 @@ class VectorSearchService:
                     VectorChunk.speaker_name,
                     VectorChunk.time_offset,
                     VectorChunk.metadata_json,
-                )
-                .where(VectorChunk.document_id == document_id)
-                .order_by(VectorChunk.chunk_index)
-            )
+                ).where(VectorChunk.document_id == document_id)
+            query = self._apply_live_document_filters(query, access_context)
+            result = await self.db.execute(query.order_by(VectorChunk.chunk_index))
             chunks = result.all()
 
             return [
@@ -637,6 +751,7 @@ class VectorSearchService:
         enable_vector: bool = True,
         enable_rerank: bool = True,
         strategy: Optional[str] = None,
+        access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """
         多路召回检索 - BM25 + 向量检索 + 重排序
@@ -664,6 +779,8 @@ class VectorSearchService:
         
         # 使用配置文件中的策略或传入的策略
         current_strategy = strategy or settings.RETRIEVAL_STRATEGY
+        retrieval_started_at = time.perf_counter()
+        degradation_reasons = []
         app_logger.debug(f"[MultiRetrieval] 使用策略: {current_strategy}")
         
         # 获取增强版融合器
@@ -671,6 +788,7 @@ class VectorSearchService:
         
         # 执行向量检索（dense）
         dense_results = []
+        dense_started_at = time.perf_counter()
         if enable_vector:
             dense_results = await self.search_by_text(
                 query_text=query_text,
@@ -679,14 +797,17 @@ class VectorSearchService:
                 meeting_id=meeting_id,
                 department=department,
                 similarity_threshold=similarity_threshold,
+                access_context=access_context,
             )
             # 转换格式，添加 score 字段
             for r in dense_results:
                 r['score'] = r.get('score', r.get('similarity', 0))
                 r['doc_id'] = r.get('chunk_id', r.get('document_id', 0))
+        dense_latency_ms = (time.perf_counter() - dense_started_at) * 1000
         
         # 执行BM25检索（如果启用）
         bm25_results = []
+        bm25_started_at = time.perf_counter()
         if enable_bm25:
             try:
                 from app.services.bm25_retriever import get_bm25_retriever
@@ -699,9 +820,12 @@ class VectorSearchService:
                     meeting_id=meeting_id,
                     document_ids=document_ids,
                     department=department,
+                    access_context=access_context,
                 )
             except Exception as e:
                 app_logger.warning(f"BM25检索失败，跳过: {e}")
+                degradation_reasons.append("bm25_failed")
+        bm25_latency_ms = (time.perf_counter() - bm25_started_at) * 1000
         
         # 方案 A 不构建任何额外稀疏索引；Milvus Sparse 已从正式链路移除。
         sparse_index = None
@@ -711,16 +835,38 @@ class VectorSearchService:
                 docs_for_sparse = []
                 if document_ids:
                     for doc_id in document_ids:
-                        chunks = await self.get_document_chunks(doc_id)
+                        chunks = await self.get_document_chunks(doc_id, access_context=access_context)
                         if chunks:
                             full_content = "\n".join(c.get('chunk_text', '') for c in chunks)
                             docs_for_sparse.append({'id': doc_id, 'content': full_content})
                 else:
                     # 获取所有文档
                     from app.models.document import Document
-                    result = await self.db.execute(
-                        select(Document.id, Document.content)
+                    document_query = select(Document.id, Document.content).where(
+                        Document.deleted_at.is_(None)
                     )
+                    if access_context and not access_context.is_admin:
+                        acl_terms = []
+                        if access_context.allow_public:
+                            acl_terms.append(Document.is_public.is_(True))
+                        if access_context.user_id is not None:
+                            acl_terms.append(Document.uploader_id == access_context.user_id)
+                        if access_context.department:
+                            acl_terms.append(Document.department == access_context.department)
+                        document_query = document_query.where(
+                            or_(*acl_terms) if acl_terms else false()
+                        )
+                        if access_context.document_scope is not None:
+                            document_query = document_query.where(
+                                Document.id.in_(access_context.document_scope)
+                                if access_context.document_scope
+                                else false()
+                            )
+                        if access_context.meeting_ids:
+                            document_query = document_query.where(
+                                Document.meeting_id.in_(access_context.meeting_ids)
+                            )
+                    result = await self.db.execute(document_query)
                     for row in result.fetchall():
                         doc_id, content = row
                         if content:
@@ -733,6 +879,7 @@ class VectorSearchService:
         
         # 如果不启用重排序，直接融合返回
         if not enable_rerank:
+            fusion_started_at = time.perf_counter()
             # 根据策略选择融合方式
             if current_strategy == 'B':
                 # 使用RRF融合
@@ -741,9 +888,23 @@ class VectorSearchService:
             else:
                 # 使用加权融合
                 fused_results = fusion._weighted_fusion(bm25_results, dense_results)
-            return fused_results[:top_k]
+            final_results = fused_results[:top_k]
+            self.last_retrieval_trace = {
+                "schema_version": "retrieval_trace.v1",
+                "strategy": current_strategy,
+                "dense_count": len(dense_results),
+                "bm25_count": len(bm25_results),
+                "final_count": len(final_results),
+                "dense_latency_ms": dense_latency_ms,
+                "bm25_latency_ms": bm25_latency_ms,
+                "fusion_latency_ms": (time.perf_counter() - fusion_started_at) * 1000,
+                "total_latency_ms": (time.perf_counter() - retrieval_started_at) * 1000,
+                "degradation_reasons": degradation_reasons,
+            }
+            return final_results
         
         # 使用增强版多路召回融合器进行融合和重排序
+        fusion_started_at = time.perf_counter()
         results = await fusion.retrieve(
             query=query_text,
             bm25_results=bm25_results,
@@ -752,6 +913,18 @@ class VectorSearchService:
             top_k=top_k
         )
         
+        self.last_retrieval_trace = {
+            "schema_version": "retrieval_trace.v1",
+            "strategy": current_strategy,
+            "dense_count": len(dense_results),
+            "bm25_count": len(bm25_results),
+            "final_count": len(results),
+            "dense_latency_ms": dense_latency_ms,
+            "bm25_latency_ms": bm25_latency_ms,
+            "fusion_rerank_latency_ms": (time.perf_counter() - fusion_started_at) * 1000,
+            "total_latency_ms": (time.perf_counter() - retrieval_started_at) * 1000,
+            "degradation_reasons": degradation_reasons,
+        }
         return results
     
     async def update_bm25_index(self):

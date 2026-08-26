@@ -8,6 +8,10 @@ from app.services.vector_search_service import VectorSearchService
 from app.services.llm_service import LLMService
 from app.core.response import Response
 from app.core.config import settings
+from app.core.deps import get_current_user
+from app.core.security import AccessContext
+from app.models.user import User
+from app.schemas.rag import RAGAPIResponse
 
 router = APIRouter(tags=["RAG 问答"])
 
@@ -21,10 +25,11 @@ async def get_rag_service(db: AsyncSession = Depends(get_db)) -> RAGService:
     return RAGService(vector_service=vector_service, llm_service=llm_service)
 
 
-@router.post("/ask", summary="RAG 智能问答")
+@router.post("/ask", summary="RAG 智能问答", response_model=RAGAPIResponse)
 async def rag_ask(
     request: RAGAskRequest,
     rag_service: RAGService = Depends(get_rag_service),
+    current_user: User = Depends(get_current_user),
 ):
     """
     RAG 智能问答接口
@@ -47,5 +52,6 @@ async def rag_ask(
             else settings.SIMILARITY_THRESHOLD
         ),
         use_llm=request.use_llm,
+        access_context=AccessContext.from_user(current_user),
     )
     return Response.ok(result)

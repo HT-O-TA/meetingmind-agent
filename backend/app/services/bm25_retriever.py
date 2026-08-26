@@ -71,7 +71,10 @@ class BM25Retriever:
                     vc.department,
                     ts_rank_cd(vc.tsv_content, plainto_tsquery('{ts_config}', :query)) as rank
                 FROM vector_chunks vc
+                JOIN documents d ON d.id = vc.document_id
                 WHERE vc.tsv_content @@ plainto_tsquery('{ts_config}', :query)
+                  AND vc.deleted_at IS NULL
+                  AND d.deleted_at IS NULL
             """
             
             params = {"query": query}
@@ -94,6 +97,16 @@ class BM25Retriever:
             # ── AccessContext 权限下推（先过滤权限再算相关性）──
             if access_context and not access_context.is_admin:
                 ctx_filters = access_context.to_bm25_filters()
+                acl_terms = []
+                if ctx_filters.get("allow_public"):
+                    acl_terms.append("d.is_public IS TRUE")
+                if ctx_filters.get("user_id") is not None:
+                    acl_terms.append("d.uploader_id = :ctx_user_id")
+                    params["ctx_user_id"] = ctx_filters["user_id"]
+                if ctx_filters.get("department"):
+                    acl_terms.append("d.department = :ctx_department")
+                    params["ctx_department"] = ctx_filters["department"]
+                filters.append(f"({' OR '.join(acl_terms)})" if acl_terms else "FALSE")
                 if ctx_filters.get("meeting_ids"):
                     placeholders = ", ".join(f":ctx_mid_{i}" for i in range(len(ctx_filters["meeting_ids"])))
                     filters.append(f"vc.meeting_id IN ({placeholders})")

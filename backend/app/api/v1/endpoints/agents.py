@@ -14,6 +14,9 @@ from app.services.multimodal_gateway import get_multimodal_gateway, MultimodalSt
 from app.core.dependencies import get_llm_service, get_vector_search_service
 from app.core.logger import app_logger
 from app.services.performance_metrics import record_performance
+from app.core.deps import get_current_user
+from app.core.security import AccessContext
+from app.models.user import User
 import json
 
 
@@ -111,6 +114,7 @@ async def agent_query(
     request: AgentQueryRequest,
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     start_time = time.time()
     
@@ -124,10 +128,11 @@ async def agent_query(
 
     # 构建 SessionContext（统一四层 ID）
     context = SessionContext(
-        user_id=request.user_id,
+        user_id=current_user.id,
         session_id=request.session_id or generate_session_id(),
         conversation_id=request.conversation_id or generate_conversation_id(),
         meeting_id=request.meeting_id,
+        access_scope=AccessContext.from_user(current_user).cache_scope(),
     )
 
     app_logger.info(f"[API] Agent查询 - Tool Calling: {request.enable_tool_calling}, thread_id: {context.thread_id}")
@@ -173,6 +178,7 @@ async def agent_query(
         "route_confidence": result.route_decision.confidence if result.route_decision else None,
         "route_candidates": result.route_decision.candidates if result.route_decision else None,
         "route_decision_trace": result.route_decision.decision_trace if result.route_decision else None,
+        "structured_outputs": result.structured_outputs,
     }
 
     # 合并 metadata 中的额外信息
@@ -196,6 +202,7 @@ async def agent_query_multimodal(
     enable_human_in_the_loop: bool = Form(False),
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     """多模态查询 - 支持上传图片/音频/文档"""
     start_time = time.time()
@@ -244,10 +251,11 @@ async def agent_query_multimodal(
 
     # 构建 SessionContext
     context = SessionContext(
-        user_id=user_id,
+        user_id=current_user.id,
         session_id=session_id or generate_session_id(),
         conversation_id=conversation_id or generate_conversation_id(),
         meeting_id=meeting_id,
+        access_scope=AccessContext.from_user(current_user).cache_scope(),
     )
 
     app_logger.info(f"[API] 多模态查询 - thread_id: {context.thread_id}, has_file: {bool(file)}")
@@ -285,6 +293,7 @@ async def agent_query_stream(
     request: AgentQueryRequest,
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     """Agent流式查询 - 实时返回思维链和中间结果"""
     
@@ -305,10 +314,11 @@ async def agent_query_stream(
 
         # 构建 SessionContext（统一四层 ID）
         context = SessionContext(
-            user_id=request.user_id,
+            user_id=current_user.id,
             session_id=request.session_id or generate_session_id(),
             conversation_id=request.conversation_id or generate_conversation_id(),
             meeting_id=request.meeting_id,
+            access_scope=AccessContext.from_user(current_user).cache_scope(),
         )
 
         app_logger.info(f"[API] Agent流式查询 - Tool Calling: {request.enable_tool_calling}, thread_id: {context.thread_id}")
@@ -390,6 +400,7 @@ async def agent_batch_query(
     request: AgentBatchRequest,
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
+    current_user: User = Depends(get_current_user),
 ):
     agent_service = await get_agent_service(
         llm_service=llm_service,
@@ -398,10 +409,18 @@ async def agent_batch_query(
         enable_tool_calling=request.enable_tool_calling
     )
 
+    context = SessionContext(
+        user_id=current_user.id,
+        session_id=request.session_id or generate_session_id(),
+        conversation_id=request.conversation_id or generate_conversation_id(),
+        meeting_id=request.meeting_id,
+        access_scope=AccessContext.from_user(current_user).cache_scope(),
+    )
     results = await agent_service.process_batch(
         questions=request.questions,
         meeting_id=request.meeting_id,
         document_ids=request.document_ids,
+        context=context,
     )
 
     return {

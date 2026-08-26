@@ -1,4 +1,4 @@
-"""多级缓存系统 - 语义缓存 + 分级 TTL + 主动失效
+"""多级缓存系统 - Embedding/ACL 精确检索缓存 + 分级 TTL + 主动失效
 
 架构说明：
 ┌─────────────────────────────────────────────────────────────────┐
@@ -6,9 +6,9 @@
 │  - text → embedding 映射                                        │
 │  - 节省约 28% Embedding 调用量                                  │
 ├─────────────────────────────────────────────────────────────────┤
-│  Level 2: 语义缓存（Semantic Cache）                            │
-│  - 用 Embedding 相似度匹配历史查询                              │
-│  - 支持口语化、倒装句等变体                                     │
+│  Level 2: 语义缓存（仅保留给非权限业务结果的实验接口）          │
+│  - 正式检索结果不得从 query-only 语义缓存返回                    │
+│  - 无法证明 ACL 等价时禁止跨查询复用                             │
 ├─────────────────────────────────────────────────────────────────┤
 │  Level 3: 检索结果缓存（省去向量库查询）                        │
 │  - 缓存 Top-K 文档 ID，不存完整内容                              │
@@ -534,7 +534,7 @@ class MultiLevelCacheManager:
     工作流程：
     1. 查询先经过 QueryClassifier 分类
     2. 根据类型选择 TTL 和缓存策略
-    3. 依次检查 Embedding Cache → Semantic Cache → Retrieval Cache
+    3. 正式检索只检查按 ACL/filter 隔离的 Retrieval Cache
     4. 缓存未命中则执行检索，结果写入相应层级
     """
 
@@ -574,15 +574,8 @@ class MultiLevelCacheManager:
             app_logger.debug(f"[MultiLevelCache] 跳过缓存（{query_type}）: {query[:30]}...")
             return None
 
-        # Step 3: 检查语义缓存
-        model_name = "bge-m3"  # 当前使用的 Embedding 模型
-        semantic_result = await self.semantic_cache.lookup(
-            query, model_name, embedding_service
-        )
-        if semantic_result:
-            return semantic_result["result"]
-
-        # Step 4: 检查检索结果缓存
+        # 检索结果必须按 ACL/filter 精确隔离。语义缓存只按 query 匹配，
+        # 无法证明权限范围等价，因此不再用于返回检索结果。
         retrieval_result = self.retrieval_cache.get(query, top_k, filters)
         if retrieval_result:
             app_logger.debug(f"[MultiLevelCache] 检索缓存命中: {query[:30]}...")
@@ -606,25 +599,7 @@ class MultiLevelCacheManager:
         if ttl == 0:
             return  # 不缓存复杂查询
 
-        model_name = "bge-m3"
-
-        # 1. 存储到语义缓存（带 Embedding）
-        cache_entry = {
-            "result": results,
-            "query_type": query_type,
-            "ttl": ttl,
-        }
-        if embedding:
-            cache_entry["embedding"] = embedding
-
-        self.semantic_cache.store(
-            query=query,
-            result=cache_entry,
-            model_name=model_name,
-            ttl=ttl,
-        )
-
-        # 2. 存储到检索结果缓存
+        # 只写按 ACL/filter 隔离的精确检索缓存；缓存中仅保存 ID 与分数。
         self.retrieval_cache.set(
             query=query,
             results=results,
