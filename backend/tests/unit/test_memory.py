@@ -19,6 +19,17 @@ def test_memory_manager_formats_recent_context():
     assert memory.get_context_for_query("继续", n_recent=1) == "问: 第二问\n答: 第二答"
 
 
+def test_memory_manager_returns_independent_turns_most_recent_first():
+    memory = MemoryManager(max_short_term_turns=3)
+    memory.add_exchange("第一问", "第一答")
+    memory.add_exchange("第二问", "第二答")
+
+    items = memory.get_context_items_for_query("继续", n_recent=2)
+
+    assert "第二问" in items[0]
+    assert "第一问" in items[1]
+
+
 def test_memory_manager_clear_removes_session_context():
     memory = MemoryManager()
     memory.add_exchange("问题", "答案")

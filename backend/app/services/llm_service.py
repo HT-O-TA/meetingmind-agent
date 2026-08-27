@@ -6,6 +6,7 @@ from openai import AsyncOpenAI, RateLimitError
 from httpx import Timeout
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.services.context_assembler import ContextAssembler
 from app.services.token_budget_ledger import (
     TokenBudgetExceeded,
     TokenBudgetLedger,
@@ -34,6 +35,8 @@ class LLMService:
         self.client: Optional[AsyncOpenAI] = None
         self.last_budget_snapshot: Optional[Dict[str, Any]] = None
         self.last_budget_decision: Optional[Dict[str, Any]] = None
+        self.last_context_manifest: Optional[Dict[str, Any]] = None
+        self.context_assembler = ContextAssembler()
 
     def _create_client(self, api_key: str, base_url: str) -> AsyncOpenAI:
         return AsyncOpenAI(
@@ -245,24 +248,14 @@ class LLMService:
 如果参考信息中没有相关内容，请坦诚告知用户，不要编造信息。
 回答要简洁明了，重点突出。"""
 
-        # 构建上下文（限制总长度，避免超出API限制）
-        max_context_chars = settings.LLM_MAX_CONTEXT_CHARS
-
-        context_parts = []
-        total_chars = 0
-        for i, ctx in enumerate(context):
-            ctx_with_header = f"[参考信息 {i+1}]:\n{ctx}"
-            if total_chars + len(ctx_with_header) <= max_context_chars:
-                context_parts.append(ctx_with_header)
-                total_chars += len(ctx_with_header)
-            else:
-                # 如果剩余空间足够，放一部分
-                remaining = max_context_chars - total_chars
-                if remaining > 100:  # 至少还有100字符的空间
-                    context_parts.append(ctx_with_header[:remaining])
-                break
-
-        context_text = "\n\n".join(context_parts)
+        assembly = self.context_assembler.assemble_texts(
+            context,
+            max_chars=settings.LLM_MAX_CONTEXT_CHARS,
+            consumer="rag_generate",
+            source="retrieval",
+        )
+        context_text = assembly.text
+        self.last_context_manifest = assembly.manifest
 
         user_message = f"""用户问题：{question}
 

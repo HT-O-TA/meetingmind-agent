@@ -57,6 +57,7 @@ def test_input_envelope_normalizes_scope_and_marks_trust_levels():
     assert envelope["budget"]["max_node_tokens"] > 0
     assert envelope["budget"]["max_llm_calls"] > 0
     assert envelope["budget"]["token_ledger"] is None
+    assert envelope["budget"]["context_manifest"] is None
     assert [item["trust_level"] for item in envelope["artifacts"]] == [
         "user_instruction",
         "untrusted_upload",

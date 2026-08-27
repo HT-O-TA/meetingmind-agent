@@ -95,6 +95,10 @@ class Settings(BaseSettings):
     LLM_NODE_TOKEN_BUDGET: int = 32768  # 单节点在重试/多任务中的累计预算
     LLM_MAX_CALLS_PER_RUN: int = 16
     LLM_TOKEN_SAFETY_MARGIN_RATIO: float = 0.15
+    CONTEXT_MAX_ITEM_CHARS: int = 1600  # 单条证据上限，避免一个长结果吞掉全部预算
+    CONTEXT_MAX_ITEMS: int = 8
+    CONTEXT_MAX_CHUNKS_PER_DOCUMENT: int = 3  # 为不同文档/来源保留多样性
+    CONTEXT_ANCHOR_MAX_CHARS: int = 700
     MODEL_TURBO_NAME: str = "qwen-turbo"
     MODEL_PLUS_NAME: str = "qwen3.6-plus"
     MODEL_MAX_NAME: str = "qwen-max"
@@ -176,6 +180,13 @@ class Settings(BaseSettings):
             raise ValueError("LLM_MAX_CALLS_PER_RUN 必须大于 0")
         if not 0 <= self.LLM_TOKEN_SAFETY_MARGIN_RATIO < 1:
             raise ValueError("LLM_TOKEN_SAFETY_MARGIN_RATIO 必须位于 [0, 1)")
+        if min(
+            self.CONTEXT_MAX_ITEM_CHARS,
+            self.CONTEXT_MAX_ITEMS,
+            self.CONTEXT_MAX_CHUNKS_PER_DOCUMENT,
+            self.CONTEXT_ANCHOR_MAX_CHARS,
+        ) <= 0:
+            raise ValueError("上下文组装数量与字符预算必须大于 0")
         try:
             windows = json.loads(self.LLM_MODEL_CONTEXT_WINDOWS)
         except json.JSONDecodeError as exc:

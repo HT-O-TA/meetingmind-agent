@@ -417,6 +417,11 @@ def test_agent_query_returns_policy_and_pending_action(authenticated_client, mon
                     "reason": "工具风险评估：jira_create_issue:high",
                     "tool_calls": [{"tool_name": "jira_create_issue", "arguments": {}}],
                 },
+                context_manifest={
+                    "schema_version": "context-manifest.v1",
+                    "included": [],
+                    "dropped": [],
+                },
             )
 
     async def fake_get_agent_service(*args, **kwargs):
@@ -429,6 +434,7 @@ def test_agent_query_returns_policy_and_pending_action(authenticated_client, mon
     assert response["policy_results"][0]["code"] == "confirmation_required"
     assert response["pending_action"]["source"] == "tool"
     assert response["requires_confirmation"] is True
+    assert response["context_manifest"]["schema_version"] == "context-manifest.v1"
 
 
 def test_agent_confirmation_resume_endpoint(authenticated_client, monkeypatch):

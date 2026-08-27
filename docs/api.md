@@ -80,7 +80,7 @@ Authorization: Bearer <token>
 
 若写工具需要确认，响应会包含 `requires_confirmation`、`confirmation_status` 和 `pending_action`。客户端通过 confirmation 接口批准或拒绝；批准后使用 `/confirmations/resume` 从后端保存的确认快照继续执行。
 
-普通、SSE 最终事件和批量响应都返回 `budget_ledger`。该字段包含模型/节点计数方法、调用前估算、输出预留、供应商实际 usage、累计值与拒绝原因，但不包含 Prompt 正文。确认恢复沿用快照中的原 Agent Run 累计预算；预算快照缺失或损坏时拒绝恢复。
+普通、SSE 最终事件和批量响应都返回 `budget_ledger` 与 `context_manifest`。前者包含模型/节点计数方法、调用前估算、输出预留、供应商实际 usage、累计值与拒绝原因；后者包含上下文来源引用、哈希、优先级、原始/纳入长度、截断与丢弃原因。两者都不包含 Prompt 或证据正文。确认恢复沿用快照中的原 Agent Run 累计预算；预算快照缺失或损坏时拒绝恢复。
 
 ## 已移除接口
 

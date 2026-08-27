@@ -73,6 +73,7 @@ class InputBudget(BaseModel):
     max_llm_calls: int = Field(ge=1)
     token_safety_margin_ratio: float = Field(ge=0.0, lt=1.0)
     token_ledger: Optional[Dict[str, Any]] = None
+    context_manifest: Optional[Dict[str, Any]] = None
 
 
 class InputSecurity(BaseModel):

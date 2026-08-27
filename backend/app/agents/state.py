@@ -72,7 +72,6 @@ class AgentConfig(TypedDict):
     max_plan_retries: int            # 计划最大重试次数
     max_context_length: int          # 上下文最大长度（字符）
     max_few_shot_examples: int       # 每个模板最大示例数
-    context_truncation_ratio: float  # 上下文截断比例
 
 
 class RiskLevel(str, Enum):
@@ -229,6 +228,7 @@ class AgentState(TypedDict):
     document_ids: Optional[List[int]]
     context: List[ChunkMetadata]
     raw_context: List[str]
+    context_manifest: Optional[Dict[str, Any]]
     current_phase: str
     task_type: Optional[TaskType]
 
@@ -312,6 +312,7 @@ class AgentResult:
     route_decision: Optional["RouteDecision"] = None
     structured_outputs: Optional[Dict[str, Any]] = None
     budget_ledger: Optional[Dict[str, Any]] = None
+    context_manifest: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -410,6 +411,7 @@ def create_initial_state(
         "document_ids": document_ids or [],
         "context": [],
         "raw_context": [],
+        "context_manifest": None,
         "current_phase": "plan",
         "task_type": None,
         "workflow_type": None,

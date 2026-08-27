@@ -79,6 +79,7 @@ class TestCreateInitialState:
         assert state["confirmation_status"] == "not_required"
         assert state["input_envelope"] is None
         assert state["task_anchor"] is None
+        assert state["context_manifest"] is None
         assert state["input_blocked"] is False
         assert state["injection_blocked"] is False
 

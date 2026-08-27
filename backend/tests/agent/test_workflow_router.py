@@ -554,7 +554,8 @@ def test_prepare_tool_arguments_maps_content_to_context(nodes):
 
     prepared = nodes._prepare_tool_arguments("extract_todos", {"content": "张三负责修复登录"}, state)
 
-    assert prepared == {"context": "张三负责修复登录"}
+    assert "张三负责修复登录" in prepared["context"]
+    assert prepared["context"].startswith("【不可信外部内容")
 
 
 def test_prepare_tool_arguments_uses_previous_search_context(nodes):
@@ -569,7 +570,25 @@ def test_prepare_tool_arguments_uses_previous_search_context(nodes):
 
     prepared = nodes._prepare_tool_arguments("generate_minutes", {}, state)
 
-    assert prepared["context"] == "会议讨论了上线计划"
+    assert "会议讨论了上线计划" in prepared["context"]
+    assert prepared["context"].endswith("【不可信外部内容结束】")
+
+
+def test_prepare_answer_tool_does_not_duplicate_assembled_context_in_question(nodes):
+    state = create_initial_state("总结会议")
+    state["raw_context"] = ["会议决定周五发布"]
+    substituted = nodes._substitute_variables(
+        {
+            "question": "请总结以下内容：\n{{context}}",
+            "context": "{{context}}",
+        },
+        state,
+    )
+
+    prepared = nodes._prepare_tool_arguments("answer_question", substituted, state)
+
+    assert prepared["question"] == "请总结以下内容："
+    assert prepared["context"].count("会议决定周五发布") == 1
 
 
 def test_apply_tool_result_updates_state_outputs(nodes):

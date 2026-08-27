@@ -65,6 +65,14 @@ class MemoryManager:
             for line in (f"问: {turn['question']}", f"答: {turn['answer']}")
         )
 
+    def get_context_items_for_query(self, _query: str, n_recent: int = 3) -> List[str]:
+        """按最近优先返回独立轮次，便于组装器逐项预算和丢弃旧内容。"""
+        turns = reversed(self.short_term.get_recent_turns(n_recent))
+        return [
+            f"【会话轮次】\n问: {turn['question']}\n答: {turn['answer']}"
+            for turn in turns
+        ]
+
     def get_memory_stats(self) -> Dict[str, Any]:
         return {"short_term": self.short_term.get_summary()}
 

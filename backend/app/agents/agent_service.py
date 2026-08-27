@@ -133,8 +133,7 @@ class AgentService:
                 "session_id": context.session_id,
             })
 
-            memory_context = memory.get_context_for_query(question, n_recent=3)
-            raw_context = [f"【本轮会话上下文】\n{memory_context}"] if memory_context else []
+            raw_context = memory.get_context_items_for_query(question, n_recent=3)
 
             initial_state: AgentState = {
                 "question": question,
@@ -156,6 +155,7 @@ class AgentService:
                 "document_ids": document_ids,
                 "context": [],
                 "raw_context": raw_context,
+                "context_manifest": None,
                 "current_phase": "plan",
                 "task_type": TaskType.QA,
                 "workflow_type": None,
@@ -275,6 +275,7 @@ class AgentService:
                 route_decision=final_state.get("route_decision"),
                 structured_outputs=final_state.get("structured_outputs"),
                 budget_ledger=budget_snapshot,
+                context_manifest=final_state.get("context_manifest"),
             )
 
         except TokenBudgetExceeded as e:
@@ -455,6 +456,7 @@ class AgentService:
             "budget_ledger": (
                 ((state.get("input_envelope") or {}).get("budget") or {}).get("token_ledger")
             ),
+            "context_manifest": state.get("context_manifest"),
         }
     
     async def get_pending_confirmations(self, user_id: Optional[int] = None) -> List[Dict[str, Any]]:
