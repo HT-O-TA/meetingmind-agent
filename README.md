@@ -26,7 +26,7 @@ MeetingMind 是一个面向 AI 应用开发学习与求职展示的会议知识�
 | 异步任务 | RabbitMQ confirm、manual ACK、延迟重试、DLQ、幂等任务状态 | 多节点高可用与真实容量验收 |
 | ASR | 严格 WAV 准入；独立 FunASR Worker；原始/安全证据分区、逐段注入隔离、版本化修订、状态机和 RAG 证据入库 | 脱敏多人会议真值和 CER/DER |
 | LoRA/QLoRA | Qwen3-0.6B 待办抽取教学实验和统一评测 | 真实会议标注集；当前合成结果不可外推 |
-| 评估 | 一个离线命令统一计算检索、抽取、路由、工具指标 | 真实数据阈值与持续回归 |
+| 评估 | 一个离线命令统一计算检索、抽取、路由、工具与输入安全指标；冻结的 Prompt Injection 合成集进入 CI | 真实数据阈值与持续回归 |
 | Trace | 有界进程内节点 Trace，只记录真实节点、耗时、重试、输出和错误 | 跨进程持久化不在当前范围 |
 | 部署 | 前后端镜像、PostgreSQL、Redis、RabbitMQ、Worker Compose 和 CI | TLS、备份、Secret Manager、HA、生产容量 |
 
@@ -151,7 +151,18 @@ python3 scripts/evaluate.py --allow-synthetic \
   --output evaluation/reports/sample_report.json
 ```
 
-仓库样例标记为 `synthetic`，只能验证公式和报告格式。简历和 README 中的效果数字必须来自冻结的 `sample_kind=real` 数据。
+冻结 Prompt Injection 合成回归：
+
+```bash
+cd backend
+python3 scripts/evaluate.py --allow-synthetic \
+  --dataset evaluation/datasets/prompt_injection_synthetic_v1.jsonl \
+  --thresholds evaluation/prompt_injection_synthetic_thresholds.json \
+  --enforce-thresholds \
+  --output evaluation/reports/prompt_injection_synthetic_v1.json
+```
+
+仓库样例标记为 `synthetic`，只能验证公式、规则和控制流回归。Prompt Injection 报告中的零误报/零漏报只对当前 25 条合成样本成立；简历和 README 中的生产效果数字必须来自冻结的真实或公开人工标注数据。
 
 ## 学习路线与证据
 

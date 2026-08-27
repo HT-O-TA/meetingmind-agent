@@ -28,6 +28,19 @@ jobs:
         run: pip install -r backend/requirements-core.txt
       - name: Run the formal lightweight baseline
         run: backend/scripts/run_core_tests.sh -q
+      - name: Enforce frozen synthetic Prompt Injection regression
+        working-directory: backend
+        env:
+          APP_ENV: production
+          DEBUG: "false"
+          SECRET_KEY: meetingmind-core-test-secret-at-least-32-characters
+          CORS_ORIGINS: '["https://tests.invalid"]'
+        run: >-
+          python scripts/evaluate.py --allow-synthetic
+          --dataset evaluation/datasets/prompt_injection_synthetic_v1.jsonl
+          --thresholds evaluation/prompt_injection_synthetic_thresholds.json
+          --enforce-thresholds
+          --output /tmp/prompt_injection_synthetic_v1.json
       - name: Verify synthetic dataset is reproducible
         run: |
           python backend/finetuning/build_dataset.py

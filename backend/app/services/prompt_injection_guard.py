@@ -6,12 +6,15 @@
 3. 支持多种注入类型识别
 4. 输出结构化检测结果
 """
-import re
 import base64
-from typing import Optional, List, Dict, Any, Tuple
+import logging
+import re
 from dataclasses import dataclass
 from enum import Enum
-from app.core.logger import app_logger
+from typing import Any, Dict, List, Optional
+
+
+app_logger = logging.getLogger(__name__)
 
 
 class InjectionType(str, Enum):
@@ -62,9 +65,9 @@ INJECTION_PATTERNS = {
         "patterns": [
             r"ignore\s+(previous|all)\s+(instructions?|prompts?|commands?)",
             r"ignore\s+all\s+previous\s+(instructions?|prompts?|commands?)",
-            r"forget\s+(about\s+)?(previous|all)\s+(instructions?|prompts?)",
-            r"disregard\s+(previous|all)\s+(instructions?|prompts?)",
-            r"override\s+(previous|all)\s+(instructions?|prompts?)",
+            r"forget\s+(?:about\s+)?(?:all\s+)?(?:previous|prior)\s+(instructions?|prompts?)",
+            r"disregard\s+(?:all\s+)?(?:previous|prior)\s+(instructions?|prompts?)",
+            r"override\s+(?:all\s+)?(?:previous|prior)\s+(instructions?|prompts?)",
             r"new\s+instructions?[:：]",
             r"system\s*prompt[:：]",
             r"your\s+instructions?\s+(are|have\s+been)\s+(changed|modified|updated)",
@@ -90,7 +93,7 @@ INJECTION_PATTERNS = {
         "patterns": [
             r"you\s+are\s+(now\s+)?(an|a)\s+(admin|administrator|root|superuser|god)",
             r"act\s+as\s+(an|a)\s+(admin|administrator|root|superuser|god)",
-            r"你(现在|就是|变成)\s*(一个|一名)?\s*(管理员|超级管理员|root|上帝)",
+            r"你(现在|就是|变成)\s*(是|成为)?\s*(一个|一名)?\s*(管理员|超级管理员|root|上帝)",
             r"from\s+now\s+on",
             r"you\s+have\s+(full|unlimited)\s+(access|permissions?|rights?)",
             r"(请)?(以)?(管理员|特权|最高权限)\s*(身份|权限)",
@@ -99,7 +102,8 @@ INJECTION_PATTERNS = {
     },
     InjectionType.ENCODED_PAYLOAD: {
         "patterns": [],  # 编码检测走专门逻辑
-        "severity": "warning",
+        # 只有解码后命中注入关键词才进入该类型，因此应阻断而不是放行。
+        "severity": "block",
     },
     InjectionType.ROLE_PLAYING: {
         "patterns": [
@@ -173,7 +177,7 @@ class PromptInjectionGuard:
             return InjectionCheckResult(is_injection=False, severity="low")
 
         # 第一层：规则检测
-        rule_result = self._rule_check(question)
+        rule_result = self.check_rules(question)
         if rule_result.is_injection and rule_result.severity == "block":
             self._block_count += 1
             app_logger.warning(f"[InjectionGuard] 规则检测到注入: type={rule_result.injection_type}, "
@@ -191,6 +195,43 @@ class PromptInjectionGuard:
                 return llm_result
 
         return rule_result
+
+    def check_rules(self, question: str) -> InjectionCheckResult:
+        """公开的确定性规则入口，供运行时和离线回归共用同一实现。"""
+        return self._rule_check(question)
+
+    @staticmethod
+    def _is_explicit_security_discussion(question: str) -> bool:
+        """识别明确的引用/安全讨论，降为 warning 而不是直接隔离。
+
+        这不是通用语义白名单：必须同时出现讨论语境和“不执行”约束；若文本
+        又要求实际执行，仍按注入阻断。这样可以覆盖会议记录中的反面案例，
+        同时避免“伪装成安全测试后继续执行”的简单绕过。
+        """
+        normalized = re.sub(r"\s+", " ", str(question or "").lower())
+        quoted_payload = re.search(r"[“‘\"'`][^”’\"'`\n]{1,240}[”’\"'`]", normalized)
+        context_marker = re.search(
+            r"(引用|引号|原文|示例|反面案例|安全评审|安全研究|安全测试|"
+            r"注入攻击|攻击语句|检测规则|测试样本|演练|关键词|讨论|解释|分析|"
+            r"quoted?|example|security review|security research|prompt injection)",
+            normalized,
+        )
+        containment_marker = re.search(
+            r"(不要执行|不得执行|不应执行|禁止执行|仅作.{0,12}(记录|示例|样本)|"
+            r"不代表新指令|do not execute|must not execute|for analysis only)",
+            normalized,
+        )
+        execution_override = re.search(
+            r"((现在|立即|仍然|实际|照样|接着).{0,8}(执行|照做)|"
+            r"请执行|必须执行|execute (it|this|anyway)|follow it anyway)",
+            normalized,
+        )
+        return bool(
+            quoted_payload
+            and context_marker
+            and containment_marker
+            and not execution_override
+        )
 
     def _rule_check(self, question: str) -> InjectionCheckResult:
         """规则层检测"""
@@ -215,6 +256,9 @@ class PromptInjectionGuard:
         if not matched_types:
             return InjectionCheckResult(is_injection=False, severity="low")
 
+        # 明确的引用/安全讨论保留 warning 标记，但不直接拒绝或隔离。
+        benign_security_context = self._is_explicit_security_discussion(question)
+
         # 评估严重程度
         severity = "warning"
         for inj_type in matched_types:
@@ -222,6 +266,8 @@ class PromptInjectionGuard:
             if config.get("severity") == "block":
                 severity = "block"
                 break
+        if benign_security_context:
+            severity = "warning"
 
         confidence = min(0.95, 0.5 + len(matched_types) * 0.15)
 
@@ -233,6 +279,7 @@ class PromptInjectionGuard:
             details={
                 "matched_types": [t.value for t in matched_types],
                 "matched_patterns": all_matched_patterns,
+                "explicit_security_discussion": benign_security_context,
             },
         )
 
@@ -252,7 +299,7 @@ class PromptInjectionGuard:
                 # 检查解码后是否包含注入特征
                 decoded_lower = decoded.lower()
                 injection_keywords = [
-                    "system prompt", "ignore previous", "new instructions",
+                    "system prompt", "ignore previous", "ignore all previous", "new instructions",
                     "你是", "系统提示", "忽略之前", "新指令", "admin", "管理员",
                 ]
                 for keyword in injection_keywords:
