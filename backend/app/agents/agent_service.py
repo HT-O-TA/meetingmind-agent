@@ -10,6 +10,12 @@ from app.agents.tools import ToolManager
 from app.agents.session_context import SessionContext
 from app.agents.trace_integration import get_trace_store
 from app.services.llm_service import LLMService
+from app.services.token_budget_ledger import (
+    TokenBudgetExceeded,
+    TokenBudgetLedger,
+    activate_token_budget_ledger,
+    token_budget_node_scope,
+)
 from app.services.vector_search_service import VectorSearchService
 from app.core.logger import app_logger
 
@@ -110,6 +116,8 @@ class AgentService:
         """
         trace_store = get_trace_store()
         span_id = trace_store.start("agent_query", "agent")
+        agent_run_id = str(uuid.uuid4())
+        budget_ledger = TokenBudgetLedger.from_settings(agent_run_id)
 
         memory = self._get_session_memory(context.thread_id)
 
@@ -130,7 +138,7 @@ class AgentService:
 
             initial_state: AgentState = {
                 "question": question,
-                "agent_run_id": str(uuid.uuid4()),
+                "agent_run_id": agent_run_id,
                 "user_id": context.user_id,
                 "session_id": context.session_id,
                 "conversation_id": context.conversation_id,
@@ -191,7 +199,8 @@ class AgentService:
 
             # 使用 SessionContext 生成 config
             invoke_config = context.get_config()
-            final_state = await self.app.ainvoke(initial_state, config=invoke_config)
+            with activate_token_budget_ledger(budget_ledger):
+                final_state = await self.app.ainvoke(initial_state, config=invoke_config)
 
             # 安全处理 final_state
             safe_final_state = {}
@@ -207,6 +216,10 @@ class AgentService:
                 else:
                     safe_final_state[key] = value
             final_state = safe_final_state
+            budget_snapshot = budget_ledger.snapshot()
+            envelope = final_state.get("input_envelope")
+            if isinstance(envelope, dict):
+                envelope.setdefault("budget", {})["token_ledger"] = budget_snapshot
 
             memory.add_exchange(question, final_state.get("answer") or "")
 
@@ -261,8 +274,18 @@ class AgentService:
                 pending_action=final_state.get("pending_action"),
                 route_decision=final_state.get("route_decision"),
                 structured_outputs=final_state.get("structured_outputs"),
+                budget_ledger=budget_snapshot,
             )
 
+        except TokenBudgetExceeded as e:
+            app_logger.warning("Agent Token 预算门禁拒绝继续调用: %s", e)
+            trace_store.finish(span_id, "token_budget_exceeded")
+            return AgentResult(
+                success=False,
+                task_type=TaskType.QA,
+                error="Agent token budget exceeded",
+                budget_ledger=budget_ledger.snapshot(),
+            )
         except Exception as e:
             app_logger.error(f"Agent 执行失败: {e}")
             trace_store.finish(span_id, str(e))
@@ -270,6 +293,7 @@ class AgentService:
                 success=False,
                 task_type=TaskType.QA,
                 error="Agent execution failed",
+                budget_ledger=budget_ledger.snapshot(),
             )
 
     async def process_batch(
@@ -346,6 +370,24 @@ class AgentService:
         if pending_action.get("source") != "tool":
             return {"success": False, "mode": "unsupported", "message": "当前仅支持从工具确认点恢复执行"}
 
+        saved_ledger = (
+            ((snapshot.get("input_envelope") or {}).get("budget") or {}).get("token_ledger")
+        )
+        if not isinstance(saved_ledger, dict):
+            return {
+                "success": False,
+                "mode": "budget_snapshot_missing",
+                "message": "确认点缺少 Token 预算快照，拒绝重置原运行预算",
+            }
+        try:
+            budget_ledger = TokenBudgetLedger.from_snapshot(saved_ledger)
+        except (KeyError, TypeError, ValueError):
+            return {
+                "success": False,
+                "mode": "invalid_budget_snapshot",
+                "message": "确认点 Token 预算快照无效，拒绝绕过原运行预算",
+            }
+
         success = await self.hitl_service.respond_to_request(request_id, "approved", user_id)
         if not success:
             return {"success": False, "mode": "respond_failed", "message": "确认请求批准失败"}
@@ -355,15 +397,32 @@ class AgentService:
         resumed_state["confirmation_status"] = "approved"
         resumed_state["requires_confirmation"] = False
         resumed_state["enable_human_in_the_loop"] = True
-        resumed_state = await nodes.execute_agent(resumed_state)
-        resumed_state = await nodes.replan_agent(resumed_state)
-        resumed_state = await nodes.validate_node(resumed_state)
+        try:
+            with activate_token_budget_ledger(budget_ledger):
+                with token_budget_node_scope("execute_node"):
+                    resumed_state = await nodes.execute_agent(resumed_state)
+                with token_budget_node_scope("replan_node"):
+                    resumed_state = await nodes.replan_agent(resumed_state)
+                with token_budget_node_scope("validate_node"):
+                    resumed_state = await nodes.validate_node(resumed_state)
+        except TokenBudgetExceeded:
+            return {
+                "success": False,
+                "mode": "token_budget_exceeded",
+                "message": "确认恢复后触发原运行 Token 预算上限，未继续调用模型",
+                "budget_ledger": budget_ledger.snapshot(),
+            }
+
+        envelope = resumed_state.get("input_envelope")
+        if isinstance(envelope, dict):
+            envelope.setdefault("budget", {})["token_ledger"] = budget_ledger.snapshot()
 
         return {
             "success": True,
             "mode": "snapshot",
             "message": "已从确认点恢复执行",
             "result": self._state_to_result_payload(resumed_state),
+            "budget_ledger": budget_ledger.snapshot(),
         }
 
     def _state_to_result_payload(self, state: AgentState) -> Dict[str, Any]:
@@ -393,6 +452,9 @@ class AgentService:
             "route_confidence": state.get("route_confidence"),
             "route_candidates": state.get("route_candidates"),
             "route_decision_trace": state.get("route_decision_trace"),
+            "budget_ledger": (
+                ((state.get("input_envelope") or {}).get("budget") or {}).get("token_ledger")
+            ),
         }
     
     async def get_pending_confirmations(self, user_id: Optional[int] = None) -> List[Dict[str, Any]]:

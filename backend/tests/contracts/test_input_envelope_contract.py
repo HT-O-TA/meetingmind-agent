@@ -52,6 +52,11 @@ def test_input_envelope_normalizes_scope_and_marks_trust_levels():
     assert envelope["scope"]["can_write"] is False
     assert envelope["task_anchor"]["schema_version"] == "task-anchor.v1"
     assert envelope["task_anchor"]["goal"] == "请总结 文档内容"
+    assert envelope["budget"]["default_model_context_tokens"] > 0
+    assert envelope["budget"]["max_run_tokens"] > 0
+    assert envelope["budget"]["max_node_tokens"] > 0
+    assert envelope["budget"]["max_llm_calls"] > 0
+    assert envelope["budget"]["token_ledger"] is None
     assert [item["trust_level"] for item in envelope["artifacts"]] == [
         "user_instruction",
         "untrusted_upload",

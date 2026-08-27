@@ -1,10 +1,17 @@
 """LLM 服务封装"""
 import asyncio
-from typing import List, Dict, Optional
+import uuid
+from typing import Any, Dict, List, Mapping, Optional
 from openai import AsyncOpenAI, RateLimitError
 from httpx import Timeout
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.services.token_budget_ledger import (
+    TokenBudgetExceeded,
+    TokenBudgetLedger,
+    get_active_token_budget_ledger,
+    get_active_token_budget_node,
+)
 
 # LLM 限流重试配置
 _LLM_MAX_RETRIES = 3
@@ -25,6 +32,8 @@ class LLMService:
         # 客户端延迟到首次真实调用时创建。这样 API 依赖注入和离线测试
         # 不会因为宿主机代理、网络后端等与请求无关的环境差异而失败。
         self.client: Optional[AsyncOpenAI] = None
+        self.last_budget_snapshot: Optional[Dict[str, Any]] = None
+        self.last_budget_decision: Optional[Dict[str, Any]] = None
 
     def _create_client(self, api_key: str, base_url: str) -> AsyncOpenAI:
         return AsyncOpenAI(
@@ -45,6 +54,44 @@ class LLMService:
                 raise ValueError("LLM_API_KEY must be set for model generation")
             self.client = self._create_client(settings.LLM_API_KEY, settings.LLM_API_BASE)
         return self.client
+
+    @staticmethod
+    def _usage_tokens(response: Any) -> tuple[Optional[int], Optional[int]]:
+        usage = getattr(response, "usage", None)
+        if usage is None:
+            return None, None
+        if isinstance(usage, Mapping):
+            prompt_tokens = usage.get("prompt_tokens")
+            completion_tokens = usage.get("completion_tokens")
+        else:
+            prompt_tokens = getattr(usage, "prompt_tokens", None)
+            completion_tokens = getattr(usage, "completion_tokens", None)
+        if prompt_tokens is None or completion_tokens is None:
+            return None, None
+        return int(prompt_tokens), int(completion_tokens)
+
+    def _complete_budget(
+        self,
+        ledger: TokenBudgetLedger,
+        decision_id: str,
+        response: Any,
+    ) -> None:
+        actual_input, actual_output = self._usage_tokens(response)
+        self.last_budget_decision = ledger.complete(
+            decision_id,
+            actual_input_tokens=actual_input,
+            actual_output_tokens=actual_output,
+        )
+        self.last_budget_snapshot = ledger.snapshot()
+
+    def _fail_budget(
+        self,
+        ledger: TokenBudgetLedger,
+        decision_id: str,
+        error: BaseException,
+    ) -> None:
+        self.last_budget_decision = ledger.fail(decision_id, error)
+        self.last_budget_snapshot = ledger.snapshot()
 
     async def chat(
         self,
@@ -69,23 +116,56 @@ class LLMService:
         Returns:
             LLM 生成的文本
         """
+        selected_model = model or settings.LLM_MODEL
+        selected_max_tokens = max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS
+        ledger = get_active_token_budget_ledger() or TokenBudgetLedger.from_settings(
+            f"standalone_{uuid.uuid4().hex}"
+        )
+        try:
+            decision = ledger.reserve(
+                messages=messages,
+                model=selected_model,
+                requested_output_tokens=selected_max_tokens,
+                node=get_active_token_budget_node(),
+            )
+        except TokenBudgetExceeded:
+            self.last_budget_snapshot = ledger.snapshot()
+            self.last_budget_decision = self.last_budget_snapshot["decisions"][-1]
+            raise
+        decision_id = str(decision["decision_id"])
+        self.last_budget_decision = decision
+        self.last_budget_snapshot = ledger.snapshot()
+
         # 如果传入了不同的api_key或api_base，创建一个临时的client
         if api_key or api_base:
             selected_api_key = api_key or settings.LLM_API_KEY
             if not selected_api_key:
-                raise ValueError("LLM_API_KEY must be set for model generation")
-            temp_client = self._create_client(
-                selected_api_key,
-                api_base or settings.LLM_API_BASE,
-            )
+                error = ValueError("LLM_API_KEY must be set for model generation")
+                self._fail_budget(ledger, decision_id, error)
+                raise error
+            try:
+                temp_client = self._create_client(
+                    selected_api_key,
+                    api_base or settings.LLM_API_BASE,
+                )
+            except Exception as error:
+                self._fail_budget(ledger, decision_id, error)
+                raise
             try:
                 response = await temp_client.chat.completions.create(
-                    model=model or settings.LLM_MODEL,
+                    model=selected_model,
                     messages=messages,
                     temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
-                    max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
+                    max_tokens=selected_max_tokens,
                 )
+                self._complete_budget(ledger, decision_id, response)
                 return response.choices[0].message.content
+            except asyncio.CancelledError as error:
+                self._fail_budget(ledger, decision_id, error)
+                raise
+            except Exception as error:
+                self._fail_budget(ledger, decision_id, error)
+                raise
             finally:
                 await temp_client.close()
 
@@ -94,17 +174,22 @@ class LLMService:
         for attempt in range(_LLM_MAX_RETRIES):
             try:
                 response = await self._get_client().chat.completions.create(
-                    model=model or settings.LLM_MODEL,
+                    model=selected_model,
                     messages=messages,
                     temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
-                    max_tokens=max_tokens if max_tokens is not None else settings.LLM_MAX_TOKENS,
+                    max_tokens=selected_max_tokens,
                 )
+                self._complete_budget(ledger, decision_id, response)
                 return response.choices[0].message.content
 
+            except asyncio.CancelledError as e:
+                self._fail_budget(ledger, decision_id, e)
+                raise
             except RateLimitError as e:
                 last_error = e
                 if attempt == _LLM_MAX_RETRIES - 1:
                     app_logger.error(f"[LLMService] Rate limit exceeded after {_LLM_MAX_RETRIES} retries: {e}")
+                    self._fail_budget(ledger, decision_id, e)
                     raise
                 # 解析 Retry-After 头（如果有），否则用指数退避
                 retry_after = None
@@ -115,14 +200,21 @@ class LLMService:
                     f"[LLMService] Rate limited (attempt {attempt + 1}/{_LLM_MAX_RETRIES}), "
                     f"waiting {wait:.1f}s before retry"
                 )
-                await asyncio.sleep(wait)
+                try:
+                    await asyncio.sleep(wait)
+                except asyncio.CancelledError as cancel_error:
+                    self._fail_budget(ledger, decision_id, cancel_error)
+                    raise
 
             except Exception as e:
                 app_logger.error(f"[LLMService] LLM 调用失败: {e}")
+                self._fail_budget(ledger, decision_id, e)
                 raise
 
         # 不应到达这里，保险起见
-        raise last_error
+        error = last_error or RuntimeError("LLM 调用未返回结果")
+        self._fail_budget(ledger, decision_id, error)
+        raise error
 
     async def generate_answer(
         self,

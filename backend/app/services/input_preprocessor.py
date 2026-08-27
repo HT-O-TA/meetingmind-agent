@@ -119,6 +119,11 @@ class InputPreprocessor:
             max_plan_steps=settings.PLAN_MAX_TASKS,
             max_tool_calls=settings.PLAN_MAX_TASKS,
             plan_output_tokens=settings.PLAN_LLM_MAX_TOKENS,
+            default_model_context_tokens=settings.LLM_CONTEXT_WINDOW_TOKENS,
+            max_run_tokens=settings.LLM_RUN_TOKEN_BUDGET,
+            max_node_tokens=settings.LLM_NODE_TOKEN_BUDGET,
+            max_llm_calls=settings.LLM_MAX_CALLS_PER_RUN,
+            token_safety_margin_ratio=settings.LLM_TOKEN_SAFETY_MARGIN_RATIO,
         )
         query_artifact = self.create_artifact(
             source=ArtifactSource.USER_QUERY,

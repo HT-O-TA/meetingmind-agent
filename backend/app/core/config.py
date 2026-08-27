@@ -88,6 +88,13 @@ class Settings(BaseSettings):
     PLAN_LLM_MAX_TOKENS: int = 3000  # 规划阶段专用最大token数（JSON结构较大，需要更多token防止截断）
     LLM_TIMEOUT: int = 120  # LLM API请求超时时间（秒）
     LLM_MAX_CONTEXT_CHARS: int = 5000  # 传入LLM的最大上下文字符数
+    # TokenBudgetLedger 的保守初值；模型供应商调整窗口后由环境变量显式覆盖。
+    LLM_CONTEXT_WINDOW_TOKENS: int = 32768
+    LLM_MODEL_CONTEXT_WINDOWS: str = "{}"  # JSON: {"model-name": context_window_tokens}
+    LLM_RUN_TOKEN_BUDGET: int = 65536  # 单次 Agent Run 的输入+最大输出累计预算
+    LLM_NODE_TOKEN_BUDGET: int = 32768  # 单节点在重试/多任务中的累计预算
+    LLM_MAX_CALLS_PER_RUN: int = 16
+    LLM_TOKEN_SAFETY_MARGIN_RATIO: float = 0.15
     MODEL_TURBO_NAME: str = "qwen-turbo"
     MODEL_PLUS_NAME: str = "qwen3.6-plus"
     MODEL_MAX_NAME: str = "qwen-max"
@@ -161,6 +168,23 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_secrets(self):
+        if self.LLM_CONTEXT_WINDOW_TOKENS <= 0:
+            raise ValueError("LLM_CONTEXT_WINDOW_TOKENS 必须大于 0")
+        if self.LLM_RUN_TOKEN_BUDGET <= 0 or self.LLM_NODE_TOKEN_BUDGET <= 0:
+            raise ValueError("LLM Token 运行/节点预算必须大于 0")
+        if self.LLM_MAX_CALLS_PER_RUN <= 0:
+            raise ValueError("LLM_MAX_CALLS_PER_RUN 必须大于 0")
+        if not 0 <= self.LLM_TOKEN_SAFETY_MARGIN_RATIO < 1:
+            raise ValueError("LLM_TOKEN_SAFETY_MARGIN_RATIO 必须位于 [0, 1)")
+        try:
+            windows = json.loads(self.LLM_MODEL_CONTEXT_WINDOWS)
+        except json.JSONDecodeError as exc:
+            raise ValueError("LLM_MODEL_CONTEXT_WINDOWS 必须是 JSON 对象") from exc
+        if not isinstance(windows, dict) or any(
+            not str(model).strip() or isinstance(tokens, bool) or not isinstance(tokens, int) or tokens <= 0
+            for model, tokens in windows.items()
+        ):
+            raise ValueError("LLM_MODEL_CONTEXT_WINDOWS 必须映射模型名到正整数")
         if self.APP_ENV.lower() == "production":
             insecure = {
                 "meetingmind-secret-key-change-in-production",
@@ -236,6 +260,13 @@ class Settings(BaseSettings):
     @property
     def allowed_file_extensions_list(self) -> List[str]:
         return json.loads(self.ALLOWED_FILE_EXTENSIONS)
+
+    @property
+    def llm_model_context_windows(self) -> dict[str, int]:
+        return {
+            str(model): int(tokens)
+            for model, tokens in json.loads(self.LLM_MODEL_CONTEXT_WINDOWS).items()
+        }
 
 
 settings = Settings()

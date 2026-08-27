@@ -27,6 +27,7 @@ from app.services.risk_rule_service import get_risk_rule_service
 from app.services.semantic_risk_service import get_semantic_risk_service
 from app.services.prompt_injection_guard import get_prompt_injection_guard, InjectionType
 from app.services.input_preprocessor import InputContractError, InputPreprocessor
+from app.services.token_budget_ledger import get_active_token_budget_ledger
 from app.schemas.agent_input import (
     ArtifactSecurityStatus,
     ArtifactSource,
@@ -247,6 +248,10 @@ class AgentNodes:
             safe_state["input_envelope"] = None
         if safe_state["task_anchor"] is not None and not isinstance(safe_state["task_anchor"], dict):
             safe_state["task_anchor"] = None
+        ledger = get_active_token_budget_ledger()
+        if ledger is not None and isinstance(safe_state["input_envelope"], dict):
+            budget = safe_state["input_envelope"].setdefault("budget", {})
+            budget["token_ledger"] = ledger.snapshot()
         
         return safe_state
     

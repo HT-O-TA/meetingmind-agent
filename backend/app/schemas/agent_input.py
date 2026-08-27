@@ -67,6 +67,12 @@ class InputBudget(BaseModel):
     max_plan_steps: int = Field(ge=1)
     max_tool_calls: int = Field(ge=0)
     plan_output_tokens: int = Field(ge=1)
+    default_model_context_tokens: int = Field(ge=1)
+    max_run_tokens: int = Field(ge=1)
+    max_node_tokens: int = Field(ge=1)
+    max_llm_calls: int = Field(ge=1)
+    token_safety_margin_ratio: float = Field(ge=0.0, lt=1.0)
+    token_ledger: Optional[Dict[str, Any]] = None
 
 
 class InputSecurity(BaseModel):

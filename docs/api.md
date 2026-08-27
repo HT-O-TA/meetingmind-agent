@@ -39,7 +39,7 @@ Authorization: Bearer <token>
 | GET | `/trace/spans/{span_id}` | 单个 Span |
 | GET | `/trace/summary` | 有界进程存储的数量、成功率、平均耗时 |
 
-Trace 不持久化，服务重启后清空；Token/成本没有真实采集值时保持 `0`，不生成模拟数据。
+Trace 不持久化，服务重启后清空，当前 Trace Token/成本字段没有真实采集值时仍保持 `0`。Agent 响应中的 `budget_ledger` 是独立的运行级预算快照：供应商返回 usage 时记录真实输入/输出 Token，否则明确保留最坏情况预留值；项目不把估算值伪装成真实成本。
 
 ## RAG 请求示例
 
@@ -79,6 +79,8 @@ Authorization: Bearer <token>
 ```
 
 若写工具需要确认，响应会包含 `requires_confirmation`、`confirmation_status` 和 `pending_action`。客户端通过 confirmation 接口批准或拒绝；批准后使用 `/confirmations/resume` 从后端保存的确认快照继续执行。
+
+普通、SSE 最终事件和批量响应都返回 `budget_ledger`。该字段包含模型/节点计数方法、调用前估算、输出预留、供应商实际 usage、累计值与拒绝原因，但不包含 Prompt 正文。确认恢复沿用快照中的原 Agent Run 累计预算；预算快照缺失或损坏时拒绝恢复。
 
 ## 已移除接口
 

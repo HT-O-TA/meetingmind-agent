@@ -311,6 +311,7 @@ class AgentResult:
     pending_action: Optional[Dict[str, Any]] = None
     route_decision: Optional["RouteDecision"] = None
     structured_outputs: Optional[Dict[str, Any]] = None
+    budget_ledger: Optional[Dict[str, Any]] = None
 
 
 @dataclass

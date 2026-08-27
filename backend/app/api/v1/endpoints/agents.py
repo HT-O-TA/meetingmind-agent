@@ -144,6 +144,7 @@ async def agent_query(
         "route_candidates": result.route_decision.candidates if result.route_decision else None,
         "route_decision_trace": result.route_decision.decision_trace if result.route_decision else None,
         "structured_outputs": result.structured_outputs,
+        "budget_ledger": result.budget_ledger,
     }
 
     # 合并 metadata 中的额外信息
@@ -232,6 +233,7 @@ async def agent_query_stream(
                 "controversies": result.controversies,
                 "error": result.error,
                 "plan": result.plan,
+                "budget_ledger": result.budget_ledger,
                 # 返回会话上下文信息，供前端保存
                 "session_id": context.session_id,
                 "conversation_id": context.conversation_id,
@@ -303,6 +305,7 @@ async def agent_batch_query(
                 "policy_results": r.policy_results,
                 "answer": r.answer,
                 "error": r.error,
+                "budget_ledger": r.budget_ledger,
             }
             for r in results
         ]

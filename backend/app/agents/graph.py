@@ -1,6 +1,6 @@
 """唯一 LangGraph 主线：安全路由、RAG、确定性抽取与受控工具执行。"""
 
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
@@ -9,6 +9,7 @@ from app.agents.nodes import AgentNodes
 from app.agents.state import AgentState, ComplexityLevel, ReasoningMode, WorkflowType
 from app.agents.tools import ToolManager
 from app.services.llm_service import LLMService
+from app.services.token_budget_ledger import token_budget_node_scope
 
 
 def create_agent_graph(
@@ -18,6 +19,16 @@ def create_agent_graph(
     """创建并编译唯一 Agent 图；不再保留未验证的可选图分支。"""
     nodes = AgentNodes(llm_service, tool_manager)
     graph = StateGraph(AgentState)
+
+    def budgeted_node(
+        node_name: str,
+        node: Callable[[AgentState], Awaitable[Any]],
+    ) -> Callable[[AgentState], Awaitable[Any]]:
+        async def run(state: AgentState) -> Any:
+            with token_budget_node_scope(node_name):
+                return await node(state)
+
+        return run
 
     async def input_gate(state: AgentState) -> Command:
         updated = await nodes.input_node(state)
@@ -29,17 +40,23 @@ def create_agent_graph(
         target = "rejection_node" if updated.get("injection_blocked", False) else "route_node"
         return Command(update=updated, goto=target)
 
-    graph.add_node("input_node", input_gate)
-    graph.add_node("route_node", nodes.route_agent)
-    graph.add_node("prompt_injection_node", injection_gate)
-    graph.add_node("rejection_node", nodes.rejection_node)
-    graph.add_node("simple_qa_node", nodes.simple_qa_node)
-    graph.add_node("minutes_node", nodes.minutes_node)
-    graph.add_node("todos_node", nodes.todos_node)
-    graph.add_node("controversy_node", nodes.controversy_node)
-    graph.add_node("plan_node", nodes.plan_agent)
-    graph.add_node("execute_node", nodes.execute_agent)
-    graph.add_node("repair_node", nodes.repair_node)
+    graph.add_node("input_node", budgeted_node("input_node", input_gate))
+    graph.add_node("route_node", budgeted_node("route_node", nodes.route_agent))
+    graph.add_node(
+        "prompt_injection_node",
+        budgeted_node("prompt_injection_node", injection_gate),
+    )
+    graph.add_node("rejection_node", budgeted_node("rejection_node", nodes.rejection_node))
+    graph.add_node("simple_qa_node", budgeted_node("simple_qa_node", nodes.simple_qa_node))
+    graph.add_node("minutes_node", budgeted_node("minutes_node", nodes.minutes_node))
+    graph.add_node("todos_node", budgeted_node("todos_node", nodes.todos_node))
+    graph.add_node(
+        "controversy_node",
+        budgeted_node("controversy_node", nodes.controversy_node),
+    )
+    graph.add_node("plan_node", budgeted_node("plan_node", nodes.plan_agent))
+    graph.add_node("execute_node", budgeted_node("execute_node", nodes.execute_agent))
+    graph.add_node("repair_node", budgeted_node("repair_node", nodes.repair_node))
 
     def route_workflow(state: AgentState) -> str:
         workflow_type = state.get("workflow_type")
@@ -124,12 +141,15 @@ def create_agent_graph(
         updated = await nodes.validate_node(state)
         return Command(update=updated, goto=should_repair(updated))
 
-    graph.add_node("risk_node", risk_gate)
-    graph.add_node("confirmation_node", confirmation_gate)
-    graph.add_node("retrieve_node", retrieve_gate)
-    graph.add_node("tool_risk_node", tool_risk_gate)
-    graph.add_node("replan_node", replan_gate)
-    graph.add_node("validate_node", validate_gate)
+    graph.add_node("risk_node", budgeted_node("risk_node", risk_gate))
+    graph.add_node(
+        "confirmation_node",
+        budgeted_node("confirmation_node", confirmation_gate),
+    )
+    graph.add_node("retrieve_node", budgeted_node("retrieve_node", retrieve_gate))
+    graph.add_node("tool_risk_node", budgeted_node("tool_risk_node", tool_risk_gate))
+    graph.add_node("replan_node", budgeted_node("replan_node", replan_gate))
+    graph.add_node("validate_node", budgeted_node("validate_node", validate_gate))
 
     graph.add_edge(START, "input_node")
     graph.add_edge("route_node", "risk_node")
