@@ -26,6 +26,14 @@
             <el-descriptions-item label="状态">
               <el-tag :type="statusType(meeting.status)">{{ statusLabel(meeting.status) }}</el-tag>
             </el-descriptions-item>
+            <el-descriptions-item v-if="meeting.transcript_status" label="音频证据">
+              <el-tag :type="transcriptStatusType(meeting.transcript_status)">
+                {{ transcriptStatusLabel(meeting.transcript_status) }}
+              </el-tag>
+              <span v-if="meeting.transcript_revision" style="margin-left:8px;color:#666">
+                v{{ meeting.transcript_revision }}
+              </span>
+            </el-descriptions-item>
             <el-descriptions-item label="类型">{{ meeting.meeting_type }}</el-descriptions-item>
             <el-descriptions-item label="组织者">{{ meeting.organizer_name || '-' }}</el-descriptions-item>
             <el-descriptions-item label="部门">{{ meeting.department || '-' }}</el-descriptions-item>
@@ -55,11 +63,33 @@
             </div>
           </template>
           <div v-if="speeches.length === 0" style="color:#999;text-align:center;padding:20px">暂无发言记录</div>
-          <div v-for="s in speeches" :key="s.id" style="margin-bottom:12px;padding:8px;background:#f9f9f9;border-radius:4px">
+          <div
+            v-for="s in speeches"
+            :key="s.id"
+            :style="{
+              marginBottom: '12px',
+              padding: '8px',
+              background: s.security_status === 'quarantined' ? '#fff2f0' : '#f9f9f9',
+              borderRadius: '4px',
+            }"
+          >
             <div style="display:flex;justify-content:space-between;align-items:flex-start">
               <div style="flex:1">
-                <div style="font-weight:600;color:#409eff;margin-bottom:4px">{{ s.speaker_name }}</div>
+                <div style="font-weight:600;color:#409eff;margin-bottom:4px">
+                  {{ s.speaker_name }}
+                  <el-tag
+                    v-if="s.source_type?.startsWith('asr')"
+                    :type="speechSecurityType(s.security_status)"
+                    size="small"
+                    style="margin-left:6px"
+                  >
+                    {{ speechSecurityLabel(s.security_status) }}
+                  </el-tag>
+                </div>
                 <div style="font-size:13px">{{ s.content }}</div>
+                <div v-if="s.security_status === 'quarantined'" style="font-size:12px;color:#f56c6c;margin-top:4px">
+                  该片段保留供人工核对，但不会进入 Agent 或 RAG。
+                </div>
               </div>
               <div style="margin-left:8px">
                 <el-button size="small" @click="editSpeech(s)">编辑</el-button>
@@ -151,6 +181,10 @@ const speechForm = reactive({ speaker_name: '', content: '' })
 
 const statusType = (s) => ({ draft: 'info', processing: 'warning', completed: 'success', archived: '' }[s] || 'info')
 const statusLabel = (s) => ({ draft: '草稿', processing: '处理中', completed: '已完成', archived: '已归档' }[s] || s)
+const transcriptStatusType = (s) => ({ pending: 'info', processing: 'warning', completed: 'success', failed: 'danger' }[s] || 'info')
+const transcriptStatusLabel = (s) => ({ pending: '等待转写', processing: '转写中', completed: '证据已生成', failed: '转写失败' }[s] || s)
+const speechSecurityType = (s) => ({ passed: 'success', warning: 'warning', quarantined: 'danger' }[s] || 'info')
+const speechSecurityLabel = (s) => ({ passed: 'ASR 已检查', warning: 'ASR 待复核', quarantined: 'ASR 已隔离' }[s] || 'ASR 待复核')
 const statusLabel2 = (s) => ({ pending: '待处理', in_progress: '进行中', done: '已完成', cancelled: '已取消' }[s] || s)
 const priorityType = (p) => ({ high: 'danger', medium: 'warning', low: 'info' }[p] || '')
 const formatDate = (d) => d ? new Date(d).toLocaleString('zh-CN') : '-'

@@ -12,13 +12,10 @@ from app.core.exceptions import AppException
 from app.services.text_process_service import TextProcessService
 from app.services.embedding_service import EmbeddingService
 from app.services.document_parser import DocumentParser
+from app.services.input_admission import FileAdmissionError, input_admission_policy
 from app.core.security import is_admin_user, require_write_user
 from app.models.user import User
 import math
-
-
-# 从配置中获取允许的文件类型
-ALLOWED_TYPES = set(settings.allowed_file_extensions_list)
 
 
 class DocumentService:
@@ -115,12 +112,15 @@ class DocumentService:
         filename = file.filename or "unknown"
         app_logger.debug(f"处理文件: {filename}")
         
-        # 检查文件类型
-        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-        if ext not in ALLOWED_TYPES:
-            error_msg = f"不支持的文件类型: {ext}"
-            app_logger.error(f"文件类型错误: {filename} -> {error_msg}")
-            raise AppException(error_msg, 400)
+        try:
+            ext = input_admission_policy.validate_document_metadata(
+                filename,
+                getattr(file, "content_type", None),
+                settings.allowed_file_extensions_list,
+            )
+        except FileAdmissionError as exc:
+            app_logger.warning("文档准入拒绝: %s: %s", filename, exc)
+            raise AppException(str(exc), exc.status_code) from exc
 
         # 创建上传目录（使用绝对路径）
         upload_dir = settings.UPLOAD_DIR_ABSOLUTE
@@ -142,12 +142,14 @@ class DocumentService:
             app_logger.exception(f"文件读取错误: {filename}: {e}")
             raise AppException("读取文件失败", 500)
 
-        # 检查文件大小
-        if len(file_bytes) > settings.MAX_FILE_SIZE:
-            max_size_mb = settings.MAX_FILE_SIZE // (1024 * 1024)
-            error_msg = f"文件大小超过限制({max_size_mb}MB)"
-            app_logger.error(f"文件大小超限: {filename} ({len(file_bytes)} bytes) -> {error_msg}")
-            raise AppException(error_msg, 400)
+        try:
+            input_admission_policy.validate_size(
+                len(file_bytes), settings.MAX_FILE_SIZE, label="文档"
+            )
+            input_admission_policy.validate_document_content(ext, file_bytes)
+        except FileAdmissionError as exc:
+            app_logger.warning("文档内容准入拒绝: %s: %s", filename, exc)
+            raise AppException(str(exc), exc.status_code) from exc
 
         # 保存文件到磁盘
         try:
@@ -223,6 +225,7 @@ class DocumentService:
         content: str,
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
+        source_metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         为文档内容创建向量块
@@ -249,6 +252,8 @@ class DocumentService:
             vector_chunks = []
             for idx, (chunk_text, embedding) in enumerate(zip(chunks, embeddings)):
                 metadata = chunk_metadatas[idx] if idx < len(chunk_metadatas) else {}
+                if source_metadata:
+                    metadata = {**metadata, **source_metadata}
 
                 # 从 metadata 中提取说话人信息
                 speaker_name = metadata.get('speaker_name')
@@ -348,6 +353,104 @@ class DocumentService:
             delete(VectorChunk).where(VectorChunk.document_id == document_id)
         )
         await self.db.commit()
+        from app.services.vector_cache_manager import invalidate_document_cache
+
+        await invalidate_document_cache(document_id)
+
+    async def upsert_asr_evidence_document(
+        self,
+        *,
+        meeting_id: int,
+        uploader_id: int,
+        department: Optional[str],
+        original_filename: str,
+        content: str,
+        task_id: str,
+        evidence_version: int,
+        audio_sha256: str,
+    ) -> Document:
+        """只在 ASR 完成且存在安全文本时创建/重建可检索证据。"""
+        if not content.strip():
+            raise ValueError("安全 ASR 证据为空，不能创建检索文档")
+
+        result = await self.db.execute(
+            select(Document).where(
+                Document.meeting_id == meeting_id,
+                Document.file_type == "asr_evidence",
+                Document.deleted_at.is_(None),
+            )
+        )
+        document = result.scalar_one_or_none()
+        if document is None:
+            document = Document(
+                meeting_id=meeting_id,
+                uploader_id=uploader_id,
+                filename=f"meeting_{meeting_id}_asr_evidence.md",
+                original_filename=f"{original_filename}.transcript.md",
+                file_path=f"evidence://meeting/{meeting_id}/asr",
+                file_size=len(content.encode("utf-8")),
+                file_type="asr_evidence",
+                department=department,
+                is_public=False,
+                content=content,
+                status="parsed",
+            )
+            self.db.add(document)
+            await self.db.commit()
+            await self.db.refresh(document)
+        else:
+            document.uploader_id = uploader_id
+            document.department = department
+            document.original_filename = f"{original_filename}.transcript.md"
+            document.file_size = len(content.encode("utf-8"))
+            document.content = content
+            document.status = "parsed"
+            await self.db.commit()
+            await self.db.refresh(document)
+            await self._delete_vector_chunks(document.id)
+
+        await self._create_vector_chunks(
+            document.id,
+            content,
+            meeting_id=meeting_id,
+            department=department,
+            source_metadata={
+                "source_type": "asr_evidence",
+                "source_task_id": task_id,
+                "evidence_version": evidence_version,
+                "audio_sha256": audio_sha256,
+            },
+        )
+        return document
+
+    async def invalidate_asr_evidence_document(
+        self, meeting_id: int, reason: str
+    ) -> Optional[int]:
+        """清除旧 ASR 检索块，避免失败/全隔离结果以空文档参与 RAG。"""
+        result = await self.db.execute(
+            select(Document).where(
+                Document.meeting_id == meeting_id,
+                Document.file_type == "asr_evidence",
+                Document.deleted_at.is_(None),
+            )
+        )
+        document = result.scalar_one_or_none()
+        if document is None:
+            return None
+        document.content = None
+        document.file_size = 0
+        document.status = "failed"
+        await self.db.commit()
+        await self._delete_vector_chunks(document.id)
+        from app.core.logger import app_logger
+
+        app_logger.warning(
+            "ASR 证据索引已失效 meeting_id=%s document_id=%s reason=%s",
+            meeting_id,
+            document.id,
+            reason,
+        )
+        return document.id
 
     async def _update_vector_chunks_metadata(
         self,

@@ -21,6 +21,11 @@ class Meeting(Base):
     location = Column(String(128), nullable=True)
     participants = Column(Text, nullable=True)  # JSON array of participant names
     raw_transcript = Column(Text, nullable=True)
+    # 首次 FunASR 原始输出只用于证据追溯；面向 Agent/RAG 的当前文本在 raw_transcript。
+    asr_original_transcript = Column(Text, nullable=True)
+    # 音频证据生命周期独立于会议业务状态：pending/processing/completed/failed。
+    transcript_status = Column(String(24), nullable=True, index=True)
+    transcript_revision = Column(Integer, nullable=False, default=0)
     # ASR 证据元数据（模型/版本、音频哈希、时长、评估边界）；正文仍在 raw_transcript。
     transcript_metadata = Column(JSON, nullable=True)
     summary = Column(Text, nullable=True)
@@ -46,4 +51,7 @@ class SpeechRecord(Base):
     is_key_point = Column(Integer, default=0)  # 0/1 是否关键发言
     source_type = Column(String(16), nullable=True)  # manual/asr
     source_task_id = Column(String(64), nullable=True, index=True)
+    security_status = Column(String(16), nullable=True)  # passed/warning/quarantined
+    security_reason = Column(String(64), nullable=True)
+    content_sha256 = Column(String(64), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

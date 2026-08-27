@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import and_, select, func, or_
+from sqlalchemy import and_, select, func, or_, update
 from app.models.meeting import Meeting, SpeechRecord
 from app.schemas.meeting import MeetingCreate, MeetingUpdate, SpeechRecordCreate
 from app.core.exceptions import AppException
@@ -7,6 +7,13 @@ from app.core.cache import cache_get, cache_set, cache_delete, cache_delete_patt
 from app.utils.cache_utils import make_cache_key, hash_params
 from app.core.security import is_admin_user, require_write_user
 from app.models.user import User
+from app.services.asr_evidence_service import (
+    apply_human_correction_metadata,
+    format_index_text,
+    text_sha256,
+)
+from app.services.document_service import DocumentService
+from app.services.prompt_injection_guard import get_prompt_injection_guard
 import math
 
 
@@ -112,15 +119,111 @@ class MeetingService:
 
     async def update(self, meeting_id: int, data: MeetingUpdate, user: User) -> Meeting:
         meeting = await self.get_for_user(meeting_id, user, write=True)
-        for field, value in data.model_dump(exclude_none=True).items():
+        updates = data.model_dump(exclude_none=True)
+        raw_changed = (
+            "raw_transcript" in updates
+            and updates["raw_transcript"] != meeting.raw_transcript
+        )
+        has_asr_evidence = bool(
+            meeting.asr_original_transcript
+            or (meeting.transcript_metadata or {}).get("task_id")
+        )
+        if raw_changed and has_asr_evidence:
+            check = await get_prompt_injection_guard().check(
+                str(updates["raw_transcript"] or ""), llm_service=None
+            )
+            if check.should_block:
+                raise AppException(
+                    "修订后的转写命中间接注入规则；请按发言片段核对后再提交",
+                    422,
+                )
+
+        for field, value in updates.items():
             setattr(meeting, field, value)
         if meeting.start_time and meeting.end_time:
             delta = meeting.end_time - meeting.start_time
             meeting.duration_minutes = int(delta.total_seconds() / 60)
         await self.db.commit()
         await self.db.refresh(meeting)
+        if raw_changed and has_asr_evidence:
+            # 完整文本修订不再假装保留原句级对齐；旧 ASR 片段留作审计但不参与当前证据。
+            await self.db.execute(
+                update(SpeechRecord)
+                .where(
+                    SpeechRecord.meeting_id == meeting_id,
+                    SpeechRecord.source_type.in_(["asr", "asr_corrected"]),
+                )
+                .values(source_type="asr_superseded")
+            )
+            await self.db.commit()
+            await self._rebuild_corrected_asr_evidence(
+                meeting,
+                user,
+                corrected_text=str(meeting.raw_transcript or ""),
+                index_text=str(meeting.raw_transcript or ""),
+                reason="full_transcript_correction",
+            )
         await self._invalidate_meeting(meeting_id)
         return meeting
+
+    async def _rebuild_corrected_asr_evidence(
+        self,
+        meeting: Meeting,
+        user: User,
+        *,
+        corrected_text: str,
+        index_text: str,
+        reason: str,
+    ) -> None:
+        """修订后递增证据版本，先失效旧块，再重建当前安全证据。"""
+        revision = int(meeting.transcript_revision or 0) + 1
+        metadata = apply_human_correction_metadata(
+            meeting.transcript_metadata,
+            corrected_text=corrected_text,
+            revision=revision,
+            user_id=getattr(user, "id", None),
+            reason=reason,
+        )
+        meeting.raw_transcript = corrected_text or None
+        meeting.transcript_revision = revision
+        meeting.transcript_status = "completed"
+        meeting.transcript_metadata = metadata
+        await self.db.commit()
+
+        document_service = DocumentService(self.db)
+        index_text = index_text.strip()
+        if index_text:
+            document = await document_service.upsert_asr_evidence_document(
+                meeting_id=meeting.id,
+                uploader_id=int(meeting.organizer_id or getattr(user, "id", 0)),
+                department=meeting.department,
+                original_filename=str(metadata.get("source_filename") or "meeting.wav"),
+                content=index_text,
+                task_id=str(metadata.get("task_id") or f"manual-revision-{revision}"),
+                evidence_version=revision,
+                audio_sha256=str(metadata.get("audio_sha256") or "unknown"),
+            )
+            chunks = await document_service.get_vector_chunks(document.id)
+            metadata["index"] = {
+                "status": "indexed" if chunks else "rebuild_required",
+                "document_id": document.id,
+                "indexed_revision": revision if chunks else None,
+                "chunk_count": len(chunks),
+                "reason": None if chunks else "no_vector_chunks_created",
+            }
+        else:
+            await document_service.invalidate_asr_evidence_document(
+                meeting.id, "human_correction_empty"
+            )
+            metadata["index"] = {
+                "status": "not_created",
+                "document_id": (metadata.get("index") or {}).get("document_id"),
+                "indexed_revision": None,
+                "chunk_count": 0,
+                "reason": "human_correction_empty",
+            }
+        meeting.transcript_metadata = metadata
+        await self.db.commit()
 
     async def delete(self, meeting_id: int, user: User):
         meeting = await self.get_for_user(meeting_id, user, write=True)
@@ -142,7 +245,13 @@ class MeetingService:
         await self.get_for_user(meeting_id, user)
         result = await self.db.execute(
             select(SpeechRecord)
-            .where(SpeechRecord.meeting_id == meeting_id)
+            .where(
+                SpeechRecord.meeting_id == meeting_id,
+                or_(
+                    SpeechRecord.source_type.is_(None),
+                    SpeechRecord.source_type != "asr_superseded",
+                ),
+            )
             .order_by(SpeechRecord.sequence, SpeechRecord.id)
         )
         return result.scalars().all()
@@ -176,25 +285,81 @@ class MeetingService:
         return speech
 
     async def update_speech(self, meeting_id: int, speech_id: int, data, user: User):
-        await self.get_for_user(meeting_id, user, write=True)
+        meeting = await self.get_for_user(meeting_id, user, write=True)
         speech = await self.get_speech(speech_id)
         if speech.meeting_id != meeting_id:
             raise AppException("发言记录不属于该会议", 404)
+        was_asr = speech.source_type in {"asr", "asr_corrected"}
         for field, value in data.model_dump(exclude_none=True).items():
             setattr(speech, field, value)
+        if was_asr:
+            check = await get_prompt_injection_guard().check(
+                str(speech.content or ""), llm_service=None
+            )
+            speech.source_type = "asr_corrected"
+            speech.content_sha256 = text_sha256(speech.content)
+            speech.security_status = "quarantined" if check.should_block else (
+                "warning" if check.should_warn else "passed"
+            )
+            speech.security_reason = (
+                check.injection_type.value if check.injection_type else None
+            )
         await self.db.commit()
         await self.db.refresh(speech)
         meeting_id = speech.meeting_id
+        if was_asr:
+            result = await self.db.execute(
+                select(SpeechRecord)
+                .where(
+                    SpeechRecord.meeting_id == meeting_id,
+                    SpeechRecord.source_type.in_(["asr", "asr_corrected"]),
+                    or_(
+                        SpeechRecord.security_status.is_(None),
+                        SpeechRecord.security_status != "quarantined",
+                    ),
+                )
+                .order_by(SpeechRecord.sequence, SpeechRecord.id)
+            )
+            safe_records = list(result.scalars().all())
+            await self._rebuild_corrected_asr_evidence(
+                meeting,
+                user,
+                corrected_text="\n".join(record.content for record in safe_records).strip(),
+                index_text=format_index_text(safe_records),
+                reason=f"speech_record_corrected:{speech_id}",
+            )
         await cache_delete(make_cache_key("meetings", "detail", meeting_id))
         return speech
 
     async def delete_speech(self, meeting_id: int, speech_id: int, user: User):
-        await self.get_for_user(meeting_id, user, write=True)
+        meeting = await self.get_for_user(meeting_id, user, write=True)
         result = await self.db.execute(select(SpeechRecord).where(SpeechRecord.id == speech_id))
         speech = result.scalar_one_or_none()
         if not speech or speech.meeting_id != meeting_id:
             raise AppException("发言记录不存在", 404)
+        was_asr = speech.source_type in {"asr", "asr_corrected"}
         meeting_id = speech.meeting_id
         await self.db.delete(speech)
         await self.db.commit()
+        if was_asr:
+            result = await self.db.execute(
+                select(SpeechRecord)
+                .where(
+                    SpeechRecord.meeting_id == meeting_id,
+                    SpeechRecord.source_type.in_(["asr", "asr_corrected"]),
+                    or_(
+                        SpeechRecord.security_status.is_(None),
+                        SpeechRecord.security_status != "quarantined",
+                    ),
+                )
+                .order_by(SpeechRecord.sequence, SpeechRecord.id)
+            )
+            safe_records = list(result.scalars().all())
+            await self._rebuild_corrected_asr_evidence(
+                meeting,
+                user,
+                corrected_text="\n".join(record.content for record in safe_records).strip(),
+                index_text=format_index_text(safe_records),
+                reason=f"speech_record_deleted:{speech_id}",
+            )
         await cache_delete(make_cache_key("meetings", "detail", meeting_id))

@@ -1,5 +1,6 @@
 """任务队列 API 端点"""
 from pathlib import Path
+from datetime import datetime, timezone
 import re
 import uuid
 from typing import Optional, List
@@ -23,7 +24,10 @@ from app.models.meeting import Meeting
 from app.db.database import get_db
 from app.core.logger import app_logger
 from app.core.security import require_write_user
+from app.services.input_admission import FileAdmissionError, input_admission_policy
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.cache import cache_delete
+from app.utils.cache_utils import make_cache_key
 
 router = APIRouter(tags=["任务队列"])
 
@@ -140,14 +144,17 @@ async def create_audio_task(
         raise HTTPException(status_code=403, detail="No permission to transcribe this meeting")
 
     original_name = _safe_original_name(file.filename)
-    allowed = {item.strip().lower() for item in settings.ASR_ALLOWED_EXTENSIONS.split(",") if item.strip()}
-    extension = Path(original_name).suffix.lower().lstrip(".")
-    if extension not in allowed or extension != "wav":
-        raise HTTPException(status_code=415, detail="The formal ASR endpoint currently accepts WAV only")
-    if file.content_type and file.content_type.lower() not in {
-        "audio/wav", "audio/x-wav", "audio/wave", "application/octet-stream"
-    }:
-        raise HTTPException(status_code=415, detail="Unsupported audio content type")
+    allowed = {
+        item.strip().lower()
+        for item in settings.ASR_ALLOWED_EXTENSIONS.split(",")
+        if item.strip()
+    }
+    try:
+        input_admission_policy.validate_wav_metadata(
+            original_name, file.content_type, allowed
+        )
+    except FileAdmissionError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
 
     upload_root = (Path(settings.UPLOAD_DIR) / "audio" / str(current_user.id)).resolve()
     upload_root.mkdir(parents=True, exist_ok=True)
@@ -157,9 +164,15 @@ async def create_audio_task(
         async with aiofiles.open(destination, "wb") as output:
             while chunk := await file.read(1024 * 1024):
                 size += len(chunk)
-                if size > settings.ASR_MAX_AUDIO_SIZE_BYTES:
-                    raise HTTPException(status_code=413, detail="Audio file is too large")
+                try:
+                    input_admission_policy.validate_size(
+                        size, settings.ASR_MAX_AUDIO_SIZE_BYTES, label="WAV"
+                    )
+                except FileAdmissionError as exc:
+                    raise HTTPException(status_code=exc.status_code, detail=str(exc)) from exc
                 await output.write(chunk)
+        if size == 0:
+            raise HTTPException(status_code=422, detail="WAV不能为空")
         wav_info = inspect_wav(destination)
         if wav_info["duration_seconds"] > settings.ASR_MAX_DURATION_SECONDS:
             raise HTTPException(status_code=413, detail="Audio duration exceeds configured limit")
@@ -178,8 +191,30 @@ async def create_audio_task(
             idempotency_key=idempotency_key,
         )
         # 幂等命中旧任务时，本次新上传未被引用，立即清理。
-        if not task.payload or task.payload.get("file_path") != str(destination):
+        is_new_upload = bool(
+            task.payload and task.payload.get("file_path") == str(destination)
+        )
+        if not is_new_upload:
             destination.unlink(missing_ok=True)
+        else:
+            metadata = dict(meeting.transcript_metadata or {})
+            metadata["ingestion"] = {
+                "task_id": task.task_id,
+                "status": task.status,
+                "submitted_at": datetime.now(timezone.utc).isoformat(),
+                "source_filename": original_name,
+                "source_content_type": file.content_type,
+                "source_size_bytes": size,
+                "duration_seconds": round(wav_info["duration_seconds"], 3),
+            }
+            if task.status == TaskStatus.PUBLISH_FAILED.value:
+                metadata["ingestion"]["error"] = task.error
+                meeting.transcript_status = "failed"
+            else:
+                meeting.transcript_status = "pending"
+            meeting.transcript_metadata = metadata
+            await db.commit()
+            await cache_delete(make_cache_key("meetings", "detail", meeting_id))
         return task_info_to_response(task)
     except HTTPException:
         destination.unlink(missing_ok=True)

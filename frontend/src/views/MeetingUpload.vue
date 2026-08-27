@@ -40,11 +40,11 @@
           ref="uploadRef"
           :auto-upload="false"
           :limit="1"
-          accept=".txt,.pdf,.docx,.doc,.md"
+          accept=".txt,.pdf,.docx,.md,.csv,.xlsx,.xlsm"
           :on-change="onFileChange"
         >
           <el-button>选择文件</el-button>
-          <template #tip><div style="color:#999;font-size:12px">支持 txt/pdf/docx/md，最大 50MB</div></template>
+          <template #tip><div style="color:#999;font-size:12px">支持 txt/pdf/docx/md/csv/xlsx/xlsm，最大 50MB；不接受图片、视频或传感器文件</div></template>
         </el-upload>
       </el-form-item>
       <el-form-item>

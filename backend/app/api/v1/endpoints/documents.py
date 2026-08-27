@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.security import is_admin_user, require_write_user
 from app.services.meeting_service import MeetingService
+from app.services.input_admission import FileAdmissionError, input_admission_policy
 
 router = APIRouter()
 
@@ -164,14 +165,18 @@ async def batch_upload_documents(
         app_logger.error(f"批量上传失败: {error_msg}")
         raise HTTPException(status_code=400, detail=error_msg)
     
-    # 验证文件格式
+    # 在读取文件前先校验扩展名与声明 MIME；实际内容由 DocumentService 再校验。
     allowed_extensions = settings.allowed_file_extensions_list
     invalid_files = []
     for file in files:
-        if file.filename:
-            ext = file.filename.split('.')[-1].lower()
-            if ext not in allowed_extensions:
-                invalid_files.append(f"{file.filename} ({ext})")
+        try:
+            input_admission_policy.validate_document_metadata(
+                file.filename or "",
+                file.content_type,
+                allowed_extensions,
+            )
+        except FileAdmissionError as exc:
+            invalid_files.append(f"{file.filename or 'unnamed'} ({exc})")
     
     if invalid_files:
         error_msg = f"文件格式不支持: {', '.join(invalid_files)}，支持的格式：{', '.join(allowed_extensions)}"

@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"  # 文件上传存储目录
     MAX_FILE_SIZE: int = 52428800  # 单个文件最大大小（字节，50MB）
     MAX_FILE_COUNT: int = 50  # 单次批量上传最大文件数
-    ALLOWED_FILE_EXTENSIONS: str = '["txt", "pdf", "docx", "doc", "md", "csv", "xlsx", "xlsm"]'  # 允许上传的文件格式列表（JSON格式）
+    ALLOWED_FILE_EXTENSIONS: str = '["txt", "pdf", "docx", "md", "csv", "xlsx", "xlsm"]'  # 只保留能够解析和校验内容结构的文档格式
     
     # ==================== 文本处理配置 ====================
     # 唯一正式策略：说话人感知语义分块；以下是可复现实验的默认参数，不写未冻结效果指标。

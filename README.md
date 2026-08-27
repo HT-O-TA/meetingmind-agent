@@ -8,7 +8,7 @@ MeetingMind 是一个面向 AI 应用开发学习与求职展示的会议知识�
 会议文档 / WAV 音频
 → 文档解析，或 RabbitMQ + FunASR 转写
 → 说话人感知分块
-→ PostgreSQL 正文 + Milvus Dense 索引
+→ PostgreSQL 权威正文/VectorChunk + Dense 索引（pgvector/轻量模式；可选 Milvus 需同步）
 → PostgreSQL 关键词召回 + Dense 召回
 → 0.3 / 0.7 加权融合 + BGE Reranker
 → RAG 回答与引用
@@ -20,11 +20,11 @@ MeetingMind 是一个面向 AI 应用开发学习与求职展示的会议知识�
 
 | 能力 | 当前实现 | 仍需补齐 |
 |---|---|---|
-| RAG | BM25 风格关键词召回、Milvus Dense、加权融合、Reranker、引用、ACL、降级字段 | 冻结的真实会议评测集与正式指标 |
+| RAG | PostgreSQL 权威块、BM25 风格关键词召回、PG Dense/可选 Milvus、加权融合、Reranker、引用、ACL、降级字段 | 冻结的真实会议评测集与正式指标；启用 Milvus 时的增量同步验收 |
 | Agent | 静态 LangGraph；路由、检索、纪要/待办/争议、计划执行、风险确认、质量门禁、结构修复 | 真实业务数据上的路由与端到端效果 |
 | 工具调用 | 会议/文档工具；Jira Cloud REST v3；Schema、策略、HITL、幂等和审计 | Jira 站点凭据与真实项目写入演示 |
 | 异步任务 | RabbitMQ confirm、manual ACK、延迟重试、DLQ、幂等任务状态 | 多节点高可用与真实容量验收 |
-| ASR | 独立 FunASR 环境；WAV 队列、时间戳、匿名说话人、证据入库 | 脱敏多人会议真值和 CER/DER |
+| ASR | 严格 WAV 准入；独立 FunASR Worker；原始/安全证据分区、逐段注入隔离、版本化修订、状态机和 RAG 证据入库 | 脱敏多人会议真值和 CER/DER |
 | LoRA/QLoRA | Qwen3-0.6B 待办抽取教学实验和统一评测 | 真实会议标注集；当前合成结果不可外推 |
 | 评估 | 一个离线命令统一计算检索、抽取、路由、工具指标 | 真实数据阈值与持续回归 |
 | Trace | 有界进程内节点 Trace，只记录真实节点、耗时、重试、输出和错误 | 跨进程持久化不在当前范围 |
@@ -52,7 +52,7 @@ MeetingMind 是一个面向 AI 应用开发学习与求职展示的会议知识�
 |---|---|
 | API / Schema | FastAPI、Pydantic、JSON Schema |
 | Agent | LangGraph、自定义状态、Tool Calling、HITL |
-| 检索 | PostgreSQL tsvector、Milvus Dense、BGE-M3、BGE-Reranker |
+| 检索 | PostgreSQL tsvector/VectorChunk/pgvector、可选 Milvus Dense、BGE-M3、BGE-Reranker |
 | 数据与状态 | PostgreSQL、Redis |
 | 异步任务 | RabbitMQ、aio-pika、Worker |
 | ASR | FunASR（独立可选环境） |

@@ -29,7 +29,7 @@ export const config = {
   upload: {
     maxFileSize: 52428800, // 50MB（与后端 MAX_FILE_SIZE 一致）
     maxFileCount: 50, // 单次批量上传最大文件数（与后端 MAX_FILE_COUNT 一致）
-    allowedExtensions: ['.txt', '.pdf', '.docx', '.doc', '.md', '.csv', '.xlsx', '.xlsm'], // 允许上传的文件格式（与后端 ALLOWED_FILE_EXTENSIONS 一致）
+    allowedExtensions: ['.txt', '.pdf', '.docx', '.md', '.csv', '.xlsx', '.xlsm'], // 允许上传的文件格式（与后端 ALLOWED_FILE_EXTENSIONS 一致）
   },
   
   // API配置

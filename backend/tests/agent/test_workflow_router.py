@@ -71,6 +71,17 @@ async def test_retrieve_node_populates_context(nodes):
             "document_id": 2,
             "content": "会议讨论了项目进度",
             "chunk_index": 0,
+            "meeting_id": 7,
+            "speaker_name": "speaker_0",
+            "time_offset": 1.25,
+            "metadata_json": json.dumps(
+                {
+                    "source_type": "asr_evidence",
+                    "source_task_id": "audio-task-1",
+                    "evidence_version": 2,
+                    "audio_sha256": "a" * 64,
+                }
+            ),
             "similarity": 0.9,
         }
     ]
@@ -85,9 +96,23 @@ async def test_retrieve_node_populates_context(nodes):
     retrieved = await nodes.retrieve_node(state)
 
     assert len(retrieved["context"]) == 1
-    assert retrieved["raw_context"] == ["会议讨论了项目进度"]
+    assert retrieved["raw_context"] == ["[speaker_0]: 会议讨论了项目进度"]
     assert retrieved["retrieval_confidence"] == 0.9
     assert retrieved["citations"][0]["document_id"] == 2
+    retrieval_artifact = next(
+        item
+        for item in retrieved["input_envelope"]["artifacts"]
+        if item["source"] == "retrieval"
+    )
+    assert retrieval_artifact["content_ref"] == "retrieval:document:2:chunk:0"
+    assert retrieval_artifact["metadata"]["source_type"] == "asr_evidence"
+    assert retrieval_artifact["metadata"]["evidence_version"] == 2
+    assert retrieval_artifact["metadata"]["speaker"] == "speaker_0"
+    assert retrieval_artifact["metadata"]["time_offset"] == 1.25
+    assert retrieval_artifact["checksum"]
+    assert "会议讨论了项目进度" not in json.dumps(
+        retrieved["input_envelope"], ensure_ascii=False
+    )
 
 
 @pytest.mark.asyncio

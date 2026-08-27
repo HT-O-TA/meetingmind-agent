@@ -1277,16 +1277,40 @@ class AgentNodes:
                     document_id = chunk.get("document_id") if isinstance(chunk, dict) else None
                     chunk_index = chunk.get("chunk_index", index) if isinstance(chunk, dict) else index
                     content_ref = f"retrieval:document:{document_id}:chunk:{chunk_index}"
+                    artifact_metadata = {
+                        "document_id": document_id,
+                        "chunk_index": chunk_index,
+                    }
+                    if isinstance(chunk, dict):
+                        artifact_metadata.update(
+                            {
+                                "meeting_id": chunk.get("meeting_id"),
+                                "speaker": chunk.get("speaker_name") or chunk.get("speaker"),
+                                "time_offset": chunk.get("time_offset"),
+                            }
+                        )
+                        raw_metadata = chunk.get("metadata") or chunk.get("metadata_json")
+                        if isinstance(raw_metadata, str):
+                            try:
+                                raw_metadata = json.loads(raw_metadata)
+                            except (TypeError, ValueError):
+                                raw_metadata = {}
+                        if isinstance(raw_metadata, dict):
+                            for key in (
+                                "source_type",
+                                "source_task_id",
+                                "evidence_version",
+                                "audio_sha256",
+                            ):
+                                if raw_metadata.get(key) is not None:
+                                    artifact_metadata[key] = raw_metadata[key]
                     if await self._screen_untrusted_content(
                         state,
                         content=content,
                         source=ArtifactSource.RETRIEVAL,
                         trust_level=TrustLevel.UNTRUSTED_RETRIEVAL,
                         content_ref=content_ref,
-                        metadata={
-                            "document_id": document_id,
-                            "chunk_index": chunk_index,
-                        },
+                        metadata=artifact_metadata,
                     ):
                         safe_chunks.append(chunk)
                     else:

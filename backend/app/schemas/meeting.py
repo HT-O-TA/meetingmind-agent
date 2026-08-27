@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
+from typing import Any, Optional, List
 from datetime import datetime
 
 
@@ -46,6 +46,10 @@ class MeetingOut(BaseModel):
     duration_minutes: Optional[int]
     location: Optional[str]
     participants: Optional[str]
+    raw_transcript: Optional[str] = None
+    transcript_status: Optional[str] = None
+    transcript_revision: int = 0
+    transcript_metadata: Optional[dict[str, Any]] = None
     summary: Optional[str]
     minutes: Optional[str]
     keywords: Optional[str]
@@ -84,4 +88,7 @@ class SpeechRecordOut(BaseModel):
     is_key_point: Optional[int] = None
     source_type: Optional[str] = None
     source_task_id: Optional[str] = None
+    security_status: Optional[str] = None
+    security_reason: Optional[str] = None
+    content_sha256: Optional[str] = None
     created_at: datetime

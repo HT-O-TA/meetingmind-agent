@@ -20,6 +20,15 @@ Authorization: Bearer <token>
 | `/feedback` | 反馈、Bad Case、分析、改进、验证、模式 | AI 反馈闭环 |
 | `/tasks` | 文档/音频任务、查询、取消、清理、重发、等待 | RabbitMQ 任务生命周期 |
 
+## 输入文件契约
+
+- 文档入口只接受 `txt/md/pdf/docx/csv/xlsx/xlsm`，并联合校验扩展名、Content-Type、大小和实际内容结构；旧版 `.doc`、图片、视频、传感器文件及伪装文件不属于接口能力。
+- 音频入口为 `POST /tasks/audio`，表单字段是 `meeting_id` 与 `file`，只接受可由标准库验证的 WAV MIME/RIFF 内容；支持 `Idempotency-Key`。
+- 文档或 WAV 为空返回 422，超过限制返回 413，扩展名/MIME 不支持返回 415；失败文件不会进入解析或 RabbitMQ。
+- 音频证据状态通过会议详情中的 `transcript_status` 返回：`pending/processing/completed/failed`。`transcript_revision` 表示当前证据版本，`transcript_metadata` 保存溯源、安全、复核和索引状态。
+- `completed` 只表示转写工作结束，不等于准确率达标或人工审核通过；空转写或全部片段被安全隔离时不会生成可检索文档。
+- 发言记录的 `security_status` 为 `passed/warning/quarantined`。授权用户仍可看到 quarantined 片段以便修订，但该片段不进入 Agent/RAG。
+
 ## 开发环境 Trace
 
 `trace` Router 仅在 `APP_ENV=development` 或 `test` 注册：
