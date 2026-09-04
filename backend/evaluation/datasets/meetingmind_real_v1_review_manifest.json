@@ -1,0 +1,42 @@
+{
+  "schema_version": "meetingmind.annotation-review-manifest.v1",
+  "dataset_version": "meetingmind-real-v1",
+  "generated_at": "2026-09-04T11:17:09.203367+00:00",
+  "annotation_status": "silver",
+  "review_required": true,
+  "source_counts": {
+    "ali_meeting_sessions": 8,
+    "vcsum_candidate_records": 158,
+    "vcsum_meetings": 26,
+    "todo_candidates": 130,
+    "constraint_candidates": 156,
+    "ali_todo_candidates": 64,
+    "ali_constraint_candidates": 72
+  },
+  "files": {
+    "sources": {
+      "path": "F:\\project\\meetingmind-agent\\backend\\evaluation\\datasets\\meetingmind_real_v1_sources.jsonl",
+      "sha256": "9abff206b6fc43f3020d2a5360b779afe74f83bffcf8cde94cc41cb7ec5f96aa",
+      "records": 8
+    },
+    "candidates": {
+      "path": "F:\\project\\meetingmind-agent\\backend\\evaluation\\datasets\\meetingmind_real_v1_candidates.jsonl",
+      "sha256": "aaab970ec2fce055c5700d8b78975004c32495ca67cbf59f807a02b6c370021b",
+      "records": 158
+    }
+  },
+  "review_checklist": [
+    "逐条确认问题是否能由会议原文回答",
+    "逐条确认答案没有超出引用片段",
+    "确认引用片段覆盖答案关键事实",
+    "将疑似行动句改成规范待办，补齐负责人和截止时间",
+    "确认否定、阈值和前后覆盖关系",
+    "人工确认后把 annotation_status 从 silver 改为 gold"
+  ],
+  "limitations": [
+    "问题由规则生成，不是人工设计；",
+    "待办和约束是低置信度启发式候选，不可直接用于正式 F1；",
+    "AliMeeting 只有转写真值，没有公开的问答和待办真值。"
+  ],
+  "manifest_sha256": "a208486a0751a8052e7acf1657ae944953e0a2e2ff24a8c76b25360c01e8e77c"
+}

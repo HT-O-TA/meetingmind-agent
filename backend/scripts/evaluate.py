@@ -76,9 +76,14 @@ def markdown_report(payload: Dict[str, Any]) -> str:
     ]
     if payload["metadata"].get("top_k") is not None:
         lines.insert(-1, f"- Top-K：{payload['metadata']['top_k']}")
-    if payload["metadata"]["sample_kind"] != "real":
+    if payload["metadata"]["sample_kind"] not in {"real", "deidentified"}:
         lines.extend([
             "> 此报告来自 synthetic 数据，仅验证数据、公式、规则或控制流的可复现回归，不得用于生产效果或简历结论。",
+            "",
+        ])
+    elif payload["metadata"]["sample_kind"] == "deidentified":
+        lines.extend([
+            "> 此报告来自脱敏/项目自编会议样本，可用于工程回归；在样本量扩大并完成独立复核前，不作为生产泛化结论。",
             "",
         ])
     for section, metrics in payload["metrics"].items():
@@ -156,8 +161,8 @@ def main() -> int:
         if record.get("dataset_version") is not None
     })
     dataset_version = dataset_versions[0] if len(dataset_versions) == 1 else None
-    if sample_kind != "real" and not args.allow_synthetic:
-        raise ValueError("数据集不是 real；仅验证示例时请显式添加 --allow-synthetic")
+    if sample_kind not in {"real", "deidentified"} and not args.allow_synthetic:
+        raise ValueError("数据集不是 real 或 deidentified；仅验证示例时请显式添加 --allow-synthetic")
 
     schemas = {str(record.get("schema_version", "")) for record in records}
     if schemas == {PROMPT_INJECTION_SCHEMA_VERSION}:

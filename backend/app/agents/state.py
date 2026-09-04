@@ -220,6 +220,7 @@ class AgentState(TypedDict):
     input_envelope: Optional[Dict[str, Any]]
     task_anchor: Optional[Dict[str, Any]]
     input_blocked: bool
+    planning_blocked: bool
     input_block_reason: Optional[str]
     injection_check: Optional[Dict[str, Any]]
     injection_blocked: bool
@@ -243,6 +244,12 @@ class AgentState(TypedDict):
     route_reason: str
     retrieval_required: bool
     retrieval_confidence: float
+    plan_confidence: float
+    uncertainty_flags: List[Dict[str, Any]]
+    planner_iterations: int
+    last_plan_fingerprint: Optional[str]
+    repeated_failure_count: int
+    last_failure_fingerprint: Optional[str]
     citations: List[Dict[str, Any]]
     validation_errors: List[str]
     policy_results: List[Dict[str, Any]]
@@ -308,6 +315,8 @@ class AgentResult:
     validation_errors: Optional[List[str]] = None
     policy_results: Optional[List[Dict[str, Any]]] = None
     retrieval_confidence: Optional[float] = None
+    plan_confidence: Optional[float] = None
+    uncertainty_flags: Optional[List[Dict[str, Any]]] = None
     risk_level: Optional[RiskLevel] = None
     requires_confirmation: bool = False
     confirmation_status: Optional[str] = None
@@ -408,6 +417,7 @@ def create_initial_state(
         "input_envelope": None,
         "task_anchor": None,
         "input_blocked": False,
+        "planning_blocked": False,
         "input_block_reason": None,
         "injection_check": None,
         "injection_blocked": False,
@@ -427,6 +437,12 @@ def create_initial_state(
         "route_reason": "",
         "retrieval_required": True,
         "retrieval_confidence": 0.0,
+        "plan_confidence": 1.0,
+        "uncertainty_flags": [],
+        "planner_iterations": 0,
+        "last_plan_fingerprint": None,
+        "repeated_failure_count": 0,
+        "last_failure_fingerprint": None,
         "citations": [],
         "validation_errors": [],
         "policy_results": [],

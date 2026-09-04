@@ -294,9 +294,43 @@ class InputPreprocessor:
 
         calls = list(tool_calls or [])
         for constraint in (anchor.get("constraints", []) if isinstance(anchor, dict) else []):
-            if not isinstance(constraint, dict) or constraint.get("polarity") != "must_not":
+            if not isinstance(constraint, dict):
                 continue
             text = str(constraint.get("text") or "").lower()
+            kind = str(constraint.get("kind") or "")
+            if kind == "threshold" and calls:
+                try:
+                    limit = float(constraint.get("value"))
+                except (TypeError, ValueError):
+                    limit = None
+                if limit is not None:
+                    operator = next(
+                        (op for op in ("低于", "不超过", "少于", "小于", "最多", "上限", "不高于", "不少于", "大于", "超过", "高于", "≤", "≥", "<", ">") if op in text),
+                        "",
+                    )
+                    for call in calls:
+                        values = cls._numeric_argument_values(call.get("arguments", {}) if isinstance(call, dict) else {})
+                        for name, value in values:
+                            violates = (
+                                operator in {"低于", "少于", "小于", "最多", "上限", "不超过", "不高于", "≤", "<"} and value > limit
+                            ) or (
+                                operator in {"不少于", "大于", "超过", "高于", "≥", ">"} and value < limit
+                            )
+                            if violates:
+                                errors.append(f"计划参数 {name}={value:g} 违反阈值约束：{constraint.get('text')}")
+            if kind in {"exclusion", "scope"} and calls:
+                constraint_text = str(constraint.get("text") or "")
+                excluded = re.findall(r"除了(.+?)(?:之外|以外)$", constraint_text)
+                scope_terms = re.findall(r"(?:只看|仅看|仅限|限定|只允许)(.+)$", constraint_text)
+                for call in calls:
+                    arguments = call.get("arguments", {}) if isinstance(call, dict) else {}
+                    argument_text = cls.normalize_query(str(arguments)).lower()
+                    if excluded and any(term.strip().lower() and term.strip().lower() in argument_text for term in excluded[0].split("、")):
+                        errors.append(f"计划参数命中排除条件：{constraint_text}")
+                    if scope_terms and not any(term.strip().lower() in argument_text for term in re.split(r"[、,， ]+", scope_terms[0]) if term.strip()):
+                        errors.append(f"计划参数未体现限定范围：{constraint_text}")
+            if constraint.get("polarity") != "must_not":
+                continue
             for call in calls:
                 tool_name = str(call.get("tool_name") or call.get("name") or "")
                 tool = tool_lookup(tool_name) if tool_lookup else None
@@ -308,6 +342,23 @@ class InputPreprocessor:
                 if forbidden:
                     errors.append(f"计划调用 {tool_name} 违反用户禁止条件：{constraint.get('text')}")
         return list(dict.fromkeys(errors))
+
+    @classmethod
+    def _numeric_argument_values(cls, value: Any, prefix: str = "") -> list[tuple[str, float]]:
+        """只提取金额/数量/时间等参数中的数字，避免把 ID 当成业务阈值。"""
+        values: list[tuple[str, float]] = []
+        if isinstance(value, dict):
+            for key, item in value.items():
+                key_name = f"{prefix}.{key}" if prefix else str(key)
+                key_text = str(key).lower()
+                if isinstance(item, (int, float)) and any(token in key_text for token in ("budget", "cost", "price", "amount", "费用", "预算", "金额", "耗时", "duration", "time")):
+                    values.append((key_name, float(item)))
+                else:
+                    values.extend(cls._numeric_argument_values(item, key_name))
+        elif isinstance(value, list):
+            for index, item in enumerate(value):
+                values.extend(cls._numeric_argument_values(item, f"{prefix}[{index}]"))
+        return values
 
     def create_artifact(
         self,

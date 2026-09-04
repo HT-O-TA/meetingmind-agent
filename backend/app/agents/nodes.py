@@ -103,6 +103,10 @@ class AgentNodes:
         "max_plan_retries": 2,
         "max_context_length": settings.LLM_MAX_CONTEXT_CHARS,
         "max_few_shot_examples": 3,
+        # 规划层 P0 门禁：宁可停下来让上层处理，也不重复执行同一条坏计划。
+        "max_planner_iterations": 3,
+        "max_repeated_failures": 2,
+        "min_plan_confidence": 0.60,
     }
 
     def __init__(
@@ -159,6 +163,7 @@ class AgentNodes:
             "input_envelope": state.get("input_envelope"),
             "task_anchor": state.get("task_anchor"),
             "input_blocked": state.get("input_blocked", False),
+            "planning_blocked": state.get("planning_blocked", False),
             "input_block_reason": state.get("input_block_reason"),
             "injection_check": state.get("injection_check"),
             "injection_blocked": state.get("injection_blocked", False),
@@ -175,6 +180,12 @@ class AgentNodes:
             "route_reason": state.get("route_reason", ""),
             "retrieval_required": state.get("retrieval_required", True),
             "retrieval_confidence": state.get("retrieval_confidence", 0.0),
+            "plan_confidence": state.get("plan_confidence", 1.0),
+            "uncertainty_flags": state.get("uncertainty_flags", []),
+            "planner_iterations": state.get("planner_iterations", 0),
+            "last_plan_fingerprint": state.get("last_plan_fingerprint"),
+            "repeated_failure_count": state.get("repeated_failure_count", 0),
+            "last_failure_fingerprint": state.get("last_failure_fingerprint"),
             "citations": state.get("citations", []),
             "validation_errors": state.get("validation_errors", []),
             "policy_results": state.get("policy_results", []),
@@ -761,6 +772,7 @@ class AgentNodes:
                 )
                 state["error"] = "; ".join(constraint_errors)
                 state["current_phase"] = "validate"
+                state["planning_blocked"] = True
                 return state
             app_logger.info("[PLAN] 开始规划阶段（Tool Calling）...")
             self._add_thought(state, "plan_agent", "plan", "开始分析问题，制定执行计划", action="问题分析")
@@ -785,6 +797,14 @@ class AgentNodes:
                 if plan:
                     repair_plan = reflection.get("repair_plan") if isinstance(reflection, dict) else None
                     plan = self._apply_repair_plan_to_plan(plan, repair_plan, state)
+                    from app.services.plan_budget_guard import get_plan_budget_guard
+                    if not self._validate_and_track_plan(
+                        state, plan, get_plan_budget_guard(), int((envelope.get("budget") or {}).get("max_plan_steps", getattr(settings, "PLAN_MAX_TASKS", 8)))
+                    ):
+                        state["error"] = "; ".join(state.get("validation_errors") or [])
+                        state["current_phase"] = "validate"
+                        state["plan"] = None
+                        return self._sanitize_state(state)
                     state["plan"] = plan
                     state["task_contexts"] = {}
                     state["current_phase"] = "execute"
@@ -895,13 +915,16 @@ class AgentNodes:
             "task_type": "qa/todo/minutes/controversy",
             "description": "任务描述",
             "priority": 1,
+            "confidence": 0.0,
             "tool_to_use": "使用的工具名（可选）"
         }}
     ],
     "tool_calls": [
         {{
             "tool_name": "工具名",
-            "arguments": {{"参数名": "参数值"}}
+            "arguments": {{"参数名": "参数值"}},
+            "confidence": 0.0,
+            "uncertainty": "不确定时说明原因"
         }}
     ],
     "execution_order": ["task_1", ...],
@@ -909,7 +932,7 @@ class AgentNodes:
 }}"""
 
             messages = [
-                {"role": "system", "content": "你是专业的任务规划专家，负责决定使用哪些工具。"},
+                {"role": "system", "content": "你是专业的任务规划专家，负责决定使用哪些工具。只能使用工具清单中的工具；不得把不确定推测写成确定事实；遇到否定、阈值和禁止条件必须保留并遵守。"},
                 {"role": "user", "content": prompt}
             ]
 
@@ -962,6 +985,13 @@ class AgentNodes:
 
                     repair_plan = reflection.get("repair_plan") if isinstance(reflection, dict) else None
                     plan = self._apply_repair_plan_to_plan(plan, repair_plan, state)
+                    if not self._validate_and_track_plan(
+                        state, plan, budget_guard, budget.recommended_max_tasks
+                    ):
+                        state["error"] = "; ".join(state.get("validation_errors") or [])
+                        state["current_phase"] = "validate"
+                        state["plan"] = None
+                        return self._sanitize_state(state)
                     state["plan"] = plan
                     state["task_contexts"] = {}
                     state["current_phase"] = "execute"
@@ -981,24 +1011,29 @@ class AgentNodes:
 
                     self._log_plan(state)
                 else:
-                    plan = self._create_default_plan()
-                    state["plan"] = plan
-                    state["task_contexts"] = {}
-                    state["current_phase"] = "execute"
-                    state["task_type"] = TaskType.QA
+                    state["validation_errors"] = list(dict.fromkeys(
+                        (state.get("validation_errors") or []) + ["计划输出无法解析，拒绝使用默认工具计划"]
+                    ))
+                    state["error"] = "计划输出无法解析，拒绝使用默认工具计划"
+                    state["plan"] = None
+                    state["current_phase"] = "validate"
+                    state["planning_blocked"] = True
 
                 state["agents_involved"].append("plan_agent")
-                self._add_thought(state, "plan_agent", "plan", f"计划制定完成，共 {len(state['plan']['tasks'])} 个任务", observation="进入执行阶段")
-                trace.update_output(f"计划制定完成，{len(state['plan']['tasks'])} 个任务")
+                planned_task_count = len((state.get("plan") or {}).get("tasks", []))
+                self._add_thought(state, "plan_agent", "plan", f"计划处理完成，共 {planned_task_count} 个任务", observation="进入下一阶段")
+                trace.update_output(f"计划处理完成，{planned_task_count} 个任务")
 
             except Exception as e:
                 app_logger.error(f"[PLAN] 规划失败: {e}")
                 self._add_thought(state, "plan_agent", "plan", f"规划失败: {str(e)}", action="错误处理")
                 state["error"] = str(e)
-                state["current_phase"] = "execute"
-                plan = self._create_default_plan()
-                state["plan"] = plan
-                state["task_type"] = TaskType.QA
+                state["validation_errors"] = list(dict.fromkeys(
+                    (state.get("validation_errors") or []) + [f"规划异常，已阻止自动执行: {e}"]
+                ))
+                state["current_phase"] = "validate"
+                state["plan"] = None
+                state["planning_blocked"] = True
                 trace.update_error(str(e))
 
             return self._sanitize_state(state)
@@ -2358,6 +2393,94 @@ class AgentNodes:
             }]
         }
 
+    def _available_tool_names(self) -> set[str]:
+        """返回规划器可以真正调用的工具 ID/名称，供计划门禁使用。"""
+        names: set[str] = set()
+        try:
+            for tool in self.tool_manager.get_available_tools():
+                metadata = getattr(tool, "metadata", None)
+                if metadata is None:
+                    continue
+                for value in (getattr(metadata, "tool_id", None), getattr(metadata, "name", None)):
+                    if value:
+                        names.add(str(value))
+        except Exception as exc:
+            app_logger.warning("获取可用工具列表失败，计划将由执行前门禁再次校验: %s", exc)
+        return names
+
+    def _validate_and_track_plan(self, state: AgentState, plan: Plan, budget_guard: Any, max_tasks: int) -> bool:
+        """统一做计划结构、约束、工具白名单、置信度和重复计划校验。"""
+        from app.services.plan_budget_guard import PlanBudgetGuard
+
+        validation = budget_guard.validate(
+            plan,
+            available_tools=(self._available_tool_names() or None),
+            max_tasks=max_tasks,
+        )
+        errors = list(validation.errors)
+        errors.extend(
+            InputPreprocessor.validate_constraints_for_plan(
+                state, plan.get("tool_calls", []), self._get_tool_by_name
+            )
+        )
+
+        confidence_values: list[float] = []
+        flags: list[Dict[str, Any]] = []
+        default_confidence = float(state.get("route_confidence", 1.0) or 1.0)
+        for task in plan.get("tasks", []):
+            if not isinstance(task, dict):
+                continue
+            try:
+                task_confidence = float(task.get("confidence", default_confidence))
+            except (TypeError, ValueError):
+                task_confidence = 0.0
+            task_confidence = max(0.0, min(1.0, task_confidence))
+            task["confidence"] = task_confidence
+            confidence_values.append(task_confidence)
+            if task_confidence < float(self.config["min_plan_confidence"]):
+                flags.append({"scope": "task", "task_id": task.get("task_id"), "confidence": task_confidence})
+        for call in plan.get("tool_calls", []):
+            if not isinstance(call, dict):
+                continue
+            try:
+                call_confidence = float(call.get("confidence", default_confidence))
+            except (TypeError, ValueError):
+                call_confidence = 0.0
+            call_confidence = max(0.0, min(1.0, call_confidence))
+            call["confidence"] = call_confidence
+            confidence_values.append(call_confidence)
+            tool = self._get_tool_by_name(str(call.get("tool_name") or call.get("name") or ""))
+            metadata = getattr(tool, "metadata", None)
+            if call_confidence < float(self.config["min_plan_confidence"]):
+                flags.append({"scope": "tool_call", "tool_name": call.get("tool_name"), "confidence": call_confidence})
+                if bool(getattr(metadata, "external_effect", False)):
+                    errors.append(
+                        f"工具 {call.get('tool_name')} 置信度 {call_confidence:.2f} 低于外部操作门槛 "
+                        f"{self.config['min_plan_confidence']:.2f}"
+                    )
+
+        state["plan_confidence"] = min(confidence_values) if confidence_values else 1.0
+        state["uncertainty_flags"] = flags
+        state["validation_errors"] = list(dict.fromkeys((state.get("validation_errors") or []) + errors))
+        if errors:
+            state["planning_blocked"] = True
+            return False
+
+        fingerprint = PlanBudgetGuard.fingerprint(plan)
+        iterations = int(state.get("planner_iterations", 0) or 0) + 1
+        state["planner_iterations"] = iterations
+        if fingerprint == state.get("last_plan_fingerprint") or iterations > int(self.config["max_planner_iterations"]):
+            message = "规划熔断：检测到重复计划或规划次数超过上限，停止继续重试"
+            state["validation_errors"] = list(dict.fromkeys(state.get("validation_errors", []) + [message]))
+            state["error"] = message
+            state["plan"] = None
+            state["current_phase"] = "validate"
+            state["planning_blocked"] = True
+            return False
+        state["last_plan_fingerprint"] = fingerprint
+        state["planning_blocked"] = False
+        return True
+
     def _log_plan(self, state: AgentState):
         plan = state.get("plan", {})
         app_logger.info("=" * 60)
@@ -2388,6 +2511,22 @@ class AgentNodes:
             plan = state.get("plan")
             tasks = {}  # 防止 plan is None 时 line 2175 引用 tasks 导致 NameError
 
+            if isinstance(plan, dict):
+                from app.services.plan_budget_guard import get_plan_budget_guard
+                execution_validation = get_plan_budget_guard().validate(
+                    plan,
+                    available_tools=(self._available_tool_names() or None),
+                    max_tasks=int(((state.get("input_envelope") or {}).get("budget") or {}).get("max_plan_steps", getattr(settings, "PLAN_MAX_TASKS", 8))),
+                )
+                if not execution_validation.is_valid:
+                    state["validation_errors"] = list(dict.fromkeys(
+                        (state.get("validation_errors") or []) + execution_validation.errors
+                    ))
+                    state["error"] = "计划在执行前校验失败"
+                    state["planning_blocked"] = True
+                    state["current_phase"] = "validate"
+                    return self._sanitize_state(state)
+
             planned_calls = plan.get("tool_calls", []) if isinstance(plan, dict) else []
             constraint_errors = InputPreprocessor.validate_constraints_for_plan(
                 state,
@@ -2407,7 +2546,10 @@ class AgentNodes:
             else:
                 tool_calls = plan.get("tool_calls", [])
                 if tool_calls:
-                    await self._execute_tool_calls(state, tool_calls)
+                    tool_calls_ok = await self._execute_tool_calls(state, tool_calls)
+                    if not tool_calls_ok:
+                        state["current_phase"] = "validate"
+                        return self._sanitize_state(state)
 
                 tasks = {t["task_id"]: t for t in plan.get("tasks", [])}
                 parallel_groups = plan.get("parallel_groups", [])
@@ -2455,7 +2597,7 @@ class AgentNodes:
 
             return self._sanitize_state(state)
 
-    async def _execute_tool_calls(self, state: AgentState, tool_calls: List[Dict[str, Any]]):
+    async def _execute_tool_calls(self, state: AgentState, tool_calls: List[Dict[str, Any]]) -> bool:
         """执行工具调用 - 逐个工具确认"""
         self._add_thought(state, "execute_agent", "execute", f"开始执行 {len(tool_calls)} 个工具调用", action="工具调用")
 
@@ -2542,7 +2684,7 @@ class AgentNodes:
                     self._record_policy_result(
                         state, tool_name, "confirmation_pending", False, "等待用户确认", 0
                     )
-                    return
+                    return False
                 else:
                     error_message = "confirmation_required: 当前未启用人工确认，外部写未执行"
                     state["validation_errors"].append(error_message)
@@ -2612,6 +2754,8 @@ class AgentNodes:
                 state["confirmation_status"] = "not_required"
 
             if result.success:
+                state["repeated_failure_count"] = 0
+                state["last_failure_fingerprint"] = None
                 step["status"] = "succeeded"
                 step["completed_at"] = datetime.now(timezone.utc).isoformat()
                 step["audit_id"] = (result.metadata or {}).get("audit_id")
@@ -2657,6 +2801,26 @@ class AgentNodes:
                 app_logger.error(f"[EXECUTE] 工具 {tool_name} 执行失败: {result.error}")
                 self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行失败: {result.error}", observation="错误")
                 state["validation_errors"].append(f"工具 {tool_name} 执行失败: {result.error}")
+                failure_fingerprint = hashlib.sha256(
+                    json.dumps(
+                        {"tool_name": tool_name, "arguments": arguments, "error": str(result.error)},
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ).encode("utf-8")
+                ).hexdigest()[:20]
+                if failure_fingerprint == state.get("last_failure_fingerprint"):
+                    state["repeated_failure_count"] = int(state.get("repeated_failure_count", 0) or 0) + 1
+                else:
+                    state["last_failure_fingerprint"] = failure_fingerprint
+                    state["repeated_failure_count"] = 1
+                if state["repeated_failure_count"] >= int(self.config["max_repeated_failures"]):
+                    message = "执行熔断：同一工具调用连续失败，停止重复重试"
+                    state["validation_errors"].append(message)
+                    state["error"] = message
+                    return False
+
+        return True
 
     def _validate_tool_parameters(self, tool: Any, arguments: Dict[str, Any]) -> List[str]:
         metadata = getattr(tool, "metadata", None)

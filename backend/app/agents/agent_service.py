@@ -374,7 +374,7 @@ class AgentService:
                 }
 
             return AgentResult(
-                success=True,
+                success=not bool(final_state.get("planning_blocked")),
                 task_type=task_type,
                 answer=final_state.get("answer"),
                 minutes=final_state.get("minutes"),
@@ -389,6 +389,8 @@ class AgentService:
                 validation_errors=final_state.get("validation_errors"),
                 policy_results=final_state.get("policy_results"),
                 retrieval_confidence=final_state.get("retrieval_confidence"),
+                plan_confidence=final_state.get("plan_confidence"),
+                uncertainty_flags=final_state.get("uncertainty_flags"),
                 risk_level=final_state.get("risk_level"),
                 requires_confirmation=bool(final_state.get("requires_confirmation", False)),
                 confirmation_status=final_state.get("confirmation_status"),
@@ -633,7 +635,7 @@ class AgentService:
             }
         await self._acleanup_checkpoint(snapshot)
         return {
-            "success": True,
+            "success": not bool(resumed_state.get("planning_blocked")),
             "mode": snapshot_source,
             "message": "已从确认点恢复执行",
             "result": self._state_to_result_payload(resumed_state),
@@ -732,11 +734,13 @@ class AgentService:
         workflow_type = state.get("workflow_type")
         risk_level = state.get("risk_level")
         return {
-            "success": True,
+            "success": not bool(state.get("planning_blocked")),
             "task_type": task_type.value if hasattr(task_type, "value") else task_type,
             "workflow_type": workflow_type.value if hasattr(workflow_type, "value") else workflow_type,
             "route_reason": state.get("route_reason"),
             "retrieval_confidence": state.get("retrieval_confidence"),
+            "plan_confidence": state.get("plan_confidence"),
+            "uncertainty_flags": state.get("uncertainty_flags"),
             "citations": state.get("citations"),
             "validation_errors": state.get("validation_errors"),
             "policy_results": state.get("policy_results"),

@@ -98,6 +98,15 @@ def create_agent_graph(
             return "confirmation_node"
         return "execute_node"
 
+    def after_plan(state: AgentState) -> str:
+        # 计划门禁失败时直接进入统一校验/修复出口，不能落到 execute_node
+        # 再用默认计划“兜底”，否则幻觉工具可能被真正执行。
+        if state.get("planning_blocked"):
+            return "validate_node"
+        if state.get("current_phase") == "validate" and state.get("validation_errors"):
+            return "validate_node"
+        return "tool_risk_node"
+
     def after_replan(state: AgentState) -> str:
         reflection = state.get("reflection") or {}
         if reflection.get("needs_retry", False):
@@ -112,6 +121,8 @@ def create_agent_graph(
         }:
             return END
         errors = state.get("validation_errors") or []
+        if state.get("planning_blocked"):
+            return END
         repair_count = int(state.get("repair_count", 0))
         max_repairs = int(state.get("max_repair_attempts", 1))
         if errors and repair_count < max_repairs:
@@ -164,7 +175,11 @@ def create_agent_graph(
     ):
         graph.add_edge(node_name, "validate_node")
 
-    graph.add_edge("plan_node", "tool_risk_node")
+    graph.add_conditional_edges(
+        "plan_node",
+        after_plan,
+        {"tool_risk_node": "tool_risk_node", "validate_node": "validate_node"},
+    )
     graph.add_edge("execute_node", "replan_node")
     graph.add_edge("repair_node", "validate_node")
     # Direct unit tests and one-shot callers may omit a checkpointer.  The

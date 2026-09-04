@@ -66,5 +66,7 @@ def test_unified_report_covers_all_main_sections():
 
     assert set(["retrieval", "generation", "extraction", "tool", "route", "system"]).issubset(report)
     assert report["generation"]["citation_accuracy"] == 1.0
+    assert report["extraction"]["todo_f1"] == 1.0
+    assert report["system"]["p50_latency_ms"] == 100
     assert report["system"]["p95_latency_ms"] == 100
     assert report["route_threshold_recommendation"]["status"] == "recommendation_only_not_applied"

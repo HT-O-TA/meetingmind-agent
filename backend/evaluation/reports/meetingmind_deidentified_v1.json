@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "schema_version": "evaluation.v1",
+    "generated_at": "2026-09-04T08:41:50.635079+00:00",
+    "dataset": "backend\\evaluation\\datasets\\meetingmind_deidentified_v1.jsonl",
+    "dataset_sha256": "259c9fc347aec9d326a2220ed72f0d1c96f201080717432f2c98ac1e269fbd17",
+    "dataset_version": "meetingmind-deidentified-v1",
+    "sample_kind": "deidentified",
+    "record_count": 8,
+    "suite": "general",
+    "top_k": 5,
+    "generation_metric_note": "faithfulness/relevancy are lexical proxies unless replaced by labeled evaluator outputs"
+  },
+  "metrics": {
+    "retrieval": {
+      "mrr": 0.7291666666666666,
+      "ndcg_at_k": 0.78906375623282,
+      "recall_at_k": 1.0
+    },
+    "generation": {
+      "answer_relevancy_lexical_proxy": 0.17501674129963604,
+      "citation_accuracy": 1.0,
+      "faithfulness_lexical_proxy": 0.5564425888439046
+    },
+    "extraction": {
+      "f1": 0.6458333333333334,
+      "json_valid_rate": 1.0,
+      "precision": 0.6875,
+      "recall": 0.625,
+      "todo_f1": 0.6458333333333334
+    },
+    "route_threshold_recommendation": {}
+  },
+  "case_results": [],
+  "limitations": [],
+  "threshold_failures": []
+}

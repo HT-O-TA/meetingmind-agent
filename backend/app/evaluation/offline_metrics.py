@@ -164,6 +164,8 @@ def evaluate_records(records: List[Dict[str, Any]], top_k: int = 5) -> Dict[str,
             metrics = precision_recall_f1(
                 extraction.get("expected", []), extraction.get("predicted", [])
             )
+            # 会议待办数据使用同一字段级公式，单独给出更容易读懂的别名。
+            metrics["todo_f1"] = metrics["f1"]
             metrics["json_valid_rate"] = json_is_valid(extraction.get("raw_output"))
             buckets["extraction"].append(metrics)
 
@@ -202,6 +204,7 @@ def evaluate_records(records: List[Dict[str, Any]], top_k: int = 5) -> Dict[str,
         total_seconds = sum(latencies) / 1000
         report["system"] = {
             "mean_latency_ms": mean(latencies),
+            "p50_latency_ms": percentile(latencies, 0.50),
             "p95_latency_ms": percentile(latencies, 0.95),
             "sequential_throughput_proxy_rps": len(latencies) / total_seconds if total_seconds else 0.0,
             "error_rate": errors / len(latencies),
