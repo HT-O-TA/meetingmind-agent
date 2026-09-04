@@ -6,8 +6,9 @@ from app.models.vector import VectorChunk
 from app.models.feedback import Feedback, BadCase, ImprovementRecord, FeedbackType, BadCaseCategory, ResolutionStatus
 from app.models.risk_rule import RiskRule
 from app.models.tool_execution import ToolExecutionAudit
+from app.models.memory import MemoryRecordModel, MemoryIndexEventModel
 
 __all__ = ["User", "Meeting", "SpeechRecord", "Document", "TodoItem", "VectorChunk", 
            "Feedback", "BadCase", "ImprovementRecord",
            "FeedbackType", "BadCaseCategory", "ResolutionStatus",
-           "RiskRule", "ToolExecutionAudit"]
+           "RiskRule", "ToolExecutionAudit", "MemoryRecordModel", "MemoryIndexEventModel"]

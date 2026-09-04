@@ -92,6 +92,7 @@ class ToolManager:
                     policy_code=audit_context.get("policy_code", "allowed"),
                     arguments=arguments,
                     idempotency_key=audit_context.get("idempotency_key"),
+                    allow_retry=bool(getattr(metadata, "idempotent", False)),
                 )
                 audit_id = begin.audit_id
                 if begin.action == "replay":

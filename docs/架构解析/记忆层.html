@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>6&period;1 &#x5199;&#x5165;&#x95e8;&#x7981;&#xff1a;&#x5148;&#x5224;&#x65ad;&ldquo;&#x503c;&#x4e0d;&#x503c;&#x5f97;&#x8bb0;&CloseCurlyDoubleQuote;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<p>记忆层</p>
+<blockquote>
+<p>阅读入口：如果你想先用大白话理解这一层，可以先看 <a href="../%E9%A1%B9%E7%9B%AE%E6%80%BB%E8%A7%88_%E5%A4%A7%E7%99%BD%E8%AF%9D.html">项目总览（大白话）</a>。本文保留实现细节、字段范围和验收边界，作为技术参考。</p>
+</blockquote>
+<blockquote>
+<p>设计状态：2026-09-04 已完成 Checkpoint/HITL 的恢复安全优化，并按“写入门禁 → 任务隔离 → 事实覆盖 → 混合检索与遗忘”完成一轮轻量记忆能力升级。当前长期事实仍是进程内有界实现，不替代生产知识库；真实外部工具、多副本和进程崩溃演练仍需单独执行。</p>
+</blockquote>
+<p>定位：记忆层负责保存“这次 Agent 运行到哪一步、为什么可以继续、继续时需要哪些任务状态”，并提供有限的最近会话上下文；同时提供带任务空间、时间和置信度的轻量记忆条目。它不是会议知识库，也不是跨用户长期画像库</p>
+<p>架构：四级身份键 + 有界短期会话记忆 + LangGraph 持久 checkpoint + 恢复状态白名单 + 用户/线程归属校验</p>
+<p>1）先把四种 ID 说清楚
+解决问题：如果把 session、conversation、thread 和 run 混成一个 ID，恢复时容易串会话、串用户，或者把一次运行错误地当成整个对话
+当前方案：</p>
+<ol>
+<li><code>user_id</code>：登录用户身份，是权限归属的最外层</li>
+<li><code>session_id</code>：一次浏览器/客户端会话，可以包含多个对话</li>
+<li><code>conversation_id</code>：一次具体对话，决定短期上下文属于哪段对话</li>
+<li><code>thread_id</code>：LangGraph 的持久状态键，固定格式为 <code>user_id:session_id:conversation_id</code></li>
+<li><code>run_id</code> / <code>agent_run_id</code>：一次 Agent 执行的唯一编号，只用于运行追踪、预算账本和审计，不能替代 <code>thread_id</code></li>
+</ol>
+<p>配置约定：调用 LangGraph 时，<code>thread_id</code> 必须放在 <code>configurable.thread_id</code>；为兼容旧调用，配置顶层仍保留一份 <code>thread_id</code>。<code>run_id</code> 放在 <code>configurable.run_id</code>，同时作为 <code>checkpoint_ns</code>，这样同一个对话的新问题会开启新的运行空间，不会误继承上一轮的任务状态；恢复同一次运行时才复用原来的 <code>run_id</code>/namespace</p>
+<p>归属校验：持久 saver 会检查 thread 前缀和当前 <code>configurable.user_id</code> 是否一致。用户 8 不能读取或写入用户 7 的 <code>7:sess:conv</code> checkpoint。没有登录身份的匿名线程只允许使用 <code>anonymous</code> 前缀，不能借此访问有用户归属的线程</p>
+<p>改进方案：</p>
+<ul>
+<li>继续保持 <code>user_id</code>、<code>thread_id</code> 和 <code>run_id</code> 分开；涉及长期事实时再增加任务空间和会议/文档范围。</li>
+<li>对匿名用户、跨用户访问和旧格式 ID 继续做拒绝测试，不能靠字符串猜测归属。</li>
+</ul>
+<p>2）有限的短期会话记忆
+解决问题：连续追问需要知道最近几轮说过什么，但无限保存整个聊天记录会造成内存增长、Token 增长和旧信息污染
+当前方案：<code>SessionMemoryStore</code> 按 <code>thread_id</code> 保存 <code>MemoryManager</code>；每个线程只保留固定轮数，整个进程同时只保留固定数量的线程，并用 LRU 淘汰最久未使用的线程。当前默认每个线程最多 10 轮，查询时只组装最近 3 轮。新增 <code>task_namespace</code> 后，明显的新问题使用新空间，短追问沿用当前空间。</p>
+<p>大白话理解：用户刚问完“刚才的结论是什么”，下一句问“那负责人是谁”，系统可以参考最近几轮；但它不会因为一次对话就把所有内容永久记住</p>
+<p>与知识库的边界：会议原文、ASR 证据、文档事实和待办实体由业务表、文档库和 RAG 索引保存；短期记忆只服务于当前对话的追问。普通模型回答不会自动写成跨会话长期事实</p>
+<p>重启语义：当前短期记忆仍是进程内缓存，服务重启后最近几轮可能丢失。这是有意保留的边界；本轮优先保证任务恢复，不把所有会话正文塞进持久 checkpoint。若以后确实需要跨重启保留近期对话，应单独设计有界、可删除、带租户隔离的会话记录表，而不是扩大 checkpoint</p>
+<p>改进方案：</p>
+<ul>
+<li>生产环境需要持久化近期会话时，使用带用户、线程和任务空间的有界记录表，不把全部对话放进 checkpoint。</li>
+<li>任务切换时优先使用显式 <code>task_id</code>，减少对“短问题是不是追问”的启发式判断。</li>
+</ul>
+<p>3）持久化 checkpoint
+解决问题：仅靠进程内内存时，服务重启会丢失图状态；正在等待人工确认的任务无法知道原来停在哪个节点，也可能被错误地重新执行
+当前方案：<code>create_agent_graph</code> 接受可选 <code>checkpointer</code>；<code>AgentService</code> 默认按配置选择共享 PostgreSQL saver 或加密的本地 <code>PersistentCheckpointSaver</code>。两者都使用同一套 LangGraph 接口，业务代码不需要分叉</p>
+<p>当前实现：</p>
+<ol>
+<li><code>AGENT_CHECKPOINT_BACKEND=file</code> 使用加密本地文件，路径由 <code>AGENT_CHECKPOINT_PATH</code> 配置，适合开发/单进程</li>
+<li><code>AGENT_CHECKPOINT_BACKEND=postgres</code> 使用 <code>asyncpg</code> 连接共享 PostgreSQL，启动时自动建表，适合多进程/多副本</li>
+<li><code>AGENT_CHECKPOINT_MAX_BYTES</code> 限制持久化载荷大小；内容使用 Fernet（由 <code>SECRET_KEY</code> 派生）加密</li>
+<li>Checkpoint 带 <code>checkpoint_schema_version</code>；旧版本可以迁移，未知版本拒绝恢复</li>
+<li><code>AGENT_CHECKPOINT_RETENTION_SECONDS</code> 控制启动时清理过期 namespace；删除单次 run 时同时清理 writes</li>
+<li><code>AGENT_CHECKPOINT_ENABLED=false</code> 时可以关闭，图回退为无 checkpoint 模式</li>
+<li>文件损坏不会覆盖原文件，服务记录异常并以空存储启动；该线程应视为不可恢复并进入运维告警</li>
+</ol>
+<p>改进方案：</p>
+<ul>
+<li>生产环境切换 PostgreSQL 后，继续做多副本并发写入、密钥轮换、备份恢复和保留期演练。</li>
+<li>对 checkpoint 中的工具上下文和任务结果保持大小限制与字段白名单，避免“为了恢复”重新保存整段日志。</li>
+</ul>
+<p>与 Redis 的边界：现有 Redis 继续承担缓存、任务状态和当前 HITL 请求快照；LangGraph checkpoint 负责图节点级状态。两者可以同时存在，但不能把普通缓存命中当成可靠的任务恢复依据</p>
+<p>4）checkpoint 保存什么，不保存什么
+解决问题：把整个 Graph State 原样永久保存，会把检索正文、会话正文、私有思维链、回调对象和可能的敏感运行数据带进持久层，既扩大隐私风险，也让状态无限膨胀
+当前方案：<code>checkpoint_state_scope</code> 对每次 checkpoint 和 HITL 恢复快照使用同一套白名单；工具上下文进入前会做字段过滤和大小压缩。</p>
+<p>保留的任务状态：</p>
+<ol>
+<li>身份和任务定位：<code>question</code>、<code>agent_run_id</code>、<code>user_id</code>、<code>session_id</code>、<code>conversation_id</code>、<code>thread_id</code></li>
+<li>输入契约：<code>input_envelope</code>、<code>task_anchor</code>，包括已经验证过的预算账本快照</li>
+<li>路由和执行进度：当前阶段、任务类型、工作流、计划、待执行动作、恢复工具索引、审批状态、风险等级、重试次数</li>
+<li>结果和校验信息：任务上下文、结构化结果、引用清单、校验错误、策略结果、上下文清单和必要的最终产物</li>
+<li>运行归属：<code>access_scope</code> 只作为当时的状态快照保存，不能直接当作恢复时的授权结论</li>
+</ol>
+<p>明确不保存：</p>
+<ol>
+<li><code>context</code> 和 <code>raw_context</code> 中的完整检索/会话正文</li>
+<li><code>cot_thoughts</code> 私有思维链</li>
+<li><code>session_context</code> 组装后的完整会话文本</li>
+<li><code>event_callback</code> 运行时回调对象</li>
+<li><code>human_confirmations</code> 的临时回调记录（确认请求由 HITL 服务单独管理）</li>
+<li>未列入白名单的临时字段、未知对象和运行时句柄</li>
+</ol>
+<p>改进方案：</p>
+<ul>
+<li>后续新增状态字段必须先说明“恢复是否必需、是否含正文、保留多久”，再加入白名单。</li>
+<li>长期事实不直接塞进 checkpoint，应进入带任务空间、来源和删除能力的独立记忆存储。</li>
+</ul>
+<p>脱敏字段会写入空值或空列表，避免旧 checkpoint 通过 LangGraph 增量通道把被禁止的内容继续带出来。<code>question</code>、<code>InputEnvelope</code> 和 <code>TaskAnchor</code> 属于继续任务所必需的输入契约，因此可以保存；它们仍受线程权限、保留周期和后续数据治理约束</p>
+<p>5）恢复时的安全规则
+解决问题：恢复不是简单地把旧 JSON 重新塞回 Agent。旧状态可能过期、被破坏，或者来自另一个用户；如果跳过校验，恢复本身会成为越权入口
+当前方案：</p>
+<ol>
+<li>先根据当前登录用户重新生成或核对 <code>thread_id</code>，再访问 checkpoint</li>
+<li>重新验证 <code>InputEnvelope</code> 的 <code>input.v1</code> Schema，并从它同步 <code>TaskAnchor</code></li>
+<li><code>access_scope</code> 不能作为唯一授权来源；恢复前必须使用当前用户权限重新计算作用域</li>
+<li>保留原来的 <code>agent_run_id</code> 和 Token 账本，不通过确认流程重置预算</li>
+<li>工具恢复必须带有工具索引、审批绑定和幂等键；没有这些信息时拒绝继续外部写操作</li>
+<li>checkpoint 版本未知、字段损坏、线程归属不一致或预算快照缺失时，安全拒绝恢复并返回可审计原因</li>
+</ol>
+<p>改进方案：</p>
+<ul>
+<li>恢复前继续重算当前用户权限、任务空间和事实有效期，不能把旧快照里的授权或旧结论当成今天仍然有效。</li>
+<li>对用户改口、任务切换和事实冲突增加专门的恢复测试，必要时暂停并请求确认。</li>
+</ul>
+<p>当前 HITL 路径把 Redis 作为“确认状态机”，把 PostgreSQL/文件 Checkpoint 作为“执行状态”。确认请求绑定 <code>thread_id</code>、<code>agent_run_id</code> 和恢复快照；恢复时先 claim 一个带租约的执行权，租约到期后可以重试。执行成功标记 <code>succeeded</code> 并清理 run namespace，执行失败保留 <code>failed</code> 状态供下一次恢复。快照缺失时，会依据绑定的 ID 回退到图 checkpoint。工具调用为每个计划步骤生成稳定幂等键，并把成功结果交给审计层重放，避免崩溃重试造成重复外部副作用</p>
+<p>6）本轮四步记忆翻新</p>
+<h3 id="61-写入门禁先判断值不值得记">6.1 写入门禁：先判断“值不值得记”</h3>
+<p>当前方案：</p>
+<ul>
+<li>Checkpoint 继续使用白名单，不保存完整检索正文、CoT、回调和未知运行时对象。</li>
+<li>工具上下文进入 Checkpoint 前只保留任务 ID、状态、结果、错误和元数据，并限制嵌套数据大小。</li>
+<li>短期会话只写入最终用户问题和最终答案；空答案、控制字符和超长正文不会写入。</li>
+<li>记忆条目区分 conversation、fact、decision，不把计划、反思和工具原始日志混成普通事实。</li>
+</ul>
+<p>改进方案：</p>
+<ul>
+<li>生产长期记忆落库前继续沿用同一门禁，保留数字、ID、时间和否定条件等关键字段。</li>
+<li>摘要只能作为派生视图，必须带原始记录引用和版本，不能用摘要替代证据。</li>
+</ul>
+<p>大白话总结：不是每个中间过程都值得永久保存。现在优先保存“任务能不能继续”和“最终结果”，把大段日志、思维链和重复字段挡在记忆门外。</p>
+<h3 id="62-任务命名空间不同任务不串台">6.2 任务命名空间：不同任务不串台</h3>
+<p>当前方案：</p>
+<ul>
+<li>短期记忆仍按用户的 <code>thread_id</code> 隔离，并新增 <code>task_namespace</code>。</li>
+<li>明显的新问题会生成新的任务空间；“那负责人是谁”“继续刚才的”这类短追问沿用当前空间。</li>
+<li><code>task_namespace</code> 随 Agent 状态和 Checkpoint 保存，恢复时不会丢失任务边界。</li>
+<li>用户、线程、会话和会议/文档权限仍由原有归属校验和 RAG ACL 共同限制。</li>
+</ul>
+<p>改进方案：</p>
+<ul>
+<li>将来引入长期记忆表时，主键至少包含 <code>user_id + thread_id + task_namespace</code>，并把会议、文档权限作为检索硬过滤条件。</li>
+<li>对用户主动切换主题的情况增加显式 <code>task_id</code>，不要长期依赖短问题启发式判断。</li>
+</ul>
+<p>大白话总结：同一个聊天窗口里换了话题，旧任务的记忆不能自动跟过来；只有明显的追问才继续使用原来的任务空间。</p>
+<h3 id="63-事实覆盖和冲突新说法可以盖掉旧说法">6.3 事实覆盖和冲突：新说法可以盖掉旧说法</h3>
+<p>当前方案：</p>
+<ul>
+<li><code>MemoryManager.add_fact()</code> 支持按 <code>key</code> 保存结构化事实。</li>
+<li>同一任务空间内，同一 key 的新值会把旧值标记为 <code>superseded</code>，并记录 <code>supersedes</code>、生效时间和置信度。</li>
+<li>检索默认只返回 active 事实，不把已被覆盖的旧值再次混入结果。</li>
+</ul>
+<p>改进方案：</p>
+<ul>
+<li>进入生产长期记忆后增加 <code>valid_from</code>、<code>valid_until</code>、来源引用和人工确认状态。</li>
+<li>对无法判断是“改口”还是“并存事实”的情况保留冲突组，交给用户确认，不让模型自行平均。</li>
+</ul>
+<p>大白话总结：用户说“去北京”后又说“改去上海”，系统应把上海当最新安排，同时保留北京曾经出现过的记录，而不是让两条信息一起干扰当前计划。</p>
+<h3 id="64-混合检索与主动遗忘相关较新可信的优先">6.4 混合检索与主动遗忘：相关、较新、可信的优先</h3>
+<p>当前方案：</p>
+<ul>
+<li><code>search_records()</code> 提供轻量混合排序：词面命中、可选的 dense_score、时间衰减、置信度和重要性共同打分。</li>
+<li>检索按任务空间过滤，不返回已覆盖或已过期的记录。</li>
+<li><code>forget()</code> 会清理过期记录、已被覆盖记录和低重要性的过旧会话。</li>
+<li>现有短期记忆固定轮数、LRU 淘汰和 Checkpoint 保留期清理继续生效。</li>
+</ul>
+<p>改进方案：</p>
+<ul>
+<li>真实长期记忆上线后再接入 BM25 + 向量 + 时间 + 置信度的数据库检索，并固定 Embedding 模型版本。</li>
+<li>主动遗忘先采用“降权/可恢复删除”，涉及用户隐私或明确删除请求时再做物理删除和审计。</li>
+</ul>
+<p>大白话总结：记忆不是越多越好；先找当前任务最相关、较新且可信的内容，过期或已经被新信息取代的内容就不再干扰回答。</p>
+<p>本层完整工作流：
+用户请求 + 当前身份 → 生成 <code>SessionContext</code> → 固定 <code>thread_id</code> 和本次 <code>run_id</code> → 从有界短期记忆取得最近几轮 → Agent 图按 <code>configurable.thread_id</code> 执行 → 每个节点把白名单状态写入 checkpoint → 需要人工确认时保存同一范围的 HITL 快照 → 恢复前核对用户、线程、<code>input.v1</code>、TaskAnchor 和预算 → 只从待执行位置继续 → 工具层自行执行权限、Schema、幂等和审计</p>
+<p>主要异常与处理：
+1）thread_id 缺失或用户归属不一致：拒绝访问 checkpoint，不尝试猜测会话
+2）checkpoint 文件损坏或格式版本不支持：清空不可用索引并记录告警，该线程不能伪装成可恢复
+3）旧状态缺少 <code>InputEnvelope</code>、<code>TaskAnchor</code> 或 Token 账本：恢复前拒绝，不重新生成一套预算绕过原限制
+4）恢复快照包含被禁止的上下文或回调：按白名单清理，回调必须由当前请求重新注入
+5）短期记忆达到轮数/线程上限：淘汰最旧内容，不扩大上下文窗口
+6）多进程同时使用本地文件 saver：不把本地文件当作共享一致性方案，生产环境切换 PostgreSQL saver</p>
+<p>与其他链路的边界：
+1）与输入层：输入层定义并校验 <code>InputEnvelope</code>、<code>TaskAnchor</code> 和预算；记忆层负责随任务状态保存它们，不重新发明另一套身份或目标字段
+2）与规划层：规划层决定任务如何拆分和执行；记忆层只记录规划结果、当前进度和恢复所需状态
+3）与工具层：记忆层不替代工具权限、参数 Schema、HITL、幂等和审计；外部写操作必须重新通过工具层规则
+4）与知识库/RAG：知识库保存可检索的会议事实和证据；checkpoint 不保存完整检索正文，只保存必要的任务引用和清单
+5）与输出层：记忆层保存恢复所需的结果状态，不决定最终答案是否合格；校验层仍负责 pass、repair、replan 或 stop</p>
+<p>当前已实现：
+1）四级 ID 语义和 <code>thread_id = user_id:session_id:conversation_id</code> 约定
+2）<code>thread_id</code> 同时写入 LangGraph 标准 <code>configurable</code> 和兼容性的顶层配置
+3）<code>run_id</code> 与 <code>thread_id</code> 分离，并传入每次 Agent 图运行配置
+4）可注入 checkpointer 的唯一图编译入口
+5）默认进程共享的文件持久化 saver、原子写入和格式版本
+6）checkpoint 状态白名单，明确排除完整上下文、私有思维链和运行时回调
+7）HITL 恢复快照复用同一状态白名单
+8）checkpoint 线程归属校验和跨用户拒绝测试
+9）SessionMemoryStore 的固定轮数与 LRU 会话上限继续生效
+10）HITL 请求绑定 <code>thread_id</code>、<code>agent_run_id</code> 和工具幂等键；快照缺失时回退到同一 run 的图 checkpoint
+11）确认恢复采用 claim/租约/失败重试状态机，避免批准后进程崩溃导致永久丢任务
+12）每个工具步骤写入 <code>execution_steps</code>，并为所有工具使用稳定幂等键；成功审计结果可重放
+13）checkpoint 状态加密、大小限制、schema 迁移、保留期清理和归属校验
+14）checkpoint 状态范围、文件恢复、线程归属、ID 配置和 HITL 租约的自动化回归测试
+15）短期会话和工具上下文写入门禁：只保存最终问答与可恢复字段，限制正文大小并过滤 CoT/原始工具日志
+16）<code>task_namespace</code> 进入 Agent 状态、短期记忆和 checkpoint，明显新任务与短追问采用不同处理
+17）结构化事实的覆盖关系：同一任务内新值标记旧值 <code>superseded</code>，检索默认只看 active 事实
+18）轻量混合记忆检索和主动遗忘：词面、时间、置信度、重要性排序，清理过期/覆盖/低价值旧条目</p>
+<p>本层明确不做：
+1）不把会议知识库、RAG 证据和短期会话记忆合并成万能长期记忆库
+2）不自动把普通模型回答写成跨会话用户画像或业务事实
+3）不保存完整 Prompt、完整检索正文、私有思维链或运行时回调
+4）不在记忆层重新判定用户权限；恢复时必须回到当前身份和工具策略
+5）不把开发用本地文件 saver 宣称成多副本生产级一致性存储；生产必须切换 PostgreSQL
+6）不在本轮引入需要额外模型调用的自动摘要、生产级向量化长期记忆、Memory Evolver 或跨用户画像
+7）不把 Redis 缓存 TTL 当作 LangGraph 节点级恢复保证；Redis 只保存确认状态和短期快照</p>
+<p>亮点：
+1）把“记住最近几轮对话”和“恢复一次未完成任务”拆成两个清晰问题
+2）用稳定的 thread/run 语义避免把一次运行误当成整个会话
+3）checkpoint 由白名单控制，任务能继续所需的状态和隐私风险较高的正文分开
+4）输入层已经确认的 <code>InputEnvelope</code> 与 <code>TaskAnchor</code> 直接成为恢复契约，避免任务目标漂移
+5）默认实现无需新增基础设施即可验证持久化边界，同时为 PostgreSQL saver 保留替换点
+6）短期记忆继续有界，避免“为了恢复”而让上下文无限增长
+7）写入门禁把“能恢复任务”和“值得长期记住”分开，减少记忆肥胖与关键信息丢失
+8）任务命名空间和事实覆盖关系让新任务、新说法有明确边界，不靠模型自行猜测
+9）检索和遗忘同时考虑相关性、时间和可信度，避免旧记忆长期占据上下文</p>
+<p>本层验收依赖：
+1）单元测试验证状态白名单、文件 checkpoint 往返、线程归属拒绝和 ID 配置语义
+2）现有输入契约、HITL、工具策略和工作流回归测试必须继续通过
+3）下一阶段补充真实环境验收：审批暂停 → 进程重启 → 当前用户恢复 → claim 租约 → 仅执行待执行工具一次
+4）多进程生产部署前验证 PostgreSQL saver、加密密钥轮换、保留周期、删除接口、并发写入和备份恢复演练</p>
+<p>本轮已确认：
+1）记忆层只做小幅翻新，核心目标是任务状态可恢复，不是扩展长期记忆
+2）<code>thread_id</code> 是持久会话键，<code>run_id</code> 是单次运行键，两者不混用
+3）<code>InputEnvelope</code>、<code>TaskAnchor</code> 和原预算账本随 checkpoint 进入恢复边界
+4）完整上下文、CoT、回调和未知运行时对象不进入持久状态
+5）短期会话记忆保持固定窗口和 LRU 限制</p>
+<p>仍需后续数据/运行验收：
+1）真实服务重启后的 HITL 节点级恢复和工具幂等
+2）多副本环境下 PostgreSQL saver 的并发一致性、保留和删除策略
+3）真实长会议场景中，短期记忆窗口对任务完成率和 Token 消耗的影响
+4）任务切换、用户改口和同 key 冲突事实的覆盖准确率
+5）混合检索排序、过期清理和用户删除请求的可解释性与可恢复性</p>
+
+            
+            
+        </body>
+        </html>

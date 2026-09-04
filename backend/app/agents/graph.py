@@ -1,6 +1,6 @@
 """唯一 LangGraph 主线：安全路由、RAG、确定性抽取与受控工具执行。"""
 
-from typing import Any, Awaitable, Callable
+from typing import Any, Awaitable, Callable, Optional
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
@@ -15,6 +15,7 @@ from app.services.token_budget_ledger import token_budget_node_scope
 def create_agent_graph(
     llm_service: LLMService,
     tool_manager: ToolManager,
+    checkpointer: Optional[Any] = None,
 ) -> Any:
     """创建并编译唯一 Agent 图；不再保留未验证的可选图分支。"""
     nodes = AgentNodes(llm_service, tool_manager)
@@ -166,4 +167,8 @@ def create_agent_graph(
     graph.add_edge("plan_node", "tool_risk_node")
     graph.add_edge("execute_node", "replan_node")
     graph.add_edge("repair_node", "validate_node")
-    return graph.compile()
+    # Direct unit tests and one-shot callers may omit a checkpointer.  The
+    # service passes the shared persistent saver in normal operation.
+    if checkpointer is None:
+        return graph.compile()
+    return graph.compile(checkpointer=checkpointer)

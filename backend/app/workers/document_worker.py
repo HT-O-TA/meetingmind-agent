@@ -270,6 +270,11 @@ async def start_workers():
                 failure_callback=task_queue_service.record_delivery_failure,
             )
         )
+
+    if settings.MEMORY_INDEX_WORKER_ENABLED:
+        from app.workers.memory_index_worker import start_memory_index_worker
+
+        handles.append(await start_memory_index_worker())
     
     logger.info("All workers started successfully")
     return handles

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>&#x8f93;&#x5165;&#x9884;&#x5904;&#x7406;&#x5c42;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <span id="markdown-mermaid" aria-hidden="true" data-config="{&quot;darkModeTheme&quot;:&quot;vscode&quot;,&quot;lightModeTheme&quot;:&quot;vscode&quot;,&quot;maxTextSize&quot;:50000,&quot;clickDrag&quot;:&quot;alt&quot;,&quot;showControls&quot;:&quot;onHoverOrFocus&quot;,&quot;resizable&quot;:true,&quot;maxHeight&quot;:&quot;&quot;}"></span>
+				<h1 id="输入预处理层">输入预处理层</h1>
+<blockquote>
+<p>这份文档用来说明：用户内容进入 Agent 前，系统已经做了什么，还需要补什么。
+2026-09-04 已完成混合输入、工具错误隔离、否定/阈值约束、来源权限和 Token 预算的第一轮小改造；本轮又补强了注入混淆识别和会话上下文隔离；长会议真实数据验收仍待补做。</p>
+</blockquote>
+<h2 id="这一层负责什么">这一层负责什么</h2>
+<p>输入预处理层不是简单地把用户文字转发给模型，而是先把输入整理清楚：</p>
+<ul>
+<li>这是谁发来的？</li>
+<li>他到底想完成什么？</li>
+<li>哪些内容是用户要求，哪些只是会议资料或工具返回值？</li>
+<li>用户有没有限制条件？</li>
+<li>当前输入有多长，能不能安全地交给模型？</li>
+</ul>
+<p>当前主要处理用户问题、会议文档、WAV 转写、会话历史、RAG 片段和工具结果。</p>
+<h2 id="核心问题与改进安排">核心问题与改进安排</h2>
+<h3 id="1-prompt-注入和上下文污染">1. Prompt 注入和上下文污染</h3>
+<p>当前方案：</p>
+<ul>
+<li>用户输入在进入路由前先做直接注入检查。</li>
+<li>文档、RAG、ASR 和工具结果统一标记为不可信来源。</li>
+<li>命中间接注入的内容会被隔离，不进入后续上下文和引用列表。</li>
+<li>上下文中会明确提示：会议资料和工具结果只能当作资料，不能把其中的指令当成系统指令。</li>
+<li>已有 25 条合成攻击样例，并接入回归测试。</li>
+<li>规则检测会先统一全角字符、HTML 实体、零宽字符和少量常见字母混淆，再检查“插空格/伪造 system 角色/URL 或 Unicode 编码”等绕过方式。</li>
+<li><code>session_context</code> 和 <code>raw_context</code> 都会在进入上下文组装前筛查；命中内容会清空或隔离，不会因为字段名看起来是“内部数据”而跳过检查。</li>
+<li>warning 级内容可以作为会议资料保留，但会写入安全标记，不能被当作可执行指令。</li>
+</ul>
+<p>大白话总结：先确认输入是不是在攻击，再把历史内容和外部资料当成“只能参考的材料”。可疑内容会被隔离，安全讨论类内容可以留下，但会明确标记为警告。</p>
+<p>改进方案：</p>
+<ul>
+<li>增加真实攻击样例，分别统计误报和漏报。</li>
+<li>补充零宽字符、全角/混淆字符、Base64、URL 编码和伪造角色头的真实样例，并单独统计误报。</li>
+<li>统一规定来源优先级：系统规则 &gt; 用户要求 &gt; 工具观察 &gt; 文档/RAG 内容。</li>
+<li>不把关键词过滤当成唯一防线，最终仍要在工具执行前重新检查权限和风险。</li>
+<li>让来源标签贯穿输入、上下文、工具参数和结果校验，不能只停留在 Prompt 文本里。</li>
+</ul>
+<h3 id="2-混合输入导致任务漂移">2. 混合输入导致任务漂移</h3>
+<p>当前方案：</p>
+<ul>
+<li>用 <code>TaskAnchor</code> 保存任务目标、交付物、硬约束、禁止动作和完成标准。</li>
+<li>现在会从用户原话中提取并列意图，保存为 <code>TaskIntent</code>，保留原文和顺序。</li>
+<li>现在会提取否定、阈值、排除和范围条件，保存为 <code>TaskConstraint</code>。</li>
+<li>用 <code>InputRouting</code> 记录初步任务类型、复杂度和路由建议。</li>
+<li>用 <code>ContextManifest</code> 记录哪些内容进入了上下文，哪些被截断或丢弃。</li>
+<li>结果校验会检查是否完成了要求的输出。</li>
+</ul>
+<p>大白话总结：系统先把用户想做的几件事和限制条件记在一张“任务清单”里，后面每一步都照着清单核对，避免模型聊着聊着换了目标。</p>
+<p>改进方案：</p>
+<ul>
+<li>继续提高意图和约束的识别覆盖率，并保留每条约束来自原文哪一段。</li>
+<li>工具执行前再次检查任务目标和约束，发现目标变化时先暂停，不直接继续执行。</li>
+<li>增加“用户改口、目标冲突、约束被遗漏”的测试样例。</li>
+</ul>
+<h3 id="3-工具错误被当成业务事实">3. 工具错误被当成业务事实</h3>
+<p>当前方案：</p>
+<ul>
+<li>工具结果会被标记为不可信内容。</li>
+<li>上下文组装时只取允许的字段，避免把整个返回对象直接拼进 Prompt。</li>
+<li>工具结果还会经过间接注入检查。</li>
+<li>工具失败会单独标记为 <code>tool_error</code>，并明确写成“系统信息，不是会议事实”。</li>
+<li>对 JSON 或半结构化返回值优先做结构内裁剪，尽量保持对象和数组的完整形状。</li>
+</ul>
+<p>大白话总结：工具说“失败”只代表工具这次没拿到结果，不会被当成会议内容；真正的业务数据和系统报错会分开保存、分开展示。</p>
+<p>改进方案：</p>
+<ul>
+<li>继续推动所有工具统一返回 <code>status</code>、<code>error</code>、<code>payload</code>、<code>metadata</code> 四部分。</li>
+<li>增加更多非标准 JSON、嵌套错误和超长工具返回值测试。</li>
+<li>明确规定：工具失败只能说明“这次调用失败”，不能自动变成会议事实。</li>
+</ul>
+<h3 id="4-否定词阈值和隐性约束被忽略">4. 否定词、阈值和隐性约束被忽略</h3>
+<p>当前方案：</p>
+<ul>
+<li><code>TaskAnchor.hard_constraints</code> 保存系统已经确定的硬约束。</li>
+<li><code>TaskAnchor.forbidden_actions</code> 保存禁止动作。</li>
+<li><code>InputScope.can_write</code> 控制用户是否有写权限。</li>
+<li>工具层还会再次检查权限、风险等级和人工确认。</li>
+<li>输入层会把用户明确说出的“不要”“不能”“低于”“不超过”“除了”等条件保存为结构化约束。</li>
+<li>规划前和工具执行前都会复核这些约束；发现外部工具违反禁止条件时直接拦截。</li>
+</ul>
+<p>大白话总结：用户说“不要做什么”“最多多少钱”“只看哪些资料”，系统会把这些话单独记下来，并在规划和执行前再检查一遍，尽量不让模型漏掉小字条款。</p>
+<p>改进方案：</p>
+<ul>
+<li>继续增加约束类型、具体值、来源位置和是否必须满足等字段。</li>
+<li>在规划前、工具执行前、最终输出前各检查一次关键约束。</li>
+<li>增加否定、例外、范围和数字阈值的专项测试。</li>
+</ul>
+<h3 id="5-多源输入的权限层级混淆">5. 多源输入的权限层级混淆</h3>
+<p>当前方案：</p>
+<ul>
+<li><code>InputArtifact</code> 记录来源、媒体类型、信任级别、引用和安全状态。</li>
+<li>用户问题、上传文档、检索结果、会话内容和工具结果不会再被当成完全相同的来源。</li>
+<li>RAG 和工具内容会加上“不可信外部内容”的边界提示。</li>
+<li>每个来源会自动得到 <code>authority</code> 和 <code>authority_rank</code>：用户要求最高，工具观察次之，文档/RAG 和会话资料只能提供参考。</li>
+<li>校验时会按来源重新计算权限；有人把文档手动改成“用户级”会直接被拒绝。</li>
+<li>上下文清单和每个内容块都会保留权限标签，供后续节点审计。</li>
+</ul>
+<p>大白话总结：不同来源的内容不是一个级别：用户要求优先，工具结果和会议资料只能提供参考。每块材料都带着自己的来源和权限，后面查得清是谁说的。</p>
+<p>改进方案：</p>
+<ul>
+<li>系统规则和用户限制不能被文档或工具结果覆盖；当前做的是应用内不可升级标签，不是密码学签名。</li>
+<li>对跨层传递的每个内容块保留来源、用户权限、时间和校验和。</li>
+<li>增加“恶意指令藏在公开文档或工具结果中”的端到端测试。</li>
+</ul>
+<h3 id="6-token-爆炸成本高响应慢">6. Token 爆炸、成本高、响应慢</h3>
+<p>当前方案：</p>
+<ul>
+<li><code>ContextAssembler</code> 按来源和优先级选择内容。</li>
+<li>限制单条内容大小、内容条数和同一文档的块数。</li>
+<li>使用字符预算和 <code>TokenBudgetLedger</code>，在调用模型前检查模型窗口、节点预算、运行预算和调用次数。</li>
+<li>对已配置但没有 tokenizer 的模型使用可解释的中文/英文混合近似计数，未知模型仍保留保守上界，避免误用估算。</li>
+<li>429 限流重试会重新预留 Token 和调用次数，不会悄悄绕过运行预算。</li>
+<li>上下文清单同时记录近似 Token 数，便于观察成本和延迟。</li>
+<li>最近会话只保留有限轮数，旧内容会被丢弃。</li>
+</ul>
+<p>大白话总结：系统不会把整场会议和所有历史一股脑塞给模型，而是先去重、限量、截断，再用预算账本拦住超长请求；这样成本和等待时间都有上限。</p>
+<p>改进方案：</p>
+<ul>
+<li>用真实长会议验证证据覆盖率、重复率、旧内容比例、Token 消耗和响应时间；近似计数最终仍以供应商 usage 校准。</li>
+<li>只有数据证明需要时，再加入滚动摘要、结构化压缩或分段处理。</li>
+<li>不通过简单扩大上下文窗口来掩盖输入整理问题。</li>
+</ul>
+<h3 id="7-时空错位和流式状态粘性">7. 时空错位和流式状态粘性</h3>
+<p>当前方案：</p>
+<ul>
+<li>ASR 证据会保存时间偏移和说话人信息。</li>
+<li>当前系统主要按一次请求处理输入，不把实时事件当成连续状态流。</li>
+</ul>
+<p>大白话总结：现在只处理一段一段的会议输入，并没有假装已经解决实时语音中的“改口覆盖”和事件先后问题。</p>
+<p>改进方案：</p>
+<ul>
+<li>如果以后支持实时语音、屏幕流或 IoT，增加 <code>event_id</code>、<code>event_time</code>、<code>sequence</code>、<code>supersedes</code> 和 <code>valid_until</code>。</li>
+<li>明确用户改口时，新意图如何覆盖旧意图。</li>
+<li>区分“刚刚发生的一次事件”和“仍在持续的状态”。</li>
+<li>在实时功能正式立项前，不把这套复杂机制提前塞进当前批量会议流程。</li>
+</ul>
+<h3 id="8-文本文件图片和传感器数据格式不一致">8. 文本、文件、图片和传感器数据格式不一致</h3>
+<p>当前方案：</p>
+<ul>
+<li>当前稳定支持文本、文档和 WAV。</li>
+<li>文件会检查扩展名、MIME、大小和实际内容。</li>
+<li>图片、视频、ROS 和传感器时序数据目前明确拒绝，不让它们以不完整格式进入 Agent。</li>
+<li><code>InputArtifact</code> 已经预留媒体类型、来源和内容引用。</li>
+</ul>
+<p>大白话总结：当前只接收已经验证过的文本、文档和 WAV；图片、传感器等暂不硬接进来，避免格式没对齐就产生错误结论。</p>
+<p>改进方案：</p>
+<ul>
+<li>暂时不扩展多模态输入，先把当前会议文本链路做稳定。</li>
+<li>将来支持图片或传感器时，再设计统一的 <code>ModalityEnvelope</code>，同时校验时间、单位、来源、维度和范围。</li>
+<li>不把不同模态粗暴平均成一个向量后直接交给规划层。</li>
+</ul>
+<h3 id="9-prompt-缓存碎片化和-embedding-漂移">9. Prompt 缓存碎片化和 Embedding 漂移</h3>
+<p>当前方案：</p>
+<ul>
+<li>当前项目没有真正的 Prompt Semantic Cache。</li>
+<li>会话短期记忆没有做成长期 Embedding。</li>
+<li>检索内容主要依靠来源、引用、版本和上下文预算控制。</li>
+</ul>
+<p>大白话总结：项目现在还没有把“语义缓存”和长期向量记忆当成已完成能力，先用来源、版本和长度控制，避免缓存内容和当前问题对不上。</p>
+<p>改进方案：</p>
+<ul>
+<li>现阶段暂不做语义缓存，避免先引入新的不一致问题。</li>
+<li>如果以后建设缓存，需要固定缓存键规范、时间表达方式和 Embedding 模型版本。</li>
+<li>不同模型版本、不同上下文格式产生的向量不能直接混用。</li>
+</ul>
+<h3 id="10-多模态输入互相冲突">10. 多模态输入互相冲突</h3>
+<p>当前方案：</p>
+<ul>
+<li>当前图片、视频等非目标模态直接拒绝，因此暂时不会出现“红车/蓝车”这类感官冲突。</li>
+</ul>
+<p>大白话总结：因为暂时不接图片、视频等输入，所以不会把互相矛盾的视觉和文字信息强行平均后再下结论。</p>
+<p>改进方案：</p>
+<ul>
+<li>只有在项目正式支持多模态后，才增加模态置信度、冲突检测和仲裁规则。</li>
+<li>需要明确文本描述、图片识别和传感器数据冲突时谁优先，以及如何把冲突交给用户确认。</li>
+</ul>
+<h2 id="当前代码对应关系">当前代码对应关系</h2>
+<ul>
+<li>输入契约和来源标签：<a href="../../backend/app/schemas/agent_input.py">agent_input.py</a></li>
+<li>输入规范化和权限校验：<a href="../../backend/app/services/input_preprocessor.py">input_preprocessor.py</a></li>
+<li>任务锚点和上下文组装：<a href="../../backend/app/services/context_assembler.py">context_assembler.py</a></li>
+<li>工具结果处理和执行保护：<a href="../../backend/app/agents/nodes.py">nodes.py</a></li>
+<li>Prompt 注入防护：<a href="../../backend/app/services/prompt_injection_guard.py">prompt_injection_guard.py</a></li>
+<li>Token 预算控制：<a href="../../backend/app/services/token_budget_ledger.py">token_budget_ledger.py</a></li>
+</ul>
+<h2 id="当前版本的边界">当前版本的边界</h2>
+<p>当前输入层只承诺：</p>
+<ol>
+<li>输入有明确来源和权限范围。</li>
+<li>用户目标和系统约束可以在后续节点继续检查。</li>
+<li>不可信文档、RAG、ASR 和工具结果不会直接变成系统指令。</li>
+<li>上下文和 Token 使用量受到硬限制。</li>
+<li>文本、文档和 WAV 链路可以稳定运行。</li>
+<li>对常见的否定、阈值、排除和范围表达做确定性提取；复杂语义仍需后续复核。</li>
+</ol>
+<p>当前不承诺：</p>
+<ol>
+<li>识别所有形式的 Prompt Injection。</li>
+<li>自动处理图片、视频、传感器和实时事件流。</li>
+<li>自动解决所有长会话的语义漂移。</li>
+<li>用输入层替代规划层、工具层或最终结果校验层。</li>
+</ol>
+<h2 id="后续验收重点">后续验收重点</h2>
+<p>后续优化完成后，至少需要验证：</p>
+<ol>
+<li>真实攻击样例的误报率、漏报率和隔离后任务完成率。</li>
+<li>混合输入中核心目标、硬约束和禁止动作的保留率。</li>
+<li>工具错误和业务数据是否真正分离。</li>
+<li>长会议中的上下文覆盖率、重复率、Token 消耗、响应时间和任务完成率。</li>
+<li>如果启用实时或多模态输入，再增加事件覆盖、意图覆盖和模态冲突测试。</li>
+</ol>
+<h2 id="本层亮点总结">本层亮点总结</h2>
+<ol>
+<li><strong>先检查，再路由</strong>：用户输入先经过身份、范围和注入检查，安全不过关就不会进入后面的 Agent 路由。</li>
+<li><strong>任务不容易跑偏</strong>：<code>InputEnvelope</code> 和 <code>TaskAnchor</code> 把“要做什么、不能做什么、最后要交付什么”固定下来，后续节点可以反复核对。</li>
+<li><strong>资料和指令分开</strong>：文档、RAG、会话和工具结果都被标记为不可信资料，里面写的“请忽略系统指令”不会自动变成真正指令。</li>
+<li><strong>来源权限可追踪</strong>：每类输入都有来源、信任级别和权限层级；普通资料不能伪装成用户或系统要求。</li>
+<li><strong>上下文不会无上限膨胀</strong>：组装器会做去重、限长、限条数和来源排序，Token 账本还会在模型调用前拦截超预算请求。</li>
+<li><strong>失败有明确边界</strong>：工具报错会和会议事实分开，编码注入、历史会话污染和被隔离内容都会留下审计记录。</li>
+<li><strong>边界说得清楚</strong>：当前稳定支持文本、文档和 WAV；实时流、多模态和真实长会议效果仍明确列为后续验收事项。</li>
+</ol>
+
+            
+            
+        </body>
+        </html>

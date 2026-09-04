@@ -47,6 +47,7 @@ def test_context_assembler_prioritizes_current_evidence_and_never_exceeds_budget
     assert result.text.index("工具读取的当前文档证据") < result.text.index("最近会话内容")
     assert result.manifest["consumer"] == "answer_node"
     assert result.manifest["source_counts"]["tool_result"] == 1
+    assert result.manifest["included"][0]["authority"] == "tool"
     manifest_text = json.dumps(result.manifest, ensure_ascii=False)
     assert "工具读取的当前文档证据" not in manifest_text
     assert "must-not-leak" not in result.text
@@ -120,6 +121,36 @@ def test_context_assembler_uses_prefix_truncation_instead_of_preserving_stale_ta
     assert "…[截断]" in result.text
     assert "不应保留的陈旧尾部" not in result.text
     assert result.manifest["truncated_count"] == 1
+
+
+def test_context_assembler_separates_tool_error_from_business_evidence():
+    assembler = ContextAssembler(max_item_chars=180, max_items=4)
+    state = create_initial_state("总结")
+    state["task_contexts"] = {
+        "search_document": {
+            "task_id": "search",
+            "data": {"success": False, "status": "403 Forbidden", "error": "permission denied"},
+            "metadata": {},
+        }
+    }
+
+    result = assembler.assemble_state(state, max_chars=500, consumer="answer_node")
+
+    assert "不是会议事实" in result.text
+    assert "tool_error" in result.text
+    assert result.manifest["source_counts"]["tool_error"] == 1
+    assert result.manifest["included"][0]["authority"] == "tool"
+
+
+def test_context_manifest_reports_reasonable_token_estimate():
+    result = ContextAssembler().assemble_texts(
+        ["中文会议内容和 English notes"],
+        max_chars=500,
+        consumer="answer_node",
+    )
+
+    assert result.manifest["estimated_token_count"] < result.manifest["estimated_token_upper_bound"]
+    assert result.manifest["token_estimation_method"] == "mixed_text_heuristic_v1"
 
 
 def test_agent_node_attaches_manifest_to_state_and_input_budget():

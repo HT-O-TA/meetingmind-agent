@@ -254,3 +254,10 @@ def test_unknown_qwen_model_uses_explicit_conservative_counter():
 
     assert count.tokens == len("中A".encode("utf-8"))
     assert count.method == "conservative_utf8_upper_bound_v1"
+
+
+def test_configured_qwen_model_uses_lower_cost_aware_heuristic():
+    count = ModelTokenCounter().count_text("中文会议内容和 English notes", "qwen3.6-plus")
+
+    assert count.method == "configured_model_heuristic_v1"
+    assert count.tokens < len("中文会议内容和 English notes".encode("utf-8"))

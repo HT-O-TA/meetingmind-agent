@@ -19,6 +19,8 @@ class ContextCandidate:
     content_ref: str
     content: str
     priority: int
+    # 来源权限标签由组装器按 source 推导，不能靠候选内容自行声明。
+    authority: Optional[str] = None
     canonical_content: Optional[str] = None
     metadata: Optional[Mapping[str, Any]] = None
 
@@ -50,6 +52,15 @@ class ContextAssembler:
         "document_id",
         "chunk_index",
     )
+    _SOURCE_AUTHORITY = {
+        "system": ("system", 100),
+        "user_query": ("user", 90),
+        "tool_result": ("tool", 40),
+        "tool_error": ("tool", 40),
+        "retrieval": ("knowledge", 30),
+        "selected_document": ("knowledge", 30),
+        "session_context": ("session", 20),
+    }
 
     def __init__(
         self,
@@ -195,12 +206,16 @@ class ContextAssembler:
             for index, (text, metadata) in enumerate(
                 self._project_tool_data(task_context.get("data"))
             ):
+                is_error = bool(metadata.get("is_error"))
                 candidates.append(
                     ContextCandidate(
-                        source="tool_result",
+                        source="tool_error" if is_error else "tool_result",
                         content_ref=f"tool:{tool_name}:{index}",
                         content=text,
-                        priority=92 if tool_name == "get_document_content" else 88 - index,
+                        # Errors are diagnostics, never evidence.  Keep them
+                        # available for the model to explain a failed call, but
+                        # below user constraints and business evidence.
+                        priority=20 if is_error else (92 if tool_name == "get_document_content" else 88 - index),
                         metadata=metadata,
                     )
                 )
@@ -216,6 +231,28 @@ class ContextAssembler:
             return projected
         if not isinstance(data, Mapping):
             return []
+
+        # Keep transport/system failures separate from business payloads.  A
+        # 403 or stack trace must never be rendered as if it were meeting data.
+        status = str(data.get("status") or data.get("error_category") or "").lower()
+        error_value = data.get("error") or data.get("error_message")
+        failed_status = status in {
+            "error", "failed", "failure", "timeout", "forbidden", "unauthorized",
+            "upstream", "permission_denied", "not_found",
+        }
+        if data.get("success") is False or failed_status or error_value:
+            diagnostic = {
+                key: data.get(key)
+                for key in ("status", "error_category", "error", "error_message", "code")
+                if data.get(key) is not None
+            }
+            return [
+                (
+                    "工具调用失败（系统信息，不是会议事实）："
+                    + json.dumps(diagnostic, ensure_ascii=False, sort_keys=True),
+                    {"is_error": True, "tool_status": status or "failed"},
+                )
+            ]
 
         for nested_key in ("results", "items", "chunks"):
             nested = data.get(nested_key)
@@ -259,7 +296,11 @@ class ContextAssembler:
 
         ordered = sorted(
             enumerate(candidates),
-            key=lambda item: (-item[1].priority, item[0]),
+            key=lambda item: (
+                -self._authority_for_candidate(item[1])[1],
+                -item[1].priority,
+                item[0],
+            ),
         )
         for _, candidate in ordered:
             content = str(candidate.content or "").strip()
@@ -289,7 +330,10 @@ class ContextAssembler:
                 dropped.append({**item_base, "reason": "item_count_limit"})
                 continue
 
-            header = f"[来源:{candidate.source}; ref:{candidate.content_ref}]\n"
+            authority, authority_rank = self._authority_for_candidate(candidate)
+            header = (
+                f"[来源:{candidate.source}; 权限:{authority}; ref:{candidate.content_ref}]\n"
+            )
             delimiter_chars = 2 if body_blocks else 0
             content_capacity = min(
                 self.max_item_chars,
@@ -330,7 +374,11 @@ class ContextAssembler:
             "consumer": consumer or "unscoped",
             "max_chars": max_chars,
             "assembled_chars": len(text),
+            # 字节数仍保留为兼容字段；新增可用于预算和缓存的轻量估算，
+            # 避免把中文 UTF-8 字节数误当成真实 token 数，造成过早截断。
             "estimated_token_upper_bound": len(text.encode("utf-8")),
+            "estimated_token_count": self._estimate_tokens(text),
+            "token_estimation_method": "mixed_text_heuristic_v1",
             "anchor_included": bool(anchor_text),
             "included": included,
             "dropped": dropped,
@@ -349,6 +397,8 @@ class ContextAssembler:
         if not anchor:
             return ""
         labels = {
+            "intents": "用户意图",
+            "constraints": "用户约束",
             "required_outputs": "必需输出",
             "hard_constraints": "硬约束",
             "forbidden_actions": "禁止动作",
@@ -361,6 +411,8 @@ class ContextAssembler:
                 continue
             values = value if isinstance(value, list) else [value]
             for item in values:
+                if isinstance(item, Mapping):
+                    item = item.get("text") or json.dumps(item, ensure_ascii=False, sort_keys=True)
                 entries.append(f"- {label}: {item}")
         if not entries:
             return ""
@@ -380,12 +432,32 @@ class ContextAssembler:
 
     @staticmethod
     def _manifest_base(candidate: ContextCandidate, content: str) -> dict[str, Any]:
+        authority, authority_rank = ContextAssembler._authority_for_candidate(candidate)
         return {
             "source": candidate.source,
             "content_ref": candidate.content_ref,
             "priority": candidate.priority,
+            "authority": authority,
+            "authority_rank": authority_rank,
             "original_chars": len(content),
         }
+
+    @classmethod
+    def _authority_for_candidate(cls, candidate: ContextCandidate) -> tuple[str, int]:
+        # 以 source 为唯一事实来源；即使调用方传入 authority，也不能把
+        # retrieval/tool 内容抬成 user/system 层级。
+        expected = cls._SOURCE_AUTHORITY.get(candidate.source, ("knowledge", 30))
+        if candidate.authority and str(candidate.authority).lower() != expected[0]:
+            return expected
+        return expected
+
+    @staticmethod
+    def _estimate_tokens(text: str) -> int:
+        """给上下文清单用的近似值，不声称替代供应商 tokenizer。"""
+        value = str(text or "")
+        cjk = sum(1 for char in value if "\u4e00" <= char <= "\u9fff")
+        other = max(0, len(value) - cjk)
+        return max(1, int(round(cjk * 1.5 + other / 4.0)))
 
     @staticmethod
     def _canonical(content: str) -> str:
@@ -398,10 +470,42 @@ class ContextAssembler:
     def _clip(content: str, max_chars: int) -> str:
         if len(content) <= max_chars:
             return content
+        # JSON/半结构化工具输出优先做结构内裁剪，避免从嵌套字段中间硬切。
+        try:
+            parsed = json.loads(content)
+        except (TypeError, ValueError):
+            parsed = None
+        if parsed is not None and isinstance(parsed, (dict, list)):
+            structured = ContextAssembler._clip_json_value(parsed, max_chars)
+            if len(structured) <= max_chars:
+                return structured
         marker = "…[截断]"
         if max_chars <= len(marker):
             return content[:max_chars]
         return content[: max_chars - len(marker)].rstrip() + marker
+
+    @staticmethod
+    def _clip_json_value(value: Any, max_chars: int) -> str:
+        """Return valid JSON while retaining the shape of large tool output."""
+        def shrink(item: Any) -> Any:
+            if isinstance(item, str):
+                return item[: max(0, min(len(item), max_chars // 2))]
+            if isinstance(item, list):
+                return [shrink(child) for child in item[:8]]
+            if isinstance(item, dict):
+                return {str(key): shrink(child) for key, child in list(item.items())[:16]}
+            return item
+
+        candidate = shrink(value)
+        encoded = json.dumps(candidate, ensure_ascii=False, sort_keys=True)
+        if len(encoded) <= max_chars:
+            return encoded
+        # Preserve a valid object even when the budget is very small.
+        if isinstance(candidate, dict):
+            return json.dumps({"_truncated": True}, ensure_ascii=False)
+        if isinstance(candidate, list):
+            return json.dumps([], ensure_ascii=False)
+        return json.dumps({"_truncated": True}, ensure_ascii=False)
 
 
 __all__ = ["ContextAssembler", "ContextAssemblyResult", "ContextCandidate"]

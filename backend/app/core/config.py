@@ -44,6 +44,15 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"  # Redis连接字符串
     CACHE_TTL: int = 300  # 缓存默认过期时间（秒，5分钟）
     CACHE_ENABLED: bool = True  # 是否启用Redis缓存
+
+    # Agent 运行检查点：只保存可恢复的任务状态，不是长期知识记忆
+    AGENT_CHECKPOINT_ENABLED: bool = True
+    AGENT_CHECKPOINT_BACKEND: str = "file"  # file（开发/单进程）或 postgres（生产/多进程）
+    AGENT_CHECKPOINT_PATH: str = "./data/agent_checkpoints.pkl"
+    AGENT_CHECKPOINT_POSTGRES_URL: str = "postgresql://postgres:password@localhost:5432/meetingmind"
+    AGENT_CHECKPOINT_MAX_BYTES: int = 2_000_000
+    AGENT_CHECKPOINT_RETENTION_SECONDS: int = 86_400
+    AGENT_CHECKPOINT_CLAIM_LEASE_SECONDS: int = 600
     
     # LLM 缓存配置（原生Redis实现）
     LLM_CACHE_TTL: int = 3600  # LLM 缓存过期时间（秒，1小时）
@@ -59,6 +68,11 @@ class Settings(BaseSettings):
     QUEUE_DOCUMENT_PROCESS: str = "document_process"  # 文档处理队列
     QUEUE_VECTOR_EMBED: str = "vector_embed"  # 向量化队列
     QUEUE_AUDIO_TRANSCRIBE: str = "audio_transcribe"  # 本地 ASR 转写队列
+    QUEUE_MEMORY_INDEX: str = "memory_index"  # 长期记忆索引同步队列
+    MEMORY_OUTBOX_BATCH_SIZE: int = 50
+    MEMORY_OUTBOX_PUBLISH_INTERVAL_SECONDS: float = 2.0
+    MEMORY_OUTBOX_CLAIM_LEASE_SECONDS: int = 60
+    MEMORY_INDEX_WORKER_ENABLED: bool = False
     QUEUE_TASK_TIMEOUT: int = 3600  # 任务默认超时时间（秒）
     QUEUE_PREFETCH_COUNT: int = 1  # 消费者预取消息数量
     QUEUE_MAX_RETRIES: int = 2  # 消费失败后的额外投递次数；总尝试数=3
@@ -172,6 +186,14 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_secrets(self):
+        if self.AGENT_CHECKPOINT_BACKEND.lower() not in {"file", "postgres"}:
+            raise ValueError("AGENT_CHECKPOINT_BACKEND 只能是 file 或 postgres")
+        if min(
+            self.AGENT_CHECKPOINT_MAX_BYTES,
+            self.AGENT_CHECKPOINT_RETENTION_SECONDS,
+            self.AGENT_CHECKPOINT_CLAIM_LEASE_SECONDS,
+        ) <= 0:
+            raise ValueError("Agent checkpoint 大小、保留时间和租约必须大于 0")
         if self.LLM_CONTEXT_WINDOW_TOKENS <= 0:
             raise ValueError("LLM_CONTEXT_WINDOW_TOKENS 必须大于 0")
         if self.LLM_RUN_TOKEN_BUDGET <= 0 or self.LLM_NODE_TOKEN_BUDGET <= 0:

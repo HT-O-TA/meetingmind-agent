@@ -16,6 +16,7 @@ import json
 import re
 import asyncio
 import hashlib
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any
 from app.agents.state import AgentState, AgentResult, TaskType, WorkflowType, RiskLevel, AgentCard, CoTThought, Plan, TaskItem, TaskContext, TaskStatus, ComplexityLevel
 from app.agents.tools import ToolExecutor, ToolExecutionResult, ToolManager
@@ -27,6 +28,7 @@ from app.services.risk_rule_service import get_risk_rule_service
 from app.services.semantic_risk_service import get_semantic_risk_service
 from app.services.prompt_injection_guard import get_prompt_injection_guard, InjectionType
 from app.services.input_preprocessor import InputContractError, InputPreprocessor
+from app.agents.checkpoint import checkpoint_state_scope
 from app.services.context_assembler import ContextAssembler
 from app.services.token_budget_ledger import (
     get_active_token_budget_ledger,
@@ -198,6 +200,8 @@ class AgentNodes:
             "enable_human_in_the_loop": state.get("enable_human_in_the_loop", False),
             # 路由阶段补充字段（原 _sanitize_state 遗漏，导致路由后状态丢失）
             "thread_id": state.get("thread_id"),
+            "task_id": state.get("task_id"),
+            "task_namespace": state.get("task_namespace", "default"),
             "reasoning_mode": state.get("reasoning_mode"),
             "complexity_level": state.get("complexity_level"),
             "is_multi_task": state.get("is_multi_task", False),
@@ -317,6 +321,8 @@ class AgentNodes:
         envelope = state.get("input_envelope")
         if isinstance(envelope, dict):
             envelope.setdefault("budget", {})["context_manifest"] = result.manifest
+            state["input_envelope"] = self.input_preprocessor.validate_envelope(envelope)
+            state["task_anchor"] = state["input_envelope"]["task_anchor"]
         return result.text
 
     def _format_explicit_context(self, state: AgentState, context: str) -> str:
@@ -334,6 +340,8 @@ class AgentNodes:
         envelope = state.get("input_envelope")
         if isinstance(envelope, dict):
             envelope.setdefault("budget", {})["context_manifest"] = result.manifest
+            state["input_envelope"] = self.input_preprocessor.validate_envelope(envelope)
+            state["task_anchor"] = state["input_envelope"]["task_anchor"]
         return result.text
 
     def _parse_json_response(self, response: str, expected_type: str) -> Tuple[bool, Any]:
@@ -744,6 +752,16 @@ class AgentNodes:
             state = self._sanitize_state(state)
             envelope = self._ensure_input_contract(state)
             state["task_anchor"] = envelope.get("task_anchor")
+            constraint_errors = InputPreprocessor.validate_constraints_for_plan(
+                state, tool_lookup=self._get_tool_by_name
+            )
+            if constraint_errors:
+                state["validation_errors"] = list(
+                    dict.fromkeys((state.get("validation_errors") or []) + constraint_errors)
+                )
+                state["error"] = "; ".join(constraint_errors)
+                state["current_phase"] = "validate"
+                return state
             app_logger.info("[PLAN] 开始规划阶段（Tool Calling）...")
             self._add_thought(state, "plan_agent", "plan", "开始分析问题，制定执行计划", action="问题分析")
 
@@ -989,8 +1007,11 @@ class AgentNodes:
         envelope = state.get("input_envelope")
         if not isinstance(envelope, dict):
             envelope = self.input_preprocessor.build_envelope(state)
-            state["input_envelope"] = envelope
-            state["task_anchor"] = envelope["task_anchor"]
+        else:
+            # 关键下游节点读取前重新校验，避免原地修改绕过 input.v1。
+            envelope = self.input_preprocessor.validate_envelope(envelope)
+        state["input_envelope"] = envelope
+        state["task_anchor"] = envelope["task_anchor"]
         return envelope
 
     async def _screen_untrusted_content(
@@ -1040,6 +1061,19 @@ class AgentNodes:
                 content_ref,
             )
             return False
+        if result.should_warn:
+            # warning 内容仍可作为资料保留，但必须在安全状态中留痕，供后续
+            # 审计和人工复核；它绝不能因为“未阻断”而被当成可信指令。
+            security = envelope.setdefault("security", {})
+            flags = security.setdefault("policy_flags", [])
+            warning_reason = (
+                result.injection_type.value
+                if result.injection_type is not None
+                else "rule_warning"
+            )
+            flag = f"indirect_injection_warning:{artifact['artifact_id']}:{warning_reason}"
+            if flag not in flags:
+                flags.append(flag)
         return True
 
     async def input_node(self, state: AgentState) -> AgentState:
@@ -1051,6 +1085,24 @@ class AgentNodes:
             state["input_envelope"] = envelope
             state["task_anchor"] = envelope["task_anchor"]
             state["question"] = envelope["normalized_query"]
+
+            # session_context 与 raw_context 都是外部/历史材料，不能因为字段名
+            # 看起来“内部”就跳过间接注入筛查。阻断后清空该字段，避免后续
+            # ContextAssembler 从另一条入口再次带回污染内容。
+            session_context = state.get("session_context")
+            if session_context:
+                session_text = str(session_context)
+                if await self._screen_untrusted_content(
+                    state,
+                    content=session_text,
+                    source=ArtifactSource.SESSION_CONTEXT,
+                    trust_level=TrustLevel.UNTRUSTED_SESSION,
+                    content_ref="session_context:primary",
+                    metadata={"position": "primary"},
+                ):
+                    state["session_context"] = session_text
+                else:
+                    state["session_context"] = None
 
             safe_context = []
             for index, content in enumerate(state.get("raw_context") or []):
@@ -1815,7 +1867,12 @@ class AgentNodes:
         return self._sanitize_state(state)
 
     def _build_resume_state(self, state: AgentState) -> Dict[str, Any]:
-        resume_state = self._sanitize_state(state).copy()
+        resume_state = checkpoint_state_scope(self._sanitize_state(state))
+        envelope = self.input_preprocessor.validate_envelope(
+            resume_state.get("input_envelope")
+        )
+        resume_state["input_envelope"] = envelope
+        resume_state["task_anchor"] = envelope["task_anchor"]
         resume_state["event_callback"] = None
         resume_state["enable_human_in_the_loop"] = False
         resume_state["confirmation_status"] = "approved"
@@ -2331,6 +2388,20 @@ class AgentNodes:
             plan = state.get("plan")
             tasks = {}  # 防止 plan is None 时 line 2175 引用 tasks 导致 NameError
 
+            planned_calls = plan.get("tool_calls", []) if isinstance(plan, dict) else []
+            constraint_errors = InputPreprocessor.validate_constraints_for_plan(
+                state,
+                planned_calls,
+                self._get_tool_by_name,
+            )
+            if constraint_errors:
+                state["validation_errors"] = list(
+                    dict.fromkeys((state.get("validation_errors") or []) + constraint_errors)
+                )
+                state["error"] = "; ".join(constraint_errors)
+                state["current_phase"] = "replan"
+                return self._sanitize_state(state)
+
             if not plan:
                 state = await self._execute_default_task(state)
             else:
@@ -2444,6 +2515,16 @@ class AgentNodes:
             idempotency_key = self._tool_idempotency_key(
                 state, tool_name, call_index, arguments
             )
+            execution_steps = state.setdefault("execution_steps", {})
+            step = execution_steps.setdefault(
+                idempotency_key,
+                {
+                    "step_index": call_index,
+                    "tool_name": tool_name,
+                    "status": "pending",
+                    "attempts": 0,
+                },
+            )
             approved_call = state.get("approved_tool_call") or {}
             this_call_approved = (
                 state.get("confirmation_status") == "approved"
@@ -2453,6 +2534,7 @@ class AgentNodes:
             # 3) 需要确认时，只批准与确认请求绑定的单个调用。
             if precheck.requires_confirmation and not this_call_approved:
                 if state.get("enable_human_in_the_loop", False):
+                    step["status"] = "waiting_confirmation"
                     await self._request_tool_confirmation(
                         state, tool_name, tool_risk, idempotency_key, call_index
                     )
@@ -2494,6 +2576,9 @@ class AgentNodes:
                 continue
 
             self._add_thought(state, "execute_agent", "execute", f"调用工具: {tool_name}", action=tool_name)
+            step["status"] = "running"
+            step["attempts"] = int(step.get("attempts") or 0) + 1
+            step["started_at"] = datetime.now(timezone.utc).isoformat()
             self._record_policy_result(
                 state,
                 tool_name=tool_name,
@@ -2515,7 +2600,10 @@ class AgentNodes:
                     "access_scope": access_scope,
                     "confirmation_status": "approved" if this_call_approved else "not_required",
                     "policy_code": policy_decision.code,
-                    "idempotency_key": idempotency_key if metadata and metadata.external_effect else None,
+                    # Every tool call gets a stable per-run/per-step key.  The
+                    # audit layer can replay successful reads as well as writes,
+                    # which prevents duplicate work after a crash.
+                    "idempotency_key": idempotency_key,
                 },
             )
             if this_call_approved:
@@ -2524,6 +2612,9 @@ class AgentNodes:
                 state["confirmation_status"] = "not_required"
 
             if result.success:
+                step["status"] = "succeeded"
+                step["completed_at"] = datetime.now(timezone.utc).isoformat()
+                step["audit_id"] = (result.metadata or {}).get("audit_id")
                 self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行成功", observation=str(result.result)[:200])
 
                 serialized_result = (
@@ -2560,6 +2651,9 @@ class AgentNodes:
                 )
                 self._apply_tool_result_to_state(state, tool_name, result.result)
             else:
+                step["status"] = "failed"
+                step["error"] = result.error
+                step["completed_at"] = datetime.now(timezone.utc).isoformat()
                 app_logger.error(f"[EXECUTE] 工具 {tool_name} 执行失败: {result.error}")
                 self._add_thought(state, "execute_agent", "execute", f"工具 {tool_name} 执行失败: {result.error}", observation="错误")
                 state["validation_errors"].append(f"工具 {tool_name} 执行失败: {result.error}")
@@ -2584,10 +2678,13 @@ class AgentNodes:
         arguments: Dict[str, Any],
     ) -> str:
         run_id = state.get("agent_run_id") or state.get("thread_id") or "unscoped"
-        digest = hashlib.sha256(
+        argument_digest = hashlib.sha256(
             json.dumps(arguments, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
         ).hexdigest()[:16]
-        return f"{run_id}:{call_index}:{tool_name}:{digest}"
+        plan_digest = hashlib.sha256(
+            json.dumps(state.get("plan") or {}, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()[:12]
+        return f"{run_id}:{plan_digest}:{call_index}:{tool_name}:{argument_digest}"
 
     def _substitute_variables(self, arguments: Dict[str, Any], state: AgentState) -> Dict[str, Any]:
         """替换变量"""
@@ -2752,10 +2849,12 @@ class AgentNodes:
             "idempotency_key": idempotency_key,
             "tool_call_index": call_index,
             "user_id": (state.get("access_scope") or {}).get("user_id"),
+            "thread_id": state.get("thread_id"),
+            "agent_run_id": state.get("agent_run_id"),
             "reason": f"工具 {tool_name} 风险等级: {tool_risk.value}，需要人工确认",
         }
         
-        resume_state = self._sanitize_state(state).copy()
+        resume_state = checkpoint_state_scope(self._sanitize_state(state))
         resume_state["event_callback"] = None
         resume_state["enable_human_in_the_loop"] = True
         resume_state["approved_tool_call"] = {
@@ -2764,6 +2863,13 @@ class AgentNodes:
         }
         resume_state["resume_from_tool_index"] = call_index
         resume_state["pending_action"] = details
+        # Keep the approval binding in the graph checkpoint as well as the
+        # Redis HITL snapshot so a process restart can reconstruct it safely.
+        state["approved_tool_call"] = {
+            "tool_name": tool_name,
+            "idempotency_key": idempotency_key,
+        }
+        state["resume_from_tool_index"] = call_index
         
         self._add_thought(
             state, "execute_agent", "confirm", f"等待工具 {tool_name} 人工确认...", action="工具确认"
@@ -2776,8 +2882,19 @@ class AgentNodes:
             details=details,
             resume_state=resume_state,
             event_callback=state.get("event_callback"),
+            thread_id=state.get("thread_id"),
         )
-        
+        # The Redis snapshot is first written before request_confirmation knows
+        # its definitive ID; refresh it so both recovery sources bind exactly
+        # to the same approval request.
+        details["confirmation_request_id"] = request_id
+        resume_state["pending_action"] = details
+        await self.hitl_service.update_resume_state(
+            request_id,
+            resume_state,
+            expected_user_id=(state.get("access_scope") or {}).get("user_id"),
+        )
+
         state["confirmation_status"] = "pending"
         state["pending_action"] = {
             **details,

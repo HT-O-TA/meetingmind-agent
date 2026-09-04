@@ -66,6 +66,7 @@ class AgentQueryRequest(BaseModel):
     document_ids: Optional[List[int]] = None
     session_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     conversation_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    task_id: Optional[str] = Field(default=None, min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_.:-]+$")
     enable_human_in_the_loop: bool = False
 
 
@@ -78,6 +79,7 @@ class AgentBatchRequest(BaseModel):
     document_ids: Optional[List[int]] = None
     session_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     conversation_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    task_id: Optional[str] = Field(default=None, min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_.:-]+$")
 
 
 @router.post("/query")
@@ -101,6 +103,7 @@ async def agent_query(
         session_id=request.session_id or generate_session_id(),
         conversation_id=request.conversation_id or generate_conversation_id(),
         meeting_id=request.meeting_id,
+        task_id=request.task_id,
         access_scope=AccessContext.from_user(current_user).cache_scope(),
     )
 
@@ -137,6 +140,7 @@ async def agent_query(
         "session_id": context.session_id,
         "conversation_id": context.conversation_id,
         "thread_id": context.thread_id,
+        "task_id": context.task_id,
         "meeting_id": context.meeting_id,
         # 结构化路由决策结果
         "route_decision": result.route_decision.to_dict() if result.route_decision and hasattr(result.route_decision, "to_dict") else None,
@@ -190,6 +194,7 @@ async def agent_query_stream(
             session_id=request.session_id or generate_session_id(),
             conversation_id=request.conversation_id or generate_conversation_id(),
             meeting_id=request.meeting_id,
+            task_id=request.task_id,
             access_scope=AccessContext.from_user(current_user).cache_scope(),
         )
 
@@ -240,6 +245,7 @@ async def agent_query_stream(
                 "session_id": context.session_id,
                 "conversation_id": context.conversation_id,
                 "thread_id": context.thread_id,
+                "task_id": context.task_id,
                 "meeting_id": context.meeting_id,
             }
             message = json.dumps({"type": "final", "data": final_result}, ensure_ascii=False)
@@ -287,6 +293,7 @@ async def agent_batch_query(
         session_id=request.session_id or generate_session_id(),
         conversation_id=request.conversation_id or generate_conversation_id(),
         meeting_id=request.meeting_id,
+        task_id=request.task_id,
         access_scope=AccessContext.from_user(current_user).cache_scope(),
     )
     results = await agent_service.process_batch(
@@ -297,6 +304,7 @@ async def agent_batch_query(
     )
 
     return {
+        "task_id": context.task_id,
         "results": [
             {
                 "success": r.success,
@@ -399,6 +407,9 @@ async def resume_confirmation(
         vector_search_service=vector_search_service,
         enable_human_in_the_loop=True,
     )
+    # Keep the public AgentService resume signature compatible with older
+    # adapters while supplying the current authorization scope internally.
+    agent_service.resume_access_scope = AccessContext.from_user(current_user).cache_scope()
     return await agent_service.resume_confirmation(
         request.request_id, request.response, current_user.id
     )

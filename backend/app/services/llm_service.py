@@ -138,6 +138,20 @@ class LLMService:
         decision_id = str(decision["decision_id"])
         self.last_budget_decision = decision
         self.last_budget_snapshot = ledger.snapshot()
+        retry_decision_ids: list[str] = []
+
+        def complete_retry_reservations() -> None:
+            # 429 也算一次尝试；没有供应商 usage 时保留预留值，不再重复计入。
+            for retry_id in retry_decision_ids:
+                ledger.complete(
+                    retry_id,
+                    actual_input_tokens=None,
+                    actual_output_tokens=None,
+                )
+
+        def fail_retry_reservations(error: BaseException) -> None:
+            for retry_id in retry_decision_ids:
+                ledger.fail(retry_id, error)
 
         # 如果传入了不同的api_key或api_base，创建一个临时的client
         if api_key or api_base:
@@ -183,17 +197,38 @@ class LLMService:
                     max_tokens=selected_max_tokens,
                 )
                 self._complete_budget(ledger, decision_id, response)
+                complete_retry_reservations()
+                self.last_budget_snapshot = ledger.snapshot()
                 return response.choices[0].message.content
 
             except asyncio.CancelledError as e:
+                fail_retry_reservations(e)
                 self._fail_budget(ledger, decision_id, e)
                 raise
             except RateLimitError as e:
                 last_error = e
                 if attempt == _LLM_MAX_RETRIES - 1:
                     app_logger.error(f"[LLMService] Rate limit exceeded after {_LLM_MAX_RETRIES} retries: {e}")
+                    fail_retry_reservations(e)
                     self._fail_budget(ledger, decision_id, e)
                     raise
+                # 每次重试重新预留一份输入+输出预算，并计入调用次数；否则 429
+                # 会绕过运行预算，长时间限流时成本和延迟都不可见。
+                try:
+                    retry_decision = ledger.reserve(
+                        messages=messages,
+                        model=selected_model,
+                        requested_output_tokens=selected_max_tokens,
+                        node=get_active_token_budget_node(),
+                    )
+                except TokenBudgetExceeded:
+                    fail_retry_reservations(e)
+                    self._fail_budget(ledger, decision_id, e)
+                    self.last_budget_snapshot = ledger.snapshot()
+                    raise
+                retry_decision_ids.append(str(retry_decision["decision_id"]))
+                self.last_budget_decision = retry_decision
+                self.last_budget_snapshot = ledger.snapshot()
                 # 解析 Retry-After 头（如果有），否则用指数退避
                 retry_after = None
                 if hasattr(e, "response") and e.response is not None:
@@ -211,11 +246,13 @@ class LLMService:
 
             except Exception as e:
                 app_logger.error(f"[LLMService] LLM 调用失败: {e}")
+                fail_retry_reservations(e)
                 self._fail_budget(ledger, decision_id, e)
                 raise
 
         # 不应到达这里，保险起见
         error = last_error or RuntimeError("LLM 调用未返回结果")
+        fail_retry_reservations(error)
         self._fail_budget(ledger, decision_id, error)
         raise error
 

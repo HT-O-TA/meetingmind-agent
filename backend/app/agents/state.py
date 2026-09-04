@@ -215,6 +215,8 @@ class AgentState(TypedDict):
     session_id: Optional[str]
     conversation_id: Optional[str]
     thread_id: Optional[str]
+    task_id: Optional[str]
+    task_namespace: str
     input_envelope: Optional[Dict[str, Any]]
     task_anchor: Optional[Dict[str, Any]]
     input_blocked: bool
@@ -266,6 +268,7 @@ class AgentState(TypedDict):
     reflection: Optional[ReflectionResult]
     
     # 执行跟踪
+    execution_steps: Dict[str, Dict[str, Any]]
     error: Optional[str]
     cot_thoughts: List[CoTThought]
     agents_involved: List[str]
@@ -400,6 +403,8 @@ def create_initial_state(
         "session_id": None,
         "conversation_id": None,
         "thread_id": None,
+        "task_id": None,
+        "task_namespace": "default",
         "input_envelope": None,
         "task_anchor": None,
         "input_blocked": False,
@@ -440,6 +445,7 @@ def create_initial_state(
         "structured_outputs": {},
         "reflection": None,
         "error": None,
+        "execution_steps": {},
         "cot_thoughts": [],
         "agents_involved": [],
         "last_strategy": None,

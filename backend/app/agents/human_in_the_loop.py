@@ -1,6 +1,7 @@
 """人机协作确认服务 - 异步事件驱动模式（使用Redis持久化）"""
 import json
 import uuid
+import time
 from typing import Dict, List, Optional, Any, Callable, TypedDict
 from enum import Enum
 from datetime import datetime
@@ -36,6 +37,11 @@ class ConfirmationRequest(TypedDict):
     user_response: Optional[str]
     thread_id: Optional[str]
     checkpoint_key: Optional[str]
+    run_status: str
+    claim_token: Optional[str]
+    claimed_until: Optional[float]
+    attempt_count: int
+    last_error: Optional[str]
 
 
 class HumanInTheLoopService:
@@ -91,7 +97,12 @@ class HumanInTheLoopService:
             "status": ConfirmationStatus.PENDING.value,
             "user_response": None,
             "thread_id": thread_id,
-            "checkpoint_key": None
+            "checkpoint_key": None,
+            "run_status": "pending",
+            "claim_token": None,
+            "claimed_until": None,
+            "attempt_count": 0,
+            "last_error": None,
         }
         
         if resume_state:
@@ -185,6 +196,74 @@ class HumanInTheLoopService:
         
         app_logger.info(f"[HITL] 收到响应: {request_id} -> {response}")
         return True
+
+    async def claim_request(
+        self,
+        request_id: str,
+        expected_user_id: Optional[int] = None,
+        lease_seconds: Optional[int] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Atomically claim an approved confirmation for execution.
+
+        The short Redis NX lock closes the double-click race.  An expired lease
+        can be claimed again, allowing a worker crash to recover automatically.
+        """
+        redis = await self._get_redis()
+        request_key = self._get_request_key(request_id)
+        request_data = await redis.get(request_key)
+        if not request_data:
+            return None
+        request = json.loads(request_data)
+        if not self._owned_by(request, expected_user_id):
+            return None
+        if request.get("status") not in {
+            ConfirmationStatus.PENDING.value,
+            ConfirmationStatus.APPROVED.value,
+        }:
+            return None
+        now = time.time()
+        claimed_until = float(request.get("claimed_until") or 0)
+        if request.get("run_status") == "running" and claimed_until > now:
+            return None
+        lease = int(lease_seconds or settings.AGENT_CHECKPOINT_CLAIM_LEASE_SECONDS)
+        lock_key = f"hitl:claim:{request_id}"
+        token = uuid.uuid4().hex
+        locked = await redis.set(lock_key, token, ex=lease, nx=True)
+        if not locked:
+            return None
+        request["status"] = ConfirmationStatus.APPROVED.value
+        request["user_response"] = "approved"
+        request["run_status"] = "running"
+        request["claim_token"] = token
+        request["claimed_until"] = now + lease
+        request["attempt_count"] = int(request.get("attempt_count") or 0) + 1
+        await redis.set(request_key, json.dumps(request), ex=max(3600, lease + 60))
+        return request
+
+    async def finish_claim(
+        self,
+        request_id: str,
+        claim_token: str,
+        *,
+        success: bool,
+        error: Optional[str] = None,
+    ) -> bool:
+        """Complete or release a claimed run; failures remain retryable."""
+        redis = await self._get_redis()
+        request_key = self._get_request_key(request_id)
+        request_data = await redis.get(request_key)
+        if not request_data:
+            return False
+        request = json.loads(request_data)
+        if request.get("run_status") != "running" or request.get("claim_token") != claim_token:
+            return False
+        request["run_status"] = "succeeded" if success else "failed"
+        request["last_error"] = (error or "")[:2000] if error else None
+        request["claimed_until"] = None
+        request["claim_token"] = None
+        await redis.set(request_key, json.dumps(request), ex=3600)
+        await redis.delete(f"hitl:claim:{request_id}")
+        return True
     
     async def get_request_status(
         self,
@@ -220,6 +299,24 @@ class HumanInTheLoopService:
             if checkpoint_data:
                 return json.loads(checkpoint_data)
         return None
+
+    async def update_resume_state(
+        self,
+        request_id: str,
+        resume_state: Dict[str, Any],
+        expected_user_id: Optional[int] = None,
+    ) -> bool:
+        """Refresh the cached snapshot after the definitive request ID exists."""
+        request = await self.get_request_status(request_id, expected_user_id)
+        if not request or not request.get("checkpoint_key"):
+            return False
+        redis = await self._get_redis()
+        await redis.set(
+            request["checkpoint_key"],
+            json.dumps(resume_state),
+            ex=int(request.get("timeout_seconds") or self.default_timeout) + 60,
+        )
+        return True
     
     async def list_pending_requests(
         self, expected_user_id: Optional[int] = None
@@ -234,7 +331,10 @@ class HumanInTheLoopService:
             if request_data:
                 request = json.loads(request_data)
                 if (
-                    request["status"] == ConfirmationStatus.PENDING.value
+                    (
+                        request["status"] == ConfirmationStatus.PENDING.value
+                        or request.get("run_status") == "failed"
+                    )
                     and self._owned_by(request, expected_user_id)
                 ):
                     requests.append(request)

@@ -10,6 +10,9 @@ backend/model/
 backend/uploads/
 !backend/uploads/.gitkeep
 
+# Local Agent checkpoint snapshots (development persistence)
+backend/data/
+
 # Python wheels (binary packages)
 backend/wheels/
 

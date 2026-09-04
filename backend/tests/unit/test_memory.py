@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from app.agents.memory import MemoryManager, SessionMemoryStore, ShortTermMemory
 from app.agents.session_context import SessionContext
 
@@ -59,3 +61,52 @@ def test_thread_id_and_memory_are_isolated_by_user():
     assert context_a.thread_id == "1:same:same"
     assert context_b.thread_id == "2:same:same"
     assert store.get(context_b.thread_id).get_context_for_query("继续") == ""
+
+
+def test_memory_write_gate_skips_empty_answer_and_limits_context_size():
+    memory = MemoryManager(max_short_term_turns=3)
+
+    assert memory.add_exchange("问题", "") is False
+    assert memory.add_exchange("问题", "答案" * 2000) is True
+    assert len(memory.short_term.raw_turns[0]["answer"]) <= 3000
+    assert all("tool_log" not in item for item in memory.records[0].metadata or {})
+
+
+def test_memory_namespace_keeps_new_task_from_old_task_context():
+    memory = MemoryManager(max_short_term_turns=5)
+    memory.add_exchange("订机票", "靠窗", namespace="flight")
+    memory.add_exchange("写代码", "使用 Python", namespace="coding")
+
+    assert "靠窗" not in memory.get_context_for_query("代码", namespace="coding")
+    assert "使用 Python" in memory.get_context_for_query("代码", namespace="coding")
+
+
+def test_fact_write_marks_old_value_superseded_and_search_uses_recency_confidence():
+    memory = MemoryManager()
+    old = memory.add_fact(namespace="task-a", key="目的地", value="北京", confidence=0.9)
+    new = memory.add_fact(namespace="task-a", key="目的地", value="上海", confidence=0.95)
+
+    assert old is not None and new is not None
+    assert old.status == "superseded"
+    assert new.supersedes == old.record_id
+    assert [item.value for item in memory.search_records("目的地", namespace="task-a")] == ["上海"]
+
+
+def test_memory_forget_removes_expired_and_superseded_records():
+    memory = MemoryManager()
+    old = memory.add_fact(namespace="task-a", key="临时", value="旧", valid_until="2020-01-01T00:00:00+00:00")
+    assert old is not None
+    removed = memory.forget(now=datetime.now(timezone.utc))
+
+    assert removed == 1
+    assert memory.records == []
+
+
+def test_explicit_task_id_produces_stable_isolated_namespace():
+    memory = MemoryManager()
+    first = memory.resolve_task_namespace("继续", task_id="travel-2026", meeting_id=3)
+    second = memory.resolve_task_namespace("换个说法", task_id="travel-2026", meeting_id=3)
+    other = memory.resolve_task_namespace("继续", task_id="coding-2026", meeting_id=3)
+
+    assert first == second
+    assert first != other

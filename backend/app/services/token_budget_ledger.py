@@ -29,7 +29,7 @@ class TokenCount:
 
 
 class ModelTokenCounter:
-    """优先使用已安装的匹配 tokenizer，否则返回保守 UTF-8 上界。"""
+    """优先使用匹配 tokenizer；已配置模型没有 tokenizer 时用可解释近似值。"""
 
     MESSAGE_OVERHEAD_TOKENS = 6
     REQUEST_OVERHEAD_TOKENS = 3
@@ -55,6 +55,20 @@ class ModelTokenCounter:
                 return TokenCount(len(encoding.encode(value)), f"tiktoken:{encoding.name}")
             except (ImportError, KeyError, ValueError):
                 pass
+
+        # Qwen/自定义 OpenAI 兼容模型通常没有可安装 tokenizer。只对项目配置中
+        # 明确使用的模型启用近似计数，未知模型继续走旧的 UTF-8 上界，避免把
+        # 一个猜测值误用于新模型。
+        configured_models = {
+            str(getattr(settings, name, "")).strip()
+            for name in ("LLM_MODEL", "MODEL_TURBO_NAME", "MODEL_PLUS_NAME", "MODEL_MAX_NAME")
+        }
+        if model in configured_models:
+            cjk = sum(1 for char in value if "\u4e00" <= char <= "\u9fff")
+            other = max(0, len(value) - cjk)
+            # 中文通常约 1~2 token/字，英文按约 4 字符/token；加一点标点余量。
+            estimated = max(0, int(math.ceil(cjk * 1.5 + other / 4.0)))
+            return TokenCount(estimated, "configured_model_heuristic_v1")
 
         # 对当前纯文本入口，UTF-8 字节数是刻意偏大的预调用上界；真实 usage 回写后校准。
         return TokenCount(len(value.encode("utf-8")), "conservative_utf8_upper_bound_v1")

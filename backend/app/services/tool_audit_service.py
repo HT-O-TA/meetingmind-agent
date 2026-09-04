@@ -70,6 +70,7 @@ class ToolAuditService:
         policy_code: str,
         arguments: Dict[str, Any],
         idempotency_key: Optional[str],
+        allow_retry: bool = False,
     ) -> AuditBeginResult:
         request_hash = stable_request_hash(arguments)
         async with self.session_factory() as session:
@@ -80,6 +81,14 @@ class ToolAuditService:
                     )
                 )
                 if existing:
+                    if allow_retry and existing.request_hash == request_hash and existing.status in {"failed", "unknown"}:
+                        existing.status = "started"
+                        existing.attempt_count = int(existing.attempt_count or 1) + 1
+                        existing.error_category = None
+                        existing.error_message = None
+                        existing.completed_at = None
+                        await session.commit()
+                        return AuditBeginResult(audit_id=existing.id, action="execute")
                     return self._existing_result(existing, request_hash)
 
             audit_id = str(uuid.uuid4())

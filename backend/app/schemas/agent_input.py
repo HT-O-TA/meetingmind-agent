@@ -16,6 +16,26 @@ class ArtifactSource(str, Enum):
     TOOL_RESULT = "tool_result"
 
 
+class SourceAuthority(str, Enum):
+    """输入来源的权限层级；这是执行权限，不是内容真实性评分。"""
+
+    SYSTEM = "system"
+    USER = "user"
+    TOOL = "tool"
+    KNOWLEDGE = "knowledge"
+    SESSION = "session"
+
+
+# 权限只允许由来源推导，调用方不能把普通资料自报成用户指令。
+SOURCE_AUTHORITY_BY_ARTIFACT_SOURCE = {
+    ArtifactSource.USER_QUERY: (SourceAuthority.USER, 90),
+    ArtifactSource.TOOL_RESULT: (SourceAuthority.TOOL, 40),
+    ArtifactSource.SELECTED_DOCUMENT: (SourceAuthority.KNOWLEDGE, 30),
+    ArtifactSource.RETRIEVAL: (SourceAuthority.KNOWLEDGE, 30),
+    ArtifactSource.SESSION_CONTEXT: (SourceAuthority.SESSION, 20),
+}
+
+
 class TrustLevel(str, Enum):
     """来源信任分区；名称表达用途，不代表内容已经过事实验证。"""
 
@@ -42,6 +62,9 @@ class InputArtifact(BaseModel):
     media_type: str = Field(min_length=1)
     source: ArtifactSource
     trust_level: TrustLevel
+    # authority/rank 是来源隔离的不可变投影，默认值仅用于兼容旧的 input.v1 数据。
+    authority: SourceAuthority = SourceAuthority.KNOWLEDGE
+    authority_rank: int = Field(default=30, ge=0, le=100)
     content_ref: str = Field(min_length=1)
     checksum: Optional[str] = None
     security_status: ArtifactSecurityStatus = ArtifactSecurityStatus.UNCHECKED
@@ -53,10 +76,13 @@ class InputScope(BaseModel):
 
     meeting_id: Optional[int] = None
     document_ids: List[int] = Field(default_factory=list)
+    # 会议范围：空列表表示认证上下文没有额外的会议白名单，按用户可访问范围处理。
     allowed_meeting_ids: List[int] = Field(default_factory=list)
+    # 文档范围：None 表示不限制，空列表表示没有文档权限，非空列表表示白名单。
     allowed_document_ids: Optional[List[int]] = None
     is_admin: bool = False
-    can_write: bool = True
+    # 最小权限：只有认证上下文明确授予写能力时才允许外部写操作。
+    can_write: bool = False
 
 
 class InputBudget(BaseModel):
@@ -97,6 +123,28 @@ class InputRouting(BaseModel):
     route_evidence: List[str] = Field(default_factory=list)
 
 
+class TaskIntent(BaseModel):
+    """从一段混合输入中拆出的一个可追踪意图。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text: str = Field(min_length=1)
+    order: int = Field(ge=0)
+    source: Literal["user_query"] = "user_query"
+
+
+class TaskConstraint(BaseModel):
+    """用户明确说出的限制条件，供规划和工具执行前复核。"""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text: str = Field(min_length=1)
+    kind: Literal["negation", "threshold", "exclusion", "scope", "preference", "other"] = "other"
+    polarity: Literal["must", "must_not"] = "must"
+    value: Optional[str] = None
+    source: Literal["user_query", "system"] = "user_query"
+
+
 class TaskAnchor(BaseModel):
     """跨规划和校验保持稳定的任务目标。"""
 
@@ -107,6 +155,8 @@ class TaskAnchor(BaseModel):
     required_outputs: List[str] = Field(default_factory=list)
     hard_constraints: List[str] = Field(default_factory=list)
     forbidden_actions: List[str] = Field(default_factory=list)
+    intents: List[TaskIntent] = Field(default_factory=list)
+    constraints: List[TaskConstraint] = Field(default_factory=list)
     completion_criteria: List[str] = Field(default_factory=list)
     ambiguities: List[str] = Field(default_factory=list)
 
@@ -122,6 +172,7 @@ class InputEnvelope(BaseModel):
     session_id: Optional[str] = None
     conversation_id: Optional[str] = None
     thread_id: Optional[str] = None
+    task_id: Optional[str] = Field(default=None, min_length=1, max_length=128)
     raw_query: str = Field(min_length=1)
     normalized_query: str = Field(min_length=1)
     scope: InputScope
@@ -135,6 +186,8 @@ class InputEnvelope(BaseModel):
 __all__ = [
     "ArtifactSecurityStatus",
     "ArtifactSource",
+    "SOURCE_AUTHORITY_BY_ARTIFACT_SOURCE",
+    "SourceAuthority",
     "InputArtifact",
     "InputBudget",
     "InputEnvelope",
@@ -142,5 +195,7 @@ __all__ = [
     "InputScope",
     "InputSecurity",
     "TaskAnchor",
+    "TaskConstraint",
+    "TaskIntent",
     "TrustLevel",
 ]

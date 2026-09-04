@@ -16,6 +16,7 @@ from app.core.exceptions import (
 )
 from app.db.database import init_db
 from app.core.cache_init import init_all_caches, close_redis, redis_health
+from app.agents.checkpoint import initialize_checkpoint_store, close_checkpoint_store
 from app.core.rabbitmq import close_rabbitmq
 from app.core.middleware import AccessLogMiddleware
 from app.api.v1.router import api_router
@@ -28,9 +29,12 @@ async def lifespan(_app: FastAPI):
     app_logger.info("Database initialized")
     cache_results = await init_all_caches()
     app_logger.info(f"Cache systems initialized: {cache_results}")
+    await initialize_checkpoint_store()
+    app_logger.info("Agent checkpoint store initialized")
     try:
         yield
     finally:
+        await close_checkpoint_store()
         await close_rabbitmq()
         await close_redis()
 
