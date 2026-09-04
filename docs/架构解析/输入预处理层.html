@@ -324,6 +324,21 @@
 <li>Prompt 注入防护：<a href="../../backend/app/services/prompt_injection_guard.py">prompt_injection_guard.py</a></li>
 <li>Token 预算控制：<a href="../../backend/app/services/token_budget_ledger.py">token_budget_ledger.py</a></li>
 </ul>
+<h2 id="与记忆层的接口">与记忆层的接口</h2>
+<p>当前方案：</p>
+<ul>
+<li>输入层负责生成 <code>InputEnvelope</code>、<code>TaskAnchor</code>、<code>scope</code> 和来源权限；其中可选 <code>task_id</code> 作为任务身份透传，记忆层不重复解释用户目标，也不重新授予权限。</li>
+<li>Agent 运行会根据原问题、会议/文档范围和当前线程生成 <code>task_namespace</code>，输入层校验通过后，记忆层用它隔离近期上下文和事实召回。</li>
+<li><code>TaskAnchor</code> 只作为本轮任务契约随 checkpoint 保存；普通会话问答不会自动升级成跨会话长期事实。</li>
+<li>长期事实如果写入，必须携带 <code>user_id</code>、<code>thread_id</code>、<code>task_namespace</code>、会议/文档范围和来源信息，工具结果和知识资料不能伪装成用户指令。</li>
+</ul>
+<p>大白话总结：输入层先把“谁在问、要做什么、能看哪些资料”说清楚，记忆层再按这张边界表保存和查找。两层共用任务空间和权限范围，避免记忆串台或越权。</p>
+<p>改进方案：</p>
+<ul>
+<li>后续引入显式 <code>task_id</code> 或输入事件版本，让用户改口、切换任务时不再依赖短问题启发式。</li>
+<li>生产长期记忆检索必须先做身份、线程、任务空间和会议/文档范围硬过滤，再做关键词、向量和时间排序。</li>
+<li><code>TaskAnchor</code> 或权限范围发生变化时，旧任务记忆先停止召回，必要时要求用户确认后再建立新事实。</li>
+</ul>
 <h2 id="当前版本的边界">当前版本的边界</h2>
 <p>当前输入层只承诺：</p>
 <ol>
