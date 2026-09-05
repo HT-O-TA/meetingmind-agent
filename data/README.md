@@ -7,7 +7,7 @@
 ### `Eval_Ali`
 
 - 数据集：AliMeeting Eval（阿里多方会议语料）；
-- 本地内容：8 个远场 8 通道 WAV、25 个近场单通道 WAV、33 个 TextGrid；
+- 当前已解压内容：8 个远场 TextGrid 和 25 个近场 TextGrid；WAV 仍保存在 `data/data.zip` 中，当前标注复核无需解压音频；
 - 实际统计：8 个会议会话；远场 8 通道音频合计约 4.3 小时，近场文件是按说话人拆开的同一批会话；单场约 25.9～37.3 分钟；
 - TextGrid：包含说话人 tier、起止时间和人工转写文本；
 - 适合验证：ASR、说话人区分、时间戳、多人会议切分和下游 RAG 输入；
@@ -28,16 +28,18 @@
 1. 先用 `Eval_Ali` 的 TextGrid 作为 ASR 真值；
 2. 用 `VCSUM` 的重点句、主题和摘要作为摘要/RAG 真值；
 3. 已从会议原文制作问题、答案、引用和待办候选；
-4. 已把机器初标记为 `silver`，人工确认后才升级为 `gold`；
+4. 已完成 580 个单元的独立 AI 第一轮复核并标记为 `ai_reviewed_silver`，人工抽检通过后才可另行升级为 `gold`；
 5. 正式 gold 集仍需按会议 ID 切分 train/dev/test，不能把同一会议的片段拆到不同集合。
 
 脚本 `backend/scripts/build_real_meeting_candidates.py` 已生成：
 
 - `backend/evaluation/datasets/meetingmind_real_v1_sources.jsonl`：8 个 AliMeeting Eval 会议源记录；
 - `backend/evaluation/datasets/meetingmind_real_v1_candidates.jsonl`：26 场 VCSUM 测试会议、158 条问题/答案/引用候选（整体结论和主题问答）。
-- `backend/evaluation/datasets/meetingmind_real_v1_review_manifest.json`：文件哈希、数量和人工复核清单。
+- `backend/evaluation/datasets/meetingmind_real_v1_review_manifest.json`：原候选的稳定 LF 哈希、数量和复核清单；
+- `backend/evaluation/datasets/meetingmind_real_v1_ai_reviews.jsonl`：580 个独立 AI 初审单元；
+- `backend/evaluation/datasets/meetingmind_real_v1_ai_review_manifest.json`：初审统计、哈希、人工抽检计划和限制。
 
-候选文件明确标记为 `silver`，包含 130 条 VCSUM 和 64 条 AliMeeting 的低置信度待办候选，以及约束候选；它们还没有待办真值，也没有经过人工复核，不能直接当作最终 F1 报告。
+原候选文件仍标记为 `silver`。AI 初审覆盖问答 158 条、待办 194 条和约束 228 条，但这不是人工 gold：至少需要分层抽检 20 个单元，发现系统性问题时还要扩大复核并重新生成。当前不能直接用它报告正式 F1。
 
 ## 不提交原始数据的原因
 

@@ -15,14 +15,16 @@
   },
   "files": {
     "sources": {
-      "path": "F:\\project\\meetingmind-agent\\backend\\evaluation\\datasets\\meetingmind_real_v1_sources.jsonl",
-      "sha256": "9abff206b6fc43f3020d2a5360b779afe74f83bffcf8cde94cc41cb7ec5f96aa",
-      "records": 8
+      "path": "backend/evaluation/datasets/meetingmind_real_v1_sources.jsonl",
+      "sha256": "c32dc4a90a288cee2d15891167fd8652ec1cc71b61e09883c06cf62f82a387ca",
+      "records": 8,
+      "sha256_bytes": "c32dc4a90a288cee2d15891167fd8652ec1cc71b61e09883c06cf62f82a387ca"
     },
     "candidates": {
-      "path": "F:\\project\\meetingmind-agent\\backend\\evaluation\\datasets\\meetingmind_real_v1_candidates.jsonl",
-      "sha256": "aaab970ec2fce055c5700d8b78975004c32495ca67cbf59f807a02b6c370021b",
-      "records": 158
+      "path": "backend/evaluation/datasets/meetingmind_real_v1_candidates.jsonl",
+      "sha256": "4ee50cef10ef88ddac183d5af2b822e87065f6f372f214d66045c83fa4f5aa9c",
+      "records": 158,
+      "sha256_bytes": "4ee50cef10ef88ddac183d5af2b822e87065f6f372f214d66045c83fa4f5aa9c"
     }
   },
   "review_checklist": [
@@ -38,5 +40,9 @@
     "待办和约束是低置信度启发式候选，不可直接用于正式 F1；",
     "AliMeeting 只有转写真值，没有公开的问答和待办真值。"
   ],
-  "manifest_sha256": "a208486a0751a8052e7acf1657ae944953e0a2e2ff24a8c76b25360c01e8e77c"
+  "hash_contract": {
+    "sha256": "UTF-8 JSONL with CRLF/CR normalized to LF and exactly one trailing LF",
+    "sha256_bytes": "raw bytes on the machine that last wrote this manifest"
+  },
+  "manifest_sha256": "75dd42ad6a51f9f0e02387d0a734b99e3da729c3e1891c9f875d031c1fc9f127"
 }

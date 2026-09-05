@@ -27,6 +27,13 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def sha256_jsonl_lf(path: Path) -> str:
+    """Hash UTF-8 JSONL after normalizing line endings to exactly one trailing LF."""
+    text = path.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    text = text.rstrip("\n") + "\n" if text else ""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
 def parse_textgrid(path: Path) -> list[dict[str, Any]]:
     tier = ""
     start = end = None
@@ -304,8 +311,22 @@ def main() -> int:
             "ali_constraint_candidates": sum(len(row.get("constraints", [])) for row in sources),
         },
         "files": {
-            "sources": {"path": str(source_path), "sha256": sha256_file(source_path), "records": len(sources)},
-            "candidates": {"path": str(candidate_path), "sha256": sha256_file(candidate_path), "records": len(candidates)},
+            "sources": {
+                "path": str(source_path.relative_to(REPO_ROOT)),
+                "sha256": sha256_jsonl_lf(source_path),
+                "sha256_bytes": sha256_file(source_path),
+                "records": len(sources),
+            },
+            "candidates": {
+                "path": str(candidate_path.relative_to(REPO_ROOT)),
+                "sha256": sha256_jsonl_lf(candidate_path),
+                "sha256_bytes": sha256_file(candidate_path),
+                "records": len(candidates),
+            },
+        },
+        "hash_contract": {
+            "sha256": "UTF-8 JSONL with CRLF/CR normalized to LF and exactly one trailing LF",
+            "sha256_bytes": "raw bytes on the machine that generated this manifest",
         },
         "review_checklist": [
             "逐条确认问题是否能由会议原文回答",

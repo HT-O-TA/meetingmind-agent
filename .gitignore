@@ -143,3 +143,4 @@ artifacts/
 # Local real/public meeting datasets (keep provenance notes, never commit raw media)
 /data/Eval_Ali/
 /data/VCSUM/
+/data/*.zip

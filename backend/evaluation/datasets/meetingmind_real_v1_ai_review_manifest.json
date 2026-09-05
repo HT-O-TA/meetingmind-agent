@@ -1,0 +1,58 @@
+{
+  "schema_version": "meetingmind.ai-review-manifest.v1",
+  "dataset_version": "meetingmind-real-v1",
+  "generated_at": "2026-09-05T00:42:12.944525+00:00",
+  "annotation_status": "ai_reviewed_silver",
+  "gold": false,
+  "human_review_required": true,
+  "human_sampling_plan": {
+    "minimum_units": 20,
+    "coverage": [
+      "qa",
+      "todo",
+      "constraint",
+      "VCSUM",
+      "AliMeeting-Eval",
+      "accept",
+      "edit",
+      "reject"
+    ],
+    "rule": "若抽样发现系统性错误，扩大复核范围并修订规则后重新生成，不能直接提升为 gold。"
+  },
+  "source_hashes": {
+    "sources_sha256_jsonl_lf": "c32dc4a90a288cee2d15891167fd8652ec1cc71b61e09883c06cf62f82a387ca",
+    "candidates_sha256_jsonl_lf": "4ee50cef10ef88ddac183d5af2b822e87065f6f372f214d66045c83fa4f5aa9c"
+  },
+  "counts": {
+    "total": 580,
+    "by_unit_type": {
+      "constraint": 228,
+      "qa": 158,
+      "todo": 194
+    },
+    "by_type_and_decision": {
+      "constraint.accept": 71,
+      "constraint.reject": 157,
+      "qa.accept": 37,
+      "qa.edit": 121,
+      "todo.edit": 10,
+      "todo.reject": 184
+    },
+    "qa_corrected_citations": 3409
+  },
+  "files": {
+    "reviews": {
+      "path": "backend/evaluation/datasets/meetingmind_real_v1_ai_reviews.jsonl",
+      "records": 580,
+      "sha256": "3fe995c63769598e9688ef35dc20ab70bfe48dda1d538739d8727d8e09188d24",
+      "sha256_bytes": "3fe995c63769598e9688ef35dc20ab70bfe48dda1d538739d8727d8e09188d24"
+    }
+  },
+  "limitations": [
+    "本产物是独立 AI 第一轮复核，不是人工 gold。",
+    "VCSUM 的摘要答案沿用上游公开标注，未对摘要事实正确性做二次人工改写。",
+    "AliMeeting 没有公开的待办与约束 gold，保留项仍需人工抽检。",
+    "说话人标签只用于证据定位，不作为真实姓名或待办负责人。"
+  ],
+  "manifest_sha256": "56cae691d9e5cf6e719ab6ed2096f09c7e2d9a9b0af9aed0d03344695b8ae762"
+}
