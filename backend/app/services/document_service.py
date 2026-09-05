@@ -559,6 +559,20 @@ class DocumentService:
         )
         return result.scalars().all()
 
+    async def get_vector_chunk_ids(self, doc_id: int) -> List[int]:
+        """只读取块 ID，避免旧 asyncpg 无法解码 pgvector 自定义类型。
+
+        文档 Worker 只需要把块 ID 投递给向量 Worker，不应为此加载
+        embedding_array；后者在部分 PostgreSQL/asyncpg 组合中会报
+        ``Unknown PG numeric type``。
+        """
+        result = await self.db.execute(
+            select(VectorChunk.id)
+            .where(VectorChunk.document_id == doc_id)
+            .order_by(VectorChunk.chunk_index)
+        )
+        return list(result.scalars().all())
+
 
 async def get_all_document_chunks(db: AsyncSession) -> List[Dict[str, Any]]:
     """获取所有文档块（用于知识图谱构建等场景）"""

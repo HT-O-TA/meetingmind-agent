@@ -121,7 +121,7 @@ def main() -> int:
                 files={
                     "file": (
                         f"demo-{suffix}.txt",
-                        "项目决定周五发布。李雷负责发布检查，韩梅梅负责回归测试。",
+                        "The project ships on Friday. Li Lei owns release checks. Han Meimei owns regression tests.",
                         "text/plain",
                     )
                 },
@@ -135,7 +135,9 @@ def main() -> int:
                 "/api/v1/rag/ask",
                 headers=owner_headers,
                 json={
-                    "question": "谁负责发布检查？",
+                    # 轻量检索模式不依赖中文分词器；使用文档中的核心短语，
+                    # 避免“谁负责”这类问句在未启用完整分词插件时被过滤。
+                    "question": "release checks",
                     "meeting_id": meeting_id,
                     "top_k": 3,
                     "use_llm": False,

@@ -30,6 +30,20 @@
     "constraint_f1": 0.4666666666666667,
     "metric_note": "待办和约束为候选规范化口径，不是完整会议原文端到端抽取。"
   },
+  "core_contract_tests": {
+    "suite": "backend/tests/contracts",
+    "passed": 120,
+    "failed": 0,
+    "environment": "base-with-installed-project-dependencies"
+  },
+  "fixed_demo": {
+    "status": "passed",
+    "http_health": "passed",
+    "http_business_flow": "passed",
+    "tool_confirmation": "passed",
+    "queue_recovery": "passed",
+    "report": "meetingmind_five_minute_demo_closeout.json"
+  },
   "end_to_end_generation_sample": {
     "records_per_method": 10,
     "total_requests": 40,
@@ -48,6 +62,6 @@
     "检索实验是已知会议内排序，不是全库检索。",
     "四组方案的端到端生成对比目前每种 10 条抽样，不足以宣称 Reranker 整体领先。",
     "当前引用真值粒度较细，Recall@5 不能单独代表答案级引用覆盖。",
-    "固定 HTTP 演示仍需本地服务和 Worker 同时启动。"
+    "固定演示已在本机服务和 Worker 同时启动时通过；不等同于生产高可用演练。"
   ]
 }

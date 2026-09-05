@@ -42,6 +42,14 @@ async def upgrade(connection) -> None:
     await connection.execute(
         text("CREATE INDEX IF NOT EXISTS ix_documents_deleted_at ON documents (deleted_at)")
     )
+    # vector_chunks 的软删除字段已进入 ORM；旧库若没有该列，首次上传
+    # 文档会在 INSERT 时触发 UndefinedColumn，表现为 HTTP 500。
+    await connection.execute(
+        text("ALTER TABLE vector_chunks ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE")
+    )
+    await connection.execute(
+        text("CREATE INDEX IF NOT EXISTS ix_vector_chunks_deleted_at ON vector_chunks (deleted_at)")
+    )
     await connection.execute(
         text(
             "SELECT setval(pg_get_serial_sequence('documents', 'id'), "

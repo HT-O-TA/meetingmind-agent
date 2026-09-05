@@ -19,7 +19,12 @@ async def main() -> None:
     stop_event = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, stop_event.set)
+        # Windows 的 ProactorEventLoop 不支持 add_signal_handler；Worker
+        # 仍可正常消费队列，只是依赖进程管理器发送终止信号。
+        try:
+            loop.add_signal_handler(sig, stop_event.set)
+        except (NotImplementedError, RuntimeError):
+            pass
 
     outbox_task = None
     try:

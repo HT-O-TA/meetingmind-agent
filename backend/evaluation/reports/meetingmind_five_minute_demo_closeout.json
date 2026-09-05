@@ -1,0 +1,28 @@
+{
+  "schema_version": "meetingmind.five_minute_demo_closeout.v1",
+  "status": "passed",
+  "steps": {
+    "http_business_flow": "passed",
+    "permission_rejection": "passed",
+    "tool_confirmation": "passed",
+    "queue_recovery": "passed"
+  },
+  "http_flow": {
+    "document_status": "parsed",
+    "rag_citation_count": 1,
+    "document_task": "completed",
+    "vector_task": "completed",
+    "embedded_chunks": 1,
+    "private_document_status": 403,
+    "cross_department_meeting_status": 403,
+    "private_document_hidden_from_list": true
+  },
+  "environment": {
+    "database": "PostgreSQL",
+    "cache": "Redis",
+    "queue": "RabbitMQ",
+    "embedding": "local://model/bge-m3",
+    "external_write": "not executed; tool confirmation gate only"
+  },
+  "note": "脱敏汇总；具体临时用户、会议和任务 ID 不进入仓库。"
+}

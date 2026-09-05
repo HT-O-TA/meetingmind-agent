@@ -30,6 +30,12 @@ async def main() -> None:
             text("CREATE INDEX IF NOT EXISTS ix_documents_deleted_at ON documents (deleted_at)")
         )
         await connection.execute(
+            text("ALTER TABLE vector_chunks ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP WITH TIME ZONE")
+        )
+        await connection.execute(
+            text("CREATE INDEX IF NOT EXISTS ix_vector_chunks_deleted_at ON vector_chunks (deleted_at)")
+        )
+        await connection.execute(
             text("SELECT setval(pg_get_serial_sequence('documents', 'id'), COALESCE((SELECT MAX(id) FROM documents), 1), true)")
         )
         await connection.execute(

@@ -61,8 +61,8 @@ class DocumentWorker:
                     parsed = parser.parse(file_bytes, ext, filename=file_path)
                     if parsed.content:
                         await doc_service.update_content(document_id, parsed.content)
-                # 获取向量块
-                chunks = await doc_service.get_vector_chunks(document_id)
+                # 只取块 ID；不要加载 embedding_array/pgvector 自定义类型。
+                chunk_ids = await doc_service.get_vector_chunk_ids(document_id)
 
             await task_queue_service.update_task_status(
                 task_id,
@@ -71,8 +71,6 @@ class DocumentWorker:
             )
 
             # 2. 创建向量化任务
-            chunk_ids = [chunk.id for chunk in chunks]
-            
             # 如果有 chunk，触发向量化
             if chunk_ids:
                 # 先更新进度
@@ -105,7 +103,7 @@ class DocumentWorker:
             # 完成
             result = {
                 "document_id": document_id,
-                "chunks_created": len(chunks),
+                "chunks_created": len(chunk_ids),
                 "chunk_ids": chunk_ids,
                 "vector_task_id": vector_task.task_id if chunk_ids else None,
                 "message": "Document processed successfully"
