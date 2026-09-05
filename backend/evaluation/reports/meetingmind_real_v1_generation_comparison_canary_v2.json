@@ -1,0 +1,155 @@
+{
+  "schema_version": "evaluation.generation_comparison.v1",
+  "task_count_per_method": 1,
+  "retrieval_methods": [
+    "bm25",
+    "dense",
+    "hybrid",
+    "hybrid_reranker"
+  ],
+  "total_tokens": 769,
+  "elapsed_seconds": 7.202,
+  "metrics": {
+    "bm25": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 3487.09,
+      "mean_tokens": 201
+    },
+    "dense": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 1354.11,
+      "mean_tokens": 181
+    },
+    "hybrid": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 1150.91,
+      "mean_tokens": 187
+    },
+    "hybrid_reranker": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 1208.7,
+      "mean_tokens": 200
+    }
+  },
+  "results": [
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 179,
+        "total_tokens": 201,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 179
+        }
+      },
+      "latency_ms": 3487.09
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 159,
+        "total_tokens": 181,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 159
+        }
+      },
+      "latency_ms": 1354.11
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 165,
+        "total_tokens": 187,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 165
+        }
+      },
+      "latency_ms": 1150.91
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 178,
+        "total_tokens": 200,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 178
+        }
+      },
+      "latency_ms": 1208.7
+    }
+  ],
+  "limitations": [
+    "答案词面重合度只是自动代理指标；引用 Recall 受细粒度多证据标注影响。"
+  ]
+}

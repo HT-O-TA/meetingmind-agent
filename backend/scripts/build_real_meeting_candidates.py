@@ -34,6 +34,14 @@ def sha256_jsonl_lf(path: Path) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def repo_relative(path: Path) -> str:
+    """Use portable repository paths, while allowing external output directories."""
+    try:
+        return path.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return path.resolve().as_posix()
+
+
 def parse_textgrid(path: Path) -> list[dict[str, Any]]:
     tier = ""
     start = end = None
@@ -312,13 +320,13 @@ def main() -> int:
         },
         "files": {
             "sources": {
-                "path": str(source_path.relative_to(REPO_ROOT)),
+                "path": repo_relative(source_path),
                 "sha256": sha256_jsonl_lf(source_path),
                 "sha256_bytes": sha256_file(source_path),
                 "records": len(sources),
             },
             "candidates": {
-                "path": str(candidate_path.relative_to(REPO_ROOT)),
+                "path": repo_relative(candidate_path),
                 "sha256": sha256_jsonl_lf(candidate_path),
                 "sha256_bytes": sha256_file(candidate_path),
                 "records": len(candidates),

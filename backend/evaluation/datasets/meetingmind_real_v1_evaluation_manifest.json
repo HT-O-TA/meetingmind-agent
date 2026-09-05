@@ -1,0 +1,28 @@
+{
+  "schema_version": "evaluation.v1",
+  "dataset_version": "meetingmind-real-v1-evaluation.v1",
+  "annotation_status": "frozen_reviewed_pilot",
+  "sample_kind": "real",
+  "gold": false,
+  "source_pilot": "backend/evaluation/datasets/meetingmind_real_v1_gold_pilot.jsonl",
+  "evaluation_file": "backend/evaluation/datasets/meetingmind_real_v1_evaluation.jsonl",
+  "sha256": "8b82b681b130084b3eacdb9a18371319c419dfd695f2345132bce2d6928a9e35",
+  "record_count": 100,
+  "counts": {
+    "qa.accept": 40,
+    "todo.reject": 20,
+    "todo.accept": 10,
+    "constraint.reject": 11,
+    "constraint.edit": 3,
+    "constraint.accept": 16
+  },
+  "reviewer_counts": {
+    "ht": 100
+  },
+  "frozen_at": "2026-09-05T06:42:56.961169+00:00",
+  "limitations": [
+    "这是 100 条分层试点评测集，不代表全部 580 条候选或生产泛化效果。",
+    "100 条记录均已由 reviewer=ht 完成人工审核；此前的 AI 初审只作为人工复核参考。",
+    "系统延迟、失败率和成本需要真实服务运行，本文件只提供质量评测标签。"
+  ]
+}

@@ -1,0 +1,2398 @@
+{
+  "schema_version": "meetingmind.cloud-canary.v1",
+  "generated_at": "2026-09-05T06:47:30.432567+00:00",
+  "model": "qwen3.7-max-2026-06-08",
+  "count_requested": 100,
+  "count_completed": 100,
+  "max_tokens": 768,
+  "total_token_budget": 100000,
+  "per_record_token_budget": 2000,
+  "total_tokens_observed": 37171,
+  "paused": false,
+  "pause_reason": null,
+  "paused_at_id": null,
+  "results": [
+    {
+      "id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议结论强调学业规划应尽早确立明确主线和目标，但家长普遍反映虽有意识却缺乏指导能力。因此需专业指导帮助孩子设定自主且可实现的目标，以便后续有效开展规划。",
+        "citation_ids": [
+          "vcsum:146:seg:2:utt:0",
+          "vcsum:146:seg:2:utt:2",
+          "vcsum:146:seg:6:utt:2",
+          "vcsum:146:seg:7:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 414,
+        "total_tokens": 521,
+        "completion_tokens": 107,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 414
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3880.37,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议中并未讨论虚拟人类与机器人的区别，而是主要探讨了虚拟人类与人类的共存形式及体验。",
+        "citation_ids": [
+          "vcsum:150_0:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 409,
+        "total_tokens": 451,
+        "completion_tokens": 42,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 409
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2380.31,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议探讨了虚拟人类与人类长久共存的形式，并分析了虚拟人与机器人在非生物体意义上的共同点及精神陪伴价值。",
+        "citation_ids": [
+          "vcsum:150:seg:2:utt:0",
+          "vcsum:150:seg:13:utt:0",
+          "vcsum:150:seg:13:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 358,
+        "total_tokens": 439,
+        "completion_tokens": 81,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 358
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2852.09,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-050",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了通过加强监管约谈引导自媒体贴近群众并找准发展方向，以及高校学者通过跟踪调研总结特色提供理论支撑。",
+        "citation_ids": [
+          "vcsum:165_0:utt:4",
+          "vcsum:165_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1614,
+        "total_tokens": 1673,
+        "completion_tokens": 59,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1614
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2601.0,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-051",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议结论是引导乡村自媒体健康发展需贴近群众与实际，用诙谐幽默的方式传播正能量而非低级趣味。政府部门应指明方向，激发乡村活力。",
+        "citation_ids": [
+          "vcsum:165:seg:2:utt:0",
+          "vcsum:165:seg:2:utt:7",
+          "vcsum:165:seg:2:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 436,
+        "total_tokens": 519,
+        "completion_tokens": 83,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 436
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3023.01,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-052",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "学本教学是指学生在老师指导下通过自学和互学达成目标、养成可持续发展能力的课堂形态，其核心内涵是以学生深度学习和素养发展为中心。它既是一种现代教育思想和理念，也是一种可操作的教学模式和学习方式，旨在构建以学习者和深度学习为中心的教育。",
+        "citation_ids": [
+          "vcsum:172_0:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1064,
+        "total_tokens": 1141,
+        "completion_tokens": 77,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1064
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2799.49,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-054",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议整体结论是学本教学是一项具有原创价值的课堂教学系统变革方式，主张以学生深度学习为重心、生读自学为起点及合作学习为最重要方式。该项目被筛选是因为其扎根中国教学范式并体现了因材施教的个性化教育思想。",
+        "citation_ids": [
+          "vcsum:172:seg:1:utt:7",
+          "vcsum:172:seg:6:utt:2",
+          "vcsum:172:seg:7:utt:5",
+          "vcsum:172:seg:8:utt:0",
+          "vcsum:172:seg:8:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 326,
+        "total_tokens": 459,
+        "completion_tokens": 133,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 326
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3583.64,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-055",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "提供的上下文未包含关于小米公司对云游戏行业考察的具体讨论内容，仅介绍了小米游戏商务负责人刘岩及其负责的业务范围。",
+        "citation_ids": [
+          "vcsum:174_0:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 410,
+        "total_tokens": 458,
+        "completion_tokens": 48,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 410
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2695.02,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-056",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为云游戏和相应技术能够推动行业发展，并坚定相信云游戏是Metaverse的入口。同时强调需要通过普及教育过程让用户接受这种新兴体验形式。",
+        "citation_ids": [
+          "vcsum:174:seg:19:utt:0",
+          "vcsum:174:seg:24:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 491,
+        "total_tokens": 565,
+        "completion_tokens": 74,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 491
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3333.46,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-058",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议探讨了青年创业者对创业意义、个人财富和社会价值的思考，并分析了互联网技术与教育在解决不同时间维度问题上的差异与结合。",
+        "citation_ids": [
+          "vcsum:176:seg:0:utt:0",
+          "vcsum:176:seg:0:utt:2",
+          "vcsum:176:seg:1:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 408,
+        "total_tokens": 490,
+        "completion_tokens": 82,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 408
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2790.92,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-059",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "本次会议以“民办教育的后浪”为主题，探讨了在2020年这一特殊收官之年及新法颁布背景下民办教育的发展。会议指出受新冠肺炎疫情影响，民办幼儿园和中小学面临资金、生源及师资等困境，且其影响在未来相当长时间内难以消除。",
+        "citation_ids": [
+          "vcsum:185:seg:2:utt:3",
+          "vcsum:185:seg:4:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 422,
+        "total_tokens": 517,
+        "completion_tokens": 95,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 422
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4247.33,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-061",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议以平等主义及性别研究为例介绍西方哲学，指出尽管平等主义常被视为政治正确，但实际上值得质疑且人们常对不平等持矛盾态度。",
+        "citation_ids": [
+          "vcsum:191:seg:0:utt:1",
+          "vcsum:191:seg:0:utt:2",
+          "vcsum:191:seg:1:utt:0",
+          "vcsum:191:seg:1:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 330,
+        "total_tokens": 431,
+        "completion_tokens": 101,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 330
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3023.6,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-062",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为在后双减时代，做好知识技能学习的关键在于思维方式，其中最核心的是辩证思维。理念与价值观决定行动及结果，而单纯机械记忆和算题无法有效解决问题。",
+        "citation_ids": [
+          "vcsum:193:seg:1:utt:3",
+          "vcsum:193:seg:1:utt:4",
+          "vcsum:193:seg:2:utt:0",
+          "vcsum:193:seg:3:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 371,
+        "total_tokens": 477,
+        "completion_tokens": 106,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 371
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3382.7,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-064",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "提供的上下文仅包含嘉宾介绍及其研究成果，未提及这场会议的整体结论。",
+        "citation_ids": []
+      },
+      "usage": {
+        "prompt_tokens": 345,
+        "total_tokens": 369,
+        "completion_tokens": 24,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 345
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2244.33,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-065",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕在线教育的冲击、拐点及后疫情时代的教育变革展开，肯定了线上教育打破教室局限并推动制度创新的积极作用。同时也指出突发疫情暴露了学校终端设备、网络信号等配套建设不足的问题。",
+        "citation_ids": [
+          "vcsum:208:seg:8:utt:3",
+          "vcsum:208:seg:14:utt:1",
+          "vcsum:208:seg:14:utt:2",
+          "vcsum:208:seg:15:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 435,
+        "total_tokens": 550,
+        "completion_tokens": 115,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 435
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4058.36,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-066",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了卓明团队从利用网络工具聚集志愿者到经历专业化发展的历程，并指出信息不对称是早期面临的主要问题。",
+        "citation_ids": [
+          "vcsum:21:seg:132:utt:4",
+          "vcsum:21:seg:136:utt:3",
+          "vcsum:21:seg:136:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 420,
+        "total_tokens": 501,
+        "completion_tokens": 81,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 420
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3065.24,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-068",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为加密艺术市场的爆发正推动艺术界经历类似改革开放般的重大变革，并可能带来范式性的改变。嘉宾指出需将加密艺术置于其特定技术与语境中理解，且NFT使艺术创作转化为可落地的真实商业行为。",
+        "citation_ids": [
+          "vcsum:221:seg:5:utt:4",
+          "vcsum:221:seg:5:utt:5",
+          "vcsum:221:seg:7:utt:1",
+          "vcsum:221:seg:11:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 477,
+        "total_tokens": 597,
+        "completion_tokens": 120,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 477
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3883.43,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-069",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议结论是妇女在育儿、饮食及养老护理等方面的培训需求巨大，且参与积极性很高。村里的培训项目和家长学校对家庭教育和妇女赋能起到了显著作用。",
+        "citation_ids": [
+          "vcsum:236:seg:0:utt:2",
+          "vcsum:236:seg:2:utt:0",
+          "vcsum:236:seg:2:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 387,
+        "total_tokens": 474,
+        "completion_tokens": 87,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 387
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3070.45,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-070",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为密评已成为信息系统的关键环节和行业基因，目前正处于蓬勃高速发展阶段。同时介绍了密评技术现状，强调量化评估和高风险判定指引是测评的关键指标。",
+        "citation_ids": [
+          "vcsum:23:seg:7:utt:0",
+          "vcsum:23:seg:7:utt:1",
+          "vcsum:23:seg:9:utt:1",
+          "vcsum:23:seg:9:utt:6",
+          "vcsum:23:seg:9:utt:7"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 351,
+        "total_tokens": 464,
+        "completion_tokens": 113,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 351
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3413.26,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-071",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 123,
+        "total_tokens": 131,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 123
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1814.01,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-072",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 141,
+        "total_tokens": 149,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 141
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2293.8,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-073",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "洽谈带logo品牌宣传方案并严格控制成本",
+            "assignee": "N_SPK8013",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 141,
+        "total_tokens": 175,
+        "completion_tokens": 34,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 141
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2605.7,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-074",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "列出所需新增产品清单并联系多家供应商获取报价以控制成本",
+            "assignee": "N_SPK8013",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 146,
+        "total_tokens": 185,
+        "completion_tokens": 39,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 146
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2611.62,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-075",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 132,
+        "total_tokens": 140,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 132
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1809.97,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-076",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 150,
+        "total_tokens": 158,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 150
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2906.3,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-077",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "联系多家赠品厂商进行比价对比",
+            "assignee": "N_SPK8013",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 138,
+        "total_tokens": 170,
+        "completion_tokens": 32,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 138
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2345.98,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-078",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 117,
+        "total_tokens": 125,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 117
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1983.09,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-079",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 142,
+        "total_tokens": 150,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 142
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2884.77,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-080",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 112,
+        "total_tokens": 120,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 112
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2038.61,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-081",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 113,
+        "total_tokens": 121,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 113
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2118.92,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-082",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 130,
+        "total_tokens": 138,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 130
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1918.63,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-083",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 127,
+        "total_tokens": 135,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 127
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2356.73,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-084",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "增加虚假后台的监控功能",
+            "assignee": "N_SPK8066",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 125,
+        "total_tokens": 156,
+        "completion_tokens": 31,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 125
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1891.84,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-085",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 135,
+        "total_tokens": 143,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 135
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1703.38,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-086",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 119,
+        "total_tokens": 127,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 119
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1961.45,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-087",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "制定经理招聘岗位职责说明书",
+            "assignee": "N_SPK8047",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 122,
+        "total_tokens": 151,
+        "completion_tokens": 29,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 122
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1952.2,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-088",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 127,
+        "total_tokens": 135,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 127
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1918.73,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-089",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 113,
+        "total_tokens": 121,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 113
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1772.9,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-090",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 109,
+        "total_tokens": 117,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 109
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2069.67,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-091",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 175,
+        "total_tokens": 183,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 175
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1804.16,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-092",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 116,
+        "total_tokens": 124,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 116
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1998.24,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-093",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 109,
+        "total_tokens": 117,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 109
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1871.05,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-094",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 120,
+        "total_tokens": 128,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 120
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1916.44,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-095",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 173,
+        "total_tokens": 181,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 173
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1832.72,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-096",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 144,
+        "total_tokens": 152,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 144
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1828.6,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-097",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 128,
+        "total_tokens": 136,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 128
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2382.43,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-098",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 161,
+        "total_tokens": 169,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 161
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2194.24,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-099",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 134,
+        "total_tokens": 142,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 134
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1997.74,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-100",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 123,
+        "total_tokens": 131,
+        "completion_tokens": 8,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 123
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2352.29,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-020",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 99,
+        "total_tokens": 111,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 99
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1637.0,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-022",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 105,
+        "total_tokens": 117,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 105
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1714.81,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-026",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 113,
+        "total_tokens": 125,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 113
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2082.64,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-027",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不要不要把视频关掉。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 89,
+        "total_tokens": 108,
+        "completion_tokens": 19,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 89
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2080.45,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-031",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了DeFi从2019年至今锁仓量激增带来的巨大时代机会，以及从业者对行业发展的内心感悟与实操经验。嘉宾还分享了Default项目自2018年起在DeFi协议矩阵、资产整合及合规通道方面的布局与实践。",
+        "citation_ids": [
+          "vcsum:0_0:utt:2",
+          "vcsum:0_0:utt:3",
+          "vcsum:0_0:utt:4",
+          "vcsum:0_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1156,
+        "total_tokens": 1263,
+        "completion_tokens": 107,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1156
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4439.98,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-032",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议回顾了2020年DeFi作为关键词的发展历程，并展望了未来线下资产合规通道打开后的发展方向。",
+        "citation_ids": [
+          "vcsum:0:seg:12:utt:4",
+          "vcsum:0:seg:5:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 368,
+        "total_tokens": 427,
+        "completion_tokens": 59,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 368
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2897.72,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-033",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "江波认为客观规律或自然规律是最牛的创新模式，因为宇宙和生物世界的存在方式都是自然规律演化出来的。陈秋帆则认为人类发明机器语言并在物理世界基础上构建虚拟信息世界是了不起的创造。",
+        "citation_ids": [
+          "vcsum:108_0:utt:3",
+          "vcsum:108_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1121,
+        "total_tokens": 1201,
+        "completion_tokens": 80,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1121
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3005.9,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-034",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "这场会议是由中国美术学院和未来事务管理局联合举办的科幻论坛圆桌讨论，主题为世界观的建构与创作。嘉宾们围绕人类历史上杰出的创造者及其作品展开了探讨。",
+        "citation_ids": [
+          "vcsum:108:seg:0:utt:3",
+          "vcsum:108:seg:0:utt:5",
+          "vcsum:108:seg:1:utt:14"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 390,
+        "total_tokens": 478,
+        "completion_tokens": 88,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 390
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3020.91,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-036",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了西岸AI Tower作为徐汇区打造人工智能高地的指标建筑，并介绍了其作为国际人工智能总部基地的入驻情况及产业集聚效应。",
+        "citation_ids": [
+          "vcsum:110_3:utt:3",
+          "vcsum:110_3:utt:4",
+          "vcsum:110_3:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 941,
+        "total_tokens": 1017,
+        "completion_tokens": 76,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 941
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2402.34,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-037",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议探讨了人工智能如何赋能未来城市，并指出上海因技术创新、场景落地及政府支持成为微软亚洲研究院落户的理想之地。研究院已在上海组建多个部门开展研究并将继续扩大规模吸引人才。",
+        "citation_ids": [
+          "vcsum:110:seg:0:utt:0",
+          "vcsum:110:seg:1:utt:2",
+          "vcsum:110:seg:1:utt:3",
+          "vcsum:110:seg:2:utt:3",
+          "vcsum:110:seg:2:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 322,
+        "total_tokens": 446,
+        "completion_tokens": 124,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 322
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3840.98,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-038",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了艺术教育在中国社会变革与文化建设中的启蒙作用，以及其作为人才培养与创作研究高地的双重使命。同时探讨了在科技主导时代如何平衡艺术与科技关系，推动跨学科交互以应对边界问题。",
+        "citation_ids": [
+          "vcsum:120_0:utt:0",
+          "vcsum:120_0:utt:1",
+          "vcsum:120_0:utt:3",
+          "vcsum:120_0:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 867,
+        "total_tokens": 971,
+        "completion_tokens": 104,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 867
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3627.37,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-040",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为艺术教育在中国具有启蒙社会和推动文化建设的重要性，是20世纪以来中国文化的新理想。同时强调国美之路的文化属性与学术特征实际上是一种产能，体现了从古典走向现代的重要标识。",
+        "citation_ids": [
+          "vcsum:120:seg:0:utt:3",
+          "vcsum:120:seg:0:utt:4",
+          "vcsum:120:seg:0:utt:5",
+          "vcsum:120:seg:1:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 345,
+        "total_tokens": 453,
+        "completion_tokens": 108,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 345
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3458.1,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-041",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了欧盟电池材料基因组计划中的加速制备、AI及回收平台，并强调了高通量标准与计量方法对电池材料体系标准化及智能制造的重要性。",
+        "citation_ids": [
+          "vcsum:125_0:utt:3",
+          "vcsum:125_0:utt:4",
+          "vcsum:125_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 857,
+        "total_tokens": 936,
+        "completion_tokens": 79,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 857
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3554.94,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-043",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为材料基因组对当前主题至关重要，强调其高通量特性及标准化对电池制造的关键作用。同时会议计划从生产企业角度探讨电池材料供应现状、问题及未来新体制电池的发展机遇。",
+        "citation_ids": [
+          "vcsum:125:seg:4:utt:4",
+          "vcsum:125:seg:5:utt:0",
+          "vcsum:125:seg:5:utt:4",
+          "vcsum:125:seg:6:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 382,
+        "total_tokens": 492,
+        "completion_tokens": 110,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 382
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3549.1,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-044",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了学业规划应尽早确立主线目标，并分享了从未来职业兴趣倒推各阶段学习准备的规划方法。",
+        "citation_ids": [
+          "vcsum:146_0:utt:2",
+          "vcsum:146_0:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1119,
+        "total_tokens": 1177,
+        "completion_tokens": 58,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1119
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2727.84,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-016",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 138,
+        "total_tokens": 150,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 138
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1897.4,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-017",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 102,
+        "total_tokens": 114,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 102
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1967.3,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-019",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 101,
+        "total_tokens": 113,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 101
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2126.18,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-008",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 92,
+        "total_tokens": 104,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 92
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1834.66,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-010",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 89,
+        "total_tokens": 101,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 89
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1811.19,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-013",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 90,
+        "total_tokens": 102,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 90
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2230.66,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-014",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 102,
+        "total_tokens": 114,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 102
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1782.07,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-015",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 89,
+        "total_tokens": 101,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 89
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2149.77,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-001",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 129,
+        "total_tokens": 141,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 129
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1984.68,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-002",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 95,
+        "total_tokens": 107,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 95
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1986.83,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-003",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 119,
+        "total_tokens": 131,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 119
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2663.65,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-004",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "在学校不应该轻视孩子送的礼品，不应因礼物小或少而轻视"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 117,
+        "total_tokens": 145,
+        "completion_tokens": 28,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 117
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3137.99,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-005",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 124,
+        "total_tokens": 136,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 124
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1915.47,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-006",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不能由家长一味做主决定送什么，需征求孩子的意见"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 120,
+        "total_tokens": 148,
+        "completion_tokens": 28,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 120
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2194.45,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-007",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 87,
+        "total_tokens": 99,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 87
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2180.57,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-009",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 104,
+        "total_tokens": 116,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 104
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2209.88,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-011",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 97,
+        "total_tokens": 109,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 97
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2411.59,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-012",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不能夸张地说公司情况，不要夸张化"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 115,
+        "total_tokens": 138,
+        "completion_tokens": 23,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 115
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2413.96,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-018",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 109,
+        "total_tokens": 121,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 109
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1837.07,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-021",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 157,
+        "total_tokens": 169,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 157
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1998.01,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-023",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 129,
+        "total_tokens": 141,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 129
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2131.3,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-024",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 93,
+        "total_tokens": 105,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 93
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1705.1,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-025",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 108,
+        "total_tokens": 120,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 108
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1791.12,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-028",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不要把视频关掉，把音频和视频全部打开。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 94,
+        "total_tokens": 118,
+        "completion_tokens": 24,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 94
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2287.06,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-029",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 141,
+        "total_tokens": 153,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 141
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1797.71,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-030",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "usage": {
+        "prompt_tokens": 112,
+        "total_tokens": 124,
+        "completion_tokens": 12,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 112
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1810.74,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-035",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论指出上海在长三角经济圈具有龙头地位，且在物流、医疗、金融等人工智能大有作为的产业上优势明显。同时上海汇聚了技术创新、落地场景及人才潜力，并得到市政府对人工智能产业发展的大力支持。",
+        "citation_ids": [
+          "vcsum:110_0:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 400,
+        "total_tokens": 466,
+        "completion_tokens": 66,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 400
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2815.3,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-039",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为艺术生了解科技与量子力学，更重要的是掌握科学发明过程中的思维方式，并将其应用于跨界合作及自身的艺术创作中。这种结合顺应了新产业结构调整的需求，为艺术院校迎来了产品美学与设计应用结合的新时代。",
+        "citation_ids": [
+          "vcsum:120_1:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 558,
+        "total_tokens": 623,
+        "completion_tokens": 65,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 558
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3165.22,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-042",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了电池测量需进行不确定度评定以表征精度，并建议通过多机构比测及多尺度数据融合来提高评估准确性。",
+        "citation_ids": [
+          "vcsum:125_3:utt:1",
+          "vcsum:125_3:utt:2",
+          "vcsum:125_3:utt:4",
+          "vcsum:125_3:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 859,
+        "total_tokens": 947,
+        "completion_tokens": 88,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 859
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2921.49,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-045",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了中考作为人生第一次大考在学业规划中的意义，但强调初中阶段不应仅以考试为目标，而应注重培养读书能力和学习方法。",
+        "citation_ids": [
+          "vcsum:146_1:utt:0",
+          "vcsum:146_1:utt:2",
+          "vcsum:146_1:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 731,
+        "total_tokens": 809,
+        "completion_tokens": 78,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 731
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2984.16,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-048",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为AI未来将像智能手机一样普及平常，不应因其破坏力而被视为有罪技术。同时强调AI并不冰冷可怕，只要稳步推进就能实现温暖的应用景象并抓住发展机遇。",
+        "citation_ids": [
+          "vcsum:150_3:utt:0",
+          "vcsum:150_3:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 547,
+        "total_tokens": 619,
+        "completion_tokens": 72,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 547
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3300.7,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-053",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了学本教学背景下名师培养具有顶层设计系统性强、研训一体指导性强及任务驱动实践性强的特点。学本教学的影响体现在促使名师课堂发生根本性变化、科研水平实质性提高，并通过送教送培活动带动了区域教育均衡发展。",
+        "citation_ids": [
+          "vcsum:172_6:utt:2",
+          "vcsum:172_6:utt:3",
+          "vcsum:172_6:utt:4",
+          "vcsum:172_6:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1428,
+        "total_tokens": 1542,
+        "completion_tokens": 114,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1428
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3372.55,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-057",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论指出互联网倾向于解决即时需求且商业模式演变快，而教育关注长远问题；但互联网可通过地域拉平和自动化属性解决教育资源不均及陪伴缺失等传统难题。",
+        "citation_ids": [
+          "vcsum:176_0:utt:0",
+          "vcsum:176_0:utt:1",
+          "vcsum:176_0:utt:2",
+          "vcsum:176_0:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 763,
+        "total_tokens": 858,
+        "completion_tokens": 95,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 763
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4700.32,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-060",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了平等主义者在信奉平等的同时却接受现实中权力与收入等不平等现象的矛盾，指出这反映了人们显性观念与潜意识意识形态之间的落差。这种认知与行动的矛盾表明我们常未意识到自己真正持有的观念，因此需要通过哲学实践来认识自我。",
+        "citation_ids": [
+          "vcsum:191_0:utt:1",
+          "vcsum:191_0:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 935,
+        "total_tokens": 1025,
+        "completion_tokens": 90,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 935
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4219.58,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-063",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议介绍了曹婷博士在系统领域顶会发表多篇论文及获得最佳论文奖等成就，以及刘铁岩博士作为IEEE和ACM院士、顶级会议主席及开源项目贡献者的学术与产业成就。",
+        "citation_ids": [
+          "vcsum:201_0:utt:2",
+          "vcsum:201_0:utt:3",
+          "vcsum:201_0:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 953,
+        "total_tokens": 1045,
+        "completion_tokens": 92,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 953
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3042.15,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-067",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了成就更好艺术家需具备人品、真正的艺术创新能力及与公众互动的能力，而非仅使用新工具或跟风；同时强调艺术家应有强烈的问题意识、实验意愿和思辨能力，以推动社会思考。",
+        "citation_ids": [
+          "vcsum:221_2:utt:1",
+          "vcsum:221_2:utt:2",
+          "vcsum:221_2:utt:3",
+          "vcsum:221_2:utt:4",
+          "vcsum:221_2:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 1170,
+        "total_tokens": 1289,
+        "completion_tokens": 119,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1170
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3782.21,
+      "anomalies": []
+    }
+  ],
+  "limitations": [
+    "待办和约束当前使用冻结候选文本做规范化审核，不等同于从完整会议转写中重新抽取。",
+    "模型供应商可能将隐藏思考 token 计入 completion_tokens。"
+  ]
+}

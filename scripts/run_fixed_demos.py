@@ -5,12 +5,21 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 BACKEND = REPO_ROOT / "backend"
+
+
+def select_python(*candidates: Path) -> Path:
+    """优先使用项目虚拟环境；在 Windows/Linux 都能找到正确解释器。"""
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return Path(sys.executable)
 
 
 def run_step(name: str, command: list[str], cwd: Path, env: dict[str, str]) -> dict:
@@ -61,21 +70,37 @@ def main() -> int:
     )
     runtime_env.setdefault("REDIS_URL", "redis://127.0.0.1:6379/0")
     runtime_env.setdefault("RABBITMQ_URL", "amqp://admin:admin123@127.0.0.1:5672")
+    core_python = select_python(
+        BACKEND / "venv" / "bin" / "python",
+        BACKEND / "venv" / "Scripts" / "python.exe",
+        BACKEND / ".venv" / "bin" / "python",
+        BACKEND / ".venv" / "Scripts" / "python.exe",
+    )
+    asr_python = select_python(
+        BACKEND / ".venv-asr" / "bin" / "python",
+        BACKEND / ".venv-asr" / "Scripts" / "python.exe",
+        core_python,
+    )
+    finetune_python = select_python(
+        BACKEND / ".venv-ft" / "bin" / "python",
+        BACKEND / ".venv-ft" / "Scripts" / "python.exe",
+        core_python,
+    )
     commands = {
         "http": [
-            str(BACKEND / "venv" / "bin" / "python"),
+            str(core_python),
             str(REPO_ROOT / "scripts" / "demo_http_business_flow.py"),
             "--output",
             str(output_dir / "00_http_business_flow.json"),
         ],
         "queue": [
-            str(BACKEND / "venv" / "bin" / "python"),
+            str(core_python),
             "scripts/demo_queue_recovery.py",
             "--output",
             str(output_dir / "01_queue_recovery.json"),
         ],
         "asr": [
-            str(BACKEND / ".venv-asr" / "bin" / "python"),
+            str(asr_python),
             "scripts/run_asr_queue_smoke.py",
             "--audio",
             ".cache/asr-eval/funasr_aishell_BAC009S0764W0121.wav",
@@ -83,7 +108,7 @@ def main() -> int:
             str(output_dir / "02_asr_evidence.json"),
         ],
         "lora": [
-            str(BACKEND / ".venv-ft" / "bin" / "python"),
+            str(finetune_python),
             "finetuning/infer_todos.py",
             "--text",
             "[00:08.00] 成员乙: 请成员丙在周五前整理发布核对表。",
@@ -103,11 +128,6 @@ def main() -> int:
     results = []
     for name in selected:
         command = commands[name]
-        missing = Path(command[0])
-        if not missing.exists():
-            print(f"跳过 {name}: 缺少解释器 {missing}")
-            results.append({"name": name, "status": "skipped", "reason": f"missing {missing}"})
-            continue
         results.append(run_step(name, command, BACKEND, runtime_env))
 
     manifest = {

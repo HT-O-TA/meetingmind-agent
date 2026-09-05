@@ -1,0 +1,28 @@
+{
+  "schema_version": "meetingmind.review-queue-manifest.v1",
+  "dataset_version": "meetingmind-real-v1",
+  "source": "backend/evaluation/datasets/meetingmind_real_v1_ai_reviews.jsonl",
+  "source_annotation_status": "ai_reviewed_silver",
+  "auto_accepted_file": "backend/evaluation/datasets/meetingmind_real_v1_ai_accepted_silver.jsonl",
+  "human_review_queue_file": "backend/evaluation/datasets/meetingmind_real_v1_human_review_queue.jsonl",
+  "counts": {
+    "total": 580,
+    "auto_accepted_needs_review_false": 71,
+    "human_review_queue": 509
+  },
+  "auto_accepted_breakdown": {
+    "constraint.VCSUM.accept": 39,
+    "constraint.AliMeeting-Eval.accept": 32
+  },
+  "human_review_breakdown": {
+    "qa.VCSUM.edit": 121,
+    "todo.VCSUM.reject": 130,
+    "constraint.VCSUM.reject": 117,
+    "qa.VCSUM.accept": 37,
+    "todo.AliMeeting-Eval.reject": 54,
+    "todo.AliMeeting-Eval.edit": 10,
+    "constraint.AliMeeting-Eval.reject": 40
+  },
+  "rule": "只有 corrected.needs_review 严格等于 false 才进入机器初步通过区；该区仍不是人工 gold。",
+  "human_sampling": "机器初步通过区至少抽检 5-10 条；人工重点队列优先审核问答、待办和 needs_review=true 的约束。"
+}

@@ -35,7 +35,7 @@ Prompt Injection 数据集使用独立的 `meetingmind.prompt-injection-case.v1`
 
 `datasets/meetingmind_deidentified_v1.jsonl` 是当前 8 条项目自编脱敏会议样例，覆盖检索、引用和待办抽取。它可作为回归基线，但不是公开语料，也不能替代真实长会议评测。对应报告保存在 `reports/meetingmind_deidentified_v1.{json,md}`。
 
-`datasets/meetingmind_real_v1_sources.jsonl` 是从 AliMeeting Eval TextGrid 整理出的 8 个会议源记录；`datasets/meetingmind_real_v1_candidates.jsonl` 是从 VCSUM `long_test` 整理出的 26 场会议、158 条问题/答案/引用候选（26 条整体结论、132 条主题问答），并附带 130 条 VCSUM 和 64 条 AliMeeting 待办候选及 228 条约束候选。`datasets/meetingmind_real_v1_ai_reviews.jsonl` 已覆盖全部 580 个审核单元：补全问答引用、保守筛除非行动句与伪约束，但状态仅为 `ai_reviewed_silver`。至少完成人工跨类型、跨数据集、跨决策抽检 20 条且通过质量门禁后，才可另行生成 `gold` 评测集。
+`datasets/meetingmind_real_v1_sources.jsonl` 是从 AliMeeting Eval TextGrid 整理出的 8 个会议源记录；`datasets/meetingmind_real_v1_candidates.jsonl` 是从 VCSUM `long_test` 整理出的 26 场会议、158 条问题/答案/引用候选（26 条整体结论、132 条主题问答），并附带 130 条 VCSUM 和 64 条 AliMeeting 待办候选及 228 条约束候选。`datasets/meetingmind_real_v1_ai_reviews.jsonl` 已覆盖全部 580 个审核单元：补全问答引用、保守筛除非行动句与伪约束，但状态仅为 `ai_reviewed_silver`。当前先审核 `meetingmind_real_v1_gold_pilot.jsonl` 的 100 条分层样本；完成并通过质量门禁后，才可另行生成 `gold-pilot.v1` 或扩大范围。
 
 `datasets/prompt_injection_synthetic_v1.jsonl` 是冻结的 25 条合成安全回归集，包含 12 条正常/易误判样本、5 条直接注入和 8 条间接注入。`prompt_injection_synthetic_thresholds.json` 只用于防止已知样本回归；它不是生产阈值。对应报告中的 0 FPR、0 FNR 和 1.0 合成任务完成率只描述该固定数据集。
 

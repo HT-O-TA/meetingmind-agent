@@ -1,6 +1,7 @@
 """Milvus Dense 向量存储。"""
 import json
 import logging
+import os
 from typing import List, Dict, Any
 from pymilvus import (
     MilvusClient,
@@ -19,8 +20,13 @@ class MilvusVectorStore:
             uri=settings.MILVUS_URI,
             token=settings.MILVUS_TOKEN if hasattr(settings, 'MILVUS_TOKEN') else None,
         )
+        model_path = settings.LOCAL_EMBEDDING_MODEL_PATH
+        if not os.path.isdir(model_path):
+            raise FileNotFoundError(
+                f"Milvus BGE-M3 本地模型不存在: {model_path}；已禁止从模型源下载。"
+            )
         self.embedding_fn = BGEM3EmbeddingFunction(
-            model_name=settings.BGE_M3_MODEL_PATH if hasattr(settings, 'BGE_M3_MODEL_PATH') else "BAAI/bge-m3",
+            model_name=model_path,
             use_fp16=settings.USE_FP16 if hasattr(settings, 'USE_FP16') else False,
             device="cuda" if hasattr(settings, 'USE_GPU') and settings.USE_GPU else "cpu",
         )

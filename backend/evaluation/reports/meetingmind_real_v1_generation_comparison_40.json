@@ -1,0 +1,1093 @@
+{
+  "schema_version": "evaluation.generation_comparison.v1",
+  "task_count_per_method": 10,
+  "retrieval_methods": [
+    "bm25",
+    "dense",
+    "hybrid",
+    "hybrid_reranker"
+  ],
+  "total_tokens": 9904,
+  "elapsed_seconds": 55.945,
+  "metrics": {
+    "bm25": {
+      "count": 10,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.005237684493003642,
+      "p50_latency_ms": 1218.58,
+      "mean_tokens": 257
+    },
+    "dense": {
+      "count": 10,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.03333333333333333,
+      "citation_recall": 0.0035714285714285713,
+      "answer_lexical_overlap": 0.0502715951245363,
+      "p50_latency_ms": 1268.22,
+      "mean_tokens": 231
+    },
+    "hybrid": {
+      "count": 10,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.1,
+      "citation_recall": 0.006696428571428571,
+      "answer_lexical_overlap": 0.015172672672672673,
+      "p50_latency_ms": 1110.6,
+      "mean_tokens": 238.8
+    },
+    "hybrid_reranker": {
+      "count": 10,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.11666666666666667,
+      "citation_recall": 0.007760258358662613,
+      "answer_lexical_overlap": 0.07059559164649767,
+      "p50_latency_ms": 1594.35,
+      "mean_tokens": 263.6
+    }
+  },
+  "results": [
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 179,
+        "total_tokens": 201,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 179
+        }
+      },
+      "latency_ms": 2758.25
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 199,
+        "total_tokens": 221,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 199
+        }
+      },
+      "latency_ms": 1384.04
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 252,
+        "total_tokens": 274,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 252
+        }
+      },
+      "latency_ms": 1107.89
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-050",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 275,
+        "total_tokens": 297,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 275
+        }
+      },
+      "latency_ms": 1218.58
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-051",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 215,
+        "total_tokens": 237,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 215
+        }
+      },
+      "latency_ms": 1099.33
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-052",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 247,
+        "total_tokens": 269,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 247
+        }
+      },
+      "latency_ms": 994.74
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-054",
+      "ok": true,
+      "json_valid": true,
+      "answer": "这场会议的整体结论是学本教学是一个实操性强、效果明显且符合教育规律的整体改革项目，其在长葛市12个乡镇的全面启动促进了教育均衡发展，为长葛教育注入了活力并真正改变了当地的教育生态。",
+      "citation_ids": [
+        "vcsum:172:seg:79:utt:4",
+        "vcsum:172_7:utt:24"
+      ],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.047872340425531915,
+      "usage": {
+        "completion_tokens": 70,
+        "prompt_tokens": 220,
+        "total_tokens": 290,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 220
+        }
+      },
+      "latency_ms": 1939.2
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-055",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 254,
+        "total_tokens": 276,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 254
+        }
+      },
+      "latency_ms": 1262.14
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-056",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 206,
+        "total_tokens": 228,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 206
+        }
+      },
+      "latency_ms": 1057.41
+    },
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-058",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0045045045045045045,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 255,
+        "total_tokens": 277,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 255
+        }
+      },
+      "latency_ms": 1040.58
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 159,
+        "total_tokens": 181,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 159
+        }
+      },
+      "latency_ms": 1530.73
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 219,
+        "total_tokens": 241,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 219
+        }
+      },
+      "latency_ms": 1494.09
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 144,
+        "total_tokens": 166,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 144
+        }
+      },
+      "latency_ms": 1019.72
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-050",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 275,
+        "total_tokens": 297,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 275
+        }
+      },
+      "latency_ms": 899.63
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-051",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 173,
+        "total_tokens": 195,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 173
+        }
+      },
+      "latency_ms": 1256.37
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-052",
+      "ok": true,
+      "json_valid": true,
+      "answer": "会议讨论中学本教学被定义为一项具有原创价值的课堂教学系统变革的方式，其内容强调以学生深度学习为重心。",
+      "citation_ids": [
+        "vcsum:172:seg:1:utt:7",
+        "vcsum:172:seg:7:utt:5"
+      ],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.2702702702702703,
+      "usage": {
+        "completion_tokens": 47,
+        "prompt_tokens": 176,
+        "total_tokens": 223,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 176
+        }
+      },
+      "latency_ms": 1469.18
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-054",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 173,
+        "total_tokens": 195,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 173
+        }
+      },
+      "latency_ms": 1125.93
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-055",
+      "ok": true,
+      "json_valid": true,
+      "answer": "会议讨论到小米极其关注云游戏，并关注AR/VR未来的不同环节，包括内容关系、硬件、技术新宽、算力底层架构及视频芯片。同时提到通过跑数据观察用户反映和运营策略，为明年后年的云游戏及相关产业布局打下基础。此外，还表达了对云游戏行业未来在职业和资本层面掀起新一轮发展风潮的期待。",
+      "citation_ids": [
+        "vcsum:174:seg:27:utt:3",
+        "vcsum:174:seg:69:utt:0",
+        "vcsum:174_0:utt:27"
+      ],
+      "citation_precision": 0.3333333333333333,
+      "citation_recall": 0.03571428571428571,
+      "answer_lexical_overlap": 0.22794117647058823,
+      "usage": {
+        "completion_tokens": 105,
+        "prompt_tokens": 335,
+        "total_tokens": 440,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 335
+        }
+      },
+      "latency_ms": 2656.74
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-056",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 169,
+        "total_tokens": 191,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 169
+        }
+      },
+      "latency_ms": 1080.45
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-058",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0045045045045045045,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 159,
+        "total_tokens": 181,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 159
+        }
+      },
+      "latency_ms": 1268.22
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 165,
+        "total_tokens": 187,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 165
+        }
+      },
+      "latency_ms": 1465.55
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 219,
+        "total_tokens": 241,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 219
+        }
+      },
+      "latency_ms": 1080.96
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 209,
+        "total_tokens": 231,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 209
+        }
+      },
+      "latency_ms": 1016.31
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-050",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 275,
+        "total_tokens": 297,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 275
+        }
+      },
+      "latency_ms": 1110.6
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-051",
+      "ok": true,
+      "json_valid": true,
+      "answer": "不要被动共同去引导健康发展",
+      "citation_ids": [
+        "vcsum:165:seg:9:utt:12",
+        "vcsum:165_0:utt:21"
+      ],
+      "citation_precision": 0.5,
+      "citation_recall": 0.03125,
+      "answer_lexical_overlap": 0.022222222222222223,
+      "usage": {
+        "completion_tokens": 28,
+        "prompt_tokens": 193,
+        "total_tokens": 221,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 193
+        }
+      },
+      "latency_ms": 1080.51
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-052",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 215,
+        "total_tokens": 237,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 215
+        }
+      },
+      "latency_ms": 1030.74
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-054",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 169,
+        "total_tokens": 191,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 169
+        }
+      },
+      "latency_ms": 952.86
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-055",
+      "ok": true,
+      "json_valid": true,
+      "answer": "会议讨论指出小米极其关注云游戏，并关注AR/VR未来的不同环节，包括内容关系、硬件、技术新宽、算力底层机构以及视频芯片。",
+      "citation_ids": [
+        "vcsum:174:seg:27:utt:0",
+        "vcsum:174_0:utt:27"
+      ],
+      "citation_precision": 0.5,
+      "citation_recall": 0.03571428571428571,
+      "answer_lexical_overlap": 0.125,
+      "usage": {
+        "completion_tokens": 57,
+        "prompt_tokens": 291,
+        "total_tokens": 348,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 291
+        }
+      },
+      "latency_ms": 1893.96
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-056",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 170,
+        "total_tokens": 192,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 170
+        }
+      },
+      "latency_ms": 1152.67
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-058",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0045045045045045045,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 221,
+        "total_tokens": 243,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 221
+        }
+      },
+      "latency_ms": 1159.16
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 178,
+        "total_tokens": 200,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 178
+        }
+      },
+      "latency_ms": 1008.61
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 219,
+        "total_tokens": 241,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 219
+        }
+      },
+      "latency_ms": 1328.99
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 199,
+        "total_tokens": 221,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 199
+        }
+      },
+      "latency_ms": 1125.91
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-050",
+      "ok": true,
+      "json_valid": true,
+      "answer": "会议讨论了通过“共同引导”的方式来引领乡村自媒体健康发展，并提到跟踪调研以及由大学教授为乡村自媒体加大理论支撑作为引导的具体体现。",
+      "citation_ids": [
+        "vcsum:165:seg:5:utt:7",
+        "vcsum:165:seg:9:utt:14",
+        "vcsum:165_0:utt:23"
+      ],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.11594202898550725,
+      "usage": {
+        "completion_tokens": 56,
+        "prompt_tokens": 308,
+        "total_tokens": 364,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 308
+        }
+      },
+      "latency_ms": 2335.27
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-051",
+      "ok": true,
+      "json_valid": true,
+      "answer": "这场会议的整体结论是要共同努力去引导健康发展，大家都要出一份力并负起责任，不要让其自生自灭。",
+      "citation_ids": [
+        "vcsum:165:seg:9:utt:12",
+        "vcsum:165:seg:9:utt:8",
+        "vcsum:165_0:utt:21"
+      ],
+      "citation_precision": 0.3333333333333333,
+      "citation_recall": 0.03125,
+      "answer_lexical_overlap": 0.022222222222222223,
+      "usage": {
+        "completion_tokens": 51,
+        "prompt_tokens": 241,
+        "total_tokens": 292,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 241
+        }
+      },
+      "latency_ms": 1544.0
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-052",
+      "ok": true,
+      "json_valid": true,
+      "answer": "会议讨论指出，学本教学是一项具有原创价值的课堂教学系统变革方式，其提出以学生深度学习为重心；同时，会议围绕学本教学的理念引领与技术路径进行了研讨。",
+      "citation_ids": [
+        "vcsum:172:seg:1:utt:7",
+        "vcsum:172:seg:26:utt:3",
+        "vcsum:172:seg:7:utt:5"
+      ],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.2882882882882883,
+      "usage": {
+        "completion_tokens": 62,
+        "prompt_tokens": 184,
+        "total_tokens": 246,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 184
+        }
+      },
+      "latency_ms": 2026.32
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-054",
+      "ok": true,
+      "json_valid": true,
+      "answer": "会议的整体结论是学本教学是一个实操性强、效果明显且符合教育规律的整体改革项目，其在长葛市12个乡镇的全面启动促进了教育均衡发展，为当地教育注入了活力并真正改变了教育生态。",
+      "citation_ids": [
+        "vcsum:172:seg:96:utt:8",
+        "vcsum:172_6:utt:9",
+        "vcsum:172_7:utt:24"
+      ],
+      "citation_precision": 0.3333333333333333,
+      "citation_recall": 0.010638297872340425,
+      "answer_lexical_overlap": 0.0425531914893617,
+      "usage": {
+        "completion_tokens": 70,
+        "prompt_tokens": 229,
+        "total_tokens": 299,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 229
+        }
+      },
+      "latency_ms": 2047.15
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-055",
+      "ok": true,
+      "json_valid": true,
+      "answer": "会议讨论到小米极其关注云游戏，并关注AR/VR未来的不同环节，包括内容关系、硬件、技术新宽、算力底层架构及视频芯片。同时提到通过先跑一波数据观察用户反映和运营策略，为明年后年的云游戏及相关产业布局打下基础。",
+      "citation_ids": [
+        "vcsum:174_0:utt:27",
+        "vcsum:174_0:utt:30"
+      ],
+      "citation_precision": 0.5,
+      "citation_recall": 0.03571428571428571,
+      "answer_lexical_overlap": 0.22794117647058823,
+      "usage": {
+        "completion_tokens": 83,
+        "prompt_tokens": 280,
+        "total_tokens": 363,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 280
+        }
+      },
+      "latency_ms": 2257.01
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-056",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 22,
+        "prompt_tokens": 188,
+        "total_tokens": 210,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 188
+        }
+      },
+      "latency_ms": 1594.35
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-058",
+      "ok": true,
+      "json_valid": true,
+      "answer": "有志愿者文化的组织是最强大的组织。",
+      "citation_ids": [
+        "vcsum:176:seg:17:utt:4",
+        "vcsum:176_3:utt:9"
+      ],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.009009009009009009,
+      "usage": {
+        "completion_tokens": 30,
+        "prompt_tokens": 170,
+        "total_tokens": 200,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 170
+        }
+      },
+      "latency_ms": 1066.9
+    }
+  ],
+  "limitations": [
+    "答案词面重合度只是自动代理指标；引用 Recall 受细粒度多证据标注影响。"
+  ]
+}

@@ -38,6 +38,11 @@
 - `backend/evaluation/datasets/meetingmind_real_v1_review_manifest.json`：原候选的稳定 LF 哈希、数量和复核清单；
 - `backend/evaluation/datasets/meetingmind_real_v1_ai_reviews.jsonl`：580 个独立 AI 初审单元；
 - `backend/evaluation/datasets/meetingmind_real_v1_ai_review_manifest.json`：初审统计、哈希、人工抽检计划和限制。
+- `backend/evaluation/datasets/meetingmind_real_v1_gold_pilot.jsonl`：供人工审核的 100 条分层抽样；
+- `backend/evaluation/datasets/meetingmind_real_v1_gold_pilot_manifest.json`：抽样构成、审核字段和升级规则。
+- `backend/evaluation/datasets/meetingmind_real_v1_ai_accepted_silver.jsonl`：71 条 `corrected.needs_review=false` 的机器初步通过项；
+- `backend/evaluation/datasets/meetingmind_real_v1_human_review_queue.jsonl`：剩余 509 条人工重点审核队列；
+- `backend/evaluation/datasets/meetingmind_real_v1_review_queue_manifest.json`：拆分规则和数量汇总。
 
 原候选文件仍标记为 `silver`。AI 初审覆盖问答 158 条、待办 194 条和约束 228 条，但这不是人工 gold：至少需要分层抽检 20 个单元，发现系统性问题时还要扩大复核并重新生成。当前不能直接用它报告正式 F1。
 

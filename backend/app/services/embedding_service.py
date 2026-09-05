@@ -53,7 +53,11 @@ class EmbeddingService:
                 if model_name not in EmbeddingService._model_cache:
                     app_logger.info(f"Loading local embedding model from: {local_model_path}")
                     from sentence_transformers import SentenceTransformer
-                    EmbeddingService._model_cache[model_name] = SentenceTransformer(local_model_path, device=settings.EMBEDDING_DEVICE)
+                    EmbeddingService._model_cache[model_name] = SentenceTransformer(
+                        local_model_path,
+                        device=settings.EMBEDDING_DEVICE,
+                        local_files_only=True,
+                    )
                     app_logger.info(f"Local embedding model '{model_name}' loaded successfully")
                 self.model = EmbeddingService._model_cache[model_name]
                 self.use_fallback = False
@@ -68,28 +72,13 @@ class EmbeddingService:
                 self._init_fallback()
                 return
 
-        # 只有在没有本地模型时，才尝试远程下载（最多重试3次）
+        # 本地模型缺失时只使用确定性的本地词频向量，绝不访问模型源。
         if not os.path.exists(local_model_path):
-            max_retries = 3
-            retry_count = 0
+            app_logger.warning(
+                "Local embedding model is missing; remote model downloads are disabled. "
+                "Using the deterministic fallback embedding."
+            )
 
-            while retry_count < max_retries:
-                try:
-                    if model_name not in EmbeddingService._model_cache:
-                        app_logger.info(f"Loading embedding model from HuggingFace: {settings.EMBEDDING_MODEL} (attempt {retry_count + 1}/{max_retries})")
-                        from sentence_transformers import SentenceTransformer
-                        EmbeddingService._model_cache[model_name] = SentenceTransformer(settings.EMBEDDING_MODEL, device=settings.EMBEDDING_DEVICE)
-                        app_logger.info(f"Remote embedding model '{model_name}' loaded successfully")
-                    self.model = EmbeddingService._model_cache[model_name]
-                    self.use_fallback = False
-                    return
-                except Exception as e:
-                    retry_count += 1
-                    app_logger.warning(f"Failed to load Sentence-BERT model (attempt {retry_count}/{max_retries}): {e}")
-                    if retry_count >= max_retries:
-                        break
-
-        # 如果所有尝试都失败，使用备用方案
         app_logger.info("Falling back to simple word frequency based embedding")
         self.use_fallback = True
         self._init_fallback()

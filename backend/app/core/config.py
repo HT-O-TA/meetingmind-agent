@@ -90,8 +90,9 @@ class Settings(BaseSettings):
     SIMILARITY_THRESHOLD: float = 0.7  # 相似度阈值，低于此值的结果将被过滤（0.0表示不过滤）
     
     # ==================== 本地模型配置 ====================
-    LOCAL_MODELS_ROOT: str = "./model"  # 本地模型根目录，每个模型一个子文件夹
-    COMPLEXITY_MODEL_NAME: str = "qwen3-0.6B"  # 复杂度分类器使用的本地模型名称
+    LOCAL_MODELS_ROOT: str = "../model"  # 项目根目录下的本地模型目录
+    LOCAL_MODEL_ONLY: bool = True  # 禁止运行时从 HuggingFace 等模型源下载
+    COMPLEXITY_MODEL_NAME: str = "Qwen3-1.7B"  # 复杂度分类器使用的本地模型名称
     
     # ==================== LLM配置（OpenAI兼容接口） ====================
     LLM_API_BASE: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"  # LLM API基础URL
@@ -124,7 +125,7 @@ class Settings(BaseSettings):
     VECTOR_WEIGHT: float = 0.7  # 向量检索权重
     RERANK_TOP_N: int = 10  # 重排序前候选数量（从多路召回结果中取前N个进行精排）
     RERANKER_MODEL_NAME: str = "BAAI/bge-reranker-v2-m3"  # 重排序模型名称（bge-reranker-v2-m3 支持中英双语，性能更强）
-    RERANKER_LOCAL_PATH: str = "./model/bge-reranker-v2-m3"  # 本地模型路径（如果已下载到本地）
+    RERANKER_LOCAL_PATH: str = "../model/bge-reranker-v2-m3"  # 本地模型路径
     ENABLE_RERANK: bool = True  # 是否启用重排序
 
     # ==================== Milvus向量数据库配置 ====================

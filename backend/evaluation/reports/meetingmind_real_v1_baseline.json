@@ -1,0 +1,52 @@
+{
+  "metadata": {
+    "schema_version": "evaluation.v1",
+    "generated_at": "2026-09-05T07:06:10.074787+00:00",
+    "dataset": "backend/evaluation/datasets/meetingmind_real_v1_evaluation.jsonl",
+    "dataset_sha256": "8b82b681b130084b3eacdb9a18371319c419dfd695f2345132bce2d6928a9e35",
+    "dataset_version": "meetingmind-real-v1-evaluation.v1",
+    "sample_kind": "real",
+    "record_count": 100,
+    "suite": "real_meeting_frozen_pilot_baseline",
+    "baseline_type": "candidate_vs_reviewed_labels"
+  },
+  "metrics": {
+    "retrieval": {
+      "mrr": 1.0,
+      "ndcg_at_k": 1.0,
+      "recall_at_k": 0.37025592688760445
+    },
+    "generation": {
+      "citation_accuracy": 1.0
+    },
+    "extraction_by_unit_type": {
+      "todo": {
+        "f1": 0.09444444444444444,
+        "precision": 0.1111111111111111,
+        "recall": 0.7537037037037037
+      },
+      "constraint": {
+        "f1": 0.5833333333333334,
+        "precision": 0.5833333333333334,
+        "recall": 0.95
+      }
+    },
+    "todo": {
+      "todo_f1": 0.09444444444444444,
+      "precision": 0.1111111111111111,
+      "recall": 0.7537037037037037
+    }
+  },
+  "system": {
+    "status": "not_measured",
+    "p50_latency_ms": null,
+    "p95_latency_ms": null,
+    "failure_rate": null,
+    "single_request_cost": null
+  },
+  "limitations": [
+    "质量基线比较的是已生成候选与复核标签，不是模型重新推理结果。",
+    "当前冻结集只有 100 条，覆盖 28 场会议；100 条均已由 reviewer=ht 完成人工审核。",
+    "未连接真实模型、数据库或队列，因此不报告端到端延迟、失败率和成本。"
+  ]
+}

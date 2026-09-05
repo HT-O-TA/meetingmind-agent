@@ -67,12 +67,14 @@ class ComplexityClassifier:
             
             self._tokenizer = AutoTokenizer.from_pretrained(
                 model_path,
-                trust_remote_code=True
+                trust_remote_code=True,
+                local_files_only=True,
             )
             
             self._model = AutoModelForCausalLM.from_pretrained(
                 model_path,
                 trust_remote_code=True,
+                local_files_only=True,
                 device_map="auto",
                 low_cpu_mem_usage=True
             )

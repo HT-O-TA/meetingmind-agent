@@ -1,0 +1,53 @@
+{
+  "schema_version": "meetingmind.closeout.v1",
+  "dataset": {
+    "version": "meetingmind-real-v1-evaluation.v1",
+    "tasks": 100,
+    "meetings": 28,
+    "reviewer": "ht",
+    "review_complete": true
+  },
+  "retrieval": {
+    "qa_tasks": 40,
+    "scope": "within_meeting_oracle",
+    "metrics_report": "meetingmind_real_v1_retrieval_baselines.json",
+    "bootstrap_report": "meetingmind_real_v1_retrieval_cluster_bootstrap.json",
+    "best_method_by_recall_at_5": "hybrid",
+    "best_recall_at_5": 0.07323270146823951,
+    "best_mrr": 0.4325629578754579,
+    "best_ndcg_at_5": 0.21327913759853312,
+    "scope_note": "已知 meeting_id 后的会议内排序；不是全库检索",
+    "text_deduplicated_documents": 4457
+  },
+  "cloud_generation": {
+    "records": 100,
+    "json_valid_rate": 1.0,
+    "failure_rate": 0.0,
+    "total_tokens": 37171,
+    "p50_latency_ms": 2345.98,
+    "p95_latency_ms": 3883.43,
+    "todo_f1": 0.7129629629629629,
+    "constraint_f1": 0.4666666666666667,
+    "metric_note": "待办和约束为候选规范化口径，不是完整会议原文端到端抽取。"
+  },
+  "end_to_end_generation_sample": {
+    "records_per_method": 10,
+    "total_requests": 40,
+    "total_tokens": 9904,
+    "json_valid_rate": 1.0,
+    "contexts_per_request": 5,
+    "max_citation_index": 5,
+    "best_method_by_citation_precision": "hybrid_reranker",
+    "best_citation_precision": 0.11666666666666667,
+    "best_answer_lexical_overlap": 0.07059559164649767,
+    "report": "meetingmind_real_v1_generation_comparison_40.json",
+    "note": "每种方案 10 条抽样，不等同于 40 条完整冻结生成测试；模型只看到 Top-5，引用索引也只允许 1-5。"
+  },
+  "status": "retrieval_scope_corrected_and_sampled_generation_complete",
+  "remaining_nonblocking_limitations": [
+    "检索实验是已知会议内排序，不是全库检索。",
+    "四组方案的端到端生成对比目前每种 10 条抽样，不足以宣称 Reranker 整体领先。",
+    "当前引用真值粒度较细，Recall@5 不能单独代表答案级引用覆盖。",
+    "固定 HTTP 演示仍需本地服务和 Worker 同时启动。"
+  ]
+}

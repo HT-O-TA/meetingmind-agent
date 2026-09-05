@@ -1,0 +1,26 @@
+{
+  "schema_version": "evaluation.cluster_bootstrap.v1",
+  "source": "backend\\evaluation\\reports\\meetingmind_real_v1_cloud_100_scored.json",
+  "meeting_count": 28,
+  "task_count": 100,
+  "iterations": 2000,
+  "seed": 20260905,
+  "metrics": {
+    "qa_citation_recall": {
+      "mean": 0.22096341281612888,
+      "lower_95": 0.16635332774455103,
+      "upper_95": 0.2739187885666576
+    },
+    "todo_f1": {
+      "mean": 0.7316216106298866,
+      "lower_95": 0.5680272108843537,
+      "upper_95": 0.9242424242424242
+    },
+    "constraint_f1": {
+      "mean": 0.46832619552569843,
+      "lower_95": 0.3333333333333333,
+      "upper_95": 0.6071428571428571
+    }
+  },
+  "note": "每次重采样整场会议及其全部任务，不能解读为 100 个独立样本。"
+}

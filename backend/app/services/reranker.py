@@ -38,8 +38,11 @@ class Reranker:
                 app_logger.info(f"[Reranker] 使用本地模型: {local_path}")
                 self.model = FlagReranker(local_path, use_fp16=True if self.device == "cuda" else False, device=self.device)
             else:
-                app_logger.info(f"[Reranker] 使用HuggingFace模型: {model_name}")
-                self.model = FlagReranker(model_name, use_fp16=True if self.device == "cuda" else False, device=self.device)
+                app_logger.warning(
+                    f"[Reranker] 本地模型不存在: {local_path}；已禁止从模型源下载，使用规则重排。"
+                )
+                self.model = None
+                return
             
             app_logger.info(f"[Reranker] 成功加载模型: {local_path if os.path.exists(local_path) else model_name}")
         except ImportError as e:

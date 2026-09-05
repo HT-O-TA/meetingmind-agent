@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+from contextlib import nullcontext
 import importlib.util
 import sys
 import types
@@ -160,6 +161,12 @@ class TestAgentGraphContract(unittest.TestCase):
             ),
             "app.services.llm_service": _module(
                 "app.services.llm_service", LLMService=object
+            ),
+            # graph.py 在每个节点外包裹 Token 预算上下文；这里用空上下文，
+            # 只测试图的节点和编译边界，不把可选运行依赖带进契约测试。
+            "app.services.token_budget_ledger": _module(
+                "app.services.token_budget_ledger",
+                token_budget_node_scope=lambda _name: nullcontext(),
             ),
             "app.core.logger": _module(
                 "app.core.logger", app_logger=MagicMock()

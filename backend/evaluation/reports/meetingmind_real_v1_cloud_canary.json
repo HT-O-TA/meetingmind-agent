@@ -1,0 +1,45 @@
+{
+  "schema_version": "meetingmind.cloud-canary.v1",
+  "generated_at": "2026-09-05T06:25:31.585858+00:00",
+  "model": "qwen3.7-max-2026-06-08",
+  "count_requested": 1,
+  "count_completed": 1,
+  "max_tokens": 768,
+  "total_token_budget": 3000,
+  "per_record_token_budget": 2000,
+  "total_tokens_observed": 478,
+  "paused": false,
+  "pause_reason": null,
+  "paused_at_id": null,
+  "results": [
+    {
+      "id": "gold-pilot-034",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "这场会议是由中国美术学院和未来事务管理局联合举办的科幻论坛，圆桌讨论主题为世界观的建构与创作。嘉宾们围绕人类历史上杰出的创造者及其作品展开了探讨。",
+        "citation_ids": [
+          "vcsum:108:seg:0:utt:3",
+          "vcsum:108:seg:0:utt:5",
+          "vcsum:108:seg:1:utt:14"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 390,
+        "total_tokens": 478,
+        "completion_tokens": 88,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 390
+        }
+      },
+      "finish_reason": "stop",
+      "latency_ms": 11321.1,
+      "anomalies": []
+    }
+  ],
+  "limitations": [
+    "仅运行 QA canary，不代表完整 100 条端到端质量。",
+    "模型供应商可能将隐藏思考 token 计入 completion_tokens。"
+  ]
+}

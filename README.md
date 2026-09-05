@@ -20,13 +20,13 @@ MeetingMind 是一个面向 AI 应用开发学习与求职展示的会议知识�
 
 | 能力 | 当前实现 | 仍需补齐 |
 |---|---|---|
-| RAG | PostgreSQL 权威块、BM25 风格关键词召回、PG Dense/可选 Milvus、加权融合、Reranker、引用、ACL、降级字段 | 冻结的真实会议评测集与正式指标；启用 Milvus 时的增量同步验收 |
+| RAG | PostgreSQL 权威块、BM25 风格关键词召回、PG Dense/可选 Milvus、加权融合、Reranker、引用、ACL、降级字段 | 真实评测已完成一轮；全库检索、Milvus 增量同步和生产容量仍未验收 |
 | Agent | 静态 LangGraph；路由、检索、纪要/待办/争议、计划执行、风险确认、质量门禁、结构修复 | 真实业务数据上的路由与端到端效果 |
 | 工具调用 | 会议/文档工具；Jira Cloud REST v3；Schema、策略、HITL、幂等和审计 | Jira 站点凭据与真实项目写入演示 |
 | 异步任务 | RabbitMQ confirm、manual ACK、延迟重试、DLQ、幂等任务状态 | 多节点高可用与真实容量验收 |
 | ASR | 严格 WAV 准入；独立 FunASR Worker；原始/安全证据分区、逐段注入隔离、版本化修订、状态机和 RAG 证据入库 | 脱敏多人会议真值和 CER/DER |
 | LoRA/QLoRA | Qwen3-0.6B 待办抽取教学实验和统一评测 | 真实会议标注集；当前合成结果不可外推 |
-| 评估 | 一个离线命令统一计算检索、抽取、路由、工具与输入安全指标；冻结的 Prompt Injection 合成集进入 CI | 真实数据阈值与持续回归 |
+| 评估 | 冻结 28 场会议/100 条任务，完成候选规范化、检索基线、云端结构化输出和抽样端到端对比 | 会议内检索尚非全库检索；生成对比为每种方案 10 条抽样，不能宣称 Reranker 整体领先 |
 | Trace | 有界进程内节点 Trace，只记录真实节点、耗时、重试、输出和错误 | 跨进程持久化不在当前范围 |
 | 部署 | 前后端镜像、PostgreSQL、Redis、RabbitMQ、Worker Compose 和 CI | TLS、备份、Secret Manager、HA、生产容量 |
 
@@ -127,12 +127,13 @@ cd backend
 ./scripts/run_core_tests.sh -q
 ```
 
-Compose 启动后，运行四项固定真实 Demo（HTTP 业务闭环、队列恢复、公开 WAV ASR、LoRA 抽取）：
+Compose 启动后，先运行当前固定五分钟演示（HTTP 正常/权限拒绝、工具确认、队列恢复）：
 
 ```bash
-cd /home/lenovo/A/meetingmind-agent
-backend/venv/bin/python scripts/run_fixed_demos.py
+python scripts/demo_five_minute.py --base-url http://127.0.0.1:8000
 ```
+
+旧的四项 Demo 入口仍保留在 `scripts/run_fixed_demos.py`，用于追溯公开 WAV ASR 和 LoRA 抽取验证，不代表当前五分钟演示的必需依赖。
 
 前端：
 
@@ -169,11 +170,10 @@ python3 scripts/evaluate.py --allow-synthetic \
 文档总入口：先看 [docs/README.md](docs/README.md)，再按其中的阅读顺序进入大白话主文档。以下阶段文档保留用于追溯历史决策和验证证据。
 
 - [项目总览（大白话）](docs/项目总览_大白话.md)
-- [输入预处理层确认（大白话）](docs/输入预处理层确认_大白话.md)
+- [输入预处理层技术说明](docs/架构解析/输入预处理层.md)
 - [记忆层技术说明](docs/架构解析/记忆层.md)
 - [证据与限制（大白话）](docs/证据与限制_大白话.md)
 
-- [JD 对标与项目收敛路线](docs/JD对标与项目收敛路线.md)
 - [阶段 1：RAG 权限、路由与统一评估](docs/优化路径记录/05_阶段1_RAG权限路由与统一评估.md)
 - [阶段 2：Agent 安全工具闭环](docs/优化路径记录/06_阶段2_Agent安全工具闭环.md)
 - [阶段 3：RabbitMQ 失败恢复](docs/优化路径记录/07_阶段3_RabbitMQ失败恢复与容量基线.md)

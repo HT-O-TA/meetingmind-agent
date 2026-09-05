@@ -1,0 +1,30 @@
+{
+  "schema_version": "meetingmind.gold-pilot-manifest.v1",
+  "dataset_version": "meetingmind-real-v1",
+  "annotation_status": "pending_human_review",
+  "gold": false,
+  "source_ai_review": "backend/evaluation/datasets/meetingmind_real_v1_ai_reviews.jsonl",
+  "pilot_file": "backend/evaluation/datasets/meetingmind_real_v1_gold_pilot.jsonl",
+  "record_count": 100,
+  "sampling_rule": "固定分层抽样：问答 40、待办 30、约束 30；问答包含 20 条 VCSUM 整体问答和 20 条主题问答，覆盖 VCSUM/AliMeeting 和 accept/edit/reject。",
+  "counts": {
+    "constraint.AliMeeting-Eval.accept": 8,
+    "constraint.AliMeeting-Eval.reject": 7,
+    "constraint.VCSUM.accept": 8,
+    "constraint.VCSUM.reject": 7,
+    "qa.VCSUM.accept": 10,
+    "qa.VCSUM.edit": 30,
+    "todo.AliMeeting-Eval.edit": 10,
+    "todo.AliMeeting-Eval.reject": 10,
+    "todo.VCSUM.reject": 10
+  },
+  "human_review_fields": [
+    "decision",
+    "corrected",
+    "evidence_ids",
+    "rationale",
+    "reviewer",
+    "reviewed_at"
+  ],
+  "promotion_rule": "只有人工完成 100 条审核并通过质量检查，才能生成 gold-pilot.v1；不能把 AI decision 直接当作人工结论。"
+}

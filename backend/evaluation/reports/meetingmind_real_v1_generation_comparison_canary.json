@@ -1,0 +1,179 @@
+{
+  "schema_version": "evaluation.generation_comparison.v1",
+  "task_count_per_method": 1,
+  "retrieval_methods": [
+    "bm25",
+    "dense",
+    "hybrid",
+    "hybrid_reranker"
+  ],
+  "total_tokens": 3216,
+  "elapsed_seconds": 42.682,
+  "metrics": {
+    "bm25": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 6799.91,
+      "mean_tokens": 466
+    },
+    "dense": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 4175.08,
+      "mean_tokens": 423
+    },
+    "hybrid": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 26867.36,
+      "mean_tokens": 1841
+    },
+    "hybrid_reranker": {
+      "count": 1,
+      "json_valid_rate": 1.0,
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "p50_latency_ms": 4838.94,
+      "mean_tokens": 486
+    }
+  },
+  "results": [
+    {
+      "method": "bm25",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 289,
+        "prompt_tokens": 177,
+        "total_tokens": 466,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 271,
+          "rejected_prediction_tokens": null,
+          "text_tokens": 289
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 177
+        }
+      },
+      "latency_ms": 6799.91
+    },
+    {
+      "method": "dense",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 266,
+        "prompt_tokens": 157,
+        "total_tokens": 423,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 248,
+          "rejected_prediction_tokens": null,
+          "text_tokens": 266
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 157
+        }
+      },
+      "latency_ms": 4175.08
+    },
+    {
+      "method": "hybrid",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 1678,
+        "prompt_tokens": 163,
+        "total_tokens": 1841,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 1654,
+          "rejected_prediction_tokens": null,
+          "text_tokens": 1678
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 163
+        }
+      },
+      "latency_ms": 26867.36
+    },
+    {
+      "method": "hybrid_reranker",
+      "task_id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "answer": "无法从会议片段确定",
+      "citation_ids": [],
+      "citation_precision": 0.0,
+      "citation_recall": 0.0,
+      "answer_lexical_overlap": 0.0,
+      "usage": {
+        "completion_tokens": 310,
+        "prompt_tokens": 176,
+        "total_tokens": 486,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": null,
+          "audio_tokens": null,
+          "reasoning_tokens": 292,
+          "rejected_prediction_tokens": null,
+          "text_tokens": 310
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": 176
+        }
+      },
+      "latency_ms": 4838.94
+    }
+  ],
+  "limitations": [
+    "答案词面重合度只是自动代理指标；引用 Recall 受细粒度多证据标注影响。"
+  ]
+}
