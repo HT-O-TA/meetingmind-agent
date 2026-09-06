@@ -9,8 +9,17 @@ class Settings(BaseSettings):
         env_file=".env",
         case_sensitive=True,
         extra="ignore",
-        populate_by_name=True,
+        # 不允许环境变量 DEBUG 覆盖应用配置；Conda 可能注入 DEBUG=release。
+        # 显式构造 Settings(DEBUG=True) 由下方 __init__ 兼容处理。
+        populate_by_name=False,
     )
+
+    def __init__(self, **data):
+        # 保留测试和调用方传入 DEBUG=... 的兼容性，同时只从环境读取
+        # MEETINGMIND_DEBUG，避免读取 Conda 注入的 DEBUG=release。
+        if "DEBUG" in data and "MEETINGMIND_DEBUG" not in data:
+            data["MEETINGMIND_DEBUG"] = data.pop("DEBUG")
+        super().__init__(**data)
 
     # ==================== 应用基础配置 ====================
     APP_NAME: str = "MeetingMind"  # 应用名称，用于API文档和日志
