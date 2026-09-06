@@ -207,6 +207,10 @@ class ComplexityClassifier:
     
     async def classify(self, question: str) -> ComplexityResult:
         """对问题进行复杂度分类（双阶段）"""
+        # 延迟加载本地模型：问候语和规则路由不应在首次请求时被
+        # 一个 1B 级分类模型阻塞。真正需要分类时才初始化；初始化
+        # 失败仍会沿用下方的规则降级路径。
+        await self.initialize()
         # 第一阶段：检测多任务
         multi_task_result = await self._detect_multi_task(question)
         
@@ -505,5 +509,6 @@ _complexity_classifier = ComplexityClassifier()
 
 async def get_complexity_classifier() -> ComplexityClassifier:
     """获取复杂度分类器实例"""
-    await _complexity_classifier.initialize()
+    # 只返回单例，不在工厂阶段加载模型。由 classify() 按需初始化，
+    # 避免 API 启动或简单问候请求承担无意义的模型加载成本。
     return _complexity_classifier
