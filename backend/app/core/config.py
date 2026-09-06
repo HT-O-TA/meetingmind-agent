@@ -92,7 +92,7 @@ class Settings(BaseSettings):
     # ==================== 向量化配置 ====================
     EMBEDDING_MODEL: str = "BAAI/bge-m3"  # HuggingFace模型标识（用于远程下载）
     EMBEDDING_MODEL_NAME: str = "bge-m3"  # 当前使用的本地模型文件夹名称（不带前缀）
-    EMBEDDING_DEVICE: str = "cpu"  # 默认 CPU；本地模型环境可显式改为 cuda
+    EMBEDDING_DEVICE: str = "cuda"  # 本地 GPU 环境默认使用 CUDA；无 GPU 时请在 .env 显式改为 cpu
     TOP_K_DEFAULT: int = 5  # 默认返回的检索结果数量
     SIMILARITY_THRESHOLD: float = 0.7  # 相似度阈值，低于此值的结果将被过滤（0.0表示不过滤）
     
@@ -139,7 +139,7 @@ class Settings(BaseSettings):
     MILVUS_URI: str = "http://localhost:19530"  # Milvus连接URI，Docker部署使用"http://localhost:19530"
     MILVUS_TOKEN: str = ""  # Milvus认证令牌（Zilliz Cloud时需要）
     VECTOR_COLLECTION_NAME: str = "meetingmind_docs"  # 向量集合名称（供 MilvusVectorStore 使用）
-    USE_GPU: bool = False
+    USE_GPU: bool = True
     USE_FP16: bool = False
     BGE_M3_MODEL_PATH: str = "./model/bge-m3"
     
@@ -151,7 +151,7 @@ class Settings(BaseSettings):
     ASR_VAD_MODEL: str = "fsmn-vad"
     ASR_PUNC_MODEL: str = "ct-punc"
     ASR_SPK_MODEL: str = "cam++"
-    ASR_DEVICE: str = "auto"  # auto/cpu/cuda/cuda:0
+    ASR_DEVICE: str = "cuda:0"  # GPU 环境默认使用第一张卡；无 GPU 时请在 .env 显式改为 cpu
     ASR_HUB: str = "ms"
     ASR_BATCH_SIZE_S: int = 300
     ASR_MAX_AUDIO_SIZE_BYTES: int = 209715200  # 200 MiB
