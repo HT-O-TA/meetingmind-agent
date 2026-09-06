@@ -1,0 +1,20 @@
+{
+  "schema_version": "meetingmind.queue-recovery-demo.v1",
+  "generated_at": "2026-09-05T14:28:25.348998+00:00",
+  "sample_kind": "local_single_node",
+  "status": "passed",
+  "topology": "durable classic main/retry/dead",
+  "publisher_confirm": "publish_message returned without error",
+  "prefetch": 1,
+  "configured_extra_retries": 1,
+  "attempt_count": 2,
+  "retry_event_count": 1,
+  "dead_letter_event_count": 1,
+  "dead_message_task_id_matches": true,
+  "elapsed_seconds": 1.201,
+  "cleanup": "temporary topology deleted in finally",
+  "limitations": [
+    "故障由 Demo 确定性注入，只证明恢复机制，不代表真实业务成功率。",
+    "本机单节点 classic queue 不等于多节点 quorum 高可用。"
+  ]
+}

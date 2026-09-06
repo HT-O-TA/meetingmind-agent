@@ -1,0 +1,49 @@
+{
+  "schema_version": "meetingmind.five-minute-demo.v1",
+  "generated_at": "2026-09-05T14:28:25.502686+00:00",
+  "coverage": [
+    "normal_path",
+    "permission_rejection",
+    "tool_confirmation",
+    "queue_recovery"
+  ],
+  "results": [
+    {
+      "name": "01_http_business_flow",
+      "status": "passed",
+      "returncode": 0,
+      "started_at": "2026-09-05T14:28:13.858805+00:00",
+      "ended_at": "2026-09-05T14:28:17.785554+00:00",
+      "duration_seconds": 3.927,
+      "stdout_log": "F:\\project\\meetingmind-agent\\artifacts\\five-minute-demo\\01_http_business_flow.stdout.log",
+      "stderr_log": "F:\\project\\meetingmind-agent\\artifacts\\five-minute-demo\\01_http_business_flow.stderr.log"
+    },
+    {
+      "name": "02_tool_confirmation",
+      "status": "passed",
+      "returncode": 0,
+      "started_at": "2026-09-05T14:28:17.795613+00:00",
+      "ended_at": "2026-09-05T14:28:23.389712+00:00",
+      "duration_seconds": 5.594,
+      "stdout_log": "F:\\project\\meetingmind-agent\\artifacts\\five-minute-demo\\02_tool_confirmation.stdout.log",
+      "stderr_log": "F:\\project\\meetingmind-agent\\artifacts\\five-minute-demo\\02_tool_confirmation.stderr.log"
+    },
+    {
+      "name": "03_queue_recovery",
+      "status": "passed",
+      "returncode": 0,
+      "started_at": "2026-09-05T14:28:23.391793+00:00",
+      "ended_at": "2026-09-05T14:28:25.500685+00:00",
+      "duration_seconds": 2.109,
+      "stdout_log": "F:\\project\\meetingmind-agent\\artifacts\\five-minute-demo\\03_queue_recovery.stdout.log",
+      "stderr_log": "F:\\project\\meetingmind-agent\\artifacts\\five-minute-demo\\03_queue_recovery.stderr.log"
+    }
+  ],
+  "status": "passed",
+  "limitations": [
+    "HTTP 主链需要本地 API、PostgreSQL、Redis 和 RabbitMQ；服务未启动时会如实记录失败。",
+    "工具确认步骤只验证策略门禁，不执行真实 Jira 外部写入。",
+    "队列恢复使用确定性故障注入，不能替代生产多副本故障演练。",
+    "总时长是否小于五分钟取决于本地服务和网络状态，manifest 会记录每一步耗时。"
+  ]
+}

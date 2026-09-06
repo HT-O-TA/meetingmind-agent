@@ -1,0 +1,25 @@
+{
+  "schema_version": "meetingmind.http-flow.v1",
+  "run_id": "6597057d45",
+  "status": "passed",
+  "meeting_id": 233,
+  "document_id": 231,
+  "document_status": "parsed",
+  "todo_id": 5,
+  "rag": {
+    "mode": "lightweight",
+    "count": 1,
+    "citation_count": 1,
+    "answer_excerpt": "以下是检索到的相关内容：\n\n[1] The project ships on Friday. Li Lei owns release checks. Han Meimei owns regression tests."
+  },
+  "queue": {
+    "document_task": "completed",
+    "vector_task": "completed",
+    "embedded_chunks": 1
+  },
+  "authorization": {
+    "private_document_status": 403,
+    "cross_department_meeting_status": 403,
+    "private_document_hidden_from_list": true
+  }
+}

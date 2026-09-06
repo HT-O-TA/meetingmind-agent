@@ -1,0 +1,28 @@
+{
+  "schema_version": "meetingmind.tool-confirmation-demo.v1",
+  "generated_at": "2026-09-05T14:28:23.063317+00:00",
+  "status": "passed",
+  "sample_kind": "local_policy",
+  "tool_id": "jira_create_issue",
+  "tool_risk_level": "medium",
+  "before_confirmation": {
+    "allowed": true,
+    "requires_confirmation": true,
+    "code": "allowed"
+  },
+  "blocked_without_confirmation": {
+    "allowed": false,
+    "requires_confirmation": true,
+    "code": "confirmation_required"
+  },
+  "after_confirmation": {
+    "allowed": true,
+    "code": "allowed",
+    "retry_count": 1
+  },
+  "external_write_executed": false,
+  "limitations": [
+    "这是策略门禁演示，没有调用 Jira 网络接口。",
+    "真实 Jira 成功率、权限和延迟需要在隔离租户中单独测量。"
+  ]
+}

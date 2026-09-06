@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "schema_version": "evaluation.v1",
+    "generated_at": "2026-09-04T15:47:25.750806+00:00",
+    "dataset": "backend\\evaluation\\datasets\\sample_eval.jsonl",
+    "dataset_sha256": "d1fafe86f1a8c2fa857fc4b503a65e4a9e82a8b6dbabd5f736b68be41548b191",
+    "dataset_version": null,
+    "sample_kind": "synthetic",
+    "record_count": 3,
+    "suite": "general",
+    "top_k": 5,
+    "generation_metric_note": "faithfulness/relevancy are lexical proxies unless replaced by labeled evaluator outputs"
+  },
+  "metrics": {
+    "retrieval": {
+      "mrr": 0.5,
+      "ndcg_at_k": 0.5168835142398817,
+      "recall_at_k": 0.6666666666666666
+    },
+    "generation": {
+      "answer_relevancy_lexical_proxy": 0.16005291005291006,
+      "citation_accuracy": 0.6666666666666666,
+      "faithfulness_lexical_proxy": 0.5
+    },
+    "extraction": {
+      "f1": 0.8333333333333334,
+      "json_valid_rate": 1.0,
+      "precision": 0.8333333333333334,
+      "recall": 0.8333333333333334,
+      "todo_f1": 0.8333333333333334
+    },
+    "tool": {
+      "hitl_trigger_accuracy": 1.0,
+      "parameter_accuracy": 0.8888888888888888,
+      "selection_accuracy": 0.6666666666666666,
+      "success_rate": 0.6666666666666666
+    },
+    "route": {
+      "complexity_accuracy": 0.6666666666666666,
+      "fallback_rate": 0.3333333333333333,
+      "task_accuracy": 1.0
+    },
+    "system": {
+      "mean_latency_ms": 156.66666666666666,
+      "p50_latency_ms": 120.0,
+      "p95_latency_ms": 260.0,
+      "sequential_throughput_proxy_rps": 6.382978723404256,
+      "error_rate": 0.3333333333333333,
+      "total_tokens": 260,
+      "total_cost": 0.0045000000000000005
+    },
+    "route_threshold_recommendation": {
+      "threshold": 0.0,
+      "f1": 1.0,
+      "coverage": 1.0,
+      "status": "recommendation_only_not_applied"
+    }
+  },
+  "case_results": [],
+  "limitations": [],
+  "threshold_failures": []
+}

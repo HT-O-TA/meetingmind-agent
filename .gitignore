@@ -31,17 +31,19 @@ backend/evaluate/*/*.log
 backend/results/
 test_docs/
 
-# Generated HTML files from Markdown
-docs/*.html
+# # Generated HTML files from Markdown
+# docs/*.html
 
-# Personal resume files (contains privacy information)
-docs/*简历*
+# # Personal resume files (contains privacy information)
+# docs/*简历*
 
-# Interview preparation documents (contains personal interview materials)
-docs/面试提问.md
+# # Interview preparation documents (contains personal interview materials)
+# docs/面试提问.md
 
-# Metrics documents (contains detailed internal metrics)
-docs/量化指标.md
+# # Metrics documents (contains detailed internal metrics)
+# docs/量化指标.md
+
+docs/
 
 # VSCode
 .vscode/
@@ -139,12 +141,7 @@ backend/.langsmith/
 local/
 backend/local/
 
-# Generated demo/deployment artifacts
-artifacts/
-
 # Local real/public meeting datasets (keep provenance notes, never commit raw media)
 /data/Eval_Ali/
 /data/VCSUM/
-/data/*.zip
-# Local raw dataset backup
-/data.zip
+

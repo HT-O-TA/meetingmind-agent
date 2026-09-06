@@ -1,7 +1,6 @@
 """真实企业工具适配器。
 
-阶段 2 只保留一个正式外部写目标：Jira Cloud REST API v3。未完成真实接入的
-飞书、Notion 和邮件工具不再注册，避免把 mock ID 当成外部执行成功。
+阶段 2 只保留一个正式外部写目标：Jira Cloud REST API v3。未完成真实接入的飞书、Notion 和邮件工具不再注册，避免把 mock ID 当成外部执行成功。
 """
 from __future__ import annotations
 
