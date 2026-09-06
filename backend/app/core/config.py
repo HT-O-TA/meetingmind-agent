@@ -1,16 +1,23 @@
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import json
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",
+        populate_by_name=True,
+    )
 
     # ==================== 应用基础配置 ====================
     APP_NAME: str = "MeetingMind"  # 应用名称，用于API文档和日志
     APP_ENV: str = "development"  # 运行环境：development(开发) / production(生产) / test(测试)
-    DEBUG: bool = False  # DEBUG模式开关，开启会输出详细SQL日志
+    # Conda 自身可能注入 DEBUG=release，因此应用必须使用独立环境变量名。
+    # populate_by_name=True 仍允许测试通过 Settings(DEBUG=True) 显式构造。
+    DEBUG: bool = Field(default=False, validation_alias="MEETINGMIND_DEBUG")
     SECRET_KEY: str = "meetingmind-secret-key-change-in-production"  # 密钥，用于JWT签名、密码加密等安全操作
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # JWT访问令牌过期时间（分钟）
 
@@ -97,7 +104,7 @@ class Settings(BaseSettings):
     # ==================== LLM配置（OpenAI兼容接口） ====================
     LLM_API_BASE: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"  # LLM API基础URL
     LLM_API_KEY: str = ""  # LLM API密钥（从.env文件读取，不要在此处硬编码）
-    LLM_MODEL: str = "qwen3.6-plus"  # 默认使用的LLM模型名称
+    LLM_MODEL: str = "qwen3.7-flash"  # 2026-09-08 后统一使用的默认云模型
     LLM_TEMPERATURE: float = 0.7  # LLM温度参数，控制输出随机性（0-1）
     LLM_MAX_TOKENS: int = 1000  # LLM生成的最大token数
     PLAN_LLM_MAX_TOKENS: int = 3000  # 规划阶段专用最大token数（JSON结构较大，需要更多token防止截断）
@@ -114,11 +121,11 @@ class Settings(BaseSettings):
     CONTEXT_MAX_ITEMS: int = 8
     CONTEXT_MAX_CHUNKS_PER_DOCUMENT: int = 3  # 为不同文档/来源保留多样性
     CONTEXT_ANCHOR_MAX_CHARS: int = 700
-    MODEL_TURBO_NAME: str = "qwen-turbo"
-    MODEL_PLUS_NAME: str = "qwen3.6-plus"
-    MODEL_MAX_NAME: str = "qwen-max"
+    MODEL_TURBO_NAME: str = "qwen3.7-flash"
+    MODEL_PLUS_NAME: str = "qwen3.7-flash"
+    MODEL_MAX_NAME: str = "qwen3.7-flash"
 
-    QUALITY_GATE_MODEL: str = "qwen-turbo"  # Agent 结果质量门禁模型
+    QUALITY_GATE_MODEL: str = "qwen3.7-flash"  # Agent 结果质量门禁模型
     
     # ==================== 多路召回与重排序配置 ====================
     BM25_WEIGHT: float = 0.3  # BM25检索权重（与向量检索权重相加应为1.0）

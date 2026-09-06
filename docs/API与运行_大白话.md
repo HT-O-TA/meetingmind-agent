@@ -2,9 +2,16 @@
 
 ## 启动后端
 
-在 `backend` 目录安装 `requirements-core.txt` 后运行：
+配置文件分工固定如下：
+
+- 根目录 `.env`：供 Redis、RabbitMQ 等 Docker 基础设施使用；
+- `backend/.env`：只供本机 Conda 后端使用。
+
+在 `backend` 目录激活 `meetingmind-gpu`，安装 `requirements-core.txt` 后运行：
 
 ```bash
+conda activate meetingmind-gpu
+cp .env.example .env
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -15,6 +22,10 @@ GET /health
 ```
 
 后端启动时会初始化 PostgreSQL、Redis 相关缓存；异步任务还需要 RabbitMQ 和独立 Worker。
+
+当前部署口径是：PostgreSQL 在宿主机，Redis、RabbitMQ 和 Milvus 使用 Docker；后端、Worker 和前端使用本机 Conda 环境。前端实际由 Conda 环境中的 Node/npm 运行。长期记忆索引 Worker 保持关闭，因为当前只有 PG outbox 和通用投影接口，尚未接入可执行的 Milvus 记忆投影器。
+
+云模型默认名称为 `qwen3.7-flash`。冻结的 100 条评测历史结果使用 `qwen3.7-max-2026-06-08`，两者不能混写成同一次实验。
 
 ## 主要接口
 
@@ -53,7 +64,8 @@ Authorization: Bearer <token>
 Worker 单独启动：
 
 ```bash
-python backend/app/workers/run.py
+cd backend
+python -m app.workers.run
 ```
 
 ## RAG 和 Agent 的区别

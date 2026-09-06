@@ -57,7 +57,7 @@ def main() -> int:
 
     runtime_env = os.environ.copy()
     runtime_env["APP_ENV"] = "development"
-    runtime_env["DEBUG"] = "false"
+    runtime_env["MEETINGMIND_DEBUG"] = "false"
     runtime_env["ENABLE_ASR"] = "true"
     runtime_env["ASR_MODEL"] = "paraformer-zh"
     runtime_env["ASR_VAD_MODEL"] = "fsmn-vad"

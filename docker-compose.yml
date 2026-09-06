@@ -4,9 +4,9 @@
 x-backend-environment: &backend-environment
   APP_NAME: MeetingMind
   APP_ENV: ${APP_ENV:-development}
-  DEBUG: "false"
+  MEETINGMIND_DEBUG: "false"
   SECRET_KEY: ${SECRET_KEY:-meetingmind-dev-only-secret-change-before-production}
-  DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:-password}@postgres:5432/meetingmind
+  DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:password@host.docker.internal:5432/meetingmind}
   CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost:8080","http://localhost:5173"]}
   REDIS_URL: redis://redis:6379/0
   RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin123}@rabbitmq:5672
@@ -15,10 +15,16 @@ x-backend-environment: &backend-environment
   QUEUE_RETRY_DELAY_SECONDS: ${QUEUE_RETRY_DELAY_SECONDS:-5}
   LLM_API_BASE: ${LLM_API_BASE:-https://dashscope.aliyuncs.com/compatible-mode/v1}
   LLM_API_KEY: ${LLM_API_KEY:-}
-  LLM_MODEL: ${LLM_MODEL:-qwen3.6-plus}
+  LLM_MODEL: ${LLM_MODEL:-qwen3.7-flash}
+  MODEL_TURBO_NAME: ${LLM_MODEL:-qwen3.7-flash}
+  MODEL_PLUS_NAME: ${LLM_MODEL:-qwen3.7-flash}
+  MODEL_MAX_NAME: ${LLM_MODEL:-qwen3.7-flash}
+  QUALITY_GATE_MODEL: ${LLM_MODEL:-qwen3.7-flash}
   EMBEDDING_DEVICE: cpu
   USE_GPU: "false"
   ENABLE_ASR: "false"
+  ENABLE_RERANK: "false"
+  MEMORY_INDEX_WORKER_ENABLED: "false"
   JIRA_ENABLED: ${JIRA_ENABLED:-false}
   JIRA_URL: ${JIRA_URL:-}
   JIRA_USERNAME: ${JIRA_USERNAME:-}
@@ -26,25 +32,6 @@ x-backend-environment: &backend-environment
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: meetingmind-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: meetingmind
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d meetingmind"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    networks: [meetingmind-network]
-
   redis:
     image: redis:7-alpine
     container_name: meetingmind-redis
@@ -82,6 +69,7 @@ services:
     networks: [meetingmind-network]
 
   backend:
+    profiles: ["container-app"]
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -94,8 +82,6 @@ services:
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
       rabbitmq:
@@ -109,6 +95,7 @@ services:
     networks: [meetingmind-network]
 
   worker:
+    profiles: ["container-app"]
     image: meetingmind-backend:local
     container_name: meetingmind-worker
     restart: unless-stopped
@@ -125,6 +112,7 @@ services:
     networks: [meetingmind-network]
 
   frontend:
+    profiles: ["container-app"]
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -149,7 +137,6 @@ networks:
     driver: bridge
 
 volumes:
-  postgres_data:
   redis_data:
   rabbitmq_data:
   backend_uploads:

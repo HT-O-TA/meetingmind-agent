@@ -40,7 +40,7 @@ MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用。仓库只�
 | LoRA/QLoRA | Qwen3-0.6B 待办抽取教学实验和统一评测 | 真实会议标注集；当前合成结果不可外推 |
 | 评估 | 冻结 28 场会议/100 条任务，完成候选规范化、检索基线、云端结构化输出和抽样端到端对比 | 会议内检索尚非全库检索；生成对比为每种方案 10 条抽样，不能宣称 Reranker 整体领先 |
 | Trace | 有界进程内节点 Trace，只记录真实节点、耗时、重试、输出和错误 | 跨进程持久化不在当前范围 |
-| 部署 | 前后端镜像、PostgreSQL、Redis、RabbitMQ、Worker Compose 和 CI | TLS、备份、Secret Manager、HA、生产容量 |
+| 部署 | 本机 Conda 前后端/Worker、宿主机 PostgreSQL、Docker Redis/RabbitMQ/Milvus、可选镜像发布和 CI | TLS、备份、Secret Manager、HA、生产容量 |
 
 ## 已删除的非主线内容
 
@@ -86,20 +86,20 @@ MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用。仓库只�
 
 ## 本地开发
 
-后端核心环境：
+后端统一使用 Conda：
 
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate
+conda activate meetingmind-gpu
 pip install -r requirements-core.txt
 cp .env.example .env
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-前端：
+前端使用同一套 Conda 管理口径中的 Node/npm（不作为默认 Docker 服务启动）：
 
 ```bash
+conda activate meetingmind-gpu
 cd frontend
 npm install
 npm run dev
@@ -109,17 +109,20 @@ npm run dev
 
 ## Compose 启动
 
-默认 Compose 只启动 PostgreSQL、Redis、RabbitMQ、后端、Worker 和前端：
+当前统一口径是：PostgreSQL 安装在宿主机；Redis、RabbitMQ 和 Milvus 使用 Docker；后端、Worker 和前端在本机 Conda 环境运行。根目录 `.env` 服务 Docker Compose，`backend/.env` 服务本机 Conda 后端。
 
 ```bash
 cp .env.example .env
 python3 scripts/preflight_deploy.py --mode development
-docker-compose up -d --build
+docker compose up -d redis rabbitmq
+conda activate meetingmind-gpu
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 curl --fail http://127.0.0.1:8000/health
 curl --fail http://127.0.0.1:8080/
 ```
 
-默认镜像不包含 Torch、FunASR、本地 Embedding/Reranker 模型或 Milvus，因此 Compose 通过表示 Web 主链可启动，不表示完整模型能力或生产环境已经验收。
+Milvus 沿用本机已有的独立 Docker 容器。Compose 中的后端、Worker 和前端被放入可选的 `container-app` Profile，不属于当前默认运行口径。长期记忆的 PG 主库和 outbox 已实现，但 Milvus 记忆投影器尚未注入，`MEMORY_INDEX_WORKER_ENABLED` 必须保持关闭。
 
 ## 测试与评估
 

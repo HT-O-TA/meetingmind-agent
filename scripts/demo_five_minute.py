@@ -75,7 +75,7 @@ def main() -> int:
     env = os.environ.copy()
     env["PYTHONPATH"] = str(BACKEND)
     env.setdefault("APP_ENV", "development")
-    env.setdefault("DEBUG", "false")
+    env.setdefault("MEETINGMIND_DEBUG", "false")
     env.setdefault("DATABASE_URL", "postgresql+asyncpg://postgres:password@127.0.0.1:5432/meetingmind")
     env.setdefault("REDIS_URL", "redis://127.0.0.1:6379/0")
     env.setdefault("RABBITMQ_URL", "amqp://admin:admin123@127.0.0.1:5672")

@@ -11,7 +11,7 @@ from typing import Mapping
 
 
 PRODUCTION_REQUIRED = (
-    "POSTGRES_PASSWORD",
+    "DATABASE_URL",
     "RABBITMQ_USER",
     "RABBITMQ_PASSWORD",
     "SECRET_KEY",
@@ -43,7 +43,7 @@ def read_env_file(path: Path) -> dict[str, str]:
 
 def validate_production(values: Mapping[str, str]) -> list[str]:
     errors = [f"missing production variable: {name}" for name in PRODUCTION_REQUIRED if not values.get(name)]
-    for name in ("POSTGRES_PASSWORD", "RABBITMQ_PASSWORD", "SECRET_KEY"):
+    for name in ("RABBITMQ_PASSWORD", "SECRET_KEY"):
         value = values.get(name, "")
         if value and (value in INSECURE_VALUES or len(value) < 16):
             errors.append(f"{name} is an example/weak value")

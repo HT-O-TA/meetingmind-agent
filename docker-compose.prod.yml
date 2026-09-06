@@ -2,10 +2,6 @@
 # 使用前：python3 scripts/preflight_deploy.py --mode production
 
 services:
-  postgres:
-    environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?production POSTGRES_PASSWORD is required}
-
   rabbitmq:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?production RABBITMQ_USER is required}
@@ -14,24 +10,31 @@ services:
   backend:
     environment:
       APP_ENV: production
-      DEBUG: "false"
+      MEETINGMIND_DEBUG: "false"
       SECRET_KEY: ${SECRET_KEY:?production SECRET_KEY is required}
-      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:?production POSTGRES_PASSWORD is required}@postgres:5432/meetingmind
+      DATABASE_URL: ${DATABASE_URL:?production DATABASE_URL is required}
       CORS_ORIGINS: ${CORS_ORIGINS:?production CORS_ORIGINS is required}
       REDIS_URL: redis://redis:6379/0
       RABBITMQ_URL: amqp://${RABBITMQ_USER:?production RABBITMQ_USER is required}:${RABBITMQ_PASSWORD:?production RABBITMQ_PASSWORD is required}@rabbitmq:5672
       LLM_API_BASE: ${LLM_API_BASE:-https://dashscope.aliyuncs.com/compatible-mode/v1}
       LLM_API_KEY: ${LLM_API_KEY:-}
-      LLM_MODEL: ${LLM_MODEL:-qwen3.6-plus}
+      LLM_MODEL: ${LLM_MODEL:-qwen3.7-flash}
+      MODEL_TURBO_NAME: ${LLM_MODEL:-qwen3.7-flash}
+      MODEL_PLUS_NAME: ${LLM_MODEL:-qwen3.7-flash}
+      MODEL_MAX_NAME: ${LLM_MODEL:-qwen3.7-flash}
+      QUALITY_GATE_MODEL: ${LLM_MODEL:-qwen3.7-flash}
+      ENABLE_RERANK: "false"
+      MEMORY_INDEX_WORKER_ENABLED: "false"
       ENABLE_ASR: "false"
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
 
   worker:
     environment:
       APP_ENV: production
-      DEBUG: "false"
+      MEETINGMIND_DEBUG: "false"
       SECRET_KEY: ${SECRET_KEY:?production SECRET_KEY is required}
-      DATABASE_URL: postgresql+asyncpg://postgres:${POSTGRES_PASSWORD:?production POSTGRES_PASSWORD is required}@postgres:5432/meetingmind
+      DATABASE_URL: ${DATABASE_URL:?production DATABASE_URL is required}
       REDIS_URL: redis://redis:6379/0
       RABBITMQ_URL: amqp://${RABBITMQ_USER:?production RABBITMQ_USER is required}:${RABBITMQ_PASSWORD:?production RABBITMQ_PASSWORD is required}@rabbitmq:5672
+      MEMORY_INDEX_WORKER_ENABLED: "false"
       ENABLE_ASR: "false"

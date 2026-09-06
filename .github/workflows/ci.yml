@@ -32,7 +32,7 @@ jobs:
         working-directory: backend
         env:
           APP_ENV: production
-          DEBUG: "false"
+          MEETINGMIND_DEBUG: "false"
           SECRET_KEY: meetingmind-core-test-secret-at-least-32-characters
           CORS_ORIGINS: '["https://tests.invalid"]'
         run: >-
@@ -108,7 +108,7 @@ jobs:
         run: python -c "import asyncio, app.models; from app.db.database import init_db; asyncio.run(init_db())"
         env: &integration-env
           APP_ENV: test
-          DEBUG: "false"
+          MEETINGMIND_DEBUG: "false"
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
           SECRET_KEY: test-secret-key-at-least-32-characters
           DATABASE_URL: postgresql+asyncpg://postgres:testpassword@127.0.0.1:5432/meetingmind_test
