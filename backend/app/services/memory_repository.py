@@ -15,7 +15,7 @@ from sqlalchemy import and_, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.db.database import AsyncSessionLocal
-from app.models.memory import MemoryIndexEventModel, MemoryRecordModel, utcnow_naive
+from app.models.memory import MemoryIndexEventModel, MemoryRecordModel, utcnow
 from app.core.config import settings
 
 
@@ -62,7 +62,7 @@ class MemoryRepository:
         if not (0 <= confidence <= 1 and 0 <= importance <= 1):
             raise ValueError("confidence/importance 必须位于 [0,1]")
 
-        now = utcnow_naive()
+        now = utcnow()
         async with self.session_factory() as session:
             async with session.begin():
                 scope = [
@@ -178,7 +178,7 @@ class MemoryRepository:
     async def forget(self, *, max_age_days: int = 30, namespace: Optional[str] = None) -> int:
         """软删除过期/被覆盖事实；保留审计记录，避免直接物理删除无法追责。"""
 
-        now = utcnow_naive()
+        now = utcnow()
         cutoff = now - timedelta(days=max(1, max_age_days))
         filters = [
             MemoryRecordModel.status.in_(["superseded", "active"]),
@@ -210,7 +210,7 @@ class MemoryRepository:
             publisher = rabbitmq_manager
         batch_size = max(1, min(int(limit or settings.MEMORY_OUTBOX_BATCH_SIZE), 200))
         queue = queue_name or settings.QUEUE_MEMORY_INDEX
-        now = utcnow_naive()
+        now = utcnow()
         async with self.session_factory() as session:
             async with session.begin():
                 result = await session.execute(
@@ -250,11 +250,11 @@ class MemoryRepository:
                 await session.execute(
                     update(MemoryIndexEventModel)
                     .where(MemoryIndexEventModel.id == event_id)
-                    .values(status="published", processed_at=utcnow_naive())
+                    .values(status="published", processed_at=utcnow())
                 )
 
     async def _mark_event_failed(self, event_id: str) -> None:
-        now = utcnow_naive()
+        now = utcnow()
         async with self.session_factory() as session:
             async with session.begin():
                 event = (
@@ -291,7 +291,7 @@ class MemoryRepository:
             filters.append(MemoryRecordModel.meeting_id == meeting_id)
         if document_id is not None:
             filters.append(MemoryRecordModel.document_id == document_id)
-        now = utcnow_naive()
+        now = utcnow()
         async with self.session_factory() as session:
             async with session.begin():
                 records = list((await session.execute(select(MemoryRecordModel).where(and_(*filters)).with_for_update())).scalars().all())

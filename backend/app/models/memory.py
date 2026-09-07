@@ -11,10 +11,10 @@ from sqlalchemy import JSON, Column, DateTime, Float, Index, Integer, String, Te
 from app.db.database import Base
 
 
-def utcnow_naive() -> datetime:
-    """项目现有表使用无时区 DateTime，统一写入 UTC 的无时区时间。"""
+def utcnow() -> datetime:
+    """返回带 UTC 时区的时间，和 PostgreSQL TIMESTAMPTZ 一致。"""
 
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(timezone.utc)
 
 
 class MemoryRecordModel(Base):
@@ -36,8 +36,8 @@ class MemoryRecordModel(Base):
     source_ref = Column(String(255), nullable=True)
     confidence = Column(Float, nullable=False, default=0.5)
     importance = Column(Float, nullable=False, default=0.5)
-    valid_from = Column(DateTime, nullable=False, default=utcnow_naive)
-    valid_until = Column(DateTime, nullable=True)
+    valid_from = Column(DateTime(timezone=True), nullable=False, default=utcnow)
+    valid_until = Column(DateTime(timezone=True), nullable=True)
     status = Column(String(24), nullable=False, default="active", index=True)
     supersedes_id = Column(String(64), nullable=True, index=True)
     conflict_group_id = Column(String(64), nullable=True, index=True)
@@ -45,8 +45,8 @@ class MemoryRecordModel(Base):
     embedding_version = Column(String(64), nullable=True)
     content_hash = Column(String(64), nullable=True, index=True)
     metadata_json = Column(JSON, nullable=False, default=dict)
-    created_at = Column(DateTime, nullable=False, default=utcnow_naive, index=True)
-    deleted_at = Column(DateTime, nullable=True, index=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
 
     __table_args__ = (
         Index(
@@ -72,14 +72,14 @@ class MemoryIndexEventModel(Base):
     payload_json = Column(JSON, nullable=False, default=dict)
     status = Column(String(24), nullable=False, default="pending", index=True)
     attempts = Column(Integer, nullable=False, default=0)
-    available_at = Column(DateTime, nullable=False, default=utcnow_naive, index=True)
-    claimed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, nullable=False, default=utcnow_naive, index=True)
-    processed_at = Column(DateTime, nullable=True)
+    available_at = Column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    claimed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=utcnow, index=True)
+    processed_at = Column(DateTime(timezone=True), nullable=True)
 
     __table_args__ = (
         Index("ix_memory_event_pending", "status", "available_at"),
     )
 
 
-__all__ = ["MemoryRecordModel", "MemoryIndexEventModel", "utcnow_naive"]
+__all__ = ["MemoryRecordModel", "MemoryIndexEventModel", "utcnow"]
