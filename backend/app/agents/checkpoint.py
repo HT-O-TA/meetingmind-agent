@@ -570,7 +570,7 @@ class PostgresCheckpointSaver(BaseCheckpointSaver):
                 """
                 INSERT INTO agent_checkpoints
                     (thread_id, checkpoint_ns, checkpoint_id, schema_version, owner_user_id, parent_checkpoint_id,
-                     checkpoint_type, checkpoint_payload, metadata_type, metadata_payload)
+                    checkpoint_type, checkpoint_payload, metadata_type, metadata_payload)
                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
                 ON CONFLICT (thread_id, checkpoint_ns, checkpoint_id) DO UPDATE SET
                     checkpoint_payload=EXCLUDED.checkpoint_payload,

@@ -17,7 +17,7 @@ class RiskRule(Base):
     description = Column(Text, nullable=True, comment="规则描述")
     keywords = Column(JSON, nullable=False, comment="关键词列表，如['删除','移除','delete']")
     level = Column(String(20), nullable=False, default="LOW",
-                  comment="风险等级：LOW/MEDIUM/HIGH/CRITICAL")
+                comment="风险等级：LOW/MEDIUM/HIGH/CRITICAL")
     enabled = Column(Boolean, nullable=False, default=True, comment="是否启用")
     tenant_id = Column(String(50), nullable=True, comment="租户ID，空表示全局规则")
     priority = Column(Integer, nullable=False, default=0, comment="优先级，数值越大越先匹配")
