@@ -38,8 +38,8 @@ backend/evaluation/datasets/meetingmind_real_v1_evaluation_manifest.json
 指标、实验范围和结果文件见：
 
 - `backend/evaluation/DATA_CARD.md`；
-- `docs/真实会议评测收口_大白话.md`；
-- `docs/证据与限制_大白话.md`。
+- `docs/真实会议评测收口.md`；
+- `docs/证据与限制.md`。
 
 ## 数据边界
 
