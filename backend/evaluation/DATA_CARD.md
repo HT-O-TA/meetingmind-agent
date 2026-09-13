@@ -33,9 +33,9 @@ Prompt Injection 数据集使用独立的 `meetingmind.prompt-injection-case.v1`
 
 `datasets/sample_eval.jsonl` 是 3 条通用合成样例，只用于测试评估代码。
 
-`datasets/meetingmind_deidentified_v1.jsonl` 是当前 8 条项目自编脱敏会议样例，覆盖检索、引用和待办抽取。它可作为回归基线，但不是公开语料，也不能替代真实长会议评测。对应报告保存在 `reports/meetingmind_deidentified_v1.{json,md}`。
+`datasets/meetingmind_deidentified_v1.jsonl` 是早期 8 条工程回归样例，不作为当前对外效果结论。
 
-`datasets/meetingmind_real_v1_sources.jsonl` 是从 AliMeeting Eval TextGrid 整理出的 8 个会议源记录；`datasets/meetingmind_real_v1_candidates.jsonl` 是从 VCSUM `long_test` 整理出的 26 场会议、158 条问题/答案/引用候选（26 条整体结论、132 条主题问答），并附带 130 条 VCSUM 和 64 条 AliMeeting 待办候选及 228 条约束候选。`datasets/meetingmind_real_v1_ai_reviews.jsonl` 覆盖全部 580 个审核单元，状态保持为 `ai_reviewed_silver`。正式冻结评测文件是 `meetingmind_real_v1_evaluation.jsonl`：100 条任务、28 场会议、全部由 `reviewer=ht` 人工审核，当前仍明确标记 `gold=false`，不能称为 gold 数据集。
+正式冻结文件是 `datasets/meetingmind_real_v1_evaluation.jsonl`：来源于 VCSUM 与 AliMeeting，共 100 条任务、覆盖 28 场会议，全部由 `reviewer=ht` 人工复核。数据仍标记 `gold=false`，因此对外称为“人工复核冻结评测集”，不称为 gold 数据集。候选生成和 AI 初审文件仅用于追溯标注来源，不参与正式指标口径。
 
 `datasets/prompt_injection_synthetic_v1.jsonl` 是冻结的 25 条合成安全回归集，包含 12 条正常/易误判样本、5 条直接注入和 8 条间接注入。`prompt_injection_synthetic_thresholds.json` 只用于防止已知样本回归；它不是生产阈值。对应报告中的 0 FPR、0 FNR 和 1.0 合成任务完成率只描述该固定数据集。
 

@@ -27,6 +27,11 @@ backend/evaluate/chunking/data/
 backend/evaluate/*/results/
 backend/evaluate/*/*.log
 
+# Local evaluation smoke reports superseded by the frozen 100-task reports
+artifacts/sample_report_check.md
+backend/evaluation/reports/sample_report.md
+backend/evaluation/reports/meetingmind_deidentified_v1.md
+
 # Test results (Locust, pytest, etc.)
 backend/results/
 test_docs/
@@ -144,4 +149,3 @@ backend/local/
 # Local real/public meeting datasets (keep provenance notes, never commit raw media)
 /data/Eval_Ali/
 /data/VCSUM/
-
