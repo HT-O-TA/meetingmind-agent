@@ -1,51 +1,50 @@
-# 本地会议数据审查记录
+# 会议评测数据说明
 
-本目录用于本机真实/公开会议评测，不把原始音频和数据仓库提交到 Git。
+`data/` 用于在本机保存公开会议语料和大体积音频。原始数据不提交到 GitHub；仓库只公开脱敏后的评测任务、Manifest、统计结果和许可说明。
 
-## 当前数据
+## 数据来源
 
-### `Eval_Ali`
+### AliMeeting Eval
 
-- 数据集：AliMeeting Eval（阿里多方会议语料）；
-- 当前已解压内容：8 个远场 TextGrid 和 25 个近场 TextGrid；WAV 仍保存在 `data/data.zip` 中，当前标注复核无需解压音频；
-- 实际统计：8 个会议会话；远场 8 通道音频合计约 4.3 小时，近场文件是按说话人拆开的同一批会话；单场约 25.9～37.3 分钟；
-- TextGrid：包含说话人 tier、起止时间和人工转写文本；
-- 适合验证：ASR、说话人区分、时间戳、多人会议切分和下游 RAG 输入；
-- 来源与许可：OpenSLR SLR119，页面标注 CC BY-SA 4.0。使用或发布衍生标注时必须保留署名和相同方式共享要求。
+- 来源：OpenSLR SLR119；
+- 许可：上游页面标注 CC BY-SA 4.0；
+- 本项目使用内容：8 场会议的远场/近场 TextGrid，以及本地保存的 WAV；
+- 适用任务：ASR、说话人区分、时间戳、多方会议切分和待办/约束候选复核；
+- 注意：公开衍生内容时需要遵守署名和相同方式共享要求。
 
-### `VCSUM`
+### VCSUM
 
-- 数据集：VCSUM 中文会议摘要数据；
-- 本地内容：239 条 `overall_context`，对应 `overall_highlights`；另有 long/short train、dev、test 标注；
-- 标注字段：主题切分、标题、分段摘要、整体摘要和重点句；
-- 适合验证：长文本摘要、重点句召回、引用覆盖和检索后生成；
-- 本地仓库带 MIT `LICENSE`，但原始视频/转写的再分发权仍需按上游说明单独确认，不能仅凭仓库代码许可证推断。
+- 内容：中文会议转写、主题切分、分段摘要、整体摘要和重点句；
+- 本项目使用内容：20 场会议的 QA、引用、待办和约束任务；
+- 适用任务：长文本摘要、证据召回、引用和检索后生成；
+- 注意：代码仓库许可证不能自动代表所有原始视频和转写内容都可以再次分发，公开前仍需核对上游条款。
 
-## 当前结论
+## 冻结评测集
 
-这批数据已经满足“真实长会议评测”的音频和会议摘要基础条件。机器初标已经完成，但还没有形成经过人工确认的完整问题—答案—引用—待办 gold 真值。当前处理结果是：
+正式公开口径是：
 
-1. 先用 `Eval_Ali` 的 TextGrid 作为 ASR 真值；
-2. 用 `VCSUM` 的重点句、主题和摘要作为摘要/RAG 真值；
-3. 已从会议原文制作问题、答案、引用和待办候选；
-4. 已完成 580 个单元的独立 AI 第一轮复核并标记为 `ai_reviewed_silver`，人工抽检通过后才可另行升级为 `gold`；
-5. 正式 gold 集仍需按会议 ID 切分 train/dev/test，不能把同一会议的片段拆到不同集合。
+- 100 条任务，覆盖 28 场会议；
+- QA 40 条、待办候选规范化 30 条、约束候选规范化 30 条；
+- 100 条均由 `reviewer=ht` 人工复核；
+- 数据标记为 `gold=false`，因此称为“人工复核冻结评测集”，不称为 gold 数据集。
 
-脚本 `backend/scripts/build_real_meeting_candidates.py` 已生成：
+文件位置：
 
-- `backend/evaluation/datasets/meetingmind_real_v1_sources.jsonl`：8 个 AliMeeting Eval 会议源记录；
-- `backend/evaluation/datasets/meetingmind_real_v1_candidates.jsonl`：26 场 VCSUM 测试会议、158 条问题/答案/引用候选（整体结论和主题问答）。
-- `backend/evaluation/datasets/meetingmind_real_v1_review_manifest.json`：原候选的稳定 LF 哈希、数量和复核清单；
-- `backend/evaluation/datasets/meetingmind_real_v1_ai_reviews.jsonl`：580 个独立 AI 初审单元；
-- `backend/evaluation/datasets/meetingmind_real_v1_ai_review_manifest.json`：初审统计、哈希、人工抽检计划和限制。
-- `backend/evaluation/datasets/meetingmind_real_v1_gold_pilot.jsonl`：供人工审核的 100 条分层抽样；
-- `backend/evaluation/datasets/meetingmind_real_v1_gold_pilot_manifest.json`：抽样构成、审核字段和升级规则。
-- `backend/evaluation/datasets/meetingmind_real_v1_ai_accepted_silver.jsonl`：71 条 `corrected.needs_review=false` 的机器初步通过项；
-- `backend/evaluation/datasets/meetingmind_real_v1_human_review_queue.jsonl`：剩余 509 条人工重点审核队列；
-- `backend/evaluation/datasets/meetingmind_real_v1_review_queue_manifest.json`：拆分规则和数量汇总。
+```text
+backend/evaluation/datasets/meetingmind_real_v1_evaluation.jsonl
+backend/evaluation/datasets/meetingmind_real_v1_evaluation_manifest.json
+```
 
-原候选文件仍标记为 `silver`。AI 初审覆盖问答 158 条、待办 194 条和约束 228 条，但这不是人工 gold：至少需要分层抽检 20 个单元，发现系统性问题时还要扩大复核并重新生成。当前不能直接用它报告正式 F1。
+指标、实验范围和结果文件见：
 
-## 不提交原始数据的原因
+- `backend/evaluation/DATA_CARD.md`；
+- `docs/真实会议评测收口_大白话.md`；
+- `docs/证据与限制_大白话.md`。
 
-音频文件体积大，且公开数据仍受许可证和再分发条件约束。Git 只保留本说明和最终小型标注索引；原始数据在本机准备好即可运行评测。
+## 数据边界
+
+- QA 检索实验限定在已知会议内，不代表全库或跨会议召回能力；
+- 待办和约束评测衡量候选保留与字段规范化，不是整场会议端到端抽取；
+- 原始音频、未脱敏文本和本地数据压缩包不上传；
+- 同一会议的数据不能跨开发集和测试集使用；
+- 修改冻结任务时必须创建新版本和新哈希，不能静默覆盖。

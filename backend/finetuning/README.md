@@ -20,11 +20,10 @@ finetuning/
 
 ## 环境
 
-本次实测环境：RTX 3060 12GB、PyTorch 2.11.0+cu126、Transformers 5.12.1、PEFT 0.18.1、bitsandbytes 0.47.0。PyTorch 应按本机 CUDA 版本安装，再安装：
+本次实测环境：RTX 3060 12GB、PyTorch 2.11.0+cu126、Transformers 5.12.1、PEFT 0.18.1、bitsandbytes 0.47.0。项目统一使用 Conda 管理环境；先安装与本机 CUDA 匹配的 PyTorch，再安装实验依赖：
 
 ```bash
-python -m venv backend/.venv-ft
-source backend/.venv-ft/bin/activate
+conda activate meetingmind-gpu
 pip install -r backend/requirements-finetuning.txt
 ```
 
@@ -41,43 +40,43 @@ backend/model/qwen3-0.6B
 所有命令在项目根目录执行：
 
 ```bash
-backend/.venv-ft/bin/python backend/finetuning/build_dataset.py
+python backend/finetuning/build_dataset.py
 
-backend/.venv-ft/bin/python backend/finetuning/train_adapter.py \
+python backend/finetuning/train_adapter.py \
   --config backend/finetuning/configs/lora_qwen3_0.6b.json
 
-backend/.venv-ft/bin/python backend/finetuning/train_adapter.py \
+python backend/finetuning/train_adapter.py \
   --config backend/finetuning/configs/qlora_qwen3_0.6b.json
 ```
 
 四组评测必须使用同一数据文件、`test` 切分、系统 Prompt、生成参数和严格 Schema：
 
 ```bash
-backend/.venv-ft/bin/python backend/finetuning/evaluate.py \
+python backend/finetuning/evaluate.py \
   --protocol prompt_only --max-new-tokens 240 \
   --output backend/finetuning/reports/prompt_only_eval_20260826.json
 
-backend/.venv-ft/bin/python backend/finetuning/evaluate.py \
+python backend/finetuning/evaluate.py \
   --protocol few_shot --max-new-tokens 240 \
   --output backend/finetuning/reports/few_shot_eval_20260826.json
 
-backend/.venv-ft/bin/python backend/finetuning/evaluate.py \
+python backend/finetuning/evaluate.py \
   --protocol lora --max-new-tokens 240 \
   --adapter backend/finetuning/artifacts/qwen3-0.6b-todo-lora \
   --output backend/finetuning/reports/lora_eval_20260826.json
 
-backend/.venv-ft/bin/python backend/finetuning/evaluate.py \
+python backend/finetuning/evaluate.py \
   --protocol qlora --max-new-tokens 240 \
   --adapter backend/finetuning/artifacts/qwen3-0.6b-todo-qlora \
   --output backend/finetuning/reports/qlora_eval_20260826.json
 
-backend/.venv-ft/bin/python backend/finetuning/summarize_results.py
+python backend/finetuning/summarize_results.py
 ```
 
 ## 推理 Demo
 
 ```bash
-backend/.venv-ft/bin/python backend/finetuning/infer_todos.py \
+python backend/finetuning/infer_todos.py \
   --protocol lora \
   --adapter backend/finetuning/artifacts/qwen3-0.6b-todo-lora \
   --source-id demo-001 \

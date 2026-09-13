@@ -1,6 +1,6 @@
 # MeetingMind
 
-MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用。仓库只保留能形成证据链的检索、结构化抽取、安全工具调用、异步任务、ASR、微调实验与可复现部署，不再维护“概念齐全但没有业务闭环”的框架。
+MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用，主线覆盖检索与引用、结构化抽取、安全工具调用、异步任务和可复现评测。ASR 与微调作为独立实验能力保留，不默认进入 Web 主链。
 
 ### 当前冻结证据
 
@@ -20,7 +20,7 @@ MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用。仓库只�
 会议文档 / WAV 音频
 → 文档解析，或 RabbitMQ + FunASR 转写
 → 说话人感知分块
-→ PostgreSQL 权威正文/VectorChunk + Dense 索引（pgvector/轻量模式；可选 Milvus 需同步）
+→ PostgreSQL 权威正文/VectorChunk + 轻量 Dense 检索（可选 pgvector 或 Milvus）
 → PostgreSQL 关键词召回 + Dense 召回
 → 0.3 / 0.7 加权融合 + BGE Reranker
 → RAG 回答与引用
@@ -32,7 +32,7 @@ MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用。仓库只�
 
 | 能力 | 当前实现 | 仍需补齐 |
 |---|---|---|
-| RAG | PostgreSQL 权威块、BM25 风格关键词召回、PG Dense/可选 Milvus、加权融合、Reranker、引用、ACL、降级字段 | 真实评测已完成一轮；全库检索、Milvus 增量同步和生产容量仍未验收 |
+| RAG | PostgreSQL 权威块、关键词召回、轻量 Dense/可选 pgvector 或 Milvus、加权融合、Reranker、引用、ACL、降级字段 | 真实评测已完成一轮；全库检索、外部向量索引增量同步和生产容量仍未验收 |
 | Agent | 静态 LangGraph；路由、检索、纪要/待办/争议、计划执行、风险确认、质量门禁、结构修复 | 真实业务数据上的路由与端到端效果 |
 | 工具调用 | 会议/文档工具；Jira Cloud REST v3；Schema、策略、HITL、幂等和审计 | Jira 站点凭据与真实项目写入演示 |
 | 异步任务 | RabbitMQ confirm、manual ACK、延迟重试、DLQ、幂等任务状态 | 多节点高可用与真实容量验收 |
@@ -42,29 +42,13 @@ MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用。仓库只�
 | Trace | 有界进程内节点 Trace，只记录真实节点、耗时、重试、输出和错误 | 跨进程持久化不在当前范围 |
 | 部署 | 本机 Conda 前后端/Worker、宿主机 PostgreSQL、Docker Redis/RabbitMQ/Milvus、可选镜像发布和 CI | TLS、备份、Secret Manager、HA、生产容量 |
 
-## 已删除的非主线内容
-
-深度瘦身阶段已直接删除，而不是保留关闭开关：
-
-- Knowledge Graph / Neo4j 与图谱前端；
-- MCP Client/Server、飞书/GitHub/Notion 示例和动态工具发现；
-- Multi-Agent、Agent 通信、Prompt 市场、通用 ReAct/CoT 分支；
-- HyDE、Multi-Query、Step-back、Sparse/RRF 策略 B/M；
-- 图片/视频“多模态骨架”，仅保留已经跑通的本地 ASR；
-- PostgreSQL/Redis/向量三套长期记忆与反思记忆，改为有界会话窗口；
-- RAGAS、DSPy、重复评估/回归服务；
-- 动态配置中心、后台用户管理、成本/性能/模板/测试等管理接口；
-- Prometheus/Grafana、通用 Fault Tolerance、Locust 等非 AI 主链展示内容。
-
-如要恢复任何能力，先提出可验证的业务问题、数据集和验收指标，再重新实现；不从 Git 历史直接恢复成默认功能。
-
 ## 技术栈
 
 | 层 | 选型 |
 |---|---|
 | API / Schema | FastAPI、Pydantic、JSON Schema |
 | Agent | LangGraph、自定义状态、Tool Calling、HITL |
-| 检索 | PostgreSQL tsvector/VectorChunk/pgvector、可选 Milvus Dense、BGE-M3、BGE-Reranker |
+| 检索 | PostgreSQL tsvector/VectorChunk/轻量余弦、可选 pgvector 或 Milvus、BGE-M3、BGE-Reranker |
 | 数据与状态 | PostgreSQL、Redis |
 | 异步任务 | RabbitMQ、aio-pika、Worker |
 | ASR | FunASR（独立可选环境） |
@@ -105,7 +89,7 @@ npm install
 npm run dev
 ```
 
-本地模型、ASR 和微调分别使用 `requirements-asr.txt`、`requirements-finetuning.txt` 及对应阶段文档，不安装进 Web/Worker 镜像。
+本地模型、ASR 和微调分别使用 `requirements-asr.txt`、`requirements-finetuning.txt`；重型模型依赖不安装进轻量 Web/Worker 镜像。
 
 ## Compose 启动
 
@@ -113,13 +97,35 @@ npm run dev
 
 ```bash
 cp .env.example .env
-python3 scripts/preflight_deploy.py --mode development
+python scripts/preflight_deploy.py --mode development
 docker compose up -d redis rabbitmq
+```
+
+然后分别启动后端、Worker 和前端：
+
+```bash
 conda activate meetingmind-gpu
 cd backend
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+```bash
+conda activate meetingmind-gpu
+cd backend
+python -m app.workers.run
+```
+
+```bash
+conda activate meetingmind-gpu
+cd frontend
+npm install
+npm run dev
+```
+
+后端启动后检查：
+
+```bash
 curl --fail http://127.0.0.1:8000/health
-curl --fail http://127.0.0.1:8080/
 ```
 
 Milvus 沿用本机已有的独立 Docker 容器。Compose 中的后端、Worker 和前端被放入可选的 `container-app` Profile，不属于当前默认运行口径。长期记忆的 PG 主库和 outbox 已实现，但 Milvus 记忆投影器尚未注入，`MEMORY_INDEX_WORKER_ENABLED` 必须保持关闭。
@@ -130,16 +136,16 @@ Milvus 沿用本机已有的独立 Docker 容器。Compose 中的后端、Worker
 
 ```bash
 cd backend
-python3 -m unittest \
+python -m unittest \
   tests.contracts.test_stage0_boundaries \
   tests.contracts.test_rag_mainline_contract -v
 ```
 
-完整核心测试：
+完整契约测试：
 
 ```bash
 cd backend
-./scripts/run_core_tests.sh -q
+pytest tests/contracts -q
 ```
 
 Compose 启动后，先运行当前固定五分钟演示（HTTP 正常/权限拒绝、工具确认、队列恢复）：
@@ -147,8 +153,6 @@ Compose 启动后，先运行当前固定五分钟演示（HTTP 正常/权限拒
 ```bash
 python scripts/demo_five_minute.py --base-url http://127.0.0.1:8000
 ```
-
-旧的四项 Demo 入口仍保留在 `scripts/run_fixed_demos.py`，用于追溯公开 WAV ASR 和 LoRA 抽取验证，不代表当前五分钟演示的必需依赖。
 
 前端：
 
@@ -162,7 +166,7 @@ npm run build
 
 ```bash
 cd backend
-python3 scripts/evaluate.py --allow-synthetic \
+python scripts/evaluate.py --allow-synthetic \
   --dataset evaluation/datasets/sample_eval.jsonl \
   --output evaluation/reports/sample_report.json
 ```
@@ -171,7 +175,7 @@ python3 scripts/evaluate.py --allow-synthetic \
 
 ```bash
 cd backend
-python3 scripts/evaluate.py --allow-synthetic \
+python scripts/evaluate.py --allow-synthetic \
   --dataset evaluation/datasets/prompt_injection_synthetic_v1.jsonl \
   --thresholds evaluation/prompt_injection_synthetic_thresholds.json \
   --enforce-thresholds \

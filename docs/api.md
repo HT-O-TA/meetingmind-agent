@@ -82,14 +82,6 @@ Authorization: Bearer <token>
 
 普通、SSE 最终事件和批量响应都返回 `budget_ledger` 与 `context_manifest`。前者包含模型/节点计数方法、调用前估算、输出预留、供应商实际 usage、累计值与拒绝原因；后者包含上下文来源引用、哈希、优先级、原始/纳入长度、截断与丢弃原因。两者都不包含 Prompt 或证据正文。确认恢复沿用快照中的原 Agent Run 累计预算；预算快照缺失或损坏时拒绝恢复。
 
-## 已移除接口
+## API 暴露原则
 
-以下接口不再属于应用边界，也没有“打开开关即可恢复”的承诺：
-
-- `/graph`、`/mcp`、`/multi-agent`、`/collaboration`；
-- `/memory`、`/reflection`、`/dynamic-tools`；
-- `/embedding`、`/vector-search` 底层调试接口；
-- `/config`、`/templates`、`/tests`、`/workflow`；
-- `/evaluation`、`/performance`、`/cost`。
-
-评估改用离线命令，底层 Embedding/Vector 只由 RAG 主链内部调用。
+生产环境只暴露上面列出的会议业务接口。评估使用离线命令，Embedding、向量存储和内部工作流不单独提供公网调试接口。
