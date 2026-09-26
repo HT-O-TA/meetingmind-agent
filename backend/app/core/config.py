@@ -152,7 +152,6 @@ class Settings(BaseSettings):
     VECTOR_COLLECTION_NAME: str = "meetingmind_docs"  # 向量集合名称（供 MilvusVectorStore 使用）
     USE_GPU: bool = True
     USE_FP16: bool = False
-    BGE_M3_MODEL_PATH: str = "./model/bge-m3"
     
     # ==================== 本地 ASR 配置 ====================
     # 可选重型能力：普通 Web/Worker 冷启动不导入 torch/FunASR，仅消费音频任务时懒加载。
@@ -195,8 +194,6 @@ class Settings(BaseSettings):
 
     # ==================== HITL 细粒度风险控制配置 ====================
     HITL_MIN_RISK_LEVEL: str = "HIGH"  # 触发人工确认的最低风险等级（LOW/MEDIUM/HIGH/CRITICAL）
-    HITL_AUTO_APPROVE_LOW: bool = True  # LOW 风险自动放行（不弹确认）
-    HITL_AUTO_APPROVE_MEDIUM: bool = True  # MEDIUM 风险自动放行（不弹确认）
 
     # Jira Cloud REST v3 配置
     JIRA_ENABLED: bool = False  # 仅凭据齐全并计划真实调用时开启

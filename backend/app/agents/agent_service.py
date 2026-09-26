@@ -1,6 +1,6 @@
 """Agent 服务封装 - 支持 Tool Calling
 """
-from typing import Optional, List, Dict, Any, TypedDict
+from typing import Optional, List, Dict, Any
 import uuid
 from app.agents.state import AgentState, AgentResult, ChunkMetadata, TaskType, RiskLevel, Plan, ReflectionResult
 from app.agents.graph import create_agent_graph
@@ -21,20 +21,6 @@ from app.services.vector_search_service import VectorSearchService
 from app.services.input_preprocessor import InputContractError, InputPreprocessor
 from app.services.memory_repository import MemoryRepository
 from app.core.logger import app_logger
-
-
-class SearchResult(TypedDict):
-    """向量检索结果（统一的接口契约）"""
-    chunk_id: int
-    document_id: int
-    meeting_id: Optional[int]
-    content: str
-    chunk_index: int
-    similarity: float
-    department: Optional[str]
-    speaker_name: str
-    time_offset: Optional[float]
-    metadata_json: Optional[str]
 
 
 class AgentService:

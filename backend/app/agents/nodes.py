@@ -18,7 +18,7 @@ import asyncio
 import hashlib
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any
-from app.agents.state import AgentState, AgentResult, TaskType, WorkflowType, RiskLevel, AgentCard, CoTThought, Plan, TaskItem, TaskContext, TaskStatus, ComplexityLevel
+from app.agents.state import AgentState, AgentResult, TaskType, WorkflowType, RiskLevel, CoTThought, Plan, TaskItem, TaskContext, TaskStatus, ComplexityLevel
 from app.agents.tools import ToolExecutor, ToolExecutionResult, ToolManager
 from app.agents.tools.policy import ToolPolicy
 from app.agents.human_in_the_loop import get_hitl_service, ConfirmationType
@@ -50,48 +50,6 @@ from app.schemas.structured_output import (
     validate_tool_call,
 )
 
-
-class AgentCards:
-    """Agent 名片注册中心"""
-    
-    PLAN_AGENT_CARD: AgentCard = {
-        "agent_id": "plan_agent",
-        "name": "规划 Agent",
-        "description": "分析问题，制定执行计划，决定使用哪些工具",
-        "capabilities": ["问题分析", "任务拆解", "工具选择", "依赖分析", "并行规划"],
-        "required_inputs": ["question", "context"],
-        "outputs": ["plan", "tool_calls"],
-        "dependencies": set()
-    }
-    
-    EXECUTE_AGENT_CARD: AgentCard = {
-        "agent_id": "execute_agent",
-        "name": "执行 Agent",
-        "description": "执行计划，调用工具",
-        "capabilities": ["任务执行", "工具调用", "并行执行", "上下文传递", "依赖管理"],
-        "required_inputs": ["plan", "context"],
-        "outputs": ["answer", "minutes", "todos", "controversies", "tool_results"],
-        "dependencies": {"plan_agent"}
-    }
-    
-    REPLAN_AGENT_CARD: AgentCard = {
-        "agent_id": "replan_agent",
-        "name": "重新规划 Agent",
-        "description": "评估执行结果质量，决定是否需要重新规划",
-        "capabilities": ["质量评估", "缺陷检测", "改进建议", "重新规划"],
-        "required_inputs": ["question", "answer", "minutes", "todos", "controversies"],
-        "outputs": ["reflection"],
-        "dependencies": {"execute_agent"}
-    }
-
-    @classmethod
-    def get_card(cls, agent_id: str) -> Optional[AgentCard]:
-        cards = {
-            "plan_agent": cls.PLAN_AGENT_CARD,
-            "execute_agent": cls.EXECUTE_AGENT_CARD,
-            "replan_agent": cls.REPLAN_AGENT_CARD,
-        }
-        return cards.get(agent_id)
 
 
 class AgentNodes:

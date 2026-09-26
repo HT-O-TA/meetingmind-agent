@@ -1,19 +1,8 @@
 """Agent 状态定义 - 支持复杂任务拆分（依赖分析 + 上下文传递 + 并行执行）"""
-from typing import TypedDict, List, Dict, Optional, Any, Set
+from typing import TypedDict, List, Dict, Optional, Any
 import uuid
 from dataclasses import dataclass
 from enum import Enum
-
-
-class AgentCard(TypedDict):
-    """Agent 名片 - 描述 Agent 的能力和依赖"""
-    agent_id: str
-    name: str
-    description: str
-    capabilities: List[str]
-    required_inputs: List[str]
-    outputs: List[str]
-    dependencies: Set[str]
 
 
 class TaskType(str, Enum):
@@ -64,14 +53,6 @@ class ExecutionMode(str, Enum):
     FALLBACK = "fallback"
     DETERMINISTIC = "deterministic"
     PLAN_EXECUTE = "plan_execute"
-
-
-class AgentConfig(TypedDict):
-    """Agent 配置参数 - 控制推理行为"""
-    max_react_iterations: int        # ReAct 最大迭代次数
-    max_plan_retries: int            # 计划最大重试次数
-    max_context_length: int          # 上下文最大长度（字符）
-    max_few_shot_examples: int       # 每个模板最大示例数
 
 
 class RiskLevel(str, Enum):
