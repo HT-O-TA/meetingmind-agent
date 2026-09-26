@@ -4,7 +4,9 @@ set -euo pipefail
 BACKEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$BACKEND_DIR"
 
-if [[ -x "venv/bin/python" ]]; then
+if [[ -n "${PYTHON_BIN:-}" ]]; then
+  :  # 显式指定解释器（如 conda 环境）时优先使用
+elif [[ -x "venv/bin/python" ]]; then
   PYTHON_BIN="venv/bin/python"
 elif [[ -x ".venv/bin/python" ]]; then
   PYTHON_BIN=".venv/bin/python"

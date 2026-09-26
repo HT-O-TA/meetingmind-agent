@@ -1,18 +1,63 @@
 # MeetingMind
 
-MeetingMind 是一个面向真实会议资料的 RAG + Agent 应用，主线覆盖检索与引用、结构化抽取、安全工具调用、异步任务和可复现评测。ASR 与微调作为独立实验能力保留，不默认进入 Web 主链。
+会议知识 Agent：在真实会议资料上做**带引用的问答、待办/约束抽取和受控的 Jira 写操作**。项目的重点是用冻结评测集找出缺陷并修复，每个数字都能追溯到 `backend/evaluation/reports/` 下的一份报告。
 
-### 当前冻结证据
+```mermaid
+flowchart LR
+  Q[用户提问] --> IN[输入预处理<br/>注入隔离 / TaskAnchor]
+  IN --> RT[意图路由<br/>规则 + bge-m3 原型]
+  RT --> RAG[混合检索<br/>tsvector + dense，ACL 下推]
+  RAG --> PL[LLM 规划<br/>Tool Calling]
+  PL --> RISK{风险评估}
+  RISK -- 只读 --> EX[ToolExecutor]
+  RISK -- 外部写 / 低置信度 --> HITL[HITL 暂停<br/>人工确认后恢复并重检证据]
+  HITL --> EX
+  EX --> AUD[(PostgreSQL 审计 / 幂等键)]
+  EX --> QG[质量门禁 + 引用] --> A[回答]
+```
 
-| 项目 | 当前结果 | 解释 |
-|---|---:|---|
-| 冻结评测集 | 100 条 / 28 场会议 | `gold=false`，100 条均由 `reviewer=ht` 人工审核 |
-| QA 检索 | Hybrid Recall@5 = 0.0732 | 已知会议内排序，不是全库检索；文本去重后统计 |
-| 候选规范化 | 待办 F1 = 0.713；约束 F1 = 0.467 | 不是从整场会议原文重新抽取的端到端 F1 |
-| 云端结构化输出 | JSON 有效率 100% | 100 条，37,171 tokens；只证明结构化链路可运行 |
-| 核心契约测试 | 120 passed | 仅覆盖代码契约，不等同于生产容量验收 |
+## 评测结果（基线 → 当前）
 
-生成对比目前只是 smoke：四种检索方案各跑 10 条，共 40 次请求，不作为正式问答效果或简历优劣结论。固定五分钟演示已在本地 PostgreSQL、Redis、RabbitMQ、API 和 Worker 上跑通，脱敏汇总见 `backend/evaluation/reports/meetingmind_five_minute_demo_closeout.json`。
+| 维度 | 数据集 | 基线 | 当前 | 报告 |
+|---|---|---|---|---|
+| 意图路由准确率 | 盲写一次性测试集 100 条（`route_eval_test_v3`） | 0.43（纯规则） | **0.68**（规则 + bge-m3 原型），p95 28ms | `route_eval_test_v3_rules_semantic.json` |
+| 写操作人工确认召回 | 工具调用集，写操作 16 条（留出集 40 条） | 0.30（开发集，修复前） | **1.00**，不安全写 0/40 | `tool_eval_heldout_v1_opus55.json` |
+| 工具选择 / 参数准确率 | 同上，40 条 | — | 1.00 / 0.84 | 同上 |
+| 约束抽取 F1 | 冻结 100 条 / 28 场会议 | 0.467（qwen3.7-max） | **0.833**（Opus 5.5 + prompt v2） | `meetingmind_real_v1_opus55_v2_100_scored.json` |
+| QA 引用 Precision | 同上 | 0.975 | 1.000 | 同上 |
+| 检索（块级，300 字，k=5） | 40 条 QA | 发言级 Recall@5 0.073 / MRR 0.40 | 证据召回 0.293（上限 0.619）/ MRR 0.856 | `meetingmind_real_v1_chunk_retrieval.json` |
+| 回归测试 | pytest 核心套件 | 120 | 241 passed | `scripts/run_core_tests.sh` |
+
+**代价与取舍**
+- 换 Opus 后，抽取 p95 从 3.9s 升到 7.8s，token 用量约为原来的 23 倍，规划 p95 最高到 70s。
+- 把规划换成 Sonnet 5 后，p95 降到 16s，但写操作确认召回掉到 0.375，**所以没有采用**，见优化记录。
+- 本地 1.7B 复杂度分类器的准确率不比规则高，p95 却有 1.35s，所以默认关闭。
+- 引用不是由 LLM-as-judge 判定，而是与人工 gold 的证据 ID 做匹配。
+
+## 一条命令复现
+
+```bash
+cd backend
+bash scripts/run_core_tests.sh -q          # 241 项回归测试，无需外部服务（可用 PYTHON_BIN 指定解释器）
+python scripts/check_gates.py              # 汇总 reports/，检查 19 项门禁
+
+# 路由评测（需要本地 bge-m3）
+python scripts/run_route_eval.py --semantic \
+  --dataset evaluation/datasets/route_eval_test_v3.jsonl
+
+# 以下需要 Anthropic 兼容 API：LLM_PROVIDER=anthropic LLM_API_BASE=... LLM_API_KEY=...
+python scripts/run_tool_eval.py --dataset evaluation/datasets/tool_eval_heldout_v1.jsonl
+EVAL_PROMPT_VERSION=v2 python scripts/run_cloud_eval_canary.py --count 100 \
+  --max-tokens 768 --total-token-budget 1500000 --per-record-token-budget 8000 \
+  --proxy-overhead-tokens 7000 \
+  --output evaluation/reports/meetingmind_real_v1_opus55_v2_100.json
+python scripts/score_cloud_eval.py \
+  --run "$PWD/evaluation/reports/meetingmind_real_v1_opus55_v2_100.json" \
+  --output evaluation/reports/meetingmind_real_v1_opus55_v2_100_scored.json
+```
+
+评测纪律：留出集由独立 agent 盲写，写的时候看不到代码、原型和已有报告；跑之前冻结代码并记录哈希（`reports/*_freeze.json`）；prompt 只在不含评测单元的开发/验证集上选型。
+
 
 ## 唯一正式主链
 
