@@ -1,0 +1,11 @@
+{
+  "frozen_at": "2026-09-26T18:56:26",
+  "prompt_version": "v2",
+  "model": "claude-opus-5-5",
+  "selection_basis": "prompt_dev_v1(66) + prompt_devhold_v1(70) 均不含评测单元；v2 在 devhold 上约束F1 0.86 最高（v3 0.82 过拟合 dev）",
+  "sha256_16": {
+    "scripts/run_cloud_eval_canary.py": "16c0a0178957b966",
+    "scripts/score_cloud_eval.py": "46eda0c00e7d8ae6",
+    "evaluation/datasets/meetingmind_real_v1_evaluation.jsonl": "8b82b681b130084b"
+  }
+}

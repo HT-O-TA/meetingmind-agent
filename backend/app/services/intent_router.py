@@ -6,6 +6,7 @@
 3. 结构化输出：RouteDecision 包含完整决策链路
 4. 可扩展：支持语义多任务检测轨道
 """
+import asyncio
 import time
 from typing import Optional, List, Dict, Any, Tuple
 from app.agents.state import (
@@ -46,9 +47,11 @@ class IntentRouter:
         multi_task_detector: Optional[Any] = None,
         task_confidence_threshold: Optional[float] = None,
         complexity_confidence_threshold: Optional[float] = None,
+        semantic_task_classifier: Optional[Any] = None,
     ):
         self._complexity_classifier = complexity_classifier
         self._multi_task_detector = multi_task_detector
+        self._semantic_task_classifier = semantic_task_classifier
         self._last_decision: Optional[RouteDecision] = None
         self._task_confidence_threshold = (
             task_confidence_threshold
@@ -261,6 +264,27 @@ class IntentRouter:
         for task_type, config in TASK_KEYWORDS.items():
             if any(kw in normalized for kw in config["keywords"]):
                 detected_types.append((task_type, config["label"]))
+        # "是什么/解释一下"是问句语气词，与业务任务同时出现时（"反对的理由都是什么"）
+        # 不构成独立 QA 子任务；独立 QA 子任务由语义识别按顺承句式判定。
+        if any(t != TaskType.QA for t, _ in detected_types):
+            detected_types = [(t, label) for t, label in detected_types if t != TaskType.QA]
+
+        # 语义任务识别：补关键词漏掉的同义表达（"分一下工""recap""没谈拢"）
+        # 与隐式多任务。关键词命中优先，语义结果只追加新类型。
+        if self._semantic_task_classifier is not None:
+            try:
+                known = {t for t, _ in detected_types}
+                # encode 是同步推理，放到线程池避免阻塞事件循环（CPU 部署尤甚）
+                semantic_types = await asyncio.to_thread(self._semantic_task_classifier.detect, question)
+                for task_type in semantic_types:
+                    if task_type in known:
+                        continue
+                    if task_type == TaskType.QA and not detected_types:
+                        continue  # 纯单问题不需要标签，走默认 QA
+                    detected_types.append((task_type, TASK_KEYWORDS[task_type]["label"]))
+                    known.add(task_type)
+            except Exception as e:
+                app_logger.warning(f"[IntentRouter] semantic_task_classifier 异常: {e}")
 
         # 多任务检测
         semantic_multi = False
@@ -303,14 +327,17 @@ class IntentRouter:
         """冲突仲裁 - 解决复杂度分类和任务检测的冲突
 
         本方法只做业务意图仲裁；置信度降级由 route() 的统一策略处理。
+
+        工作流只由"任务拆解"决定：单一业务任务走专用工作流，多任务才走
+        COMPLEX（规划器）。复杂度只影响模型档位（route() 中 model_router.select），
+        不改写业务工作流——route_eval_v1 上，本地分类器打分偏高时，旧逻辑把
+        39 条单任务请求中的 36 条误送进规划器。
         """
 
         # === 核心仲裁逻辑 ===
         if detected_type:
             if detected_type == TaskType.MULTI:
                 result = (WorkflowType.COMPLEX, TaskType.MULTI, True, f"检测到多任务：{'、'.join(detected_labels)}")
-            elif complexity_level in (ComplexityLevel.COT, ComplexityLevel.AGENT):
-                result = (WorkflowType.COMPLEX, detected_type, False, f"检测到{detected_labels[0]}，需要深度推理")
             else:
                 task_to_workflow = {
                     TaskType.MINUTES: WorkflowType.MINUTES,
@@ -323,16 +350,14 @@ class IntentRouter:
         elif is_multi_task_complexity:
             result = (WorkflowType.COMPLEX, TaskType.MULTI, True, "复杂度判断为多任务")
         else:
-            level_to_workflow = {
-                ComplexityLevel.SIMPLE: (WorkflowType.SIMPLE_QA, TaskType.QA, False, "简单问答"),
-                ComplexityLevel.RETRIEVAL: (WorkflowType.SIMPLE_QA, TaskType.QA, False, "需要检索的事实型问题"),
-                ComplexityLevel.COT: (WorkflowType.COMPLEX, TaskType.MULTI, True, "需要思维链推理"),
-                ComplexityLevel.AGENT: (WorkflowType.COMPLEX, TaskType.MULTI, True, "需要ReAct代理推理"),
-            }
-            result = level_to_workflow.get(
-                complexity_level,
-                (WorkflowType.SIMPLE_QA, TaskType.QA, False, "默认简单问答")
-            )
+            # 单个问题即便需要推理，也由更高模型档位处理，而非拆解规划。
+            reason = {
+                ComplexityLevel.SIMPLE: "简单问答",
+                ComplexityLevel.RETRIEVAL: "需要检索的事实型问题",
+                ComplexityLevel.COT: "单问题需推理，升级模型档位",
+                ComplexityLevel.AGENT: "单问题高复杂度，升级模型档位",
+            }.get(complexity_level, "默认简单问答")
+            result = (WorkflowType.SIMPLE_QA, TaskType.QA, False, reason)
 
         return result
 
@@ -428,8 +453,9 @@ class IntentRouter:
         # 多任务检测
         multi_indicators = ["和", "与", "以及", "同时", "分别", "各", "所有", "每个", "并"]
         multi_count = len([kw for kw in multi_indicators if kw in normalized])
+        # "最后/其次"单独出现多是普通叙述（"最后决定…"），至少两个序数标记才算并列
         parallel_markers = ["一是", "二是", "三是", "首先", "其次", "再次", "最后", "第一", "第二"]
-        has_parallel = any(marker in normalized for marker in parallel_markers)
+        has_parallel = sum(marker in normalized for marker in parallel_markers) >= 2
         question_count = normalized.count("？") + normalized.count("?")
 
         if has_parallel or question_count >= 2 or (multi_count >= 2 and len(question) > 25):
@@ -507,10 +533,17 @@ async def get_intent_router() -> IntentRouter:
         from app.services.complexity_classifier import get_complexity_classifier
         from app.services.semantic_multi_task_detector import get_semantic_multi_task_detector
 
-        classifier = await get_complexity_classifier()
+        classifier = (
+            await get_complexity_classifier() if settings.ROUTE_LOCAL_COMPLEXITY_ENABLED else None
+        )
         detector = get_semantic_multi_task_detector()
+        semantic = None
+        if settings.ROUTE_SEMANTIC_TASK_ENABLED:
+            from app.services.semantic_task_classifier import get_semantic_task_classifier
+            semantic = get_semantic_task_classifier()
         _router_instance = IntentRouter(
             complexity_classifier=classifier,
             multi_task_detector=detector,
+            semantic_task_classifier=semantic,
         )
     return _router_instance

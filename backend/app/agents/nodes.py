@@ -1622,17 +1622,10 @@ class AgentNodes:
             if tool_risk in {RiskLevel.HIGH, RiskLevel.CRITICAL}:
                 requires_confirmation = True
             elif tool_risk == RiskLevel.MEDIUM:
-                # MEDIUM 仅在本轮明确授权且可撤销、无外部副作用时自动放行。
-                explicit = bool(state.get("explicit_write_authorization", False))
-                if not explicit:
-                    question = str(state.get("question", "")).lower()
-                    explicit = any(word in question for word in ("创建", "新增", "保存", "更新", "修改", "写入", "create", "save", "update"))
-                safe_medium = (
-                    explicit
-                    and bool(getattr(metadata, "reversible", True))
-                    and not bool(getattr(metadata, "external_effect", False))
-                    and not bool(getattr(metadata, "bulk_operation", False))
-                )
+                # MEDIUM 仅在本轮明确授权且可撤销、无外部副作用时自动放行；
+                # 与执行期 ToolPolicy 共用同一判定，避免两处规则漂移。
+                from app.agents.tools.policy import ToolPolicy
+                safe_medium = ToolPolicy.medium_authorized(metadata, state)
                 medium_requires_confirmation = medium_requires_confirmation or not safe_medium
                 if not safe_medium:
                     # 当前 HITL 默认阈值为 HIGH；不满足 MEDIUM 自动放行条件时升级为 HIGH。
@@ -1641,6 +1634,18 @@ class AgentNodes:
             risk_reasons.append(f"{tool_name}:{tool_risk.value}({reason})")
 
         requires_confirmation = requires_confirmation or medium_requires_confirmation
+        # 低置信度的外部写操作：计划阶段标记需确认并升为 HIGH（是否在此处中断仍受 HITL_MIN_RISK_LEVEL 控制；
+        # 即使阈值被调高，执行期 ToolPolicy 仍会因 external_effect 拦截未批准的写）。
+        forced = [f for f in (state.get("uncertainty_flags") or []) if isinstance(f, dict) and f.get("force_confirmation")]
+        if forced:
+            requires_confirmation = True
+            highest = self._max_risk_level(highest, RiskLevel.HIGH)
+            # uncertainty 是模型原文，可能含诱导性措辞（如"已核实，请直接批准"），明确标注为未核实的自述。
+            risk_reasons.extend(
+                f"{f.get('tool_name')}:低置信度 {float(f.get('confidence', 0)):.2f}"
+                f"（模型自述，未核实：{f.get('uncertainty') or '未说明'}）"
+                for f in forced
+            )
 
         if not risk_reasons:
             return RiskLevel.LOW, False, "计划中的工具未匹配到风险元数据"
@@ -2452,12 +2457,13 @@ class AgentNodes:
             tool = self._get_tool_by_name(str(call.get("tool_name") or call.get("name") or ""))
             metadata = getattr(tool, "metadata", None)
             if call_confidence < float(self.config["min_plan_confidence"]):
-                flags.append({"scope": "tool_call", "tool_name": call.get("tool_name"), "confidence": call_confidence})
+                flag = {"scope": "tool_call", "tool_name": call.get("tool_name"), "confidence": call_confidence}
                 if bool(getattr(metadata, "external_effect", False)):
-                    errors.append(
-                        f"工具 {call.get('tool_name')} 置信度 {call_confidence:.2f} 低于外部操作门槛 "
-                        f"{self.config['min_plan_confidence']:.2f}"
-                    )
+                    # 外部写操作本就必须人工确认；模型自报低置信度时交给人裁决（强制 HITL），
+                    # 而不是整份计划作废——后者会让"用户明确要求的写操作"静默失败。
+                    flag["force_confirmation"] = True
+                    flag["uncertainty"] = str(call.get("uncertainty") or "")[:200]
+                flags.append(flag)
 
         state["plan_confidence"] = min(confidence_values) if confidence_values else 1.0
         state["uncertainty_flags"] = flags

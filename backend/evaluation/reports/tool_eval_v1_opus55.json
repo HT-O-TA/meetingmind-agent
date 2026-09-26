@@ -1,0 +1,706 @@
+{
+  "summary": {
+    "dataset": "tool_eval_v1.jsonl",
+    "model": "claude-opus-5-5",
+    "count": 50,
+    "errors": 0,
+    "tool.selection_accuracy": 0.86,
+    "tool.strict_first_accuracy": 0.68,
+    "tool.parameter_accuracy": 0.9535,
+    "tool.hitl_trigger_accuracy": 0.86,
+    "tool.hitl_recall_on_writes": 0.3,
+    "plan_latency_ms": {
+      "p50": 12614.9,
+      "p95": 20774.3
+    },
+    "definitions": {
+      "errors": "计入分母，按失败处理",
+      "parameter_accuracy": "仅在主工具命中的样本上计算"
+    }
+  },
+  "per_record": [
+    {
+      "id": "tool-001",
+      "latency_ms": 7431.9,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-002",
+      "latency_ms": 6530.6,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-003",
+      "latency_ms": 10779.7,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-004",
+      "latency_ms": 9265.6,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-005",
+      "latency_ms": 11142.0,
+      "predicted_tools": [
+        "search_document"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-006",
+      "latency_ms": 8308.7,
+      "predicted_tools": [
+        "search_document"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-007",
+      "latency_ms": 6872.2,
+      "predicted_tools": [
+        "search_document"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-008",
+      "latency_ms": 17976.3,
+      "predicted_tools": [
+        "search_document",
+        "get_document_content",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-009",
+      "latency_ms": 11168.3,
+      "predicted_tools": [
+        "search_document"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-010",
+      "latency_ms": 14131.7,
+      "predicted_tools": [
+        "search_meeting",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-011",
+      "latency_ms": 12188.6,
+      "predicted_tools": [
+        "search_meeting"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-012",
+      "latency_ms": 14145.2,
+      "predicted_tools": [
+        "search_meeting",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-013",
+      "latency_ms": 8528.3,
+      "predicted_tools": [
+        "search_meeting"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-014",
+      "latency_ms": 14428.2,
+      "predicted_tools": [
+        "search_meeting",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-015",
+      "latency_ms": 14590.6,
+      "predicted_tools": [
+        "search_meeting",
+        "search_meeting",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-016",
+      "latency_ms": 12614.9,
+      "predicted_tools": [
+        "search_meeting",
+        "search_document",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-017",
+      "latency_ms": 15085.2,
+      "predicted_tools": [
+        "search_meeting",
+        "search_document",
+        "detect_controversies",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-018",
+      "latency_ms": 22025.9,
+      "predicted_tools": [
+        "search_meeting",
+        "detect_controversies",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-019",
+      "latency_ms": 17773.5,
+      "predicted_tools": [
+        "search_meeting",
+        "search_document",
+        "detect_controversies",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-020",
+      "latency_ms": 11907.2,
+      "predicted_tools": [
+        "search_meeting",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-021",
+      "latency_ms": 13467.5,
+      "predicted_tools": [
+        "search_meeting",
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-022",
+      "latency_ms": 12122.7,
+      "predicted_tools": [
+        "search_meeting",
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-023",
+      "latency_ms": 12495.1,
+      "predicted_tools": [
+        "search_meeting",
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-024",
+      "latency_ms": 11971.0,
+      "predicted_tools": [
+        "search_meeting",
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-025",
+      "latency_ms": 12401.9,
+      "predicted_tools": [
+        "search_meeting",
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-026",
+      "latency_ms": 10971.2,
+      "predicted_tools": [
+        "search_meeting",
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-027",
+      "latency_ms": 13113.1,
+      "predicted_tools": [
+        "search_meeting",
+        "generate_minutes"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-028",
+      "latency_ms": 11635.8,
+      "predicted_tools": [
+        "search_meeting",
+        "generate_minutes"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 0.5,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-029",
+      "latency_ms": 11097.9,
+      "predicted_tools": [
+        "search_meeting",
+        "generate_minutes"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-030",
+      "latency_ms": 15870.4,
+      "predicted_tools": [
+        "search_meeting",
+        "generate_minutes",
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-031",
+      "latency_ms": 12621.0,
+      "predicted_tools": [
+        "search_meeting",
+        "generate_minutes"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-032",
+      "latency_ms": 13819.1,
+      "predicted_tools": [
+        "search_meeting",
+        "detect_controversies"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-033",
+      "latency_ms": 14597.8,
+      "predicted_tools": [
+        "search_meeting",
+        "detect_controversies"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-034",
+      "latency_ms": 15574.1,
+      "predicted_tools": [
+        "search_meeting",
+        "search_document",
+        "detect_controversies"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-035",
+      "latency_ms": 17363.0,
+      "predicted_tools": [
+        "search_meeting",
+        "search_document",
+        "detect_controversies",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-036",
+      "latency_ms": 7112.0,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-037",
+      "latency_ms": 8035.5,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-038",
+      "latency_ms": 10848.0,
+      "predicted_tools": [
+        "jira_get_issue",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-039",
+      "latency_ms": 11043.2,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-040",
+      "latency_ms": 7604.6,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false
+    },
+    {
+      "id": "tool-041",
+      "latency_ms": 8608.5,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-042",
+      "latency_ms": 13573.0,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-043",
+      "latency_ms": 20172.5,
+      "predicted_tools": [],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-044",
+      "latency_ms": 15787.5,
+      "predicted_tools": [],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-045",
+      "latency_ms": 19813.3,
+      "predicted_tools": [
+        "search_meeting",
+        "search_document"
+      ],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-046",
+      "latency_ms": 20774.3,
+      "predicted_tools": [],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-047",
+      "latency_ms": 15704.6,
+      "predicted_tools": [],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-048",
+      "latency_ms": 15725.6,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-049",
+      "latency_ms": 15921.4,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.5,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true
+    },
+    {
+      "id": "tool-050",
+      "latency_ms": 23603.0,
+      "predicted_tools": [
+        "jira_get_issue",
+        "search_meeting"
+      ],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true
+    }
+  ]
+}

@@ -1,0 +1,2020 @@
+{
+  "schema_version": "meetingmind.cloud-canary.v1",
+  "generated_at": "2026-09-26T11:04:33.342355+00:00",
+  "model": "claude-opus-5-5",
+  "count_requested": 100,
+  "count_completed": 100,
+  "max_tokens": 768,
+  "total_token_budget": 1500000,
+  "per_record_token_budget": 8000,
+  "provider": "anthropic",
+  "prompt_version": "v2",
+  "proxy_overhead_tokens": 7000,
+  "total_tokens_observed": 857911,
+  "paused": false,
+  "pause_reason": null,
+  "paused_at_id": null,
+  "results": [
+    {
+      "id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为学业规划宜尽早制定，即使难以完全按计划执行，也要把握住通往目标的主线；同时家长虽有规划意识却感到力不从心，希望获得指导，帮助孩子设定自主且可实现的目标。",
+        "citation_ids": [
+          "vcsum:146:seg:2:utt:0",
+          "vcsum:146:seg:2:utt:1",
+          "vcsum:146:seg:2:utt:2",
+          "vcsum:146:seg:6:utt:2",
+          "vcsum:146:seg:7:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7663,
+        "completion_tokens": 1197,
+        "total_tokens": 8860
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3236.94,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文未讨论虚拟人类与机器人的区别，只提到虚拟人类将与人类长期共存，但共存形式尚待了解。",
+        "citation_ids": [
+          "vcsum:150_0:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7624,
+        "completion_tokens": 1039,
+        "total_tokens": 8663
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5554.32,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文未给出明确的整体结论，现有内容主要认为虚拟人类将与人类长期共存，但共存形式仍待探讨。讨论还指出虚拟人类与机器人的共同点是都属于非生物意义上的“人”，并可提供陪伴或精神层面的支持。",
+        "citation_ids": [
+          "vcsum:150:seg:2:utt:0",
+          "vcsum:150:seg:13:utt:0",
+          "vcsum:150:seg:13:utt:1",
+          "vcsum:150:seg:13:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7710,
+        "completion_tokens": 2263,
+        "total_tokens": 9973
+      },
+      "finish_reason": "stop",
+      "latency_ms": 8179.8,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-050",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讲解了2021年江苏C卷对策题，强调要站在融媒体中心等引导主体角度，而非自媒体自身发展角度作答。对策包括加强监管和约谈提醒低级趣味内容、引导其贴近群众和农村实际并找准正能量发展方向，以及借助高校学者跟踪调研、总结特色经验提供理论支撑。",
+        "citation_ids": [
+          "vcsum:165_0:utt:0",
+          "vcsum:165_0:utt:1",
+          "vcsum:165_0:utt:3",
+          "vcsum:165_0:utt:4",
+          "vcsum:165_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 9970,
+        "completion_tokens": 3355,
+        "total_tokens": 13325
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5352.2,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-051",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讲解2021年江苏C卷第三题，要求以融媒体中心工作人员身份，从政府等引导主体角度提出引领乡村自媒体健康发展的建议。材料表明，自媒体应贴近群众和实际，摒弃低级趣味恶搞，用幽默短视频解读时事热点、传播正能量。",
+        "citation_ids": [
+          "vcsum:165:seg:0:utt:0",
+          "vcsum:165:seg:1:utt:0",
+          "vcsum:165:seg:2:utt:0",
+          "vcsum:165:seg:2:utt:7"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7717,
+        "completion_tokens": 1201,
+        "total_tokens": 8918
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3668.32,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-052",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议介绍学本教学是一种原创的课堂教学系统变革方式，指学生在教师指导下主要通过自学、互学、展学达成学习目标、养成可持续发展能力的课堂形态。其核心内涵是以学生深度学习和素养发展为中心，既是现代教育思想和教学理念，又是可操作的教学模式和学习方式，旨在让教育回归人的本身、让课堂回归学的本身。",
+        "citation_ids": [
+          "vcsum:172_0:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8769,
+        "completion_tokens": 2003,
+        "total_tokens": 10772
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3469.6,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-054",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕学本教学展开，认为学本教学是扎根中国、具有原创价值的课堂教学系统变革方式，以学生深度学习为重心。它以学生自学为教学起点，并把合作学习视为最重要的学习方式。",
+        "citation_ids": [
+          "vcsum:172:seg:1:utt:7",
+          "vcsum:172:seg:6:utt:2",
+          "vcsum:172:seg:7:utt:5",
+          "vcsum:172:seg:8:utt:0",
+          "vcsum:172:seg:8:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7473,
+        "completion_tokens": 886,
+        "total_tokens": 8359
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3820.31,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-055",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文中没有关于小米考察云游戏行业的具体讨论，只有小米的刘岩自我介绍为小米游戏商务负责人并负责相关业务，称自2014年开始相关工作。",
+        "citation_ids": [
+          "vcsum:174_0:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7748,
+        "completion_tokens": 1930,
+        "total_tokens": 9678
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6467.47,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-056",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为云游戏并非缺乏独特应用场景，而是被坚定看作通往元宇宙的入口，小米希望借游戏（如电视端）拉通内部资源。但云游戏仍需一个普及教育过程，让用户接受这种新兴体验形式。",
+        "citation_ids": [
+          "vcsum:174:seg:16:utt:0",
+          "vcsum:174:seg:24:utt:0",
+          "vcsum:174:seg:24:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7902,
+        "completion_tokens": 1805,
+        "total_tokens": 9707
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7803.57,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-058",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为互联网追求快速解决眼前需求，与教育着眼长远存在错配风险，但教育更应借助互联网的技术属性和自动化，把教学过程产品化以解决传统手段难以解决的问题。",
+        "citation_ids": [
+          "vcsum:176:seg:0:utt:2",
+          "vcsum:176:seg:1:utt:3",
+          "vcsum:176:seg:3:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7589,
+        "completion_tokens": 726,
+        "total_tokens": 8315
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3385.11,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-059",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议以2020年这一特殊之年为背景，借\"后浪\"话题探讨民办教育的未来：在民办教育促进法等政策调整和普惠性学前教育推广的影响下，叠加新冠疫情导致的停学停工，民办幼儿园和中小学面临资金、生源、师资等长期难以消除的困境。",
+        "citation_ids": [
+          "vcsum:185:seg:2:utt:0",
+          "vcsum:185:seg:2:utt:3",
+          "vcsum:185:seg:3:utt:0",
+          "vcsum:185:seg:4:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7649,
+        "completion_tokens": 1140,
+        "total_tokens": 8789
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4870.18,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-061",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "发言人以平等主义及其下的性别研究为例介绍西方哲学，指出平等主义虽是政治正确的立场，但实际上非常值得质疑。人们常自认为是平等主义者，却并不认为各种不平等是不正当的。",
+        "citation_ids": [
+          "vcsum:191:seg:0:utt:0",
+          "vcsum:191:seg:0:utt:2",
+          "vcsum:191:seg:0:utt:4",
+          "vcsum:191:seg:1:utt:0",
+          "vcsum:191:seg:1:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7503,
+        "completion_tokens": 1053,
+        "total_tokens": 8556
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4205.39,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-062",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为在后双减时代仍需重视知识技能学习，而做好的关键在于思维方式，因为思维方式、理念和价值观决定行动与结果。其中最核心的思维方式是辩证思维，单纯死记硬背和刷题不一定能解决问题。",
+        "citation_ids": [
+          "vcsum:193:seg:0:utt:4",
+          "vcsum:193:seg:1:utt:3",
+          "vcsum:193:seg:1:utt:4",
+          "vcsum:193:seg:2:utt:0",
+          "vcsum:193:seg:3:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7572,
+        "completion_tokens": 1039,
+        "total_tokens": 8611
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3210.62,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-064",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文未包含会议的整体结论，仅介绍了嘉宾：微软亚洲研究院的曹婷博士和副院长刘铁岩博士，以及其团队研发的麻将AI在知名平台上段位稳定超过人类顶级选手。",
+        "citation_ids": [
+          "vcsum:201:seg:2:utt:0",
+          "vcsum:201:seg:3:utt:0",
+          "vcsum:201:seg:4:utt:6"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7577,
+        "completion_tokens": 1436,
+        "total_tokens": 9013
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4733.8,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-065",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕在线教育的冲击与挑战、拐点及后疫情时代教育的创与变展开，认为线上教育打破了教室局限，带来便利并推动教育创新。同时，疫情也暴露出学校终端设备、网络条件等配套建设的不足。",
+        "citation_ids": [
+          "vcsum:208:seg:8:utt:3",
+          "vcsum:208:seg:14:utt:1",
+          "vcsum:208:seg:14:utt:2",
+          "vcsum:208:seg:15:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7772,
+        "completion_tokens": 1534,
+        "total_tokens": 9306
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4703.21,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-066",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文未给出明确的整体结论，仅显示发言者回顾了公益发展历程：从发现信息不对称、用QQ群联合资源方，到玉树地震时组建卓明纯志愿团队，后来走向专业化。",
+        "citation_ids": [
+          "vcsum:21:seg:132:utt:4",
+          "vcsum:21:seg:133:utt:3",
+          "vcsum:21:seg:136:utt:3",
+          "vcsum:21:seg:136:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7801,
+        "completion_tokens": 2248,
+        "total_tokens": 10049
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7750.37,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-068",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为加密艺术的爆发搅活了整个艺术品市场，艺术界正处于巨大变革之中。加密艺术需放在其技术与语境中理解，它为创作带来真实落地与交易的新可能，呈现范式性的改变。",
+        "citation_ids": [
+          "vcsum:221:seg:5:utt:3",
+          "vcsum:221:seg:5:utt:4",
+          "vcsum:221:seg:7:utt:1",
+          "vcsum:221:seg:11:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7795,
+        "completion_tokens": 1084,
+        "total_tokens": 8879
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2898.56,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-069",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为农村妇女在育儿、饮食、照顾老人等方面培训需求很大；村里多年开展的培训项目和家长学校参与积极，效果显著。",
+        "citation_ids": [
+          "vcsum:236:seg:0:utt:1",
+          "vcsum:236:seg:0:utt:2",
+          "vcsum:236:seg:2:utt:2",
+          "vcsum:236:seg:2:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7538,
+        "completion_tokens": 674,
+        "total_tokens": 8212
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3329.75,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-070",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为密评是推动商用密码应用的重要抓手，各行各业已深刻认识并积极推动密评，行业整体处于蓬勃向上、高速发展阶段。技术层面以量化评估和高风险判定指引作为测评关键指标。",
+        "citation_ids": [
+          "vcsum:23:seg:5:utt:6",
+          "vcsum:23:seg:7:utt:0",
+          "vcsum:23:seg:7:utt:1",
+          "vcsum:23:seg:9:utt:6",
+          "vcsum:23:seg:9:utt:7"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7564,
+        "completion_tokens": 993,
+        "total_tokens": 8557
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3299.64,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-071",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "出厂前给产品贴上标签",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7496,
+        "completion_tokens": 1283,
+        "total_tokens": 8779
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6714.4,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-072",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7311,
+        "completion_tokens": 46,
+        "total_tokens": 7357
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4722.05,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-073",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "洽谈带logo的品牌宣传方案并控制成本",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7515,
+        "completion_tokens": 1171,
+        "total_tokens": 8686
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7297.96,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-074",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "列出需新增的产品清单",
+            "assignee": "",
+            "deadline": ""
+          },
+          {
+            "content": "联系多家供应商比价以控制成本",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7496,
+        "completion_tokens": 1013,
+        "total_tokens": 8509
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7030.88,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-075",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "整理工作商列表并逐一推进",
+            "assignee": "",
+            "deadline": ""
+          },
+          {
+            "content": "安排专员负责对接",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7440,
+        "completion_tokens": 776,
+        "total_tokens": 8216
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5955.16,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-076",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "派人落实产品色彩相关事项",
+            "assignee": "",
+            "deadline": ""
+          },
+          {
+            "content": "与市场部和销售确认产品色彩",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7484,
+        "completion_tokens": 860,
+        "total_tokens": 8344
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5664.63,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-077",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "联系多家厂商对比赠品",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7279,
+        "completion_tokens": 28,
+        "total_tokens": 7307
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2063.49,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-078",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7285,
+        "completion_tokens": 39,
+        "total_tokens": 7324
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3540.24,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-079",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7501,
+        "completion_tokens": 1075,
+        "total_tokens": 8576
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6610.79,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-080",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "提前联系老师",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7329,
+        "completion_tokens": 200,
+        "total_tokens": 7529
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6131.42,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-081",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7210,
+        "completion_tokens": 8,
+        "total_tokens": 7218
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1800.73,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-082",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "考察前调查清楚房子实际情况",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7507,
+        "completion_tokens": 1286,
+        "total_tokens": 8793
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6460.95,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-083",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7397,
+        "completion_tokens": 486,
+        "total_tokens": 7883
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7097.86,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-084",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7391,
+        "completion_tokens": 888,
+        "total_tokens": 8279
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7202.1,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-085",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7400,
+        "completion_tokens": 360,
+        "total_tokens": 7760
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6667.1,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-086",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7315,
+        "completion_tokens": 44,
+        "total_tokens": 7359
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4315.9,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-087",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "制定招聘经理的工作职责",
+            "assignee": "",
+            "deadline": ""
+          }
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7462,
+        "completion_tokens": 1008,
+        "total_tokens": 8470
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7135.32,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-088",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7251,
+        "completion_tokens": 33,
+        "total_tokens": 7284
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3809.65,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-089",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7255,
+        "completion_tokens": 47,
+        "total_tokens": 7302
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3814.59,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-090",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7200,
+        "completion_tokens": 8,
+        "total_tokens": 7208
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2163.01,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-091",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7340,
+        "completion_tokens": 8,
+        "total_tokens": 7348
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1665.54,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-092",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7226,
+        "completion_tokens": 8,
+        "total_tokens": 7234
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2900.42,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-093",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7210,
+        "completion_tokens": 8,
+        "total_tokens": 7218
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2900.8,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-094",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7263,
+        "completion_tokens": 34,
+        "total_tokens": 7297
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4851.26,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-095",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7342,
+        "completion_tokens": 8,
+        "total_tokens": 7350
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1736.03,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-096",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7316,
+        "completion_tokens": 39,
+        "total_tokens": 7355
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3753.21,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-097",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7250,
+        "completion_tokens": 8,
+        "total_tokens": 7258
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3282.08,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-098",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7338,
+        "completion_tokens": 33,
+        "total_tokens": 7371
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3777.61,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-099",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7246,
+        "completion_tokens": 8,
+        "total_tokens": 7254
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1921.24,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-100",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "usage": {
+        "prompt_tokens": 7235,
+        "completion_tokens": 8,
+        "total_tokens": 7243
+      },
+      "finish_reason": "stop",
+      "latency_ms": 1730.58,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-020",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7174,
+        "completion_tokens": 9,
+        "total_tokens": 7183
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2372.68,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-022",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7183,
+        "completion_tokens": 9,
+        "total_tokens": 7192
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2131.81,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-026",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7450,
+        "completion_tokens": 1533,
+        "total_tokens": 8983
+      },
+      "finish_reason": "stop",
+      "latency_ms": 9529.81,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-027",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不要不要把视频关掉。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7239,
+        "completion_tokens": 288,
+        "total_tokens": 7527
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4845.6,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-031",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "主持人杨淼邀请嘉宾分享对DeFi的内心想法与从业感悟，回顾了DeFi从2019年鲜为人知到锁仓量从6.8亿美元增至165.7亿美元的巨大发展，认为这是时代机遇。",
+        "citation_ids": [
+          "vcsum:0_0:utt:2",
+          "vcsum:0_0:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8978,
+        "completion_tokens": 1920,
+        "total_tokens": 10898
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3026.01,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-032",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议以回顾2020年DeFi发展为主线，认为DeFi是2020年的关键词；嘉宾对借贷协议等产品前景及未来线下资产合规通道打开持乐观态度。",
+        "citation_ids": [
+          "vcsum:0:seg:12:utt:1",
+          "vcsum:0:seg:12:utt:4",
+          "vcsum:0:seg:8:utt:0",
+          "vcsum:0:seg:5:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7541,
+        "completion_tokens": 747,
+        "total_tokens": 8288
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3068.52,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-033",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "江波认为最了不起的创造者是创造宇宙的客观规律或自然规律，生物世界的各种存在方式都是自然规律在漫长时间中寻找出来的，因此它是最强的创新模式。陈楸帆则认为这个回答有些取巧，转而推崇发明机器语言等计算机语言、构建虚拟信息世界的人类。",
+        "citation_ids": [
+          "vcsum:108_0:utt:2",
+          "vcsum:108_0:utt:3",
+          "vcsum:108_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 9073,
+        "completion_tokens": 2302,
+        "total_tokens": 11375
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4538.65,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-034",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文未给出明确的整体结论，仅显示这是中国美术学院与未来事务管理局联合举办、以世界观建构与创作为题的科幻圆桌论坛。已有讨论中，江老师认为最了不起的创造者是创造我们这个世界的存在（可理解为上帝），并以周围多样奇特的生物世界为例。",
+        "citation_ids": [
+          "vcsum:108:seg:0:utt:3",
+          "vcsum:108:seg:0:utt:5",
+          "vcsum:108:seg:2:utt:1",
+          "vcsum:108:seg:3:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7755,
+        "completion_tokens": 1963,
+        "total_tokens": 9718
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7486.11,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-036",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议提到西岸AI Tower是徐汇区打造人工智能高地的标志性建筑。徐汇自2017年提出打造上海国家人工智能高地新地标和核心区的愿景，出台“AI@徐汇”T计划，构建“一核一极一带”空间布局，推出两个100万平方米的“AI双T”载体，其中AI Tower东塔入住率已达78%，集聚了微软、华为、阿里等标杆企业。",
+        "citation_ids": [
+          "vcsum:110_3:utt:3",
+          "vcsum:110_3:utt:4",
+          "vcsum:110_3:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8745,
+        "completion_tokens": 2207,
+        "total_tokens": 10952
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4141.65,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-037",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕人工智能如何助力未来城市展开，结论是上海凭借技术创新、落地场景、人才潜力和政府支持，成为微软亚洲研究院落户的理想之地。研究院已在上海组建团队开展研究，并将继续扩大规模、吸引更多人才。",
+        "citation_ids": [
+          "vcsum:110:seg:0:utt:0",
+          "vcsum:110:seg:1:utt:2",
+          "vcsum:110:seg:1:utt:3",
+          "vcsum:110:seg:2:utt:3",
+          "vcsum:110:seg:2:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7521,
+        "completion_tokens": 1045,
+        "total_tokens": 8566
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4470.95,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-038",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了艺术教育在中国社会变革与文化建设中的重要性，指出中国艺术家兼顾创作研究与艺术教育，艺术学府肩负培养人才与学术研究的双重使命，这是中国艺术教育走向现代形态的重要标识。同时讨论了当下处于世界艺术史两幕之间的边界时刻，需在21世纪更多平衡艺术与科技，推动艺术与互联网、人工智能等领域的跨界交互。",
+        "citation_ids": [
+          "vcsum:120_0:utt:0",
+          "vcsum:120_0:utt:1",
+          "vcsum:120_0:utt:2",
+          "vcsum:120_0:utt:3",
+          "vcsum:120_0:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8630,
+        "completion_tokens": 2355,
+        "total_tokens": 10985
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3689.68,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-040",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议强调国美之路的文化属性与学术特征，认为艺术教育对中国社会变革和文化建设具有重要意义，是中国艺术教育从古典走向现代的重要标识。",
+        "citation_ids": [
+          "vcsum:120:seg:0:utt:3",
+          "vcsum:120:seg:0:utt:4",
+          "vcsum:120:seg:1:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7476,
+        "completion_tokens": 554,
+        "total_tokens": 8030
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2705.07,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-041",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为锂离子电池产业发展迅速，但锂资源可能限制其未来10到15倍的增长，因此钠离子电池等低成本新型电池正在发展，不过发言人认为它们更可能是补充而难成主角。会议还介绍了欧盟2019年Battery三年计划中的材料基因组、AI材料平台、回收和智能制造平台，并强调高通量测试和材料标准化对电池制造的重要性。",
+        "citation_ids": [
+          "vcsum:125_0:utt:1",
+          "vcsum:125_0:utt:2",
+          "vcsum:125_0:utt:3",
+          "vcsum:125_0:utt:4",
+          "vcsum:125_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8570,
+        "completion_tokens": 2205,
+        "total_tokens": 10775
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3922.09,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-043",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为材料基因组对电池主题非常重要，需依托高通量和相关标准，推动电池材料体系齐全、标准化和一致化，这对电池制造具有重要作用。",
+        "citation_ids": [
+          "vcsum:125:seg:4:utt:4",
+          "vcsum:125:seg:5:utt:0",
+          "vcsum:125:seg:5:utt:3",
+          "vcsum:125:seg:5:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7543,
+        "completion_tokens": 710,
+        "total_tokens": 8253
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2989.57,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-044",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为学业规划越早越好，应像年度计划一样确立主线和目标，临近考试则需根据学生情况采用巧妙方法；刘柏旭分享了从感兴趣的职业（量化交易）出发，倒推所需背景、本科专业及高中、初中准备的方法。",
+        "citation_ids": [
+          "vcsum:146_0:utt:2",
+          "vcsum:146_0:utt:4"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8966,
+        "completion_tokens": 1968,
+        "total_tokens": 10934
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3811.82,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-016",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7288,
+        "completion_tokens": 50,
+        "total_tokens": 7338
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4710.89,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-017",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7210,
+        "completion_tokens": 55,
+        "total_tokens": 7265
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3818.27,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-019",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7220,
+        "completion_tokens": 40,
+        "total_tokens": 7260
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3860.46,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-008",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7217,
+        "completion_tokens": 67,
+        "total_tokens": 7284
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5050.03,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-010",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7191,
+        "completion_tokens": 31,
+        "total_tokens": 7222
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3764.57,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-013",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7314,
+        "completion_tokens": 476,
+        "total_tokens": 7790
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6182.46,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-014",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7418,
+        "completion_tokens": 1065,
+        "total_tokens": 8483
+      },
+      "finish_reason": "stop",
+      "latency_ms": 8017.12,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-015",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7190,
+        "completion_tokens": 50,
+        "total_tokens": 7240
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3835.88,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-001",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "咱们现在就就选主流的呗，主流几大大大媒体呗是吧，就是大平台啊，然后咱们这个产品首先咱们不能光卖光卖这个裸机吧，啊然后咱们那个产品赠品这一块儿。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7424,
+        "completion_tokens": 794,
+        "total_tokens": 8218
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7599.69,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-002",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7221,
+        "completion_tokens": 49,
+        "total_tokens": 7270
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4807.47,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-003",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7284,
+        "completion_tokens": 61,
+        "total_tokens": 7345
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4966.71,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-004",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "就给他给不管谁给他什么礼品，他不应该轻视就是说这给他礼品少小，礼物小他轻视这个孩子，因为我觉得在学校不应该有这种情况。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7515,
+        "completion_tokens": 1590,
+        "total_tokens": 9105
+      },
+      "finish_reason": "stop",
+      "latency_ms": 9163.84,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-005",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "我觉得像像像，我觉得上一二小级的那种的，那就由由由家长来代去送，做一贺卡这种的就可以，但也不能说我上一二年级，我不送了这。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7378,
+        "completion_tokens": 598,
+        "total_tokens": 7976
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5749.26,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-006",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "有什么需求，不能说，不能说家长一味的去做主说我想送什么什么，这种的我觉得也，也要考虑一下孩子，征求，征求一下孩子的意见，嗯。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7454,
+        "completion_tokens": 1136,
+        "total_tokens": 8590
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6423.59,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-007",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "threshold",
+          "text": "必须有预算。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7499,
+        "completion_tokens": 1859,
+        "total_tokens": 9358
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7938.35,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-009",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "自己员工用，最好是不要说谁逮谁上的那种，哦，啊，对对。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7324,
+        "completion_tokens": 414,
+        "total_tokens": 7738
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5570.53,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-011",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不要把太多的这种挂羊头卖狗肉的东西放的视。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7204,
+        "completion_tokens": 43,
+        "total_tokens": 7247
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2096.28,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-012",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "我觉得我们得实事求是，就不能哭夸张的说我们公司怎么样怎么样，就我们是怎么样我们，对不要夸张化，要不然就会有点欺欺骗他们的感觉。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7358,
+        "completion_tokens": 393,
+        "total_tokens": 7751
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4746.49,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-018",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7388,
+        "completion_tokens": 787,
+        "total_tokens": 8175
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7739.28,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-021",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "然后第三种是属于那种有科研性质个性化的这些机构，你就不要因为这些机构它是走的什么批量大售卖的，那这样的高精尖的项目，那我们就找这些真正有高精尖能力的一些公司，那些检测机构，比如像清华，我们做一些很精细的，那我的疫情我的疫情没不会买那么贵的原子力，这些东西那买不起。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7548,
+        "completion_tokens": 1375,
+        "total_tokens": 8923
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5807.81,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-023",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "所以这个做的确去做，应该写这个学业规划，有点像企业的这个整个每年的年计划，包括自己的每年的计划都应该有，但是其实很少能够按照既定的计划给执行下来，但是主线是不应该错的。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7591,
+        "completion_tokens": 2038,
+        "total_tokens": 9629
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7520.06,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-024",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "我们可以相信技术，但是不能完全依赖于技术。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7419,
+        "completion_tokens": 1176,
+        "total_tokens": 8595
+      },
+      "finish_reason": "stop",
+      "latency_ms": 6907.22,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-025",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "它这个针对性其实就是说的这句话，就是我们一定要针对这句话，不要读到材料，把这句话就忘了就要去写。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7334,
+        "completion_tokens": 378,
+        "total_tokens": 7712
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4400.7,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-028",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不要把视频关掉，把音频和视频全部打开。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7259,
+        "completion_tokens": 81,
+        "total_tokens": 7340
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5563.21,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-029",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "它这是一个 stakeholder 的一个生态圈这个业务模式它需要让这些 stakeholder 都能够在当中找到一个经济学上我们说拍雷托改善，尽量不要去有这个至少是没有损伤，但是最好是对更多的方面都有改进，那么这个生意就能够去推进，而且对会得到更多人的支持。"
+        }
+      },
+      "usage": {
+        "prompt_tokens": 7604,
+        "completion_tokens": 1882,
+        "total_tokens": 9486
+      },
+      "finish_reason": "stop",
+      "latency_ms": 7374.51,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-030",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "decision": "reject",
+        "constraint": {}
+      },
+      "usage": {
+        "prompt_tokens": 7223,
+        "completion_tokens": 30,
+        "total_tokens": 7253
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3811.67,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-035",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议提到，上海是中国经济龙头，在长三角领军，在物流、医疗、金融、销售、教育等人工智能大有作为的产业上具有明显优势，并聚集了技术创新、落地场景和人才潜力。此外，上海市政府大力支持人工智能产业发展，这也是微软亚洲研究院选择落户上海的原因。",
+        "citation_ids": [
+          "vcsum:110_0:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7672,
+        "completion_tokens": 858,
+        "total_tokens": 8530
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3136.58,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-039",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为，艺术生除了掌握科技、量子力学等其他领域的基础知识，更重要的是理解科学与技术发明中的思维方式，并将其用于跨领域合作和自身艺术创作。结合新能源汽车、无人驾驶等新产业对产品美学的需求，这为艺术院校带来了新的时代，但并非所有艺术生都要走向产品设计。",
+        "citation_ids": [
+          "vcsum:120_1:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7970,
+        "completion_tokens": 1196,
+        "total_tokens": 9166
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3526.99,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-042",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了两台设备测量结果以哪个为准的行业痛点：周总认为充电倍率、材料、工况等都会影响精度，每次测量都应进行不确定度评定，而非简单比较方法优劣。赵总建议通过公共平台让多家检测机构对同批产品进行比测，并结合在线监测与多尺度数据融合来提高测量准确性。",
+        "citation_ids": [
+          "vcsum:125_3:utt:0",
+          "vcsum:125_3:utt:1",
+          "vcsum:125_3:utt:2",
+          "vcsum:125_3:utt:4",
+          "vcsum:125_3:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8561,
+        "completion_tokens": 2061,
+        "total_tokens": 10622
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3569.93,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-045",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议认为中考是很多孩子人生的第一次大考，初中尽量去好学校，但中考并不决定一切，初中不应以考试为主要目标。初一到初三上学期应重点培养读书能力，能力强的孩子最后半年找好老师提分的可能性远大于高中阶段。",
+        "citation_ids": [
+          "vcsum:146_1:utt:0",
+          "vcsum:146_1:utt:2",
+          "vcsum:146_1:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8231,
+        "completion_tokens": 1405,
+        "total_tokens": 9636
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3541.84,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-048",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "与会者认为AI带来的好坏影响往往会相互抵消，不必恐慌；AI虽复杂，但未来10到20年可能像智能手机一样普及，不能因其破坏能力就判定它是有罪的技术，同时希望国家抓住机遇、加强科普。",
+        "citation_ids": [
+          "vcsum:150_3:utt:0",
+          "vcsum:150_3:utt:1",
+          "vcsum:150_3:utt:2",
+          "vcsum:150_3:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7929,
+        "completion_tokens": 1192,
+        "total_tokens": 9121
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4893.94,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-053",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "学本教学背景下的名师培养有三个特点：课程设计系统性强、研训一体指导性强、任务驱动实践性强。其影响是名师课堂发生根本变化、科研水平实质提高，并通过送教送培带动区域教育均衡发展。",
+        "citation_ids": [
+          "vcsum:172_6:utt:2",
+          "vcsum:172_6:utt:3",
+          "vcsum:172_6:utt:4",
+          "vcsum:172_6:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 9425,
+        "completion_tokens": 2489,
+        "total_tokens": 11914
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3070.1,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-057",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了“互联网解决两秒后的问题、教育解决20年后的问题，二者易错配”的观点；林峰认为维度不同，前者指互联网行业演变快，而教育更应利用互联网跨地域传递优质资源和自动化陪伴的技术属性，实现教育普惠。",
+        "citation_ids": [
+          "vcsum:176_0:utt:0",
+          "vcsum:176_0:utt:1",
+          "vcsum:176_0:utt:2",
+          "vcsum:176_0:utt:3"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8404,
+        "completion_tokens": 1669,
+        "total_tokens": 10073
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3087.19,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-060",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议指出，人们一方面信奉平等主义，另一方面又接受权力、收入等方面的现实不平等并视之为正当，这说明认知、判断与行动之间可能存在矛盾。这种自认持有的观念与实际观念之间的落差，源于意识形态在不被察觉时起作用，因此需要通过“认识你自己”的哲学实践来反思。",
+        "citation_ids": [
+          "vcsum:191_0:utt:1",
+          "vcsum:191_0:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8682,
+        "completion_tokens": 1887,
+        "total_tokens": 10569
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3353.47,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-063",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "主持人介绍了曹婷博士的职业成就：微软亚洲研究院异构计算组高级研究主管，曾在华为负责方舟编译器内存管理系统，在顶会发表多篇论文并获多项最佳论文和ACM奖项。还介绍了刘铁岩博士的成就：微软亚洲研究院副院长，IEEE与ACM院士，多所高校兼职教授，获多项最佳论文奖、出版畅销书、开源LightGBM、助力翻译系统达人类水平并获WMT八项冠军、研发顶级麻将AI，并曾任多元与包容委员会主席、培养众多女性人才。",
+        "citation_ids": [
+          "vcsum:201_0:utt:2",
+          "vcsum:201_0:utt:3",
+          "vcsum:201_0:utt:4",
+          "vcsum:201_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8766,
+        "completion_tokens": 2754,
+        "total_tokens": 11520
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4203.05,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-067",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "天方以人品、艺术创新能力（重思考而非技巧）和与大众互动传播思想的能力作为孵化艺术家的三大标准；蜂巢认同这一观点，强调艺术家需有问题意识、实验意愿、学习探索与思辨能力，并提供从项目搭建到社区营造的长效合作。",
+        "citation_ids": [
+          "vcsum:221_2:utt:1",
+          "vcsum:221_2:utt:2",
+          "vcsum:221_2:utt:3",
+          "vcsum:221_2:utt:4",
+          "vcsum:221_2:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 9198,
+        "completion_tokens": 2657,
+        "total_tokens": 11855
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3830.45,
+      "anomalies": []
+    }
+  ],
+  "limitations": [
+    "待办和约束当前使用冻结候选文本做规范化审核，不等同于从完整会议转写中重新抽取。",
+    "模型供应商可能将隐藏思考 token 计入 completion_tokens。"
+  ]
+}

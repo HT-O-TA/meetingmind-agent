@@ -1,0 +1,799 @@
+{
+  "classifier": "rules",
+  "semantic": true,
+  "dataset": "route_eval_test_v2.jsonl",
+  "count": 80,
+  "task_accuracy": 0.825,
+  "workflow_accuracy": 0.825,
+  "by_group": {
+    "greeting": {
+      "n": 4,
+      "workflow_accuracy": 1.0
+    },
+    "qa": {
+      "n": 26,
+      "workflow_accuracy": 0.846
+    },
+    "todo": {
+      "n": 12,
+      "workflow_accuracy": 0.833
+    },
+    "minutes": {
+      "n": 12,
+      "workflow_accuracy": 0.917
+    },
+    "controversy": {
+      "n": 12,
+      "workflow_accuracy": 0.833
+    },
+    "multi": {
+      "n": 14,
+      "workflow_accuracy": 0.643
+    }
+  },
+  "latency_ms": {
+    "p50": 18.9,
+    "p95": 22.5,
+    "max": 56.9
+  },
+  "confusions": [
+    [
+      "simple_qa/qa -> minutes/minutes",
+      2
+    ],
+    [
+      "simple_qa/qa -> todo/todo",
+      2
+    ],
+    [
+      "todo/todo -> simple_qa/qa",
+      2
+    ],
+    [
+      "controversy/controversy -> simple_qa/qa",
+      2
+    ],
+    [
+      "complex/multi -> todo/todo",
+      2
+    ],
+    [
+      "minutes/minutes -> simple_qa/qa",
+      1
+    ],
+    [
+      "complex/multi -> controversy/controversy",
+      1
+    ],
+    [
+      "complex/multi -> simple_qa/qa",
+      1
+    ],
+    [
+      "complex/multi -> minutes/minutes",
+      1
+    ]
+  ],
+  "per_record": [
+    {
+      "id": "test-001",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1.0
+    },
+    {
+      "id": "test-002",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.2
+    },
+    {
+      "id": "test-003",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.1
+    },
+    {
+      "id": "test-004",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.1
+    },
+    {
+      "id": "test-005",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 30.6
+    },
+    {
+      "id": "test-006",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 19.0
+    },
+    {
+      "id": "test-007",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 18.6
+    },
+    {
+      "id": "test-008",
+      "group": "qa",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "minutes/minutes",
+      "expected": "simple_qa/qa",
+      "latency_ms": 19.7
+    },
+    {
+      "id": "test-009",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 19.0
+    },
+    {
+      "id": "test-010",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 18.1
+    },
+    {
+      "id": "test-011",
+      "group": "qa",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "todo/todo",
+      "expected": "simple_qa/qa",
+      "latency_ms": 21.2
+    },
+    {
+      "id": "test-012",
+      "group": "qa",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "todo/todo",
+      "expected": "simple_qa/qa",
+      "latency_ms": 20.2
+    },
+    {
+      "id": "test-013",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 21.6
+    },
+    {
+      "id": "test-014",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 19.8
+    },
+    {
+      "id": "test-015",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 24.4
+    },
+    {
+      "id": "test-016",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 20.0
+    },
+    {
+      "id": "test-017",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 21.9
+    },
+    {
+      "id": "test-018",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 56.9
+    },
+    {
+      "id": "test-019",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 20.9
+    },
+    {
+      "id": "test-020",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 18.1
+    },
+    {
+      "id": "test-021",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 19.4
+    },
+    {
+      "id": "test-022",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 19.1
+    },
+    {
+      "id": "test-023",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 22.2
+    },
+    {
+      "id": "test-024",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 18.1
+    },
+    {
+      "id": "test-025",
+      "group": "qa",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "minutes/minutes",
+      "expected": "simple_qa/qa",
+      "latency_ms": 20.8
+    },
+    {
+      "id": "test-026",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 18.9
+    },
+    {
+      "id": "test-027",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 22.4
+    },
+    {
+      "id": "test-028",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 22.5
+    },
+    {
+      "id": "test-029",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 21.2
+    },
+    {
+      "id": "test-030",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 18.7
+    },
+    {
+      "id": "test-031",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 20.1
+    },
+    {
+      "id": "test-032",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 19.8
+    },
+    {
+      "id": "test-033",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 19.6
+    },
+    {
+      "id": "test-034",
+      "group": "todo",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "todo/todo",
+      "latency_ms": 19.3
+    },
+    {
+      "id": "test-035",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 19.5
+    },
+    {
+      "id": "test-036",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 20.0
+    },
+    {
+      "id": "test-037",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 17.9
+    },
+    {
+      "id": "test-038",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 24.5
+    },
+    {
+      "id": "test-039",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 18.9
+    },
+    {
+      "id": "test-040",
+      "group": "todo",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "todo/todo",
+      "latency_ms": 21.2
+    },
+    {
+      "id": "test-041",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 21.9
+    },
+    {
+      "id": "test-042",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 20.1
+    },
+    {
+      "id": "test-043",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 18.3
+    },
+    {
+      "id": "test-044",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 19.2
+    },
+    {
+      "id": "test-045",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 19.0
+    },
+    {
+      "id": "test-046",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 17.6
+    },
+    {
+      "id": "test-047",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 18.3
+    },
+    {
+      "id": "test-048",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 18.1
+    },
+    {
+      "id": "test-049",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "minutes/minutes",
+      "latency_ms": 18.8
+    },
+    {
+      "id": "test-050",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 17.4
+    },
+    {
+      "id": "test-051",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 16.9
+    },
+    {
+      "id": "test-052",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 18.9
+    },
+    {
+      "id": "test-053",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 18.4
+    },
+    {
+      "id": "test-054",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 17.1
+    },
+    {
+      "id": "test-055",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 16.8
+    },
+    {
+      "id": "test-056",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 19.1
+    },
+    {
+      "id": "test-057",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 17.3
+    },
+    {
+      "id": "test-058",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 16.7
+    },
+    {
+      "id": "test-059",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 15.9
+    },
+    {
+      "id": "test-060",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 18.0
+    },
+    {
+      "id": "test-061",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 20.0
+    },
+    {
+      "id": "test-062",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 18.9
+    },
+    {
+      "id": "test-063",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 17.6
+    },
+    {
+      "id": "test-064",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 18.4
+    },
+    {
+      "id": "test-065",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 19.0
+    },
+    {
+      "id": "test-066",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 18.0
+    },
+    {
+      "id": "test-067",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 19.9
+    },
+    {
+      "id": "test-068",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "controversy/controversy",
+      "expected": "complex/multi",
+      "latency_ms": 18.8
+    },
+    {
+      "id": "test-069",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "todo/todo",
+      "expected": "complex/multi",
+      "latency_ms": 15.8
+    },
+    {
+      "id": "test-070",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 17.9
+    },
+    {
+      "id": "test-071",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 17.5
+    },
+    {
+      "id": "test-072",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 18.1
+    },
+    {
+      "id": "test-073",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "complex/multi",
+      "latency_ms": 17.6
+    },
+    {
+      "id": "test-074",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "minutes/minutes",
+      "expected": "complex/multi",
+      "latency_ms": 19.7
+    },
+    {
+      "id": "test-075",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 18.7
+    },
+    {
+      "id": "test-076",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "todo/todo",
+      "expected": "complex/multi",
+      "latency_ms": 16.4
+    },
+    {
+      "id": "test-077",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 18.2
+    },
+    {
+      "id": "test-078",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 19.5
+    },
+    {
+      "id": "test-079",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 18.8
+    },
+    {
+      "id": "test-080",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 20.0
+    }
+  ]
+}

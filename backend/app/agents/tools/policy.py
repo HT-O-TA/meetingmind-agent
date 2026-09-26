@@ -20,12 +20,13 @@ class ToolPolicy:
     HIGH_RISK_LEVELS = {"high", "critical"}
 
     @staticmethod
-    def _medium_authorized(metadata: Any, state: Dict[str, Any]) -> bool:
-        """MEDIUM 自动放行的保守条件：本轮明确授权、范围受限、可撤销且无外部副作用。"""
-        explicit = bool(state.get("explicit_write_authorization", False))
-        if not explicit:
-            question = str(state.get("question", "")).lower()
-            explicit = any(word in question for word in ("创建", "新增", "保存", "更新", "修改", "写入", "create", "save", "update"))
+    def medium_authorized(metadata: Any, state: Dict[str, Any]) -> bool:
+        """MEDIUM 自动放行的保守条件：本轮明确授权、范围受限、可撤销且无外部副作用。
+
+        授权只认结构化字段 explicit_write_authorization（由调用方显式传入），
+        不再从问题文本猜测：关键词匹配会把"千万不要修改"这类否定句判为授权。
+        """
+        explicit = state.get("explicit_write_authorization") is True
         return (
             explicit
             and bool(getattr(metadata, "reversible", True))
@@ -74,7 +75,7 @@ class ToolPolicy:
         if risk_value in self.HIGH_RISK_LEVELS:
             requires_confirmation = True
         elif risk_value == "medium":
-            requires_confirmation = not self._medium_authorized(metadata, state)
+            requires_confirmation = not self.medium_authorized(metadata, state)
         if enforce_confirmation and requires_confirmation and state.get("confirmation_status") != "approved":
             return ToolPolicyDecision(
                 allowed=False,

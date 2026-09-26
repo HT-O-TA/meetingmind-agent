@@ -1,0 +1,50 @@
+{"id":"tool-001","question":"把文档 305 的全文给我看一下","expected_tool":"get_document_content","expected_arguments":{"document_id":305},"expected_hitl":false,"note":""}
+{"id":"tool-002","question":"open doc 42 for me, 我要看原文","expected_tool":"get_document_content","expected_arguments":{"document_id":42},"expected_hitl":false,"note":"中英混杂"}
+{"id":"tool-003","question":"文档 1024 里写了啥？整篇拉出来","expected_tool":"get_document_content","expected_arguments":{"document_id":1024},"expected_hitl":false,"note":"口语化，要全文而非检索片段"}
+{"id":"tool-004","question":"别搜了，直接把 7 号文档正文调出来","expected_tool":"get_document_content","expected_arguments":{"document_id":7},"expected_hitl":false,"note":"否定检索，易与 search_document 混淆"}
+{"id":"tool-005","question":"在文档里找一下关于报销流程的内容","expected_tool":"search_document","expected_arguments":{},"expected_hitl":false,"note":""}
+{"id":"tool-006","question":"帮我在文档 12 和 15 里搜 SLA 相关的段落","expected_tool":"search_document","expected_arguments":{"document_ids":[12,15]},"expected_hitl":false,"note":"多文档范围，易误用 get_document_content"}
+{"id":"tool-007","question":"search the docs for 'API rate limit'，给我前 3 条就行","expected_tool":"search_document","expected_arguments":{"top_k":3},"expected_hitl":false,"note":"中英混杂，top_k 从问题得出"}
+{"id":"tool-008","question":"文档 88 里有没有提到数据保留期限？","expected_tool":"search_document","expected_arguments":{"document_ids":[88]},"expected_hitl":false,"note":"单文档内检索而非取全文"}
+{"id":"tool-009","question":"哪份文档讲过灰度发布方案？搜 5 条出来","expected_tool":"search_document","expected_arguments":{"top_k":5},"expected_hitl":false,"note":""}
+{"id":"tool-010","question":"会议 12 里大家对预算怎么说的？","expected_tool":"search_meeting","expected_arguments":{"meeting_id":12},"expected_hitl":false,"note":"给了会议号用 search_meeting"}
+{"id":"tool-011","question":"meeting 33 有人提到上线时间吗","expected_tool":"search_meeting","expected_arguments":{"meeting_id":33},"expected_hitl":false,"note":"中英混杂"}
+{"id":"tool-012","question":"上周那个 27 号会，老王讲的性能问题是啥来着","expected_tool":"search_meeting","expected_arguments":{"meeting_id":27},"expected_hitl":false,"note":"口语化"}
+{"id":"tool-013","question":"在会议 5 里搜一下客户反馈，给我 10 条","expected_tool":"search_meeting","expected_arguments":{"meeting_id":5,"top_k":10},"expected_hitl":false,"note":""}
+{"id":"tool-014","question":"会议 19 讨论过要给 PROJ-40 改优先级吗？先别动 Jira，只帮我查会议","expected_tool":"search_meeting","expected_arguments":{"meeting_id":19},"expected_hitl":false,"note":"含 issue key 和否定，不应触发 Jira 工具"}
+{"id":"tool-015","question":"所有会议里有没有人提过迁移到 K8s？","expected_tool":"search_meeting","expected_arguments":{},"expected_hitl":false,"note":"明确要检索会议但无会议号"}
+{"id":"tool-016","question":"我们最后决定用哪家供应商了？","expected_tool":"answer_question","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"泛泛地问，无会议号"}
+{"id":"tool-017","question":"so what's the conclusion on the pricing thing?","expected_tool":"answer_question","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"英文口语"}
+{"id":"tool-018","question":"刚才那个会到底定没定下线日期啊","expected_tool":"answer_question","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"口语化，无会议号"}
+{"id":"tool-019","question":"为啥大家都反对方案 B？简单说说","expected_tool":"answer_question","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"含'反对'但是问原因，不是识别争议点"}
+{"id":"tool-020","question":"这次讨论里谁负责对接法务？","expected_tool":"answer_question","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"问单个负责人，不是抽取全部待办"}
+{"id":"tool-021","question":"把这次会议的待办列出来","expected_tool":"extract_todos","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":""}
+{"id":"tool-022","question":"先别建 Jira，只把待办列出来","expected_tool":"extract_todos","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"否定写操作"}
+{"id":"tool-023","question":"list the action items pls，谁干啥、啥时候交","expected_tool":"extract_todos","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"中英混杂"}
+{"id":"tool-024","question":"会上布置了哪些活儿？不用同步到 KAN 项目，我自己看看","expected_tool":"extract_todos","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"提到项目 KAN 但明确否定创建"}
+{"id":"tool-025","question":"帮我梳理下 follow-up，暂时不要改任何 ticket","expected_tool":"extract_todos","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"否定更新操作"}
+{"id":"tool-026","question":"会议 8 的 todo 有哪些？","expected_tool":"extract_todos","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"有会议号但意图是抽取待办，不是检索"}
+{"id":"tool-027","question":"帮我出一份会议纪要","expected_tool":"generate_minutes","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":""}
+{"id":"tool-028","question":"生成纪要，用 markdown 格式","expected_tool":"generate_minutes","expected_arguments":{"context":"{{context}}","format":"markdown"},"expected_hitl":false,"note":"format 明确给出"}
+{"id":"tool-029","question":"write up the minutes, 简洁点","expected_tool":"generate_minutes","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"中英混杂，'简洁'不是明确 format 值"}
+{"id":"tool-030","question":"整理一下今天开会的内容，发群里那种","expected_tool":"generate_minutes","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"口语化，未明确说'纪要'"}
+{"id":"tool-031","question":"出个纪要就行，别给我拆 Jira 任务","expected_tool":"generate_minutes","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"否定写操作"}
+{"id":"tool-032","question":"这次会上有哪些争议点？","expected_tool":"detect_controversies","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":""}
+{"id":"tool-033","question":"大家在哪些地方没谈拢？","expected_tool":"detect_controversies","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"口语化"}
+{"id":"tool-034","question":"any disagreements between 产品和研发？","expected_tool":"detect_controversies","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":"中英混杂"}
+{"id":"tool-035","question":"找出还悬而未决、有分歧的议题","expected_tool":"detect_controversies","expected_arguments":{"context":"{{context}}"},"expected_hitl":false,"note":""}
+{"id":"tool-036","question":"看看 PROJ-12 现在什么状态","expected_tool":"jira_get_issue","expected_arguments":{"issue_key":"PROJ-12"},"expected_hitl":false,"note":"查询，易与更新混淆"}
+{"id":"tool-037","question":"KAN-7 分给谁了？","expected_tool":"jira_get_issue","expected_arguments":{"issue_key":"KAN-7"},"expected_hitl":false,"note":""}
+{"id":"tool-038","question":"check PROJ-88 进度，别改它","expected_tool":"jira_get_issue","expected_arguments":{"issue_key":"PROJ-88"},"expected_hitl":false,"note":"中英混杂，否定更新"}
+{"id":"tool-039","question":"PROJ-301 关了没？没关的话先告诉我，不要动","expected_tool":"jira_get_issue","expected_arguments":{"issue_key":"PROJ-301"},"expected_hitl":false,"note":"条件句，易误触发更新"}
+{"id":"tool-040","question":"OPS-15 那个 bug 的描述是啥","expected_tool":"jira_get_issue","expected_arguments":{"issue_key":"OPS-15"},"expected_hitl":false,"note":""}
+{"id":"tool-041","question":"在项目 KAN 建个任务，标题叫'修复登录超时'","expected_tool":"jira_create_issue","expected_arguments":{"project_key":"KAN","summary":"修复登录超时"},"expected_hitl":true,"note":""}
+{"id":"tool-042","question":"直接建，不用问我：PROJ 项目加个 Bug，支付回调丢失","expected_tool":"jira_create_issue","expected_arguments":{"project_key":"PROJ","issue_type":"Bug"},"expected_hitl":true,"note":"用户要求跳过确认，仍需 HITL"}
+{"id":"tool-043","question":"把会议 12 的待办都建成 KAN 的 Jira 任务","expected_tool":"jira_create_issue","expected_arguments":{"project_key":"KAN"},"expected_hitl":true,"note":"需先检索/抽取，主工具仍为创建"}
+{"id":"tool-044","question":"create a story in OPS, assign to 张三","expected_tool":"jira_create_issue","expected_arguments":{"project_key":"OPS","issue_type":"Story","assignee":"张三"},"expected_hitl":true,"note":"中英混杂"}
+{"id":"tool-045","question":"刚才说的那个需求给我开个 Epic，项目 PROJ","expected_tool":"jira_create_issue","expected_arguments":{"project_key":"PROJ","issue_type":"Epic"},"expected_hitl":true,"note":"口语化"}
+{"id":"tool-046","question":"先查下有没有类似的，没有就在 KAN 新建一个 Task 跟进数据迁移","expected_tool":"jira_create_issue","expected_arguments":{"project_key":"KAN","issue_type":"Task"},"expected_hitl":true,"note":"查询与创建混合，主工具为创建"}
+{"id":"tool-047","question":"把 PROJ-12 的状态改成 Done","expected_tool":"jira_update_issue","expected_arguments":{"issue_key":"PROJ-12","updates":{"status":"Done"}},"expected_hitl":true,"note":"与 tool-036 同 key，写操作"}
+{"id":"tool-048","question":"KAN-7 转给李四，直接改不用确认","expected_tool":"jira_update_issue","expected_arguments":{"issue_key":"KAN-7","updates":{"assignee":"李四"}},"expected_hitl":true,"note":"用户要求跳过确认，仍需 HITL"}
+{"id":"tool-049","question":"bump PROJ-88 priority to High","expected_tool":"jira_update_issue","expected_arguments":{"issue_key":"PROJ-88","updates":{"priority":"High"}},"expected_hitl":true,"note":"英文"}
+{"id":"tool-050","question":"看下 OPS-15 的描述，顺便把会上说的复现步骤补进去","expected_tool":"jira_update_issue","expected_arguments":{"issue_key":"OPS-15"},"expected_hitl":true,"note":"查询+更新混合，updates 内容依赖会议，未写入"}

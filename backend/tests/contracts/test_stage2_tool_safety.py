@@ -80,3 +80,47 @@ async def test_hitl_requests_are_visible_and_actionable_only_by_owner(fake_redis
     assert owned is not None
     assert await hitl.get_resume_state(request_id, expected_user_id=7) is not None
     assert await hitl.respond_to_request(request_id, "approved", expected_user_id=7) is True
+
+
+class _InternalMediumTool:
+    """可撤销、无外部副作用的内部 MEDIUM 写工具。"""
+
+    class metadata:
+        risk_level = "medium"
+        requires_confirmation = False
+        reversible = True
+        external_effect = False
+        bulk_operation = False
+        allowed_workflows = []
+        idempotent = True
+        risk_reason = "内部可撤销写入"
+
+
+@pytest.mark.parametrize("question", ["千万不要修改任何待办，只看看", "请帮我保存这份纪要", "update nothing"])
+def test_medium_write_is_not_authorized_by_question_keywords(question):
+    decision = ToolPolicy().validate_tool_call(_InternalMediumTool(), {"question": question})
+
+    assert decision.allowed is False
+    assert decision.code == "confirmation_required"
+
+
+def test_medium_write_requires_structured_authorization_flag():
+    policy = ToolPolicy()
+    tool = _InternalMediumTool()
+
+    assert policy.validate_tool_call(tool, {"explicit_write_authorization": True}).allowed is True
+    # 只接受布尔 True，字符串等真值不算授权
+    assert policy.validate_tool_call(tool, {"explicit_write_authorization": "yes"}).allowed is False
+
+
+@pytest.mark.parametrize(
+    "role,flag,expected",
+    [("user", True, True), ("admin", True, True), ("readonly", True, False), ("user", False, False)],
+)
+def test_request_write_authorization_ignores_readonly_users(role, flag, expected):
+    from types import SimpleNamespace
+
+    from app.api.v1.endpoints.agents import AgentQueryRequest, _write_authorization
+
+    request = AgentQueryRequest(question="保存纪要", explicit_write_authorization=flag)
+    assert _write_authorization(request, SimpleNamespace(role=role)) is expected

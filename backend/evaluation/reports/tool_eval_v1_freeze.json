@@ -1,0 +1,12 @@
+{
+  "frozen_at": "2026-09-26T19:11:15",
+  "purpose": "tool_eval_v1 一次性评测前冻结",
+  "sha256": {
+    "scripts/run_tool_eval.py": "05e7ab034fb3e81b1ad3b2248581dc74d0ad1050841f8c3952838e3c96490fc7",
+    "app/schemas/structured_output.py": "653d820194a3bb4ce93e092e9918acbb6218f8155bca368a066c329913f1bc50",
+    "app/agents/nodes.py": "b29b7ca3ee6772b8d19970115e1f908b1f2c9658519216a8a0ee07eac8bd785c",
+    "app/agents/tools/policy.py": "d6680126550fdefaa6ad53ca3c72cd58a0bdf167cd5d8735346dda99ce190bf0",
+    "app/agents/tools/registry.py": "18bb0a5dbe49c8d04eb72100bb1cbb6a338a5133b7156c9894791ab72cd1c60a",
+    "evaluation/datasets/tool_eval_v1.jsonl": "ba20b4ac190cc2a7f8b4e2fa8125859fbda7bee467f22f53ad7cc4e3c844a07b"
+  }
+}

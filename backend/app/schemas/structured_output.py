@@ -2,7 +2,7 @@
 import re
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, model_serializer
 
 
 class EvidenceFields(BaseModel):
@@ -45,9 +45,24 @@ class MinutesOutput(EvidenceFields):
 
 
 class ToolCallOutput(BaseModel):
+    # 仍禁止未知字段（防止模型夹带 approved/confirmed 等伪造控制字段），
+    # 但规划 prompt 明确要求输出 confidence 与 uncertainty，下游也读取 confidence，
+    # 必须在契约内。此前二者被 forbid，任何按 prompt 输出的计划都会整体校验失败。
     model_config = ConfigDict(extra="forbid")
     tool_name: str = Field(min_length=1)
     arguments: Dict[str, Any] = Field(default_factory=dict)
+    confidence: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    uncertainty: Optional[str] = None
+
+    @model_serializer(mode="wrap")
+    def _drop_absent_optional(self, handler):
+        # 模型未给出的可选字段不以 None 回填：下游用 call.get("confidence", default)
+        # 取默认值，None 会让 float(None) 失败。
+        data = handler(self)
+        for key in ("confidence", "uncertainty"):
+            if data.get(key) is None:
+                data.pop(key, None)
+        return data
 
 
 class PlanTaskOutput(BaseModel):

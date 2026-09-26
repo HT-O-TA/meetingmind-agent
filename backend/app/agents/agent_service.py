@@ -210,6 +210,7 @@ class AgentService:
         context: SessionContext,
         document_ids: Optional[List[int]] = None,
         event_callback: Optional[callable] = None,
+        explicit_write_authorization: bool = False,
     ) -> AgentResult:
         """使用 SessionContext 处理用户查询（推荐入口）
 
@@ -269,6 +270,7 @@ class AgentService:
                 "task_namespace": task_namespace,
                 "meeting_id": context.meeting_id,
                 "document_ids": document_ids,
+                "explicit_write_authorization": explicit_write_authorization is True,
                 "context": [],
                 "raw_context": raw_context,
                 "context_manifest": None,
@@ -580,6 +582,12 @@ class AgentService:
         resumed_state["enable_human_in_the_loop"] = True
         try:
             with activate_token_budget_ledger(budget_ledger):
+                # Checkpoint 按设计不持久化证据原文（context 被白名单清空），
+                # 恢复前用当前用户的 access_scope 重新检索，否则确认点之后的
+                # 纪要/待办等任务会在空证据上生成。
+                if resumed_state.get("retrieval_required", True) and not resumed_state.get("context"):
+                    with token_budget_node_scope("retrieve_node"):
+                        resumed_state = await nodes.retrieve_node(resumed_state)
                 with token_budget_node_scope("execute_node"):
                     resumed_state = await nodes.execute_agent(resumed_state)
                 with token_budget_node_scope("replan_node"):

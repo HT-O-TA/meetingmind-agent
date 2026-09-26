@@ -1,0 +1,1454 @@
+{
+  "summary": {
+    "prompt_version": "v1",
+    "model": "claude-opus-5-5",
+    "errors": 0,
+    "todo": {
+      "n": 26,
+      "f1": 0.8205,
+      "decision_acc": 1.0
+    },
+    "todo_positive": {
+      "n": 6,
+      "f1": 0.2222,
+      "decision_acc": 1.0
+    },
+    "todo_negative": {
+      "n": 20,
+      "f1": 1.0,
+      "decision_acc": 1.0
+    },
+    "constraint": {
+      "n": 40,
+      "f1": 0.575,
+      "decision_acc": 0.775
+    },
+    "constraint_positive": {
+      "n": 20,
+      "f1": 0.3,
+      "decision_acc": 0.7
+    },
+    "constraint_negative": {
+      "n": 20,
+      "f1": 0.85,
+      "decision_acc": 0.85
+    }
+  },
+  "results": [
+    {
+      "id": "dev-constraint:vcsum:38:seg:9:utt:3",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "threshold",
+          "text": "地产公司学历要求至少为211院校，筛选所有开设风景园林专业的211院校"
+        }
+      },
+      "latency_ms": 4992.64,
+      "usage": {
+        "prompt_tokens": 7082,
+        "completion_tokens": 283,
+        "total_tokens": 7365
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:31:seg:23:utt:2",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 7831.43,
+      "usage": {
+        "prompt_tokens": 7177,
+        "completion_tokens": 1070,
+        "total_tokens": 8247
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:vcsum:31:seg:6:utt:5",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "当好校长凭的不仅仅是权力或者不应该是权力，不是责卫，而是远见，是格局，是担当，是方向感，是机制，是实实在在的措施。"
+        }
+      },
+      "latency_ms": 5237.93,
+      "usage": {
+        "prompt_tokens": 7158,
+        "completion_tokens": 866,
+        "total_tokens": 8024
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:ali:R8003_M8001:0236",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "conditional",
+          "text": "如果对方坚决不接受，则不要强求。"
+        }
+      },
+      "latency_ms": 5268.81,
+      "usage": {
+        "prompt_tokens": 7074,
+        "completion_tokens": 314,
+        "total_tokens": 7388
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:150:seg:47:utt:5",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不能因为人工智能技术本身具有破坏能力，就认定它是有罪的技术。"
+        }
+      },
+      "latency_ms": 5829.54,
+      "usage": {
+        "prompt_tokens": 7077,
+        "completion_tokens": 270,
+        "total_tokens": 7347
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:ali:R8001_M8004:0249",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不能以我方时间为准安排档期，须根据大V的档期确定时间"
+        }
+      },
+      "latency_ms": 6354.49,
+      "usage": {
+        "prompt_tokens": 7143,
+        "completion_tokens": 440,
+        "total_tokens": 7583
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:150:seg:36:utt:2",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "对人工智能技术要有正确认知，不能过度妖魔化或神化"
+        }
+      },
+      "latency_ms": 6098.96,
+      "usage": {
+        "prompt_tokens": 7084,
+        "completion_tokens": 329,
+        "total_tokens": 7413
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:ali:R8007_M8010:0444",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 9941.31,
+      "usage": {
+        "prompt_tokens": 7253,
+        "completion_tokens": 1329,
+        "total_tokens": 8582
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:ali:R8008_M8013:0683",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不能让客户感觉服务员在搪塞或敷衍糊弄。"
+        }
+      },
+      "latency_ms": 4403.83,
+      "usage": {
+        "prompt_tokens": 7023,
+        "completion_tokens": 81,
+        "total_tokens": 7104
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:38:seg:48:utt:17",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "做出选择后不要再去百度搜索"
+        }
+      },
+      "latency_ms": 7354.91,
+      "usage": {
+        "prompt_tokens": 7240,
+        "completion_tokens": 1603,
+        "total_tokens": 8843
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:201:seg:17:utt:0",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不要以性别、年龄、外貌或信仰等来定义自己"
+        }
+      },
+      "latency_ms": 5575.22,
+      "usage": {
+        "prompt_tokens": 7202,
+        "completion_tokens": 691,
+        "total_tokens": 7893
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:ali:R8001_M8004:0194",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "threshold",
+          "text": "邀请流量不太大的合作对象，需控制在预算范围内（无明确数值阈值，“尽量”为软性偏好）"
+        }
+      },
+      "latency_ms": 7048.42,
+      "usage": {
+        "prompt_tokens": 7233,
+        "completion_tokens": 1272,
+        "total_tokens": 8505
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:vcsum:165:seg:2:utt:7",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不采用低级趣味恶搞内容；短视频应以诙谐幽默的方式解读时事政治和社会热点，传播正能量。"
+        }
+      },
+      "latency_ms": 8494.72,
+      "usage": {
+        "prompt_tokens": 7391,
+        "completion_tokens": 2361,
+        "total_tokens": 9752
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:ali:R8008_M8013:0350",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "培训期限不宜过长或过短（未给出明确时长范围）"
+        }
+      },
+      "latency_ms": 6171.09,
+      "usage": {
+        "prompt_tokens": 7093,
+        "completion_tokens": 516,
+        "total_tokens": 7609
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:vcsum:38:seg:69:utt:4",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "平时练习时不能只注重平面图，也要练习鸟瞰效果等"
+        }
+      },
+      "latency_ms": 5055.8,
+      "usage": {
+        "prompt_tokens": 7044,
+        "completion_tokens": 96,
+        "total_tokens": 7140
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:208:seg:53:utt:0",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不能要求家长每天打卡，也不能要求家长对作业进行拍照、录音或录像。"
+        }
+      },
+      "latency_ms": 5148.17,
+      "usage": {
+        "prompt_tokens": 7078,
+        "completion_tokens": 163,
+        "total_tokens": 7241
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:38:seg:3:utt:2",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "range",
+          "text": "分享时长控制在3到5分钟，不超过5分钟"
+        }
+      },
+      "latency_ms": 4340.58,
+      "usage": {
+        "prompt_tokens": 7040,
+        "completion_tokens": 71,
+        "total_tokens": 7111
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:165:seg:10:utt:0",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 6848.75,
+      "usage": {
+        "prompt_tokens": 7338,
+        "completion_tokens": 1774,
+        "total_tokens": 9112
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:ali:R8001_M8004:0440",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "礼品不能只追求越便宜越好，必须保证质量，避免客户看不上"
+        }
+      },
+      "latency_ms": 5615.49,
+      "usage": {
+        "prompt_tokens": 7165,
+        "completion_tokens": 651,
+        "total_tokens": 7816
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:150:seg:40:utt:2",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不能变成玄幻或魔幻类、没有任何依据的内容。"
+        }
+      },
+      "latency_ms": 4999.0,
+      "usage": {
+        "prompt_tokens": 7018,
+        "completion_tokens": 71,
+        "total_tokens": 7089
+      },
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:ali:R8003_M8001:0326",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "要不要在，要不要礼物上头写上。"
+        }
+      },
+      "latency_ms": 5446.56,
+      "usage": {
+        "prompt_tokens": 6995,
+        "completion_tokens": 64,
+        "total_tokens": 7059
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:97:seg:42:utt:1",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 5042.29,
+      "usage": {
+        "prompt_tokens": 6976,
+        "completion_tokens": 35,
+        "total_tokens": 7011
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:108:seg:9:utt:5",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "这样的方式其实不能说是一个作品有多牛，因为每个作品都是建立在前沿的基础上的。"
+        }
+      },
+      "latency_ms": 6111.35,
+      "usage": {
+        "prompt_tokens": 7127,
+        "completion_tokens": 662,
+        "total_tokens": 7789
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:86:seg:7:utt:6",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "在年轻人群中的定位可称为小小的开创者，但不能称为领袖"
+        }
+      },
+      "latency_ms": 7278.83,
+      "usage": {
+        "prompt_tokens": 7275,
+        "completion_tokens": 1632,
+        "total_tokens": 8907
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:ali:R8009_M8020:0276",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "overwrite_or_scope",
+          "text": "第三个，你都没办法，你就只能下次报名了。"
+        }
+      },
+      "latency_ms": 7380.04,
+      "usage": {
+        "prompt_tokens": 7187,
+        "completion_tokens": 1186,
+        "total_tokens": 8373
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:191:seg:3:utt:10",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "更不要说比如说印度的这个种姓制度，也有自己的公正官。"
+        }
+      },
+      "latency_ms": 6639.3,
+      "usage": {
+        "prompt_tokens": 7070,
+        "completion_tokens": 328,
+        "total_tokens": 7398
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:191:seg:19:utt:3",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "原来我也是拿着主人的工具在想要掀翻主人的房子，同一套工具建起了主人的房子，它现在能不能砸掉主人的房子？"
+        }
+      },
+      "latency_ms": 7296.2,
+      "usage": {
+        "prompt_tokens": 7192,
+        "completion_tokens": 1036,
+        "total_tokens": 8228
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:172:seg:32:utt:7",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "之前我们也很纠结，就是说到底是作为教育局来说，我们是能不能行政推动，我们也跟一些专家在一起交流，这个教育教学的改革格到底是从上到下还是从由下到上，哪一种效果好？"
+        }
+      },
+      "latency_ms": 4340.78,
+      "usage": {
+        "prompt_tokens": 7141,
+        "completion_tokens": 488,
+        "total_tokens": 7629
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:146:seg:9:utt:6",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 5189.34,
+      "usage": {
+        "prompt_tokens": 7082,
+        "completion_tokens": 177,
+        "total_tokens": 7259
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:191:seg:14:utt:7",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "仅挖掘到政治观念层面（如自由、所有权、契约、权利、利益、权力等概念）不足以理解作为视角或世界观的男性中心主义。"
+        }
+      },
+      "latency_ms": 8622.64,
+      "usage": {
+        "prompt_tokens": 7405,
+        "completion_tokens": 1955,
+        "total_tokens": 9360
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:4:seg:14:utt:6",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 4039.38,
+      "usage": {
+        "prompt_tokens": 7060,
+        "completion_tokens": 48,
+        "total_tokens": 7108
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:236:seg:23:utt:7",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "女孩子不能上学的原因不完全是经济原因（如家里没钱），也可能是家里缺乏劳动力。"
+        }
+      },
+      "latency_ms": 7805.19,
+      "usage": {
+        "prompt_tokens": 7224,
+        "completion_tokens": 1258,
+        "total_tokens": 8482
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:193:seg:15:utt:10",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "negative",
+          "text": "简化能力模型时不应丢弃该项（指代对象不明确，且为主观意见表述）"
+        }
+      },
+      "latency_ms": 8605.81,
+      "usage": {
+        "prompt_tokens": 7332,
+        "completion_tokens": 2198,
+        "total_tokens": 9530
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:ali:R8009_M8020:0687",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "threshold",
+          "text": "游湖时间不超过十分钟"
+        }
+      },
+      "latency_ms": 7015.85,
+      "usage": {
+        "prompt_tokens": 7138,
+        "completion_tokens": 756,
+        "total_tokens": 7894
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:vcsum:4:seg:34:utt:0",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 4218.86,
+      "usage": {
+        "prompt_tokens": 7074,
+        "completion_tokens": 51,
+        "total_tokens": 7125
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:38:seg:44:utt:0",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 4804.09,
+      "usage": {
+        "prompt_tokens": 7133,
+        "completion_tokens": 59,
+        "total_tokens": 7192
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:97:seg:71:utt:2",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "threshold",
+          "text": "这要说明一下的是，我们中国的核电虽然起步比较晚，但是采用的机型都比较偏新，我们都至少是从二代开始起步的，都完全满足当今的这个所有安全法规的要求。"
+        }
+      },
+      "latency_ms": 5472.71,
+      "usage": {
+        "prompt_tokens": 7198,
+        "completion_tokens": 951,
+        "total_tokens": 8149
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:ali:R8009_M8020:0793",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "threshold",
+          "text": "因为订多了的话，我们的预算也有一点大。"
+        }
+      },
+      "latency_ms": 5257.18,
+      "usage": {
+        "prompt_tokens": 7004,
+        "completion_tokens": 67,
+        "total_tokens": 7071
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-constraint:vcsum:193:seg:28:utt:8",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "accept",
+        "constraint": {
+          "kind": "negative",
+          "text": "不要因孩子不了解父母多年付出和赚钱不易而责怪孩子，应主动向孩子说明"
+        }
+      },
+      "latency_ms": 7591.65,
+      "usage": {
+        "prompt_tokens": 7403,
+        "completion_tokens": 2159,
+        "total_tokens": 9562
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 0.0
+    },
+    {
+      "id": "dev-constraint:ali:R8007_M8010:0443",
+      "unit_type": "constraint",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "constraint": {
+          "kind": "",
+          "text": ""
+        }
+      },
+      "latency_ms": 7604.16,
+      "usage": {
+        "prompt_tokens": 7230,
+        "completion_tokens": 1225,
+        "total_tokens": 8455
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:108:seg:5:utt:2",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2713.18,
+      "usage": {
+        "prompt_tokens": 7002,
+        "completion_tokens": 8,
+        "total_tokens": 7010
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:208:seg:10:utt:0",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 3716.93,
+      "usage": {
+        "prompt_tokens": 7034,
+        "completion_tokens": 29,
+        "total_tokens": 7063
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:38:seg:12:utt:0",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 1959.8,
+      "usage": {
+        "prompt_tokens": 6947,
+        "completion_tokens": 8,
+        "total_tokens": 6955
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:ali:R8008_M8013:0074",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 3860.36,
+      "usage": {
+        "prompt_tokens": 7049,
+        "completion_tokens": 38,
+        "total_tokens": 7087
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:86:seg:9:utt:1",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 1807.5,
+      "usage": {
+        "prompt_tokens": 6977,
+        "completion_tokens": 8,
+        "total_tokens": 6985
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:201:seg:14:utt:7",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 1912.94,
+      "usage": {
+        "prompt_tokens": 7007,
+        "completion_tokens": 8,
+        "total_tokens": 7015
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:97:seg:4:utt:0",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2031.0,
+      "usage": {
+        "prompt_tokens": 6980,
+        "completion_tokens": 8,
+        "total_tokens": 6988
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:97:seg:10:utt:5",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2310.62,
+      "usage": {
+        "prompt_tokens": 6993,
+        "completion_tokens": 8,
+        "total_tokens": 7001
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:110:seg:4:utt:4",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 1991.41,
+      "usage": {
+        "prompt_tokens": 6975,
+        "completion_tokens": 8,
+        "total_tokens": 6983
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:31:seg:3:utt:2",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2652.4,
+      "usage": {
+        "prompt_tokens": 6970,
+        "completion_tokens": 8,
+        "total_tokens": 6978
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:191:seg:4:utt:4",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 3095.22,
+      "usage": {
+        "prompt_tokens": 7004,
+        "completion_tokens": 8,
+        "total_tokens": 7012
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:21:seg:7:utt:2",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 5214.55,
+      "usage": {
+        "prompt_tokens": 7123,
+        "completion_tokens": 451,
+        "total_tokens": 7574
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:ali:R8009_M8018:0019",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 1883.33,
+      "usage": {
+        "prompt_tokens": 6941,
+        "completion_tokens": 8,
+        "total_tokens": 6949
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:23:seg:7:utt:0",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 3965.32,
+      "usage": {
+        "prompt_tokens": 7034,
+        "completion_tokens": 33,
+        "total_tokens": 7067
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:236:seg:9:utt:8",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2284.2,
+      "usage": {
+        "prompt_tokens": 7009,
+        "completion_tokens": 8,
+        "total_tokens": 7017
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:125:seg:9:utt:1",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2301.33,
+      "usage": {
+        "prompt_tokens": 6979,
+        "completion_tokens": 8,
+        "total_tokens": 6987
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:165:seg:2:utt:1",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 3175.96,
+      "usage": {
+        "prompt_tokens": 6973,
+        "completion_tokens": 8,
+        "total_tokens": 6981
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:174:seg:2:utt:2",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2089.64,
+      "usage": {
+        "prompt_tokens": 6968,
+        "completion_tokens": 8,
+        "total_tokens": 6976
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:208:seg:17:utt:2",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 2013.52,
+      "usage": {
+        "prompt_tokens": 6986,
+        "completion_tokens": 8,
+        "total_tokens": 6994
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-todo:vcsum:21:seg:1:utt:0",
+      "unit_type": "todo",
+      "source": "ai_silver",
+      "output": {
+        "decision": "reject",
+        "todos": []
+      },
+      "latency_ms": 3200.63,
+      "usage": {
+        "prompt_tokens": 6959,
+        "completion_tokens": 8,
+        "total_tokens": 6967
+      },
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-synthetic-todo-0",
+      "unit_type": "todo",
+      "source": "synthetic",
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "整理接口文档并发到群里",
+            "assignee": "speaker_2",
+            "deadline": "周五前"
+          }
+        ]
+      },
+      "latency_ms": 4947.17,
+      "usage": {
+        "prompt_tokens": 7052,
+        "completion_tokens": 97,
+        "total_tokens": 7149
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-synthetic-todo-1",
+      "unit_type": "todo",
+      "source": "synthetic",
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "与财务核对报销流程",
+            "assignee": "speaker_1",
+            "deadline": ""
+          }
+        ]
+      },
+      "latency_ms": 4297.35,
+      "usage": {
+        "prompt_tokens": 7058,
+        "completion_tokens": 96,
+        "total_tokens": 7154
+      },
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-synthetic-todo-2",
+      "unit_type": "todo",
+      "source": "synthetic",
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "搭建测试环境，确保下周一大家可以使用",
+            "assignee": "小刘",
+            "deadline": "下周一"
+          }
+        ]
+      },
+      "latency_ms": 5627.74,
+      "usage": {
+        "prompt_tokens": 7091,
+        "completion_tokens": 325,
+        "total_tokens": 7416
+      },
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-synthetic-todo-3",
+      "unit_type": "todo",
+      "source": "synthetic",
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "汇总客户反馈",
+            "assignee": "speaker_3",
+            "deadline": ""
+          },
+          {
+            "content": "约定时间评审方案",
+            "assignee": "speaker_3",
+            "deadline": ""
+          }
+        ]
+      },
+      "latency_ms": 8748.18,
+      "usage": {
+        "prompt_tokens": 7184,
+        "completion_tokens": 1027,
+        "total_tokens": 8211
+      },
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-synthetic-todo-4",
+      "unit_type": "todo",
+      "source": "synthetic",
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "寄送三份样品给对方试用效果",
+            "assignee": "N_SPK8013",
+            "deadline": ""
+          }
+        ]
+      },
+      "latency_ms": 4375.33,
+      "usage": {
+        "prompt_tokens": 7028,
+        "completion_tokens": 75,
+        "total_tokens": 7103
+      },
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333,
+      "decision_ok": 1.0
+    },
+    {
+      "id": "dev-synthetic-todo-5",
+      "unit_type": "todo",
+      "source": "synthetic",
+      "output": {
+        "decision": "accept",
+        "todos": [
+          {
+            "content": "与产品确认排期",
+            "assignee": "speaker_4",
+            "deadline": ""
+          }
+        ]
+      },
+      "latency_ms": 4536.02,
+      "usage": {
+        "prompt_tokens": 7039,
+        "completion_tokens": 81,
+        "total_tokens": 7120
+      },
+      "precision": 0.3333333333333333,
+      "recall": 0.3333333333333333,
+      "f1": 0.3333333333333333,
+      "decision_ok": 1.0
+    }
+  ]
+}

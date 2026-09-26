@@ -51,12 +51,17 @@ def check_thresholds(
         failures.append(
             f"阈值数据版本 {threshold_dataset_version} 与数据集 {dataset_version} 不一致"
         )
+    # null 表示该指标尚无评测集，显式跳过（区别于"忘了算"的缺失）
     for metric, threshold in config.get("minimum", {}).items():
+        if threshold is None:
+            continue
         if metric not in actual:
             failures.append(f"缺少指标 {metric}")
         elif actual[metric] < float(threshold):
             failures.append(f"{metric}={actual[metric]:.4f} < {float(threshold):.4f}")
     for metric, threshold in config.get("maximum", {}).items():
+        if threshold is None:
+            continue
         if metric not in actual:
             failures.append(f"缺少指标 {metric}")
         elif actual[metric] > float(threshold):

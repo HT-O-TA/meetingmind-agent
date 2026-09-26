@@ -52,41 +52,35 @@ class Reranker:
             app_logger.error(f"[Reranker] 加载模型失败: {e}")
             self.model = None
     
+    @staticmethod
+    def _char_bigrams(text: str) -> set:
+        """去掉空白与标点后的字符 bigram 集合；中英文通用，无需分词器。"""
+        chars = [c for c in str(text).lower() if c.isalnum()]
+        if len(chars) < 2:
+            return set(chars)
+        return {chars[i] + chars[i + 1] for i in range(len(chars) - 1)}
+
     def _simple_rerank(self, query: str, documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
         简单重排序（当无法加载BGE-Reranker时使用）
         
-        使用词重叠度和位置权重进行简单排序
+        使用字符 bigram 覆盖率打分。中文没有空格，原先按 split() 切词时
+        整句只有一个"词"，重叠度恒为 0，排序完全退化为输入顺序。
         """
-        query_lower = query.lower()
+        query_grams = self._char_bigrams(query)
         results = []
-        
+
         for doc in documents:
-            content = doc.get('content', '')
-            content_lower = content.lower()
-            
-            # 计算词重叠度
-            query_words = set(query_lower.split())
-            content_words = set(content_lower.split())
-            overlap = len(query_words.intersection(content_words))
-            
-            # 计算位置分数（关键词出现在前面更好）
-            position_score = 0.0
-            for word in query_words:
-                idx = content_lower.find(word)
-                if idx != -1:
-                    position_score += 1.0 / (idx + 1)
-            
-            # 综合分数
-            score = overlap + position_score * 0.1
-            
+            content_grams = self._char_bigrams(doc.get('content', ''))
+            # 查询 bigram 在文档中的覆盖率，范围 [0, 1]
+            coverage = len(query_grams & content_grams) / len(query_grams) if query_grams else 0.0
             results.append({
                 **doc,
-                'rerank_score': score
+                'rerank_score': coverage
             })
-        
-        # 按分数降序排序
-        results.sort(key=lambda x: x.get('rerank_score', 0) + x.get('score', 0), reverse=True)
+
+        # 覆盖率为主，原检索分数只做同分时的次序依据
+        results.sort(key=lambda x: (x.get('rerank_score', 0), x.get('score', 0)), reverse=True)
         
         return results
     

@@ -98,11 +98,15 @@ def main() -> int:
             gold = record.get("extraction", {}).get("expected", [])
             predicted = output.get("todos", []) if output.get("decision") != "reject" else []
             metrics = {**f1(gold, predicted), "decision_accuracy": float((bool(gold)) == (output.get("decision") == "accept"))}
+            # gold_empty 决定这条属于「拒绝判定」还是「真实抽取」。
+            # 不分层时两者混合平均，空 gold 的满分会把真实抽取能力掩盖掉。
+            metrics["gold_empty"] = float(not gold)
             todo.append(metrics)
         elif kind == "constraint":
             gold = record.get("extraction", {}).get("expected", [])
             predicted = [output.get("constraint")] if output.get("decision") == "accept" and output.get("constraint") else []
             metrics = {**f1(gold, predicted), "decision_accuracy": float((bool(gold)) == (output.get("decision") == "accept"))}
+            metrics["gold_empty"] = float(not gold)
             constraint.append(metrics)
         else:
             metrics = {}
@@ -117,6 +121,64 @@ def main() -> int:
         keys = sorted(set().union(*(item.keys() for item in items))) if items else []
         return {key: mean([item[key] for item in items]) for key in keys}
 
+    def stratify(items: list[dict[str, float]]) -> dict[str, Any]:
+        """
+        按 gold 是否为空分层。
+
+        为什么需要：空 gold 且模型也拒绝时 f1 记 1.0，这在「拒绝判定」语义下是对的，
+        但与非空 gold 的抽取任务混合平均后，前者的满分会掩盖后者的真实水平。
+        混合值不是错的，是回答了另一个问题 —— 因此两者必须并列给出。
+        """
+        empty = [i for i in items if i.get("gold_empty")]
+        nonempty = [i for i in items if not i.get("gold_empty")]
+        return {
+            "mixed": avg(items),
+            "gold_empty": {
+                "count": len(empty),
+                "share": len(empty) / len(items) if items else None,
+                "reject_decision_accuracy": mean([i["decision_accuracy"] for i in empty]) if empty else None,
+            },
+            "gold_nonempty": {
+                "count": len(nonempty),
+                **({k: v for k, v in avg(nonempty).items() if k != "gold_empty"} if nonempty else {}),
+            },
+            "interpretation": (
+                "mixed 是历史口径，含空 gold 的满分贡献；"
+                "gold_nonempty 才是真实抽取能力；"
+                "gold_empty.reject_decision_accuracy 是拒绝判定能力，两者是不同任务。"
+            ),
+        }
+
+    def citation_recall_ceiling(recs: list[dict[str, Any]]) -> dict[str, Any]:
+        """
+        引用召回的结构性上限：喂给模型的候选若不覆盖全部 gold，
+        即使模型把候选全引对，recall 也达不到 1.0。
+        不报这个上限，低 recall 会被误读为模型能力问题。
+        """
+        caps, gold_sizes, retr_sizes = [], [], []
+        for r in recs:
+            if (r.get("unit_type") or r.get("kind")) != "qa":
+                continue
+            rl = r.get("retrieval") or {}
+            gold = set(rl.get("relevant_ids") or [])
+            retr = set(rl.get("retrieved_ids") or [])
+            if not gold:
+                continue
+            caps.append(len(gold & retr) / len(gold))
+            gold_sizes.append(len(gold))
+            retr_sizes.append(len(retr))
+        if not caps:
+            return {"measurable": False}
+        return {
+            "measurable": True,
+            "mean_ceiling": mean(caps),
+            "tasks_with_ceiling_below_1": sum(1 for c in caps if c < 1.0),
+            "task_count": len(caps),
+            "gold_ids_median": sorted(gold_sizes)[len(gold_sizes) // 2],
+            "retrieved_ids_median": sorted(retr_sizes)[len(retr_sizes) // 2],
+            "note": "候选集不覆盖全部 gold 时 recall 存在硬上限；实测 recall 应对照该上限解读。",
+        }
+
     payload = {
         "schema_version": "evaluation.v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -125,6 +187,11 @@ def main() -> int:
         "record_count": len(records),
         "completed_count": len(result_by_id),
         "per_record": per_record,
+        "stratified": {
+            "todo": stratify(todo),
+            "constraint": stratify(constraint),
+            "qa_citation_recall_ceiling": citation_recall_ceiling(dataset_records),
+        },
         "metrics": {
             "qa": avg(qa),
             "todo": avg(todo),

@@ -389,7 +389,9 @@ def test_agent_query_returns_policy_and_pending_action(authenticated_client, mon
     from app.api.v1.endpoints import agents as agents_endpoint
 
     class FakeAgentService:
-        async def process_query_with_context(self, question, context, document_ids=None, event_callback=None):
+        async def process_query_with_context(
+            self, question, context, document_ids=None, event_callback=None, explicit_write_authorization=False
+        ):
             return AgentResult(
                 success=True,
                 task_type=TaskType.MULTI,

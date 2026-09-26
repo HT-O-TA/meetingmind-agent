@@ -1,0 +1,242 @@
+{
+  "schema_version": "meetingmind.cloud-canary.v1",
+  "generated_at": "2026-09-26T10:25:04.809385+00:00",
+  "model": "claude-sonnet-5",
+  "count_requested": 100,
+  "count_completed": 11,
+  "max_tokens": 768,
+  "total_token_budget": 1100000,
+  "per_record_token_budget": 8000,
+  "provider": "anthropic",
+  "proxy_overhead_tokens": 6600,
+  "total_tokens_observed": 122157,
+  "paused": true,
+  "pause_reason": "invalid_json",
+  "paused_at_id": "gold-pilot-059",
+  "results": [
+    {
+      "id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕学业规划展开讨论，结论是规划宜早不宜迟，且要坚持主线目标，但家长普遍存在有意识却缺乏具体执行能力的困惑，因此需要专业指导帮助孩子设定自主且可实现的目标。",
+        "citation_ids": [
+          "vcsum:146:seg:2:utt:0",
+          "vcsum:146:seg:2:utt:2",
+          "vcsum:146:seg:6:utt:2",
+          "vcsum:146:seg:7:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7385,
+        "completion_tokens": 4237,
+        "total_tokens": 11622
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4117.18,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文未提及虚拟人类与机器人区别的讨论，仅涉及虚拟人类与人共存形式及混合现实模特生成效果。",
+        "citation_ids": []
+      },
+      "usage": {
+        "prompt_tokens": 7257,
+        "completion_tokens": 2296,
+        "total_tokens": 9553
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3357.08,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议探讨了虚拟人类与机器人的区别及共存形式，并未给出明确的整体结论。",
+        "citation_ids": [
+          "vcsum:150:seg:2:utt:0",
+          "vcsum:150:seg:12:utt:1",
+          "vcsum:150:seg:13:utt:0",
+          "vcsum:150:seg:14:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7218,
+        "completion_tokens": 3195,
+        "total_tokens": 10413
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3362.16,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-050",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议讨论了乡村自媒体如何在政府部门引导下健康发展，包括加强监管和约谈低俗内容、引导其贴近群众和农村实际找准方向，以及高校学者对其特色进行跟踪调研总结提供理论支撑。",
+        "citation_ids": [
+          "vcsum:165_0:utt:0",
+          "vcsum:165_0:utt:2",
+          "vcsum:165_0:utt:4",
+          "vcsum:165_0:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 9649,
+        "completion_tokens": 4492,
+        "total_tokens": 14141
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3954.52,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-051",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕2021年江苏C卷第三题展开，讨论如何引导乡村自媒体健康发展，结论是应贴近群众和农村实际，用幽默生动的短视频传播正能量，避免低级趣味恶搞，从而激发乡村活力并产生正面社会影响。",
+        "citation_ids": [
+          "vcsum:165:seg:2:utt:0",
+          "vcsum:165:seg:2:utt:7"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7400,
+        "completion_tokens": 3860,
+        "total_tokens": 11260
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3904.15,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-052",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议提出学本教学是学生在教师指导下通过自学、互学达成学习目标的课堂教学系统变革方式，核心是以学生深度学习和素养发展为中心，旨在让教学回归学生本身。",
+        "citation_ids": [
+          "vcsum:172_0:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 8428,
+        "completion_tokens": 3372,
+        "total_tokens": 11800
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4616.6,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-054",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "本次会议围绕学本教学这一原创课堂教学变革方式展开，明确其以学生深度学习为重心，将学生自学作为教学起点并重视合作学习。",
+        "citation_ids": [
+          "vcsum:172:seg:1:utt:7",
+          "vcsum:172:seg:7:utt:5",
+          "vcsum:172:seg:8:utt:0",
+          "vcsum:172:seg:8:utt:1"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7164,
+        "completion_tokens": 3387,
+        "total_tokens": 10551
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3593.71,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-055",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文中未提及小米公司对云游戏行业的考察相关内容。",
+        "citation_ids": []
+      },
+      "usage": {
+        "prompt_tokens": 7234,
+        "completion_tokens": 1902,
+        "total_tokens": 9136
+      },
+      "finish_reason": "stop",
+      "latency_ms": 2803.93,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-056",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕云游戏发展达成共识：云游戏被视为推动行业增长和迈向Metaverse的重要方向，参与方希望通过游戏整合各方资源，并认为需要一个教育普及过程让用户接受这种新体验形式。",
+        "citation_ids": [
+          "vcsum:174:seg:19:utt:0",
+          "vcsum:174:seg:24:utt:0",
+          "vcsum:174:seg:24:utt:2"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7520,
+        "completion_tokens": 3930,
+        "total_tokens": 11450
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3956.09,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-058",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕青年创业者对创业意义、个人财富与社会价值的思考展开，认为互联网与教育存在需求错配，但互联网技术属性能为教育等传统领域带来新变化，如将教学过程产品化并借助互联网传递。",
+        "citation_ids": [
+          "vcsum:176:seg:0:utt:0",
+          "vcsum:176:seg:0:utt:2",
+          "vcsum:176:seg:1:utt:3",
+          "vcsum:176:seg:3:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7348,
+        "completion_tokens": 3860,
+        "total_tokens": 11208
+      },
+      "finish_reason": "stop",
+      "latency_ms": 4034.79,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-059",
+      "ok": false,
+      "json_valid": false,
+      "output": "{\"answer\":\"会议围绕2020年这一特殊之年，探讨了政策调整和新冠疫情双重影响下民办教育面临的生源、资金、师资困境及其长远挑战，即民办教育的\"后浪\"话题。\",\"citation_ids\":[\"vcsum:185:seg:2:utt:0\",\"vcsum:185:seg:3:utt:0\",\"vcsum:185:seg:4:utt:2\",\"vcsum:185:seg:4:utt:3\"]}",
+      "usage": {
+        "prompt_tokens": 7340,
+        "completion_tokens": 3683,
+        "total_tokens": 11023
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3809.78,
+      "anomalies": [
+        "invalid_json"
+      ]
+    }
+  ],
+  "limitations": [
+    "待办和约束当前使用冻结候选文本做规范化审核，不等同于从完整会议转写中重新抽取。",
+    "模型供应商可能将隐藏思考 token 计入 completion_tokens。"
+  ]
+}

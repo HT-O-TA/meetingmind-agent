@@ -282,3 +282,36 @@ async def test_consumer_timeout_enters_bounded_retry():
     assert failure[1] == 1
     assert "TimeoutError" in failure[2]
     assert failure[3] is False
+
+
+@pytest.mark.asyncio
+async def test_dead_letter_task_can_be_redriven_and_claimed_again(fake_redis):
+    publisher = FakePublisher()
+    service = TaskQueueService(redis_client=fake_redis, publisher=publisher)
+    task = await service.create_task(TaskType.DOCUMENT_PROCESS, {"document_id": 3}, user_id=7)
+    body = {"task_id": task.task_id}
+    await service.record_delivery_failure(body, retry_count=3, error="TimeoutError: boom", dead_lettered=True)
+    assert (await service.get_task_status(task.task_id)).status == TaskStatus.DEAD_LETTER.value
+    # 死信是终态，未恢复前 worker 不会再执行
+    assert await service.claim_task(task.task_id, "w1") == "terminal"
+
+    redriven = await service.republish_task(task.task_id, user_id=7)
+
+    assert redriven.status == TaskStatus.PENDING.value
+    assert redriven.metadata["redrive_count"] == 1
+    assert redriven.metadata["last_dead_letter_error"] == "TimeoutError: boom"
+    assert publisher.calls[-1]["headers"]["task_id"] == task.task_id
+    assert (await service.claim_task(task.task_id, "w2")).startswith("claimed:")
+
+
+@pytest.mark.asyncio
+async def test_dead_letter_redrive_is_owner_scoped_and_rejects_live_tasks(fake_redis):
+    service = TaskQueueService(redis_client=fake_redis, publisher=FakePublisher())
+    task = await service.create_task(TaskType.DOCUMENT_PROCESS, {"document_id": 4}, user_id=7)
+
+    with pytest.raises(ValueError):
+        await service.republish_task(task.task_id, user_id=7)  # pending 不允许重发
+
+    await service.record_delivery_failure({"task_id": task.task_id}, 3, "E: x", dead_lettered=True)
+    with pytest.raises(LookupError):
+        await service.republish_task(task.task_id, user_id=8)  # 他人任务不可见

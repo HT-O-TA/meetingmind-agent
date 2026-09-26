@@ -39,6 +39,14 @@ class LLMService:
         self.context_assembler = ContextAssembler()
 
     def _create_client(self, api_key: str, base_url: str) -> AsyncOpenAI:
+        if settings.LLM_PROVIDER == "anthropic":
+            from app.services.anthropic_adapter import AnthropicCompatClient
+
+            return AnthropicCompatClient(
+                api_key=api_key,
+                base_url=base_url,
+                timeout=Timeout(connect=10, read=settings.LLM_TIMEOUT, write=10, pool=5),
+            )
         return AsyncOpenAI(
             api_key=api_key,
             base_url=base_url,

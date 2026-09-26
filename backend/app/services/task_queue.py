@@ -61,6 +61,12 @@ TERMINAL_STATUSES = {
     TaskStatus.PUBLISH_FAILED.value,
 }
 
+# 允许人工重新发布的终态：broker 未确认，或重试耗尽进入死信。
+REPUBLISHABLE_STATUSES = {
+    TaskStatus.PUBLISH_FAILED.value,
+    TaskStatus.DEAD_LETTER.value,
+}
+
 
 class TaskQueueService:
     def __init__(self, *, redis_client=None, publisher=None) -> None:
@@ -202,12 +208,23 @@ class TaskQueueService:
         task_id: str,
         user_id: Optional[int] = None,
     ) -> TaskInfo:
-        """仅重发 broker 未确认的同一 task_id，消费者仍可按 task_id 去重。"""
+        """重发同一 task_id：publish_failed（broker 未确认）或 dead_letter（死信人工恢复）。
+
+        死信任务是终态，worker claim 会直接跳过；这里先把状态改回 pending 再发布，
+        原 .dead 队列中的副本保留作审计，消费者按 task_id 状态去重，不会重复执行。
+        """
         task = await self.get_task_status(task_id, user_id)
         if not task:
             raise LookupError("Task not found")
-        if task.status != TaskStatus.PUBLISH_FAILED.value:
-            raise ValueError("只有 publish_failed 任务允许重新发布")
+        if task.status not in REPUBLISHABLE_STATUSES:
+            raise ValueError("只有 publish_failed 或 dead_letter 任务允许重新发布")
+        if task.status == TaskStatus.DEAD_LETTER.value:
+            task.metadata = {
+                **(task.metadata or {}),
+                "redrive_count": int((task.metadata or {}).get("redrive_count", 0)) + 1,
+                "last_dead_letter_error": task.error,
+            }
+            task.attempt_count = 0
         message = {
             "task_id": task.task_id,
             "task_type": task.task_type,

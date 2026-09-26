@@ -1,0 +1,60 @@
+{"id":"heldout-001","question":"你好","task_type":"qa","workflow_type":"simple_qa","group":"greeting","note":"最短问候"}
+{"id":"heldout-002","question":"hi，在吗","task_type":"qa","workflow_type":"simple_qa","group":"greeting","note":"中英混杂问候"}
+{"id":"heldout-003","question":"早上好呀 辛苦了","task_type":"qa","workflow_type":"simple_qa","group":"greeting","note":"无标点问候"}
+{"id":"heldout-004","question":"这次会上定的上线时间是哪天","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":""}
+{"id":"heldout-005","question":"为什么最后决定不用那个外包团队了","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含为什么的原因类单问题"}
+{"id":"heldout-006","question":"张三和李四谁负责测试","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含和但是单个问题；负责一词易误判为todo"}
+{"id":"heldout-007","question":"总结一下张三的观点是什么","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含总结但只问一个人的观点，属qa而非整场纪要"}
+{"id":"heldout-008","question":"预算那块最后是怎么说的","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含怎么的事实问题"}
+{"id":"heldout-009","question":"分析一下王经理为什么反对延期","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含分析一下和反对，但问的是单人原因，不是找争议"}
+{"id":"heldout-010","question":"会上有提到竞品吗","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":""}
+{"id":"heldout-011","question":"what did they say about the pricing model","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"纯英文单问题"}
+{"id":"heldout-012","question":"刘总对新方案啥态度","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"口语省略"}
+{"id":"heldout-013","question":"数据迁移的风险点讨论了哪些","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"某话题讨论了什么"}
+{"id":"heldout-014","question":"服务器扩容和数据库升级是一起做还是分开做 会上怎么定的","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含和但问一个决定"}
+{"id":"heldout-015","question":"谁提出要砍掉会员功能的","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"谁说了什么"}
+{"id":"heldout-016","question":"简单概括下小陈对排期的看法","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"概括近似总结，但范围是单人单话题"}
+{"id":"heldout-017","question":"Q3的KPI目标定的多少来着","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"中英混杂口语"}
+{"id":"heldout-018","question":"开会的时侯有没有说到客户投述的事","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"错别字：时侯、投述"}
+{"id":"heldout-019","question":"大家对新UI有没有意见不一样的地方？就是想知道设计师本人怎么回应的","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"前半像争议，真实意图是问设计师的回应，属qa"}
+{"id":"heldout-020","question":"那个接口文档谁来写","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"问单个任务的负责人，不是提取全部待办"}
+{"id":"heldout-021","question":"怎么理解老板说的“先活下来再谈增长”","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含怎么理解的观点类问题"}
+{"id":"heldout-022","question":"我刚才迟到了前十分钟 他们主要在聊什么","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"问一个片段，不是整场纪要"}
+{"id":"heldout-023","question":"会议最终结论是啥 一句话告诉我","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"问结论单问题，易误判为minutes"}
+{"id":"heldout-024","question":"why was the launch pushed back","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"英文why原因问题"}
+{"id":"heldout-025","question":"把会上的待办事项列一下","task_type":"todo","workflow_type":"todo","group":"todo","note":""}
+{"id":"heldout-026","question":"帮我整理下action items","task_type":"todo","workflow_type":"todo","group":"todo","note":"中英混杂"}
+{"id":"heldout-027","question":"各自要干嘛 分一下工 按人列出来","task_type":"todo","workflow_type":"todo","group":"todo","note":"未出现待办一词的同义表达"}
+{"id":"heldout-028","question":"会后谁要跟进什么，截止时间是什么时候，都给我列清楚","task_type":"todo","workflow_type":"todo","group":"todo","note":"含谁和什么时候，但整体是提取任务清单"}
+{"id":"heldout-029","question":"提取一下代办","task_type":"todo","workflow_type":"todo","group":"todo","note":"错别字：代办"}
+{"id":"heldout-030","question":"what are the next steps and who owns them","task_type":"todo","workflow_type":"todo","group":"todo","note":"英文，含and但是单任务"}
+{"id":"heldout-031","question":"下周之前我和小王分别要完成哪些事","task_type":"todo","workflow_type":"todo","group":"todo","note":"含和的任务分配"}
+{"id":"heldout-032","question":"把这次会里布置下来的任务做成一个清单 方便我贴到飞书里","task_type":"todo","workflow_type":"todo","group":"todo","note":"长句无标点"}
+{"id":"heldout-033","question":"todo","task_type":"todo","workflow_type":"todo","group":"todo","note":"极短"}
+{"id":"heldout-034","question":"帮我写个会议纪要","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":""}
+{"id":"heldout-035","question":"总结一下今天这个会","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"总结对象是整场会，属minutes"}
+{"id":"heldout-036","question":"出一份meeting summary","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"中英混杂"}
+{"id":"heldout-037","question":"领导没参加 你帮我把整个会的内容浓缩成几段话我发给他","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"未出现纪要/总结字样"}
+{"id":"heldout-038","question":"会议摘要","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"极短名词短语"}
+{"id":"heldout-039","question":"按议题分条写一下会议记录，包括背景、讨论过程和结论","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"含和/包括但是纪要格式要求，非多任务"}
+{"id":"heldout-040","question":"整理个纪yao","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"拼音混写错字"}
+{"id":"heldout-041","question":"can you recap the whole meeting for me","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"英文recap"}
+{"id":"heldout-042","question":"这个会开了俩小时我没空看 给我个大概 讲了哪些东西","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"口语问句形式，但要整场概要"}
+{"id":"heldout-043","question":"会上有哪些争议点","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":""}
+{"id":"heldout-044","question":"大家在哪些问题上意见不统一","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"同义改写"}
+{"id":"heldout-045","question":"谁跟谁吵起来了 因为啥","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"口语化冲突，含谁和因为啥"}
+{"id":"heldout-046","question":"分析一下这次会议中存在的分歧","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"含分析一下，但目标是分歧"}
+{"id":"heldout-047","question":"any disagreements in this meeting?","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"英文"}
+{"id":"heldout-048","question":"产品和技术在需求优先级上有啥矛盾","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"含和的双方冲突，单任务"}
+{"id":"heldout-049","question":"找出还没达成共识的地方","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"否定式表达分歧"}
+{"id":"heldout-050","question":"有没有人反对 反对的理由都是什么 把正反两边观点对比一下","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"无标点长句，多个子句但同属争议"}
+{"id":"heldout-051","question":"帮我梳理下会上的冲突点","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":""}
+{"id":"heldout-052","question":"写个会议纪要，再把待办列一下","task_type":"multi","workflow_type":"complex","group":"multi","note":"纪要+待办"}
+{"id":"heldout-053","question":"总结会议内容并找出争议点","task_type":"multi","workflow_type":"complex","group":"multi","note":"纪要+争议"}
+{"id":"heldout-054","question":"给我个summary，顺便把action items也拉出来","task_type":"multi","workflow_type":"complex","group":"multi","note":"中英混杂，顺便连接"}
+{"id":"heldout-055","question":"有哪些分歧 然后每个人会后要做啥","task_type":"multi","workflow_type":"complex","group":"multi","note":"争议+待办，无标点"}
+{"id":"heldout-056","question":"先告诉我上线日期定了没，再出一份完整纪要","task_type":"multi","workflow_type":"complex","group":"multi","note":"qa+纪要"}
+{"id":"heldout-057","question":"纪要、待办、争议三个都要","task_type":"multi","workflow_type":"complex","group":"multi","note":"三任务并列简写"}
+{"id":"heldout-058","question":"帮我复盘这次会：主要讲了啥、哪里没谈拢、后面谁负责什么","task_type":"multi","workflow_type":"complex","group":"multi","note":"未用任务关键词，隐含纪要+争议+待办"}
+{"id":"heldout-059","question":"张总为什么不同意预算方案？另外把会议的任务分配整理出来","task_type":"multi","workflow_type":"complex","group":"multi","note":"qa+待办；前半含不同意易误判为争议"}
+{"id":"heldout-060","question":"recap the meeting and list the todos pls","task_type":"multi","workflow_type":"complex","group":"multi","note":"英文纪要+待办"}

@@ -22,6 +22,14 @@ backend/wheels/
 backend/.env
 .env
 
+# CC-Switch proxy secrets (NEVER commit)
+# 覆盖任意目录层级 + 编辑器/合并工具产生的备份形式（.bak/.orig/.save/.swp 等）
+.env.local
+*.env.local
+.env.local.*
+*.env.local.*
+.env.*.local
+
 # Evaluation datasets (large files)
 backend/evaluate/chunking/data/
 backend/evaluate/*/results/
@@ -53,7 +61,19 @@ docs/
 # VSCode
 .vscode/
 .idea/
-.claude/
+
+# Claude Code: ignore local state, but track shared Agent/MCP config (Q2=B)
+.claude/*
+!.claude/agents/
+!.claude/agents/**
+.claude/settings.local.json
+# 取反规则会让上面的密钥规则在该子目录失效，这里补回来
+.claude/agents/**/.env*
+.claude/agents/**/*id_rsa*
+.claude/agents/**/*secret*
+
+# 内部实测记录：含中转站主机名与账号归属说明，默认不入库
+docs-internal/
 
 # Python cache
 __pycache__/
@@ -149,3 +169,10 @@ backend/local/
 # Local real/public meeting datasets (keep provenance notes, never commit raw media)
 /data/Eval_Ali/
 /data/VCSUM/
+
+# Local agent tooling (not part of the project)
+.claude/
+.context-guard/
+.mcp.json
+CLAUDE.md
+tools/errand-mcp/

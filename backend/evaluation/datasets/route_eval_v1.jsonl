@@ -1,0 +1,47 @@
+{"id":"route-001","question":"你好","task_type":"qa","workflow_type":"simple_qa","group":"greeting"}
+{"id":"route-002","question":"早上好，今天能帮我看看会议吗","task_type":"qa","workflow_type":"simple_qa","group":"greeting"}
+{"id":"route-003","question":"hello","task_type":"qa","workflow_type":"simple_qa","group":"greeting"}
+{"id":"route-004","question":"这个会议讨论了什么？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-005","question":"这场会议的整体结论是什么？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-006","question":"关于“虚拟人类与机器人区别”，会议讨论了什么？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-007","question":"会上谁负责前端改版？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-008","question":"预算最后定的是多少？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-009","question":"下次评审是什么时候？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-010","question":"张三在会上提到的数据口径是哪个？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-011","question":"会议里说的灰度比例是多少","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-012","question":"项目上线日期定了吗？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-013","question":"为什么这次决定推迟发布？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-014","question":"会议中怎么评价上一版方案的？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-015","question":"关于“学本教学的定义与内容”，会议讨论了什么？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-016","question":"他们最后选了哪个供应商","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-017","question":"会上有没有提到性能指标？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-018","question":"产品经理对需求变更是什么态度？","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-019","question":"这次会议有哪些人参加","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-020","question":"解释一下会上说的双写迁移是什么意思","task_type":"qa","workflow_type":"simple_qa","group":"qa"}
+{"id":"route-021","question":"请提取这次会议的待办事项","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-022","question":"列出会上的行动项","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-023","question":"这次会议有哪些待办？","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-024","question":"帮我整理一下 action item","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-025","question":"会后谁要跟进什么事情，整理成待办","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-026","question":"把会议里分配的任务列出来","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-027","question":"给我一份这次会的 todo 清单","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-028","question":"提取带负责人和截止时间的行动项","task_type":"todo","workflow_type":"todo","group":"todo"}
+{"id":"route-029","question":"生成会议纪要","task_type":"minutes","workflow_type":"minutes","group":"minutes"}
+{"id":"route-030","question":"帮我写一份这次的会议纪要","task_type":"minutes","workflow_type":"minutes","group":"minutes"}
+{"id":"route-031","question":"整理会议纪要发给大家","task_type":"minutes","workflow_type":"minutes","group":"minutes"}
+{"id":"route-032","question":"出一份 meeting notes","task_type":"minutes","workflow_type":"minutes","group":"minutes"}
+{"id":"route-033","question":"做个会议总结","task_type":"minutes","workflow_type":"minutes","group":"minutes"}
+{"id":"route-034","question":"请总结会议","task_type":"minutes","workflow_type":"minutes","group":"minutes"}
+{"id":"route-035","question":"会上有哪些争议点？","task_type":"controversy","workflow_type":"controversy","group":"controversy"}
+{"id":"route-036","question":"大家在哪些问题上有分歧","task_type":"controversy","workflow_type":"controversy","group":"controversy"}
+{"id":"route-037","question":"找出会议中的意见冲突","task_type":"controversy","workflow_type":"controversy","group":"controversy"}
+{"id":"route-038","question":"研发和产品之间有什么矛盾","task_type":"controversy","workflow_type":"controversy","group":"controversy"}
+{"id":"route-039","question":"这次讨论有没有没达成一致的争议","task_type":"controversy","workflow_type":"controversy","group":"controversy"}
+{"id":"route-040","question":"请总结会议内容，并且提取待办事项和争议点","task_type":"multi","workflow_type":"complex","group":"multi"}
+{"id":"route-041","question":"生成会议纪要，再列出待办","task_type":"multi","workflow_type":"complex","group":"multi"}
+{"id":"route-042","question":"整理待办事项，同时标出有分歧的地方","task_type":"multi","workflow_type":"complex","group":"multi"}
+{"id":"route-043","question":"一是写会议纪要，二是提取行动项，三是列出争议","task_type":"multi","workflow_type":"complex","group":"multi"}
+{"id":"route-044","question":"先出纪要然后把待办同步给负责人","task_type":"multi","workflow_type":"complex","group":"multi"}
+{"id":"route-045","question":"帮我总结会议纪要以及其中的矛盾点","task_type":"multi","workflow_type":"complex","group":"multi"}
+{"id":"route-046","question":"列出争议点和对应的待办事项","task_type":"multi","workflow_type":"complex","group":"multi"}
+{"id":"route-047","question":"会议纪要和 action item 都要","task_type":"multi","workflow_type":"complex","group":"multi"}

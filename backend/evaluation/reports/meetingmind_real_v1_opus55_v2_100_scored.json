@@ -1,0 +1,1023 @@
+{
+  "schema_version": "evaluation.v1",
+  "generated_at": "2026-09-26T11:04:33.592903+00:00",
+  "dataset_sha256": "8b82b681b130084b3eacdb9a18371319c419dfd695f2345132bce2d6928a9e35",
+  "run_file": "backend/evaluation/reports/meetingmind_real_v1_opus55_v2_100.json",
+  "record_count": 100,
+  "completed_count": 100,
+  "per_record": [
+    {
+      "id": "gold-pilot-046",
+      "meeting_key": "146",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.09090909090909091,
+      "answer_lexical_overlap": 0.018957345971563982
+    },
+    {
+      "id": "gold-pilot-047",
+      "meeting_key": "150",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.05,
+      "answer_lexical_overlap": 0.07017543859649122
+    },
+    {
+      "id": "gold-pilot-049",
+      "meeting_key": "150",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.10526315789473684,
+      "answer_lexical_overlap": 0.09130434782608696
+    },
+    {
+      "id": "gold-pilot-050",
+      "meeting_key": "165",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.38461538461538464,
+      "answer_lexical_overlap": 0.2318840579710145
+    },
+    {
+      "id": "gold-pilot-051",
+      "meeting_key": "165",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.125,
+      "answer_lexical_overlap": 0.17333333333333334
+    },
+    {
+      "id": "gold-pilot-052",
+      "meeting_key": "172",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.07142857142857142,
+      "answer_lexical_overlap": 0.24324324324324326
+    },
+    {
+      "id": "gold-pilot-054",
+      "meeting_key": "172",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.05319148936170213,
+      "answer_lexical_overlap": 0.2127659574468085
+    },
+    {
+      "id": "gold-pilot-055",
+      "meeting_key": "174",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.03571428571428571,
+      "answer_lexical_overlap": 0.029411764705882353
+    },
+    {
+      "id": "gold-pilot-056",
+      "meeting_key": "174",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.06666666666666667,
+      "answer_lexical_overlap": 0.019230769230769232
+    },
+    {
+      "id": "gold-pilot-058",
+      "meeting_key": "176",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.058823529411764705,
+      "answer_lexical_overlap": 0.009009009009009009
+    },
+    {
+      "id": "gold-pilot-059",
+      "meeting_key": "185",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.05714285714285714,
+      "answer_lexical_overlap": 0.041666666666666664
+    },
+    {
+      "id": "gold-pilot-061",
+      "meeting_key": "191",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.1111111111111111,
+      "answer_lexical_overlap": 0.12418300653594772
+    },
+    {
+      "id": "gold-pilot-062",
+      "meeting_key": "193",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.053763440860215055,
+      "answer_lexical_overlap": 0.07100591715976332
+    },
+    {
+      "id": "gold-pilot-064",
+      "meeting_key": "201",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.03225806451612903,
+      "answer_lexical_overlap": 0.006944444444444444
+    },
+    {
+      "id": "gold-pilot-065",
+      "meeting_key": "208",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.030534351145038167,
+      "answer_lexical_overlap": 0.10727969348659004
+    },
+    {
+      "id": "gold-pilot-066",
+      "meeting_key": "21",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.07407407407407407,
+      "answer_lexical_overlap": 0.046296296296296294
+    },
+    {
+      "id": "gold-pilot-068",
+      "meeting_key": "221",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.125,
+      "answer_lexical_overlap": 0.12121212121212122
+    },
+    {
+      "id": "gold-pilot-069",
+      "meeting_key": "236",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.07407407407407407,
+      "answer_lexical_overlap": 0.05042016806722689
+    },
+    {
+      "id": "gold-pilot-070",
+      "meeting_key": "23",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.16129032258064516,
+      "answer_lexical_overlap": 0.09195402298850575
+    },
+    {
+      "id": "gold-pilot-071",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "todo",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_accuracy": 0.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-072",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-073",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.3333333333333333,
+      "f1": 0.4444444444444444,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-074",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.4444444444444444,
+      "f1": 0.5333333333333333,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-075",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "f1": 0.6666666666666666,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-076",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "f1": 0.6666666666666666,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-077",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "f1": 0.6666666666666666,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-078",
+      "meeting_key": "R8003_M8001",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-079",
+      "meeting_key": "R8003_M8001",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-080",
+      "meeting_key": "R8003_M8001",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "f1": 0.6666666666666666,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-081",
+      "meeting_key": "R8007_M8010",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-082",
+      "meeting_key": "R8007_M8010",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "f1": 0.6666666666666666,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-083",
+      "meeting_key": "R8007_M8011",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-084",
+      "meeting_key": "R8007_M8011",
+      "unit_type": "todo",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_accuracy": 0.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-085",
+      "meeting_key": "R8008_M8013",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-086",
+      "meeting_key": "R8008_M8013",
+      "unit_type": "todo",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_accuracy": 0.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-087",
+      "meeting_key": "R8008_M8013",
+      "unit_type": "todo",
+      "precision": 0.6666666666666666,
+      "recall": 0.6666666666666666,
+      "f1": 0.6666666666666666,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-088",
+      "meeting_key": "R8009_M8018",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-089",
+      "meeting_key": "R8009_M8019",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-090",
+      "meeting_key": "R8009_M8020",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-091",
+      "meeting_key": "0",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-092",
+      "meeting_key": "108",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-093",
+      "meeting_key": "110",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-094",
+      "meeting_key": "120",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-095",
+      "meeting_key": "125",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-096",
+      "meeting_key": "146",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-097",
+      "meeting_key": "150",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-098",
+      "meeting_key": "165",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-099",
+      "meeting_key": "172",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-100",
+      "meeting_key": "174",
+      "unit_type": "todo",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-020",
+      "meeting_key": "125",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-022",
+      "meeting_key": "146",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-026",
+      "meeting_key": "165",
+      "unit_type": "constraint",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_accuracy": 0.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-027",
+      "meeting_key": "172",
+      "unit_type": "constraint",
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-031",
+      "meeting_key": "0",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.16666666666666666,
+      "answer_lexical_overlap": 0.017241379310344827
+    },
+    {
+      "id": "gold-pilot-032",
+      "meeting_key": "0",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.15384615384615385,
+      "answer_lexical_overlap": 0.05
+    },
+    {
+      "id": "gold-pilot-033",
+      "meeting_key": "108",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.3,
+      "answer_lexical_overlap": 0.13986013986013987
+    },
+    {
+      "id": "gold-pilot-034",
+      "meeting_key": "108",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.03278688524590164,
+      "answer_lexical_overlap": 0.04739336492890995
+    },
+    {
+      "id": "gold-pilot-036",
+      "meeting_key": "110",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.3333333333333333,
+      "answer_lexical_overlap": 0.16379310344827586
+    },
+    {
+      "id": "gold-pilot-037",
+      "meeting_key": "110",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.08196721311475409,
+      "answer_lexical_overlap": 0.08808290155440414
+    },
+    {
+      "id": "gold-pilot-038",
+      "meeting_key": "120",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.45454545454545453,
+      "answer_lexical_overlap": 0.20155038759689922
+    },
+    {
+      "id": "gold-pilot-040",
+      "meeting_key": "120",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.06666666666666667,
+      "answer_lexical_overlap": 0.11538461538461539
+    },
+    {
+      "id": "gold-pilot-041",
+      "meeting_key": "125",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.35714285714285715,
+      "answer_lexical_overlap": 0.20652173913043478
+    },
+    {
+      "id": "gold-pilot-043",
+      "meeting_key": "125",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.058823529411764705,
+      "answer_lexical_overlap": 0.0642570281124498
+    },
+    {
+      "id": "gold-pilot-044",
+      "meeting_key": "146",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.08695652173913043,
+      "answer_lexical_overlap": 0.08771929824561403
+    },
+    {
+      "id": "gold-pilot-016",
+      "meeting_key": "0",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-017",
+      "meeting_key": "108",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-019",
+      "meeting_key": "120",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-008",
+      "meeting_key": "R8007_M8010",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-010",
+      "meeting_key": "R8007_M8011",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-013",
+      "meeting_key": "R8008_M8013",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-014",
+      "meeting_key": "R8009_M8018",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-015",
+      "meeting_key": "R8009_M8019",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-001",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-002",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "constraint",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_accuracy": 0.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-003",
+      "meeting_key": "R8001_M8004",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 1.0
+    },
+    {
+      "id": "gold-pilot-004",
+      "meeting_key": "R8003_M8001",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-005",
+      "meeting_key": "R8003_M8001",
+      "unit_type": "constraint",
+      "precision": 0.5,
+      "recall": 0.5,
+      "f1": 0.5,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-006",
+      "meeting_key": "R8003_M8001",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-007",
+      "meeting_key": "R8007_M8010",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-009",
+      "meeting_key": "R8007_M8010",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-011",
+      "meeting_key": "R8007_M8011",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-012",
+      "meeting_key": "R8008_M8013",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-018",
+      "meeting_key": "108",
+      "unit_type": "constraint",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_accuracy": 0.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-021",
+      "meeting_key": "125",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-023",
+      "meeting_key": "146",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-024",
+      "meeting_key": "150",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-025",
+      "meeting_key": "165",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-028",
+      "meeting_key": "172",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-029",
+      "meeting_key": "176",
+      "unit_type": "constraint",
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "decision_accuracy": 1.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-030",
+      "meeting_key": "185",
+      "unit_type": "constraint",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "decision_accuracy": 0.0,
+      "gold_empty": 0.0
+    },
+    {
+      "id": "gold-pilot-035",
+      "meeting_key": "110",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.3333333333333333,
+      "answer_lexical_overlap": 0.18823529411764706
+    },
+    {
+      "id": "gold-pilot-039",
+      "meeting_key": "120",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.3333333333333333,
+      "answer_lexical_overlap": 0.2231404958677686
+    },
+    {
+      "id": "gold-pilot-042",
+      "meeting_key": "125",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.8333333333333334,
+      "answer_lexical_overlap": 0.21428571428571427
+    },
+    {
+      "id": "gold-pilot-045",
+      "meeting_key": "146",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.5,
+      "answer_lexical_overlap": 0.2807017543859649
+    },
+    {
+      "id": "gold-pilot-048",
+      "meeting_key": "150",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "answer_lexical_overlap": 0.20909090909090908
+    },
+    {
+      "id": "gold-pilot-053",
+      "meeting_key": "172",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.6666666666666666,
+      "answer_lexical_overlap": 0.46153846153846156
+    },
+    {
+      "id": "gold-pilot-057",
+      "meeting_key": "176",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "answer_lexical_overlap": 0.17073170731707318
+    },
+    {
+      "id": "gold-pilot-060",
+      "meeting_key": "191",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.4,
+      "answer_lexical_overlap": 0.21
+    },
+    {
+      "id": "gold-pilot-063",
+      "meeting_key": "201",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.6666666666666666,
+      "answer_lexical_overlap": 0.4186046511627907
+    },
+    {
+      "id": "gold-pilot-067",
+      "meeting_key": "221",
+      "unit_type": "qa",
+      "citation_precision": 1.0,
+      "citation_recall": 0.8333333333333334,
+      "answer_lexical_overlap": 0.1
+    }
+  ],
+  "stratified": {
+    "todo": {
+      "mixed": {
+        "decision_accuracy": 0.9,
+        "f1": 0.7992592592592592,
+        "gold_empty": 0.6666666666666666,
+        "precision": 0.8111111111111111,
+        "recall": 0.7925925925925926
+      },
+      "gold_empty": {
+        "count": 20,
+        "share": 0.6666666666666666,
+        "reject_decision_accuracy": 0.95
+      },
+      "gold_nonempty": {
+        "count": 10,
+        "decision_accuracy": 0.8,
+        "f1": 0.49777777777777776,
+        "precision": 0.5333333333333333,
+        "recall": 0.47777777777777775
+      },
+      "interpretation": "mixed 是历史口径，含空 gold 的满分贡献；gold_nonempty 才是真实抽取能力；gold_empty.reject_decision_accuracy 是拒绝判定能力，两者是不同任务。"
+    },
+    "constraint": {
+      "mixed": {
+        "decision_accuracy": 0.8666666666666667,
+        "f1": 0.8333333333333334,
+        "gold_empty": 0.36666666666666664,
+        "precision": 0.8333333333333334,
+        "recall": 0.8333333333333334
+      },
+      "gold_empty": {
+        "count": 11,
+        "share": 0.36666666666666664,
+        "reject_decision_accuracy": 1.0
+      },
+      "gold_nonempty": {
+        "count": 19,
+        "decision_accuracy": 0.7894736842105263,
+        "f1": 0.7368421052631579,
+        "precision": 0.7368421052631579,
+        "recall": 0.7368421052631579
+      },
+      "interpretation": "mixed 是历史口径，含空 gold 的满分贡献；gold_nonempty 才是真实抽取能力；gold_empty.reject_decision_accuracy 是拒绝判定能力，两者是不同任务。"
+    },
+    "qa_citation_recall_ceiling": {
+      "measurable": true,
+      "mean_ceiling": 0.47846527927260973,
+      "tasks_with_ceiling_below_1": 30,
+      "task_count": 40,
+      "gold_ids_median": 28,
+      "retrieved_ids_median": 12,
+      "note": "候选集不覆盖全部 gold 时 recall 存在硬上限；实测 recall 应对照该上限解读。"
+    }
+  },
+  "metrics": {
+    "qa": {
+      "answer_lexical_overlap": 0.13546026373825454,
+      "citation_precision": 1.0,
+      "citation_recall": 0.26050656049714244
+    },
+    "todo": {
+      "decision_accuracy": 0.9,
+      "f1": 0.7992592592592592,
+      "gold_empty": 0.6666666666666666,
+      "precision": 0.8111111111111111,
+      "recall": 0.7925925925925926
+    },
+    "constraint": {
+      "decision_accuracy": 0.8666666666666667,
+      "f1": 0.8333333333333334,
+      "gold_empty": 0.36666666666666664,
+      "precision": 0.8333333333333334,
+      "recall": 0.8333333333333334
+    },
+    "json_valid_rate": 1.0,
+    "failure_rate": 0.0,
+    "latency_ms": {
+      "p50": 4205.39,
+      "p95": 7803.57,
+      "mean": 4710.2607
+    },
+    "tokens": {
+      "total": 857911,
+      "mean_per_record": 8579.11,
+      "max_per_record": 13325
+    }
+  },
+  "limitations": [
+    "QA 的答案指标使用词面 F1 代理，不能替代人工语义评分。",
+    "待办和约束使用候选文本规范化口径，不等同于从完整会议转写重新抽取。",
+    "本次 100 条来自 28 场会议，不能表述为 100 场会议。"
+  ]
+}

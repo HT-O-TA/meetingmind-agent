@@ -1,0 +1,618 @@
+{
+  "classifier": "local",
+  "dataset": "route_eval_heldout_v1.jsonl",
+  "count": 60,
+  "task_accuracy": 0.6,
+  "workflow_accuracy": 0.6,
+  "by_group": {
+    "greeting": {
+      "n": 3,
+      "workflow_accuracy": 1.0
+    },
+    "qa": {
+      "n": 21,
+      "workflow_accuracy": 0.952
+    },
+    "todo": {
+      "n": 9,
+      "workflow_accuracy": 0.444
+    },
+    "minutes": {
+      "n": 9,
+      "workflow_accuracy": 0.111
+    },
+    "controversy": {
+      "n": 9,
+      "workflow_accuracy": 0.444
+    },
+    "multi": {
+      "n": 9,
+      "workflow_accuracy": 0.444
+    }
+  },
+  "latency_ms": {
+    "p50": 1281.3,
+    "p95": 1371.4,
+    "max": 2039.4
+  },
+  "confusions": [
+    [
+      "minutes/minutes -> simple_qa/qa",
+      6
+    ],
+    [
+      "controversy/controversy -> simple_qa/qa",
+      5
+    ],
+    [
+      "todo/todo -> simple_qa/qa",
+      3
+    ],
+    [
+      "complex/multi -> todo/todo",
+      3
+    ],
+    [
+      "todo/todo -> complex/multi",
+      2
+    ],
+    [
+      "minutes/minutes -> complex/multi",
+      2
+    ],
+    [
+      "simple_qa/qa -> complex/multi",
+      1
+    ],
+    [
+      "complex/multi -> controversy/controversy",
+      1
+    ],
+    [
+      "complex/multi -> minutes/minutes",
+      1
+    ]
+  ],
+  "per_record": [
+    {
+      "id": "heldout-001",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.2
+    },
+    {
+      "id": "heldout-002",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.5
+    },
+    {
+      "id": "heldout-003",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.2
+    },
+    {
+      "id": "heldout-004",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 2039.4
+    },
+    {
+      "id": "heldout-005",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1329.8
+    },
+    {
+      "id": "heldout-006",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1353.1
+    },
+    {
+      "id": "heldout-007",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1271.0
+    },
+    {
+      "id": "heldout-008",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1237.9
+    },
+    {
+      "id": "heldout-009",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1360.5
+    },
+    {
+      "id": "heldout-010",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1296.8
+    },
+    {
+      "id": "heldout-011",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1259.5
+    },
+    {
+      "id": "heldout-012",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1323.6
+    },
+    {
+      "id": "heldout-013",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1300.5
+    },
+    {
+      "id": "heldout-014",
+      "group": "qa",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "complex/multi",
+      "expected": "simple_qa/qa",
+      "latency_ms": 323.0
+    },
+    {
+      "id": "heldout-015",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1371.4
+    },
+    {
+      "id": "heldout-016",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1283.1
+    },
+    {
+      "id": "heldout-017",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1258.2
+    },
+    {
+      "id": "heldout-018",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1337.6
+    },
+    {
+      "id": "heldout-019",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1354.9
+    },
+    {
+      "id": "heldout-020",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1349.2
+    },
+    {
+      "id": "heldout-021",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1323.3
+    },
+    {
+      "id": "heldout-022",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1290.5
+    },
+    {
+      "id": "heldout-023",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1314.6
+    },
+    {
+      "id": "heldout-024",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 1298.3
+    },
+    {
+      "id": "heldout-025",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 1284.0
+    },
+    {
+      "id": "heldout-026",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 1416.4
+    },
+    {
+      "id": "heldout-027",
+      "group": "todo",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "complex/multi",
+      "expected": "todo/todo",
+      "latency_ms": 308.2
+    },
+    {
+      "id": "heldout-028",
+      "group": "todo",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "todo/todo",
+      "latency_ms": 319.2
+    },
+    {
+      "id": "heldout-029",
+      "group": "todo",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "todo/todo",
+      "latency_ms": 1366.2
+    },
+    {
+      "id": "heldout-030",
+      "group": "todo",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "todo/todo",
+      "latency_ms": 1351.7
+    },
+    {
+      "id": "heldout-031",
+      "group": "todo",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "complex/multi",
+      "expected": "todo/todo",
+      "latency_ms": 299.8
+    },
+    {
+      "id": "heldout-032",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 1459.7
+    },
+    {
+      "id": "heldout-033",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 1222.2
+    },
+    {
+      "id": "heldout-034",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 1252.5
+    },
+    {
+      "id": "heldout-035",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "minutes/minutes",
+      "latency_ms": 1266.8
+    },
+    {
+      "id": "heldout-036",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "minutes/minutes",
+      "latency_ms": 1281.3
+    },
+    {
+      "id": "heldout-037",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "complex/multi",
+      "expected": "minutes/minutes",
+      "latency_ms": 310.7
+    },
+    {
+      "id": "heldout-038",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "minutes/minutes",
+      "latency_ms": 1352.3
+    },
+    {
+      "id": "heldout-039",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "complex/multi",
+      "expected": "minutes/minutes",
+      "latency_ms": 262.4
+    },
+    {
+      "id": "heldout-040",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "minutes/minutes",
+      "latency_ms": 1245.8
+    },
+    {
+      "id": "heldout-041",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "minutes/minutes",
+      "latency_ms": 1295.3
+    },
+    {
+      "id": "heldout-042",
+      "group": "minutes",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "minutes/minutes",
+      "latency_ms": 1265.9
+    },
+    {
+      "id": "heldout-043",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 1259.8
+    },
+    {
+      "id": "heldout-044",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 1300.4
+    },
+    {
+      "id": "heldout-045",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 1307.0
+    },
+    {
+      "id": "heldout-046",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 1297.7
+    },
+    {
+      "id": "heldout-047",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 0.1
+    },
+    {
+      "id": "heldout-048",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 266.1
+    },
+    {
+      "id": "heldout-049",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 1273.7
+    },
+    {
+      "id": "heldout-050",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 266.5
+    },
+    {
+      "id": "heldout-051",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 1320.7
+    },
+    {
+      "id": "heldout-052",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 270.6
+    },
+    {
+      "id": "heldout-053",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 276.2
+    },
+    {
+      "id": "heldout-054",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "todo/todo",
+      "expected": "complex/multi",
+      "latency_ms": 1276.5
+    },
+    {
+      "id": "heldout-055",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "controversy/controversy",
+      "expected": "complex/multi",
+      "latency_ms": 272.0
+    },
+    {
+      "id": "heldout-056",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "minutes/minutes",
+      "expected": "complex/multi",
+      "latency_ms": 264.9
+    },
+    {
+      "id": "heldout-057",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 1320.7
+    },
+    {
+      "id": "heldout-058",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 273.6
+    },
+    {
+      "id": "heldout-059",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "todo/todo",
+      "expected": "complex/multi",
+      "latency_ms": 272.2
+    },
+    {
+      "id": "heldout-060",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "todo/todo",
+      "expected": "complex/multi",
+      "latency_ms": 1293.3
+    }
+  ]
+}

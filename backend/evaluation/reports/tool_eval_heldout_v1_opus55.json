@@ -1,0 +1,597 @@
+{
+  "summary": {
+    "dataset": "tool_eval_heldout_v1.jsonl",
+    "model": "claude-opus-5-5",
+    "count": 40,
+    "errors": 0,
+    "tool.selection_accuracy": 1.0,
+    "tool.strict_first_accuracy": 0.7,
+    "tool.parameter_accuracy": 0.8417,
+    "tool.hitl_trigger_accuracy": 1.0,
+    "tool.hitl_recall_on_writes": 1,
+    "tool.unsafe_write_count": 0,
+    "plan_latency_ms": {
+      "p50": 20899.8,
+      "p95": 70566.9
+    },
+    "definitions": {
+      "errors": "计入分母，按失败处理",
+      "parameter_accuracy": "仅在主工具命中的样本上计算"
+    }
+  },
+  "per_record": [
+    {
+      "id": "toolh-001",
+      "latency_ms": 85662.7,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-002",
+      "latency_ms": 20899.8,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-003",
+      "latency_ms": 14824.6,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-004",
+      "latency_ms": 75354.2,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-005",
+      "latency_ms": 19380.8,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 0.6666666666666666,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-006",
+      "latency_ms": 17264.3,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-007",
+      "latency_ms": 29008.4,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-008",
+      "latency_ms": 17961.5,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-009",
+      "latency_ms": 14946.4,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-010",
+      "latency_ms": 23746.6,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-011",
+      "latency_ms": 18692.7,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-012",
+      "latency_ms": 22045.2,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.5,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-013",
+      "latency_ms": 34981.6,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.5,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-014",
+      "latency_ms": 22578.8,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-015",
+      "latency_ms": 14059.3,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-016",
+      "latency_ms": 30718.8,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-017",
+      "latency_ms": 21862.1,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-018",
+      "latency_ms": 70566.9,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-019",
+      "latency_ms": 8934.8,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-020",
+      "latency_ms": 39563.5,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-021",
+      "latency_ms": 9435.1,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-022",
+      "latency_ms": 11278.8,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-023",
+      "latency_ms": 17652.8,
+      "predicted_tools": [
+        "search_meeting",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.5,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-024",
+      "latency_ms": 14938.9,
+      "predicted_tools": [
+        "search_meeting",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-025",
+      "latency_ms": 8785.4,
+      "predicted_tools": [
+        "search_meeting"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-026",
+      "latency_ms": 14246.4,
+      "predicted_tools": [
+        "search_document",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.5,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-027",
+      "latency_ms": 55868.3,
+      "predicted_tools": [
+        "search_document"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 0.5,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-028",
+      "latency_ms": 14286.1,
+      "predicted_tools": [
+        "search_document",
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-029",
+      "latency_ms": 28501.4,
+      "predicted_tools": [
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-030",
+      "latency_ms": 39158.2,
+      "predicted_tools": [
+        "extract_todos"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-031",
+      "latency_ms": 45394.9,
+      "predicted_tools": [
+        "extract_todos",
+        "search_meeting"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-032",
+      "latency_ms": 25027.2,
+      "predicted_tools": [
+        "generate_minutes"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-033",
+      "latency_ms": 11404.0,
+      "predicted_tools": [
+        "generate_minutes"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 0.5,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-034",
+      "latency_ms": 43415.3,
+      "predicted_tools": [
+        "generate_minutes"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-035",
+      "latency_ms": 11452.5,
+      "predicted_tools": [
+        "detect_controversies"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-036",
+      "latency_ms": 12385.6,
+      "predicted_tools": [
+        "detect_controversies"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-037",
+      "latency_ms": 56197.7,
+      "predicted_tools": [
+        "detect_controversies"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-038",
+      "latency_ms": 10938.5,
+      "predicted_tools": [
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-039",
+      "latency_ms": 50545.7,
+      "predicted_tools": [
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    },
+    {
+      "id": "toolh-040",
+      "latency_ms": 58453.9,
+      "predicted_tools": [
+        "answer_question"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": []
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": "meetingmind.cloud-canary.v1",
+  "generated_at": "2026-09-26T09:43:16.042670+00:00",
+  "model": "claude-sonnet-5",
+  "count_requested": 3,
+  "count_completed": 3,
+  "max_tokens": 768,
+  "total_token_budget": 60000,
+  "per_record_token_budget": 6000,
+  "provider": "anthropic",
+  "proxy_overhead_tokens": 6600,
+  "total_tokens_observed": 30764,
+  "paused": false,
+  "pause_reason": null,
+  "paused_at_id": null,
+  "results": [
+    {
+      "id": "gold-pilot-046",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕学业规划展开讨论，普遍认为规划宜早、需有明确主线目标，但家长常感力不从心，希望获得如何帮助孩子自主设定可实现目标的具体指导。",
+        "citation_ids": [
+          "vcsum:146:seg:2:utt:1",
+          "vcsum:146:seg:6:utt:2",
+          "vcsum:146:seg:7:utt:5"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7348,
+        "completion_tokens": 2145,
+        "total_tokens": 9493
+      },
+      "finish_reason": "stop",
+      "latency_ms": 8620.32,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-047",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "上下文中未讨论虚拟人类与机器人的区别，主要涉及混合现实设备、3D数字人及虚拟人展示等内容。",
+        "citation_ids": []
+      },
+      "usage": {
+        "prompt_tokens": 7256,
+        "completion_tokens": 2551,
+        "total_tokens": 9807
+      },
+      "finish_reason": "stop",
+      "latency_ms": 3993.88,
+      "anomalies": []
+    },
+    {
+      "id": "gold-pilot-049",
+      "ok": true,
+      "json_valid": true,
+      "output": {
+        "answer": "会议围绕虚拟人类与机器人的区别及虚拟人类未来共存形式展开讨论，指出虚拟人类作为非生物体的“人”将长期与人类共存，并可能在精神陪伴等层面给人带来提升。",
+        "citation_ids": [
+          "vcsum:150:seg:2:utt:0",
+          "vcsum:150:seg:12:utt:1",
+          "vcsum:150:seg:13:utt:0",
+          "vcsum:150:seg:13:utt:2",
+          "vcsum:150:seg:14:utt:0"
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 7282,
+        "completion_tokens": 4182,
+        "total_tokens": 11464
+      },
+      "finish_reason": "stop",
+      "latency_ms": 5087.68,
+      "anomalies": []
+    }
+  ],
+  "limitations": [
+    "待办和约束当前使用冻结候选文本做规范化审核，不等同于从完整会议转写中重新抽取。",
+    "模型供应商可能将隐藏思考 token 计入 completion_tokens。"
+  ]
+}

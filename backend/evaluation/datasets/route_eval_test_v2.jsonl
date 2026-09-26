@@ -1,0 +1,80 @@
+{"id":"test-001","question":"你好","task_type":"qa","workflow_type":"simple_qa","group":"greeting","note":""}
+{"id":"test-002","question":"hi，在吗","task_type":"qa","workflow_type":"simple_qa","group":"greeting","note":"中英混杂问候"}
+{"id":"test-003","question":"早上好呀，辛苦了","task_type":"qa","workflow_type":"simple_qa","group":"greeting","note":""}
+{"id":"test-004","question":"嗨 小助手","task_type":"qa","workflow_type":"simple_qa","group":"greeting","note":"无标点短问候"}
+{"id":"test-005","question":"张总为什么反对把上线时间提前","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含为什么和反对，但只问单人原因，不是找争议"}
+{"id":"test-006","question":"这次会意上说的预算到底是多少","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"错别字：会意"}
+{"id":"test-007","question":"王老师对期中考试改革怎么看","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"教育行业，含怎么"}
+{"id":"test-008","question":"帮我总结一下李经理的发言","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含总结但范围仅一个人，不是整场纪要"}
+{"id":"test-009","question":"概括下关于供应商切换那个话题讨论了啥","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含概括但范围仅一个话题"}
+{"id":"test-010","question":"分析一下为什么Q3获客成本涨了","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含分析和为什么，仍是单问题"}
+{"id":"test-011","question":"质检那块谁负责跟进","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"问单个任务负责人，属于qa不是todo；制造业"}
+{"id":"test-012","question":"数据迁移这个任务分给谁了","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含任务、分给，但只问单个任务的负责人"}
+{"id":"test-013","question":"会上提到的deadline是哪天","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含deadline但是事实问题"}
+{"id":"test-014","question":"客户那边的反馈是啥","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"省略主语"}
+{"id":"test-015","question":"财务和法务分别对合同条款提了什么意见","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含和、分别，但是单个问题；不是找分歧"}
+{"id":"test-016","question":"护理部和药剂科的排班问题最后怎么说的","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"医疗行政；含和、怎么"}
+{"id":"test-017","question":"刚才说的那个KPI具体怎么算","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含怎么"}
+{"id":"test-018","question":"有人提到竞品吗","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"很短的是非问"}
+{"id":"test-019","question":"产线良率现在多少会上有说么","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"无标点；制造业"}
+{"id":"test-020","question":"风控模型为啥被否了","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"金融；口语为啥"}
+{"id":"test-021","question":"陈医生说的流程优化具体指什么","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含优化，谁说了什么"}
+{"id":"test-022","question":"老板最后拍板了没","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"口语"}
+{"id":"test-023","question":"关于新校区招生 大家都讨论了哪些点","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"范围是单个话题，不是整场纪要"}
+{"id":"test-024","question":"小刘提的那个意见是啥来着","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含意见，但不是意见分歧"}
+{"id":"test-025","question":"这次会议主持人是谁","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":""}
+{"id":"test-026","question":"下次会议啥时候开","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含下次，易误判为下一步工作"}
+{"id":"test-027","question":"为什么说服务器扩容要推迟到下个月，是成本问题还是人手问题","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含为什么和还是，仍是单个原因问题"}
+{"id":"test-028","question":"summary一下Tom关于pricing的观点","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"含summary但范围是一个人一个话题；中英混杂"}
+{"id":"test-029","question":"会上提到的风险点有哪些","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"列举型但属于单话题事实问题"}
+{"id":"test-030","question":"我想了解一下在今天这个会议里面关于明年一季度信贷投放节奏的问题行长那边具体是怎么表态的有没有给出明确的数字","task_type":"qa","workflow_type":"simple_qa","group":"qa","note":"超长无标点；金融"}
+{"id":"test-031","question":"帮我把待办事象列一下","task_type":"todo","workflow_type":"todo","group":"todo","note":"错别字：事象"}
+{"id":"test-032","question":"这次会议有哪些action item","task_type":"todo","workflow_type":"todo","group":"todo","note":"中英混杂"}
+{"id":"test-033","question":"整理下每个人的任务和截止时间","task_type":"todo","workflow_type":"todo","group":"todo","note":"含和，但是单一任务"}
+{"id":"test-034","question":"会后谁要干啥 给我拉个清单","task_type":"todo","workflow_type":"todo","group":"todo","note":"无任务关键词的口语表达"}
+{"id":"test-035","question":"下一步工作安排有哪些","task_type":"todo","workflow_type":"todo","group":"todo","note":""}
+{"id":"test-036","question":"把分配给市场部和销售部的任务分别列出来","task_type":"todo","workflow_type":"todo","group":"todo","note":"含和、分别，但是单一任务"}
+{"id":"test-037","question":"todo list 出一份","task_type":"todo","workflow_type":"todo","group":"todo","note":"英文关键词"}
+{"id":"test-038","question":"列出所有需要跟进的事项以及负责人","task_type":"todo","workflow_type":"todo","group":"todo","note":"含以及，且含负责人，但是列全部任务，属于todo"}
+{"id":"test-039","question":"帮我理一下接下来要做的事","task_type":"todo","workflow_type":"todo","group":"todo","note":"隐含表达"}
+{"id":"test-040","question":"会上给我派活了吗 我这边都要做啥","task_type":"todo","workflow_type":"todo","group":"todo","note":"限定本人但仍是提取任务清单"}
+{"id":"test-041","question":"提取行动项 按优先级排","task_type":"todo","workflow_type":"todo","group":"todo","note":""}
+{"id":"test-042","question":"麻烦把会上定的整改措施逐条列成任务","task_type":"todo","workflow_type":"todo","group":"todo","note":"制造/医疗整改场景"}
+{"id":"test-043","question":"帮我生成会议记要","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"错别字：记要"}
+{"id":"test-044","question":"总结一下这次会","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":""}
+{"id":"test-045","question":"整场会议的概要给我来一份","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":""}
+{"id":"test-046","question":"能出个meeting minutes吗","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"中英混杂"}
+{"id":"test-047","question":"简单回顾下今天开会都讲了啥","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":""}
+{"id":"test-048","question":"写个会议摘要 发群里用","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":""}
+{"id":"test-049","question":"这个会太长了没听 帮我概括下","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"概括范围是整场"}
+{"id":"test-050","question":"给领导写一份本次季度复盘会的总结","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"含复盘"}
+{"id":"test-051","question":"出个纪要","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"很短"}
+{"id":"test-052","question":"把整场讨论按议题和结论整理成纪要","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"含和，但是单一任务"}
+{"id":"test-053","question":"用三句话说说这次会议讲了什么","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"无纪要关键词"}
+{"id":"test-054","question":"recap一下今天的周会","task_type":"minutes","workflow_type":"minutes","group":"minutes","note":"英文关键词"}
+{"id":"test-055","question":"这次会上有哪些争议点","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":""}
+{"id":"test-056","question":"大家在哪些地方意见不一致","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":""}
+{"id":"test-057","question":"哪些问题没谈拢","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"口语"}
+{"id":"test-058","question":"找一下会上吵起来的地方","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"口语：吵起来"}
+{"id":"test-059","question":"研发和产品分歧在哪","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"含和，但是单一任务"}
+{"id":"test-060","question":"有没有冲突的观点 列出来","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":""}
+{"id":"test-061","question":"哪些议题存在分歧以及各方立场","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"含以及，但是单一任务"}
+{"id":"test-062","question":"教务处和年级组对课时安排是不是有不同意见","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"教育；限定话题的分歧仍属controversy"}
+{"id":"test-063","question":"分析一下会上的主要分歧","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"含分析"}
+{"id":"test-064","question":"disagreement都有哪些","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"英文关键词"}
+{"id":"test-065","question":"会上有没有扯皮的地方帮我挑出来","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"口语：扯皮；无标点"}
+{"id":"test-066","question":"意见相左的地方汇总下","task_type":"controversy","workflow_type":"controversy","group":"controversy","note":"含汇总，易误判为minutes"}
+{"id":"test-067","question":"生成纪要并列出待办","task_type":"multi","workflow_type":"complex","group":"multi","note":"minutes+todo"}
+{"id":"test-068","question":"总结一下会议，再把争议点标出来","task_type":"multi","workflow_type":"complex","group":"multi","note":"minutes+controversy"}
+{"id":"test-069","question":"帮我出份会议摘要和action items","task_type":"multi","workflow_type":"complex","group":"multi","note":"minutes+todo，中英混杂"}
+{"id":"test-070","question":"列出待办，另外会上有哪些分歧","task_type":"multi","workflow_type":"complex","group":"multi","note":"todo+controversy"}
+{"id":"test-071","question":"纪要+todo+争议 一起给我","task_type":"multi","workflow_type":"complex","group":"multi","note":"三种任务，用加号连接"}
+{"id":"test-072","question":"我没参会，想知道大概讲了啥，还有我要干哪些活","task_type":"multi","workflow_type":"complex","group":"multi","note":"无任务关键词，隐含minutes+todo"}
+{"id":"test-073","question":"老板问今天会上吵了什么、最后谁去落实，帮我准备下","task_type":"multi","workflow_type":"complex","group":"multi","note":"无任务关键词，隐含controversy+todo"}
+{"id":"test-074","question":"先告诉我王总为什么反对，然后把整场会议总结一下","task_type":"multi","workflow_type":"complex","group":"multi","note":"qa+minutes"}
+{"id":"test-075","question":"回顾下这次会 顺便看看哪些没谈拢","task_type":"multi","workflow_type":"complex","group":"multi","note":"minutes+controversy，无标点"}
+{"id":"test-076","question":"summary and next steps please","task_type":"multi","workflow_type":"complex","group":"multi","note":"全英文，minutes+todo"}
+{"id":"test-077","question":"要发给没来的同事：会议讲了什么、哪些事还没达成一致","task_type":"multi","workflow_type":"complex","group":"multi","note":"隐含minutes+controversy"}
+{"id":"test-078","question":"张经理负责哪块，另外把所有行动项列一下","task_type":"multi","workflow_type":"complex","group":"multi","note":"qa+todo"}
+{"id":"test-079","question":"整理会议要点，再帮我拆成具体任务分给各人","task_type":"multi","workflow_type":"complex","group":"multi","note":"minutes+todo"}
+{"id":"test-080","question":"帮我看看哪几个点大家意见不同，每个点后续该谁跟进","task_type":"multi","workflow_type":"complex","group":"multi","note":"controversy+todo，隐含表达"}

@@ -40,6 +40,19 @@ class MultiTaskResult(TypedDict):
     is_multi_task: bool
     confidence: float
 
+class _JsonClosedCriteria:
+    """生成出第一个配平的 JSON 对象后立即停止（仅检查新生成部分）。"""
+
+    def __init__(self, tokenizer, prompt_len: int):
+        self._tokenizer = tokenizer
+        self._prompt_len = prompt_len
+
+    def __call__(self, input_ids, scores, **kwargs):
+        text = self._tokenizer.decode(input_ids[0, self._prompt_len:], skip_special_tokens=True)
+        start = text.find("{")
+        return start != -1 and text.count("{", start) <= text.count("}", start)
+
+
 class ComplexityClassifier:
     """复杂度分类器 - 使用本地 qwen3-0.6B 模型（双阶段分类）"""
     
@@ -60,7 +73,7 @@ class ComplexityClassifier:
         
         try:
             # Transformers 是本地模型增强依赖，不应阻塞轻量 API、测试或规则路由。
-            from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+            from transformers import AutoTokenizer, AutoModelForCausalLM, StoppingCriteriaList, pipeline
 
             model_path = settings.COMPLEXITY_MODEL_PATH
             app_logger.info(f"[COMPLEXITY] 正在加载本地模型: {model_path}")
@@ -79,18 +92,19 @@ class ComplexityClassifier:
                 low_cpu_mem_usage=True
             )
             
-            # 优化后的生成参数
+            # 输出只需一个短 JSON：贪心解码 + 首个 JSON 闭合即停。
+            # 原配置（采样、固定生成 120 token）在 JSON 后继续复读解释，
+            # 单次路由两阶段合计约 9.3s（route_eval_v1, RTX 4060）。
             self._pipeline = pipeline(
                 "text-generation",
                 model=self._model,
                 tokenizer=self._tokenizer,
-                max_new_tokens=120,
-                temperature=0.25,
-                top_p=0.8,
-                top_k=20,
-                do_sample=True,
+                max_new_tokens=48,
+                do_sample=False,
+                return_full_text=False,
                 pad_token_id=self._tokenizer.eos_token_id
             )
+            self._stopping_list_cls = StoppingCriteriaList
             
             self._initialized = True
             app_logger.info("[COMPLEXITY] 模型加载成功")
@@ -99,6 +113,12 @@ class ComplexityClassifier:
             app_logger.error(f"[COMPLEXITY] 模型加载失败: {e}")
             self._initialized = False
     
+    def _generate(self, prompt: str) -> str:
+        """只返回新生成文本；每次调用新建停止条件，避免跨请求状态残留。"""
+        prompt_len = len(self._tokenizer(prompt)["input_ids"])
+        stopping = self._stopping_list_cls([_JsonClosedCriteria(self._tokenizer, prompt_len)])
+        return self._pipeline(prompt, stopping_criteria=stopping)[0]["generated_text"]
+
     def _get_complexity_level(self, score: float) -> ComplexityLevel:
         """根据分数获取复杂度级别"""
         if score < 0.3:
@@ -136,8 +156,7 @@ class ComplexityClassifier:
             }
         
         try:
-            prompt = self._build_multi_task_prompt(question)
-            response = self._pipeline(prompt)[0]["generated_text"]
+            response = self._generate(self._build_multi_task_prompt(question))
             result = self._parse_multi_task_response(response)
             
             # 检测连续相同输出
@@ -169,8 +188,7 @@ class ComplexityClassifier:
             }
         
         try:
-            prompt = self._build_complexity_prompt(question)
-            response = self._pipeline(prompt)[0]["generated_text"]
+            response = self._generate(self._build_complexity_prompt(question))
             result = self._parse_complexity_response(response)
             
             # 检测连续相同输出

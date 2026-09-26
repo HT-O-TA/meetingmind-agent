@@ -12,7 +12,7 @@ from app.agents.session_context import SessionContext, generate_session_id, gene
 from app.core.dependencies import get_llm_service, get_vector_search_service
 from app.core.logger import app_logger
 from app.core.deps import get_current_user
-from app.core.security import AccessContext
+from app.core.security import AccessContext, user_role_value
 from app.models.user import User
 from app.agents.memory import SessionMemoryStore
 import json
@@ -68,6 +68,14 @@ class AgentQueryRequest(BaseModel):
     conversation_id: Optional[str] = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
     task_id: Optional[str] = Field(default=None, min_length=1, max_length=128, pattern=r"^[A-Za-z0-9_.:-]+$")
     enable_human_in_the_loop: bool = False
+    # 本轮是否明确授权可撤销的内部写操作（MEDIUM 风险）。只由前端显式勾选传入，
+    # 后端不再从问题文本推断授权。
+    explicit_write_authorization: bool = False
+
+
+def _write_authorization(request: "AgentQueryRequest", user: User) -> bool:
+    """请求级写授权：只读用户的勾选一律无效（批量入口不接受该字段，保持 fail-closed）。"""
+    return request.explicit_write_authorization is True and user_role_value(user) != "readonly"
 
 
 class AgentBatchRequest(BaseModel):
@@ -113,8 +121,9 @@ async def agent_query(
         question=request.question,
         context=context,
         document_ids=request.document_ids,
+        explicit_write_authorization=_write_authorization(request, current_user),
     )
-    
+
     latency_ms = (time.time() - start_time) * 1000
     response_data = {
         "success": result.success,
@@ -208,6 +217,7 @@ async def agent_query_stream(
                 context=context,
                 document_ids=request.document_ids,
                 event_callback=event_callback,
+                explicit_write_authorization=_write_authorization(request, current_user),
             ))
 
             while not task.done() or not queue.empty():

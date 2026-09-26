@@ -1,6 +1,6 @@
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from typing import List, Literal
 import json
 
 
@@ -113,6 +113,8 @@ class Settings(BaseSettings):
     # ==================== LLM配置（OpenAI兼容接口） ====================
     LLM_API_BASE: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"  # LLM API基础URL
     LLM_API_KEY: str = ""  # LLM API密钥（从.env文件读取，不要在此处硬编码）
+    # openai: OpenAI 兼容 chat/completions（DashScope 等）；anthropic: Anthropic Messages API
+    LLM_PROVIDER: Literal["openai", "anthropic"] = "openai"
     LLM_MODEL: str = "qwen3.7-flash"  # 2026-09-08 后统一使用的默认云模型
     LLM_TEMPERATURE: float = 0.7  # LLM温度参数，控制输出随机性（0-1）
     LLM_MAX_TOKENS: int = 1000  # LLM生成的最大token数
@@ -182,6 +184,10 @@ class Settings(BaseSettings):
     # 路由阈值当前是保守初始值，必须由 route_eval 数据集重新标定后再写入报告。
     ROUTE_TASK_CONFIDENCE_THRESHOLD: float = 0.65
     ROUTE_COMPLEXITY_CONFIDENCE_THRESHOLD: float = 0.65
+    ROUTE_SEMANTIC_TASK_ENABLED: bool = True  # 本地 bge-m3 语义任务识别；模型缺失时自动回退关键词
+    # 本地 Qwen3-1.7B 复杂度分类器。route_eval_test_v2 上开启后准确率 0.825→0.800、
+    # 路由 p95 22ms→1351ms，默认关闭，复杂度走规则兜底（只影响模型档位）。
+    ROUTE_LOCAL_COMPLEXITY_ENABLED: bool = False
 
     # ==================== 统一质量门禁配置 ====================
     QUALITY_GATE_REPLAN_THRESHOLD: float = 0.5  # 触发重规划的分数阈值

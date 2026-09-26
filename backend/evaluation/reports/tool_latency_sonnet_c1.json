@@ -1,0 +1,153 @@
+{
+  "summary": {
+    "dataset": "tool_latency_dev_v1.jsonl",
+    "model": "claude-sonnet-5",
+    "count": 8,
+    "errors": 0,
+    "tool.selection_accuracy": 0.875,
+    "tool.strict_first_accuracy": 0.75,
+    "tool.parameter_accuracy": 0.9286,
+    "tool.hitl_trigger_accuracy": 0.875,
+    "tool.hitl_recall_on_writes": 0.75,
+    "tool.unsafe_write_count": 0,
+    "plan_latency_ms": {
+      "p50": 8635.3,
+      "p95": 15012.1
+    },
+    "definitions": {
+      "errors": "计入分母，按失败处理",
+      "parameter_accuracy": "仅在主工具命中的样本上计算"
+    }
+  },
+  "per_record": [
+    {
+      "id": "tool-041",
+      "latency_ms": 9526.7,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": [],
+      "input_tokens": 9220,
+      "output_tokens": 11360
+    },
+    {
+      "id": "tool-042",
+      "latency_ms": 11793.8,
+      "predicted_tools": [
+        "jira_create_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": [],
+      "input_tokens": 9456,
+      "output_tokens": 14696
+    },
+    {
+      "id": "tool-047",
+      "latency_ms": 11496.2,
+      "predicted_tools": [
+        "jira_get_issue",
+        "jira_update_issue"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": false,
+      "parameter_score": 0.5,
+      "hitl_predicted": true,
+      "hitl_ok": true,
+      "expected_hitl": true,
+      "validation_errors": [],
+      "input_tokens": 9501,
+      "output_tokens": 16182
+    },
+    {
+      "id": "tool-048",
+      "latency_ms": 15012.1,
+      "predicted_tools": [
+        "jira_get_issue"
+      ],
+      "selection_ok": false,
+      "strict_first_ok": false,
+      "parameter_score": 0.0,
+      "hitl_predicted": false,
+      "hitl_ok": false,
+      "expected_hitl": true,
+      "validation_errors": [],
+      "input_tokens": 9578,
+      "output_tokens": 17324
+    },
+    {
+      "id": "tool-001",
+      "latency_ms": 6736.6,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": [],
+      "input_tokens": 9012,
+      "output_tokens": 8820
+    },
+    {
+      "id": "tool-002",
+      "latency_ms": 8002.9,
+      "predicted_tools": [
+        "get_document_content"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": [],
+      "input_tokens": 9062,
+      "output_tokens": 9546
+    },
+    {
+      "id": "tool-005",
+      "latency_ms": 8635.3,
+      "predicted_tools": [
+        "search_document"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": [],
+      "input_tokens": 9134,
+      "output_tokens": 10581
+    },
+    {
+      "id": "tool-006",
+      "latency_ms": 6260.4,
+      "predicted_tools": [
+        "search_document"
+      ],
+      "selection_ok": true,
+      "strict_first_ok": true,
+      "parameter_score": 1.0,
+      "hitl_predicted": false,
+      "hitl_ok": true,
+      "expected_hitl": false,
+      "validation_errors": [],
+      "input_tokens": 9054,
+      "output_tokens": 8738
+    }
+  ]
+}
