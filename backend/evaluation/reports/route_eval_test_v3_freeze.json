@@ -1,0 +1,20 @@
+{
+  "frozen_at": "2026-09-27T01:21:18",
+  "purpose": "route_eval_test_v3 盲写 100 条一次性评测前冻结",
+  "overlap_ids": [
+    "v3-001",
+    "v3-027",
+    "v3-053",
+    "v3-069",
+    "v3-070",
+    "v3-074",
+    "v3-094"
+  ],
+  "sha256": {
+    "app/services/intent_router.py": "e56aac70adb0380b9f714b6dede18596ea1728f0404a3c879119d8d8d720df5e",
+    "app/services/semantic_task_classifier.py": "eaf1d586015fdb55104dbaae8f7c2948b8d86f3e9c7d16fa6ba4ee38360a00c7",
+    "app/services/complexity_classifier.py": "19215f74d08a8cc6f17ad7b00fe811b84fe57539686a4e56d8fea6deea6089e9",
+    "scripts/run_route_eval.py": "49798023225797d94dc6bb60da7e9faffbf6a37ac20e77e7178bd7d9c43820de",
+    "evaluation/datasets/route_eval_test_v3.jsonl": "62bc456dca775d65bd1955e2acbf1b8018a086fa664f86baa948e72f9170929c"
+  }
+}

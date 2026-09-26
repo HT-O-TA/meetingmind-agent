@@ -7,7 +7,7 @@
     "retrieval.mrr": "发言级 hybrid 实测 0.399（bigram 降级重排 0.437），原 0.55 未测。",
     "retrieval.ndcg_at_k": "发言级 hybrid 实测 0.208，原 0.60 未测。",
     "retrieval_chunk.*": "300 字块 hybrid 实测：证据召回@5 0.293（理论上限 0.619）、MRR 0.856、nDCG@5 0.391。",
-    "route.task_accuracy": "80 条盲写留出集 rules+semantic 保守值 0.800（去掉疑似泄漏原型后），原 0.90 未达标；设为 0.78 防回退。",
+    "route.task_accuracy": "100 条盲写一次性测试集 test_v3（冻结后）：规则 0.43 → rules+semantic 0.68。test_v2（0.80/0.825）已被原型污染、弃用。设 0.65 防回退。",
     "generation.citation_accuracy": "QA 引用 Precision 实测 0.975。",
     "extraction.f1": "待办 F1 0.713 / 约束 F1 0.467（候选规范化口径）；取两者中较低者 0.467 附近为下限。",
     "system.p95_latency_ms": "云评测 p95 3883ms（qwen3.7-max，直连 API，不含本地链路）；Sonnet 5 经中转实测另见报告。门禁只约束本地路由链路。",
@@ -27,7 +27,7 @@
     "tool.selection_accuracy": 0.9,
     "tool.parameter_accuracy": 0.8,
     "tool.hitl_trigger_accuracy": 0.95,
-    "route.task_accuracy": 0.78,
+    "route.task_accuracy": 0.65,
     "tool.hitl_recall_on_writes": 1.0
   },
   "maximum": {
