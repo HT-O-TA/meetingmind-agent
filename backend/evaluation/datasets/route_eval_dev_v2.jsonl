@@ -1,0 +1,150 @@
+{"id": "dev2-001", "question": "哈喽", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "B:口语问候，不在问候词表"}
+{"id": "dev2-002", "question": "在吗", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "B:口语问候"}
+{"id": "dev2-003", "question": "hey there", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "B:英文问候"}
+{"id": "dev2-004", "question": "早呀", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "B:口语问候"}
+{"id": "dev2-005", "question": "嗨嗨，辛苦啦", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "问候+寒暄"}
+{"id": "dev2-006", "question": "yo", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "B:极短英文问候"}
+{"id": "dev2-007", "question": "纪要里写的采购预算到底是多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含纪要，问具体数字"}
+{"id": "dev2-008", "question": "待办里那个接口联调是谁负责的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含待办，问负责人"}
+{"id": "dev2-009", "question": "行动项里提到的截止日期是哪天", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含行动项，问日期"}
+{"id": "dev2-010", "question": "刚才总结里说的那个客户叫什么名字", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含总结，问名字"}
+{"id": "dev2-011", "question": "争议最大的那个方案最后选了哪个", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含争议，问最终结果"}
+{"id": "dev2-012", "question": "分歧主要是在价格上吗", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含分歧，是非题"}
+{"id": "dev2-013", "question": "纪要中提到的服务器数量是几台", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含纪要，问数量"}
+{"id": "dev2-014", "question": "会议总结里说Q3营收增长了多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含会议总结（关键词），问数字"}
+{"id": "dev2-015", "question": "这次的待办有几条是分给李雷的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含待办，问计数"}
+{"id": "dev2-016", "question": "行动项一共有多少个", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含行动项，问计数"}
+{"id": "dev2-017", "question": "他们为啥在上线时间上有分歧", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含分歧，问单一原因"}
+{"id": "dev2-018", "question": "关于争议那部分，王经理最后是什么态度", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含争议，问某人态度"}
+{"id": "dev2-019", "question": "总结一下就是说预算没批，对吧", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含总结一下，实为确认事实"}
+{"id": "dev2-020", "question": "which owner was assigned the first action item", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:英文含action item，问负责人"}
+{"id": "dev2-021", "question": "was the conflict about pricing resolved in the end", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:英文含conflict，是非题"}
+{"id": "dev2-022", "question": "纪要是谁负责写的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含纪要，问人"}
+{"id": "dev2-023", "question": "上次会议的待办完成了几条，会上有人提到吗", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含待办，问会上事实"}
+{"id": "dev2-024", "question": "minutes里提到的deadline是哪天", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含minutes，问日期"}
+{"id": "dev2-025", "question": "那个todo里说的测试环境是哪台机器", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含todo，问具体对象"}
+{"id": "dev2-026", "question": "反对的人是市场部的还是研发部的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:涉及反对，问部门"}
+{"id": "dev2-027", "question": "争议解决后定的折扣是几折", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含争议，问数字"}
+{"id": "dev2-028", "question": "会上说要写个总结报告，要交给谁", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含总结，问人"}
+{"id": "dev2-029", "question": "任务分配的时候提到的人力是几个人", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含任务（关键词），问数量"}
+{"id": "dev2-030", "question": "冲突那段里提到的竞品是哪家", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含冲突（关键词），问具体对象"}
+{"id": "dev2-031", "question": "会议纪要发给谁了", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含会议纪要（关键词），问人"}
+{"id": "dev2-032", "question": "action item里的那个vendor叫啥", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "A:含action item，问名字"}
+{"id": "dev2-033", "question": "预算定了多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "普通事实问题"}
+{"id": "dev2-034", "question": "上线啥时候", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "B:口语短问"}
+{"id": "dev2-035", "question": "老张对新方案怎么看", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问某人观点"}
+{"id": "dev2-036", "question": "为什么要推迟发布", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问原因"}
+{"id": "dev2-037", "question": "会上提到的用户增长数据是多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问数字"}
+{"id": "dev2-038", "question": "who's leading the migration", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "B:英文事实问题"}
+{"id": "dev2-039", "question": "有没有定下次开会时间", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "是非事实"}
+{"id": "dev2-040", "question": "客户反馈的主要问题是什么", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问内容"}
+{"id": "dev2-041", "question": "采购流程要走几个审批", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问数量"}
+{"id": "dev2-042", "question": "他说的那个KPI具体是多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问数字"}
+{"id": "dev2-043", "question": "最终选了哪家供应商", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问结果"}
+{"id": "dev2-044", "question": "这事儿跟财务那边确认过没", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "B:口语是非题"}
+{"id": "dev2-045", "question": "会上讲到的技术风险有哪些", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问具体话题内容"}
+{"id": "dev2-046", "question": "wat was the budget agreed", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "B:英文错拼"}
+{"id": "dev2-047", "question": "上线日其定了吗", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "B:错别字（日期→日其）"}
+{"id": "dev2-048", "question": "讨论数据库选型时提到了哪些候选", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问话题内容"}
+{"id": "dev2-049", "question": "会议开了多久", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "问时长"}
+{"id": "dev2-050", "question": "小王说的那个bug修了没", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "B:口语是非题"}
+{"id": "dev2-051", "question": "action items?", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:英文极短"}
+{"id": "dev2-052", "question": "AI?", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:缩写 action items"}
+{"id": "dev2-053", "question": "谁该干啥列一下", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:口语"}
+{"id": "dev2-054", "question": "会后大伙儿各自要忙啥", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:口语，无关键词"}
+{"id": "dev2-055", "question": "代办整理下", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:错别字 代办"}
+{"id": "dev2-056", "question": "todos pls", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:英文口语"}
+{"id": "dev2-057", "question": "把领了活的人和活都拉个单子", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:口语同义"}
+{"id": "dev2-058", "question": "我回去要做哪些事", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "第一人称待办"}
+{"id": "dev2-059", "question": "who owns what after this call", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:英文同义"}
+{"id": "dev2-060", "question": "会上布置的活儿，按人头排一下", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "同义表达"}
+{"id": "dev2-061", "question": "有哪些事情要在周五前搞定", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "按截止时间筛待办"}
+{"id": "dev2-062", "question": "下来要跟进的点都有啥", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:口语"}
+{"id": "dev2-063", "question": "follow-ups?", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:英文带连字符"}
+{"id": "dev2-064", "question": "帮我出个 checklist，会后照着推进", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "中英混合"}
+{"id": "dev2-065", "question": "认领了任务的都有谁，各自认领了什么", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "同义表达"}
+{"id": "dev2-066", "question": "next steps 整理一下带上 owner 和 ddl", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:缩写 ddl"}
+{"id": "dev2-067", "question": "会上答应了要做的事有哪些", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "同义表达"}
+{"id": "dev2-068", "question": "列下TODO", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:极短"}
+{"id": "dev2-069", "question": "把需要落实的事项拎出来", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "同义表达"}
+{"id": "dev2-070", "question": "分工情况给我捋一捋", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "口语同义"}
+{"id": "dev2-071", "question": "哪些东西还没人接", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "未分配的待办"}
+{"id": "dev2-072", "question": "tasks + owners", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:英文极简"}
+{"id": "dev2-073", "question": "给每个人发个会后作业清单", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "同义表达"}
+{"id": "dev2-074", "question": "这会开完要推进的事做成表格", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "同义表达"}
+{"id": "dev2-075", "question": "待半事项有哪些", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "B:错别字 待办→待半"}
+{"id": "dev2-076", "question": "tl;dr", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:缩写"}
+{"id": "dev2-077", "question": "tldr pls", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:缩写口语"}
+{"id": "dev2-078", "question": "这会讲了啥", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:口语"}
+{"id": "dev2-079", "question": "我没去，给我说说大概", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "口语，无关键词"}
+{"id": "dev2-080", "question": "summary?", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:英文极短"}
+{"id": "dev2-081", "question": "记要出一份", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:错别字 纪要→记要"}
+{"id": "dev2-082", "question": "用三句话讲清楚这场会", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-083", "question": "给老板写个会议简报", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-084", "question": "gist of the meeting?", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:英文同义"}
+{"id": "dev2-085", "question": "整场会的要点提炼下", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-086", "question": "帮我把这次讨论写成可以发邮件的回顾", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-087", "question": "一句话概述", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "极短"}
+{"id": "dev2-088", "question": "会开完了，出个 MoM", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:缩写 MoM=minutes of meeting"}
+{"id": "dev2-089", "question": "按议题把会议内容过一遍", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-090", "question": "highlights?", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:英文极短"}
+{"id": "dev2-091", "question": "把今天周会的来龙去脉理一下", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "口语同义"}
+{"id": "dev2-092", "question": "写个会议记要存档", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:错别字"}
+{"id": "dev2-093", "question": "can u sum up the call", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:英文口语缩写 u"}
+{"id": "dev2-094", "question": "说重点，这会到底聊了哪些东西", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "口语"}
+{"id": "dev2-095", "question": "整理成正式的会议记录格式", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-096", "question": "复盘一下这次评审会", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-097", "question": "精简版的会议内容来一份", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "口语"}
+{"id": "dev2-098", "question": "wrap-up of today's sync", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:英文同义"}
+{"id": "dev2-099", "question": "帮没来的同事补补课，讲讲会上内容", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "同义表达"}
+{"id": "dev2-100", "question": "概况", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "B:极短"}
+{"id": "dev2-101", "question": "吵了些啥", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:口语"}
+{"id": "dev2-102", "question": "谁跟谁杠起来了", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:口语"}
+{"id": "dev2-103", "question": "有没有人唱反调", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "口语同义"}
+{"id": "dev2-104", "question": "pushback?", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:英文极短"}
+{"id": "dev2-105", "question": "哪些点还悬而未决、各执一词", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-106", "question": "大家意见不统一的地方给我梳理下", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-107", "question": "where did folks not agree", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:英文口语"}
+{"id": "dev2-108", "question": "争意点", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:错别字 争议→争意"}
+{"id": "dev2-109", "question": "双方各自的立场和理由对比一下", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-110", "question": "会上有啥火药味比较重的环节", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "口语隐喻"}
+{"id": "dev2-111", "question": "哪几个议题被质疑了", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-112", "question": "有什么没拍板、还在拉扯的", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "口语"}
+{"id": "dev2-113", "question": "points of contention", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:英文同义"}
+{"id": "dev2-114", "question": "谁不同意，不同意啥", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:口语"}
+{"id": "dev2-115", "question": "把正反两方的观点摆出来", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-116", "question": "讨论中卡住的地方在哪", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-117", "question": "有人提出异议吗？都是哪些", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-118", "question": "盘点一下会上的不同声音", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-119", "question": "debates?", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:英文极短"}
+{"id": "dev2-120", "question": "产品和研发在哪些事上顶牛了", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "口语"}
+{"id": "dev2-121", "question": "还有哪些问题需要再议", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-122", "question": "列出各方僵持不下的点", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-123", "question": "any objections raised?", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:英文同义"}
+{"id": "dev2-124", "question": "哪些决定是有人保留意见的", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "同义表达"}
+{"id": "dev2-125", "question": "意见打架的都有哪些", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "B:口语"}
+{"id": "dev2-126", "question": "出个纪要，顺便把待办也列一下", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:顺便连接 minutes+todo"}
+{"id": "dev2-127", "question": "tl;dr + action items", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C+B:英文缩写两产物"}
+{"id": "dev2-128", "question": "讲讲会上聊了啥，再说说谁跟谁吵起来了", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:再连接 minutes+controversy"}
+{"id": "dev2-129", "question": "把分工理一下，另外没谈拢的也标出来", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:另外 todo+controversy"}
+{"id": "dev2-130", "question": "写份会议回顾以及后续要跟进的事项", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:以及 minutes+todo"}
+{"id": "dev2-131", "question": "给我一份带行动项清单的会议简报", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:一句话两产物，无连接词"}
+{"id": "dev2-132", "question": "summary w/ todos", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C+B:英文缩写"}
+{"id": "dev2-133", "question": "争议点整理完再帮我出个总结", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:再 controversy+minutes"}
+{"id": "dev2-134", "question": "谁要干啥、哪里有分歧，一起给我", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:并列 todo+controversy"}
+{"id": "dev2-135", "question": "概括下会议内容，顺带说下预算最后定了多少", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:顺带 minutes+qa"}
+{"id": "dev2-136", "question": "先告诉我上线日期，再列下待办", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:先…再 qa+todo"}
+{"id": "dev2-137", "question": "recap and who disagreed on what", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C+B:英文 minutes+controversy"}
+{"id": "dev2-138", "question": "出个会议记录，末尾附上每个人的任务", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:附上 minutes+todo"}
+{"id": "dev2-139", "question": "纪要、待办、争议三样都要", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:三项并列"}
+{"id": "dev2-140", "question": "吵了啥？谁领了活？", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C+B:两个口语短问"}
+{"id": "dev2-141", "question": "把反对意见列出来，还有对应的解决负责人", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:还有 controversy+todo"}
+{"id": "dev2-142", "question": "我要一份能直接发群里的会议小结和todo表", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:和 minutes+todo"}
+{"id": "dev2-143", "question": "next steps, plus a short recap", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:plus todo+minutes"}
+{"id": "dev2-144", "question": "总结完会议再看看有哪些没拍板的", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:再 minutes+controversy"}
+{"id": "dev2-145", "question": "梳理一下各方分歧，同时把会后安排也排一下", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:同时 controversy+todo"}
+{"id": "dev2-146", "question": "会议要点和争执点分两段写", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:一句两产物"}
+{"id": "dev2-147", "question": "说下老张对方案的看法，另外把整场会总结一下", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:另外 qa+minutes"}
+{"id": "dev2-148", "question": "列待办时顺便标注哪些事项还有争议", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:顺便 todo+controversy"}
+{"id": "dev2-149", "question": "mom + ai list pls", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C+B:缩写 minutes+todo"}
+{"id": "dev2-150", "question": "复盘这次会，再把遗留的活按人分好", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "C:再 minutes+todo"}
