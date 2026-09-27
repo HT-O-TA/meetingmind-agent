@@ -1,0 +1,616 @@
+{
+  "schema_version": "evaluation.corpus_retrieval.v1",
+  "retrieval_scope": "full_corpus",
+  "task_count": 40,
+  "meeting_count": 34,
+  "chunk_count": 1626,
+  "chunk_size_chars": 300,
+  "k": 5,
+  "elapsed_seconds": 14.75,
+  "metrics": {
+    "hybrid": {
+      "all": {
+        "meeting_hit_at_k": 0.525,
+        "top1_meeting_ok": 0.475,
+        "evidence_recall_at_k": 0.1679
+      },
+      "topic": {
+        "meeting_hit_at_k": 0.95,
+        "top1_meeting_ok": 0.9,
+        "evidence_recall_at_k": 0.3332
+      },
+      "summary": {
+        "meeting_hit_at_k": 0.1,
+        "top1_meeting_ok": 0.05,
+        "evidence_recall_at_k": 0.0026
+      }
+    },
+    "hybrid_reranker": {
+      "all": {
+        "meeting_hit_at_k": 0.6,
+        "top1_meeting_ok": 0.475,
+        "evidence_recall_at_k": 0.1924
+      },
+      "topic": {
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.9,
+        "evidence_recall_at_k": 0.379
+      },
+      "summary": {
+        "meeting_hit_at_k": 0.2,
+        "top1_meeting_ok": 0.05,
+        "evidence_recall_at_k": 0.0058
+      }
+    }
+  },
+  "per_record": {
+    "hybrid": [
+      {
+        "task_id": "gold-pilot-046",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-047",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.45
+      },
+      {
+        "task_id": "gold-pilot-049",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-050",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.23076923076923078
+      },
+      {
+        "task_id": "gold-pilot-051",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-052",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.21428571428571427
+      },
+      {
+        "task_id": "gold-pilot-054",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-055",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.25
+      },
+      {
+        "task_id": "gold-pilot-056",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-058",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-059",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-061",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-062",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-064",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-065",
+        "kind": "summary",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.007633587786259542
+      },
+      {
+        "task_id": "gold-pilot-066",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-068",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-069",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-070",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-031",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.16666666666666666
+      },
+      {
+        "task_id": "gold-pilot-032",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-033",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.4
+      },
+      {
+        "task_id": "gold-pilot-034",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-036",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.2222222222222222
+      },
+      {
+        "task_id": "gold-pilot-037",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-038",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.36363636363636365
+      },
+      {
+        "task_id": "gold-pilot-040",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-041",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.7857142857142857
+      },
+      {
+        "task_id": "gold-pilot-043",
+        "kind": "summary",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.04411764705882353
+      },
+      {
+        "task_id": "gold-pilot-044",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.34782608695652173
+      },
+      {
+        "task_id": "gold-pilot-035",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.6666666666666666
+      },
+      {
+        "task_id": "gold-pilot-039",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.6666666666666666
+      },
+      {
+        "task_id": "gold-pilot-042",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.16666666666666666
+      },
+      {
+        "task_id": "gold-pilot-045",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.16666666666666666
+      },
+      {
+        "task_id": "gold-pilot-048",
+        "kind": "topic",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-053",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.3333333333333333
+      },
+      {
+        "task_id": "gold-pilot-057",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.5
+      },
+      {
+        "task_id": "gold-pilot-060",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.4
+      },
+      {
+        "task_id": "gold-pilot-063",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.16666666666666666
+      },
+      {
+        "task_id": "gold-pilot-067",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.16666666666666666
+      }
+    ],
+    "hybrid_reranker": [
+      {
+        "task_id": "gold-pilot-046",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-047",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.6
+      },
+      {
+        "task_id": "gold-pilot-049",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-050",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.23076923076923078
+      },
+      {
+        "task_id": "gold-pilot-051",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-052",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.5714285714285714
+      },
+      {
+        "task_id": "gold-pilot-054",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-055",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.35714285714285715
+      },
+      {
+        "task_id": "gold-pilot-056",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-058",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-059",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-061",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-062",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-064",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-065",
+        "kind": "summary",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-066",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-068",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-069",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-070",
+        "kind": "summary",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.06451612903225806
+      },
+      {
+        "task_id": "gold-pilot-031",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.25
+      },
+      {
+        "task_id": "gold-pilot-032",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-033",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.2
+      },
+      {
+        "task_id": "gold-pilot-034",
+        "kind": "summary",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.00819672131147541
+      },
+      {
+        "task_id": "gold-pilot-036",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.2222222222222222
+      },
+      {
+        "task_id": "gold-pilot-037",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-038",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.36363636363636365
+      },
+      {
+        "task_id": "gold-pilot-040",
+        "kind": "summary",
+        "meeting_hit_at_k": 0.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-041",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.7142857142857143
+      },
+      {
+        "task_id": "gold-pilot-043",
+        "kind": "summary",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.04411764705882353
+      },
+      {
+        "task_id": "gold-pilot-044",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.30434782608695654
+      },
+      {
+        "task_id": "gold-pilot-035",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.6666666666666666
+      },
+      {
+        "task_id": "gold-pilot-039",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.3333333333333333
+      },
+      {
+        "task_id": "gold-pilot-042",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.3333333333333333
+      },
+      {
+        "task_id": "gold-pilot-045",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.16666666666666666
+      },
+      {
+        "task_id": "gold-pilot-048",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 0.0,
+        "evidence_recall_at_k": 0.5
+      },
+      {
+        "task_id": "gold-pilot-053",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.5
+      },
+      {
+        "task_id": "gold-pilot-057",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.5
+      },
+      {
+        "task_id": "gold-pilot-060",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.6
+      },
+      {
+        "task_id": "gold-pilot-063",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-067",
+        "kind": "topic",
+        "meeting_hit_at_k": 1.0,
+        "top1_meeting_ok": 1.0,
+        "evidence_recall_at_k": 0.16666666666666666
+      }
+    ]
+  },
+  "limitations": [
+    "与会议内口径同分块、同权重，只改检索范围。",
+    "20 条是同一问题'这场会议主要讲了什么'，全库下天然无法定位会议，单列 summary。"
+  ]
+}

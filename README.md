@@ -27,6 +27,7 @@ flowchart LR
 | QA 引用 Precision | 同上 | 0.975 | 1.000 | 同上 |
 | QA 答案忠实度（论断级，全部论断有片段依据的比例） | 同上 40 条 QA，两个评判模型盲评 | 0.65 / 0.85（qwen3.7-max） | **0.85 / 0.925**（Opus 5.5）；两评判一致判为不忠实的 1/40；注入无关句的探针 40/40 被识别 | `faithfulness_qa40_judge_{opus55,sonnet5}.json` |
 | 会议内检索（已知 meeting_id，300 字块，k=5） | 40 条 QA | 发言级 Recall@5 0.073 / MRR 0.40 | 证据召回 0.293（上限 0.619）/ MRR 0.856 | `meetingmind_real_v1_chunk_retrieval.json` |
+| 全库检索（不给 meeting_id，34 场会议 1626 块同池） | 40 条 QA 中 20 条针对具体议题的问题 | 会议内检索证据召回 0.461 | 找对会议 19/20（加重排 20/20），证据召回 0.333（加重排 0.379）；另 20 条"这场会议讲了什么"在全库下无法定位会议，单列 | `meetingmind_real_v1_corpus_retrieval.json` |
 | 回归测试 | pytest 核心套件 | 120 | 243 passed | `scripts/run_core_tests.sh` |
 
 **本地部署压测**（`scripts/bench_vllm_serving.py`，报告 `vllm_bench_qwen3_1p7b.json`）：vLLM 0.10 + Qwen3-1.7B fp16，单张 RTX 4060 8GB，负载为 40 条真实会议 QA（约 1.6k 字上下文，输出 ≤128 token），每档 64 请求，全部成功。
@@ -89,13 +90,13 @@ python scripts/score_cloud_eval.py \
 
 | 能力 | 当前实现 | 仍需补齐 |
 |---|---|---|
-| RAG | PostgreSQL 权威块、关键词召回、轻量 Dense/可选 pgvector 或 Milvus、加权融合、Reranker、引用、ACL、降级字段 | 真实评测已完成一轮；全库检索、外部向量索引增量同步和生产容量仍未验收 |
+| RAG | PostgreSQL 权威块、关键词召回、轻量 Dense/可选 pgvector 或 Milvus、加权融合、Reranker、引用、ACL、降级字段 | 真实评测已完成会议内与全库两轮（离线脚本，未走服务 API）；外部向量索引增量同步和生产容量仍未验收 |
 | Agent | 静态 LangGraph；路由、检索、纪要/待办/争议、计划执行、风险确认、质量门禁、结构修复 | 真实业务数据上的路由与端到端效果 |
 | 工具调用 | 会议/文档工具；Jira Cloud REST v3；Schema、策略、HITL、幂等和审计 | Jira 站点凭据与真实项目写入演示 |
 | 异步任务 | RabbitMQ confirm、manual ACK、延迟重试、DLQ、幂等任务状态 | 多节点高可用与真实容量验收 |
 | ASR | 严格 WAV 准入；独立 FunASR Worker；原始/安全证据分区、逐段注入隔离、版本化修订、状态机和 RAG 证据入库 | 脱敏多人会议真值和 CER/DER |
 | LoRA/QLoRA | Qwen3-0.6B 待办抽取教学实验和统一评测 | 真实会议标注集；当前合成结果不可外推 |
-| 评估 | 冻结 28 场会议/100 条任务，完成候选规范化、检索基线、云端结构化输出和抽样端到端对比 | 会议内检索尚非全库检索；生成对比为每种方案 10 条抽样，不能宣称 Reranker 整体领先 |
+| 评估 | 冻结 28 场会议/100 条任务，完成候选规范化、检索基线、云端结构化输出和抽样端到端对比 | 全库检索为离线复现同一融合策略；生成对比为每种方案 10 条抽样，不能宣称 Reranker 整体领先 |
 | Trace | 有界进程内节点 Trace，只记录真实节点、耗时、重试、输出和错误 | 跨进程持久化不在当前范围 |
 | 部署 | 本机 Conda 前后端/Worker、宿主机 PostgreSQL、Docker Redis/RabbitMQ/Milvus、可选镜像发布和 CI | TLS、备份、Secret Manager、HA、生产容量 |
 
