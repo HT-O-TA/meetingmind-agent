@@ -25,6 +25,7 @@ flowchart LR
 | 工具选择 / 参数准确率 | 同上，40 条 | — | 1.00 / 0.84 | 同上 |
 | 约束 / 待办抽取 F1（非空 gold） | 冻结 100 条 / 28 场会议 | 0.158 / 0.139（qwen3.7-max） | **0.737 / 0.498**（Opus 5.5 + prompt v2，二者同时变更） | `meetingmind_real_v1_opus55_v2_100_scored.json`（含空 gold 的混合口径：0.467→0.833） |
 | QA 引用 Precision | 同上 | 0.975 | 1.000 | 同上 |
+| QA 答案忠实度（论断级，全部论断有片段依据的比例） | 同上 40 条 QA，两个评判模型盲评 | 0.65 / 0.85（qwen3.7-max） | **0.85 / 0.925**（Opus 5.5）；两评判一致判为不忠实的 1/40；注入无关句的探针 40/40 被识别 | `faithfulness_qa40_judge_{opus55,sonnet5}.json` |
 | 会议内检索（已知 meeting_id，300 字块，k=5） | 40 条 QA | 发言级 Recall@5 0.073 / MRR 0.40 | 证据召回 0.293（上限 0.619）/ MRR 0.856 | `meetingmind_real_v1_chunk_retrieval.json` |
 | 回归测试 | pytest 核心套件 | 120 | 243 passed | `scripts/run_core_tests.sh` |
 

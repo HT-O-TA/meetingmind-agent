@@ -1,0 +1,4232 @@
+{
+  "schema_version": "faithfulness-judge.v1",
+  "judge_model": "claude-sonnet-5",
+  "seed": 20260927,
+  "runs": {
+    "baseline": "evaluation\\reports\\meetingmind_real_v1_cloud_100.json",
+    "current": "evaluation\\reports\\meetingmind_real_v1_opus55_v2_100.json"
+  },
+  "count": 40,
+  "ok_count": 40,
+  "metrics": {
+    "faithfulness.baseline": 0.9513,
+    "faithfulness.current": 0.9852,
+    "faithfulness.probe": 0.3993,
+    "probe_detect_rate": 1,
+    "fully_faithful_rate.baseline": 0.85,
+    "fully_faithful_rate.current": 0.925
+  },
+  "input_tokens": 359018,
+  "output_tokens": 563387,
+  "limitations": [
+    "评判器与 current 答案同为 Opus 系模型，可能偏袒自身输出；用 probe 注入句校验灵敏度",
+    "上下文为生成时实际给出的片段，不代表整场会议",
+    "40 条 QA 来自 20 场 VCSUM 会议"
+  ],
+  "per_record": [
+    {
+      "id": "gold-pilot-046",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议认为学业规划宜尽早制定",
+            "label": "supported"
+          },
+          {
+            "claim": "即使难以完全按计划执行，也要把握住通往目标的主线",
+            "label": "supported"
+          },
+          {
+            "claim": "家长虽有规划意识却感到力不从心",
+            "label": "supported"
+          },
+          {
+            "claim": "希望获得指导，帮助孩子设定自主且可实现的目标",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议结论强调学业规划应尽早确立明确主线和目标",
+            "label": "supported"
+          },
+          {
+            "claim": "家长普遍反映虽有意识却缺乏指导能力",
+            "label": "supported"
+          },
+          {
+            "claim": "需专业指导帮助孩子设定自主且可实现的目标",
+            "label": "supported"
+          },
+          {
+            "claim": "以便后续有效开展规划",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议认为学业规划宜尽早制定",
+            "label": "supported"
+          },
+          {
+            "claim": "即使难以完全按计划执行，也要把握住通往目标的主线",
+            "label": "supported"
+          },
+          {
+            "claim": "家长虽有规划意识却感到力不从心",
+            "label": "supported"
+          },
+          {
+            "claim": "希望获得指导，帮助孩子设定自主且可实现的目标",
+            "label": "supported"
+          },
+          {
+            "claim": "教育孩子首先需要的便是培养他的思维方式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "思维方式价值观决定了行动的方向，从而认识到学习的根本目的，从而更好地学习",
+            "label": "unsupported"
+          },
+          {
+            "claim": "价值观则需要明确目标导向，所以选择价值观身重要",
+            "label": "unsupported"
+          },
+          {
+            "claim": "对于孩子的教育永远不能浮于表面，只有有了榜样才能拉近距离解决疑惑，从而让孩子主动学习高效学习",
+            "label": "unsupported"
+          },
+          {
+            "claim": "这就需要家长现接受教育，树立终生学习的观念",
+            "label": "unsupported"
+          },
+          {
+            "claim": "我们需要认识到人与人之间的差异性",
+            "label": "unsupported"
+          },
+          {
+            "claim": "政府需要监管教育的发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "作为家长更要如此，拥有长远的目光才能帮助孩子有所成长，从而让孩子拥有更好的教育",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8534,
+        "output_tokens": 13729
+      },
+      "latency_ms": 8542.5
+    },
+    {
+      "id": "gold-pilot-047",
+      "labels": {
+        "current": "答案A",
+        "probe": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "上下文未讨论虚拟人类与机器人的区别",
+            "label": "supported"
+          },
+          {
+            "claim": "只提到虚拟人类将与人类长期共存",
+            "label": "supported"
+          },
+          {
+            "claim": "共存形式尚待了解",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "上下文未讨论虚拟人类与机器人的区别",
+            "label": "supported"
+          },
+          {
+            "claim": "只提到虚拟人类将与人类长期共存",
+            "label": "supported"
+          },
+          {
+            "claim": "共存形式尚待了解",
+            "label": "supported"
+          },
+          {
+            "claim": "科幻因素衍生的各种产品已经涉及在各种各样的领域",
+            "label": "unsupported"
+          },
+          {
+            "claim": "科学跨界不是标签概念，与每个人的生活密切相关",
+            "label": "unsupported"
+          },
+          {
+            "claim": "以世界观构建科幻作品的创作，承载人物故事，符合人类情绪发展规律",
+            "label": "unsupported"
+          },
+          {
+            "claim": "利用共情的方式去创作",
+            "label": "unsupported"
+          },
+          {
+            "claim": "展望未来城市的状态，具有无限发展的可能",
+            "label": "unsupported"
+          },
+          {
+            "claim": "正确处理科幻与科技的溢出关系都是需要关注的内容",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在当今时代的飞速发展，未来会以某种程度科学的发展，将科幻的形式为美好的未来提供新的视角和思维范式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "其背后必须有利益链条的商业逻辑",
+            "label": "unsupported"
+          },
+          {
+            "claim": "将想象的东西融合去创造不存在的",
+            "label": "unsupported"
+          },
+          {
+            "claim": "用科技的算力去发展存储空间的无限可能",
+            "label": "unsupported"
+          },
+          {
+            "claim": "未来科技的大趋势势不可挡",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议中并未讨论虚拟人类与机器人的区别",
+            "label": "supported"
+          },
+          {
+            "claim": "主要探讨了虚拟人类与人类的共存形式及体验",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8355,
+        "output_tokens": 12475
+      },
+      "latency_ms": 7573.2
+    },
+    {
+      "id": "gold-pilot-049",
+      "labels": {
+        "probe": "答案A",
+        "current": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "上下文未给出明确的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "现有内容主要认为虚拟人类将与人类长期共存，但共存形式仍待探讨",
+            "label": "supported"
+          },
+          {
+            "claim": "虚拟人类与机器人的共同点是都属于非生物意义上的“人”",
+            "label": "supported"
+          },
+          {
+            "claim": "虚拟人类与机器人可提供陪伴或精神层面的支持",
+            "label": "supported"
+          },
+          {
+            "claim": "随着时间的推移，公益发展越来越专业化",
+            "label": "unsupported"
+          },
+          {
+            "claim": "公益组织也要多加入技术手段，提高效率",
+            "label": "unsupported"
+          },
+          {
+            "claim": "可以通过数据的分析去提高救援的效率",
+            "label": "unsupported"
+          },
+          {
+            "claim": "如今互联网发展迅速，普通人可以利用这些渠道去求助",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在做公益的时候也需要更多的人参与进来，要多宣传公益",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在救援工作时，使用文档也有很多局限性",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "上下文未给出明确的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "现有内容主要认为虚拟人类将与人类长期共存，但共存形式仍待探讨",
+            "label": "supported"
+          },
+          {
+            "claim": "虚拟人类与机器人的共同点是都属于非生物意义上的“人”",
+            "label": "supported"
+          },
+          {
+            "claim": "虚拟人类与机器人可提供陪伴或精神层面的支持",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议探讨了虚拟人类与人类长久共存的形式",
+            "label": "supported"
+          },
+          {
+            "claim": "分析了虚拟人与机器人在非生物体意义上的共同点",
+            "label": "supported"
+          },
+          {
+            "claim": "分析了虚拟人与机器人的精神陪伴价值",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8209,
+        "output_tokens": 11896
+      },
+      "latency_ms": 6620.5
+    },
+    {
+      "id": "gold-pilot-050",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议讨论了通过加强监管约谈引导自媒体贴近群众并找准发展方向",
+            "label": "supported"
+          },
+          {
+            "claim": "会议讨论了高校学者通过跟踪调研总结特色提供理论支撑",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议讲解了2021年江苏C卷对策题",
+            "label": "supported"
+          },
+          {
+            "claim": "强调要站在融媒体中心等引导主体角度，而非自媒体自身发展角度作答",
+            "label": "supported"
+          },
+          {
+            "claim": "对策包括加强监管和约谈提醒低级趣味内容",
+            "label": "supported"
+          },
+          {
+            "claim": "对策包括引导其贴近群众和农村实际并找准正能量发展方向",
+            "label": "supported"
+          },
+          {
+            "claim": "对策包括借助高校学者跟踪调研、总结特色经验提供理论支撑",
+            "label": "supported"
+          },
+          {
+            "claim": "本次论坛几位运营商代表从时代出发，分别阐述了对大屏时代云游戏行业的看法",
+            "label": "unsupported"
+          },
+          {
+            "claim": "强调多屏时代要关注行业生态，用心根据客户的需求研发产品，追求云游戏生态平等",
+            "label": "unsupported"
+          },
+          {
+            "claim": "需要注重云技术的发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "未来要抓紧提升大众主题在游戏里的地位，培养用户习惯，增加新的游戏诉求，细分客户群体，进一步推动云游戏发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "唤起新用户和商家，将生活诉求增加到游戏中",
+            "label": "unsupported"
+          },
+          {
+            "claim": "结合新网络，新基础设施，新业务习惯，新生态以及新渠道等推动行业发展",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议讲解了2021年江苏C卷对策题",
+            "label": "supported"
+          },
+          {
+            "claim": "强调要站在融媒体中心等引导主体角度，而非自媒体自身发展角度作答",
+            "label": "supported"
+          },
+          {
+            "claim": "对策包括加强监管和约谈提醒低级趣味内容",
+            "label": "supported"
+          },
+          {
+            "claim": "对策包括引导其贴近群众和农村实际并找准正能量发展方向",
+            "label": "supported"
+          },
+          {
+            "claim": "对策包括借助高校学者跟踪调研、总结特色经验提供理论支撑",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 10891,
+        "output_tokens": 14750
+      },
+      "latency_ms": 9188.2
+    },
+    {
+      "id": "gold-pilot-051",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议结论是引导乡村自媒体健康发展需贴近群众与实际",
+            "label": "supported"
+          },
+          {
+            "claim": "用诙谐幽默的方式传播正能量而非低级趣味",
+            "label": "supported"
+          },
+          {
+            "claim": "政府部门应指明方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "激发乡村活力",
+            "label": "unsupported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议讲解2021年江苏C卷第三题",
+            "label": "supported"
+          },
+          {
+            "claim": "要求以融媒体中心工作人员身份，从政府等引导主体角度提出引领乡村自媒体健康发展的建议",
+            "label": "supported"
+          },
+          {
+            "claim": "材料表明自媒体应贴近群众和实际",
+            "label": "supported"
+          },
+          {
+            "claim": "摒弃低级趣味恶搞",
+            "label": "supported"
+          },
+          {
+            "claim": "用幽默短视频解读时事热点、传播正能量",
+            "label": "supported"
+          },
+          {
+            "claim": "名师培养特点主要是设计系统性强，研训一体，指导性强，任务驱动，实践性强",
+            "label": "unsupported"
+          },
+          {
+            "claim": "学本教育的名师培养帮助名师课堂发生了根本性变化",
+            "label": "unsupported"
+          },
+          {
+            "claim": "充分激活了学生的兴趣、意识和活力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "教学质量得到提升",
+            "label": "unsupported"
+          },
+          {
+            "claim": "名师的科研水平也得到实质性提高",
+            "label": "unsupported"
+          },
+          {
+            "claim": "名师的送教送培活动带动了区域教育的均衡发展",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议讲解2021年江苏C卷第三题",
+            "label": "supported"
+          },
+          {
+            "claim": "要求以融媒体中心工作人员身份，从政府等引导主体角度提出引领乡村自媒体健康发展的建议",
+            "label": "supported"
+          },
+          {
+            "claim": "材料表明自媒体应贴近群众和实际",
+            "label": "supported"
+          },
+          {
+            "claim": "摒弃低级趣味恶搞",
+            "label": "supported"
+          },
+          {
+            "claim": "用幽默短视频解读时事热点、传播正能量",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8471,
+        "output_tokens": 12955
+      },
+      "latency_ms": 7843.5
+    },
+    {
+      "id": "gold-pilot-052",
+      "labels": {
+        "current": "答案A",
+        "probe": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "学本教学是一种原创的课堂教学系统变革方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学指学生在教师指导下主要通过自学、互学、展学达成学习目标、养成可持续发展能力的课堂形态",
+            "label": "supported"
+          },
+          {
+            "claim": "其核心内涵是以学生深度学习和素养发展为中心",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学既是现代教育思想和教学理念，又是可操作的教学模式和学习方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学旨在让教育回归人的本身、让课堂回归学的本身",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "学本教学是一种原创的课堂教学系统变革方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学指学生在教师指导下主要通过自学、互学、展学达成学习目标、养成可持续发展能力的课堂形态",
+            "label": "supported"
+          },
+          {
+            "claim": "其核心内涵是以学生深度学习和素养发展为中心",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学既是现代教育思想和教学理念，又是可操作的教学模式和学习方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学旨在让教育回归人的本身、让课堂回归学的本身",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村自媒体的引导需要立足于政府部门的角度看待问题",
+            "label": "unsupported"
+          },
+          {
+            "claim": "主体不一致角度不一致",
+            "label": "unsupported"
+          },
+          {
+            "claim": "专业人士应以融媒体中心工作人员角度，主动引导健康发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "谈话中需要注意贴近群众农村和实际，以原汁原味的农村方言灵活生动的阐述人物视频，防止出现低级趣味",
+            "label": "unsupported"
+          },
+          {
+            "claim": "目的为对社会产生正面影响，以幽默的短视频，解读时事政治和社会热点，力求在欢声笑语中传播正能量",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导流程包含对其加强监管提醒和约谈，引导正确的发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "加大理论支撑和跟踪调研，总结乡村媒体特色和走红原因",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导思想聚焦方向，强化一体，推动乡村自媒体和主流媒体合作，开设专区",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导相关部门提供素材，积极配合宣传政策，总结成功经验",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "学本教学是指学生在老师指导下通过自学和互学达成目标、养成可持续发展能力的课堂形态",
+            "label": "unsupported"
+          },
+          {
+            "claim": "其核心内涵是以学生深度学习和素养发展为中心",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学既是一种现代教育思想和理念，也是一种可操作的教学模式和学习方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学旨在构建以学习者和深度学习为中心的教育",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 10173,
+        "output_tokens": 18619
+      },
+      "latency_ms": 11998.9
+    },
+    {
+      "id": "gold-pilot-054",
+      "labels": {
+        "current": "答案A",
+        "probe": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议围绕学本教学展开",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学是扎根中国、具有原创价值的课堂教学系统变革方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学以学生深度学习为重心",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学以学生自学为教学起点",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学把合作学习视为最重要的学习方式",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议围绕学本教学展开",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学是扎根中国、具有原创价值的课堂教学系统变革方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学以学生深度学习为重心",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学以学生自学为教学起点",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学把合作学习视为最重要的学习方式",
+            "label": "supported"
+          },
+          {
+            "claim": "科幻因素衍生的各种产品已经涉及在各种各样的领域",
+            "label": "unsupported"
+          },
+          {
+            "claim": "科学跨界不是标签概念，与每个人的生活密切相关",
+            "label": "unsupported"
+          },
+          {
+            "claim": "以世界观构建科幻作品的创作，承载人物故事，符合人类情绪发展规律",
+            "label": "unsupported"
+          },
+          {
+            "claim": "利用共情的方式去创作，展望未来城市的状态，具有无限发展的可能",
+            "label": "unsupported"
+          },
+          {
+            "claim": "需要正确处理科幻与科技的溢出关系",
+            "label": "unsupported"
+          },
+          {
+            "claim": "未来会以某种程度科学的发展，将科幻的形式为美好的未来提供新的视角和思维范式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "其背后必须有利益链条的商业逻辑",
+            "label": "unsupported"
+          },
+          {
+            "claim": "将想象的东西融合去创造不存在的",
+            "label": "unsupported"
+          },
+          {
+            "claim": "用科技的算力去发展存储空间的无限可能",
+            "label": "unsupported"
+          },
+          {
+            "claim": "未来科技的大趋势势不可挡",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议整体结论是学本教学是一项具有原创价值的课堂教学系统变革方式",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学主张以学生深度学习为重心",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学主张生读自学为起点",
+            "label": "supported"
+          },
+          {
+            "claim": "学本教学主张合作学习为最重要方式",
+            "label": "supported"
+          },
+          {
+            "claim": "该项目被筛选是因为其扎根中国教学范式",
+            "label": "supported"
+          },
+          {
+            "claim": "该项目被筛选是因为体现了因材施教的个性化教育思想",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8539,
+        "output_tokens": 16029
+      },
+      "latency_ms": 12464.6
+    },
+    {
+      "id": "gold-pilot-055",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "上下文中没有关于小米考察云游戏行业的具体讨论",
+            "label": "supported"
+          },
+          {
+            "claim": "只有小米的刘岩自我介绍为小米游戏商务负责人并负责相关业务",
+            "label": "supported"
+          },
+          {
+            "claim": "称自2014年开始相关工作",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "提供的上下文未包含关于小米公司对云游戏行业考察的具体讨论内容",
+            "label": "supported"
+          },
+          {
+            "claim": "仅介绍了小米游戏商务负责人刘岩及其负责的业务范围",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "上下文中没有关于小米考察云游戏行业的具体讨论",
+            "label": "supported"
+          },
+          {
+            "claim": "只有小米的刘岩自我介绍为小米游戏商务负责人并负责相关业务",
+            "label": "supported"
+          },
+          {
+            "claim": "称自2014年开始相关工作",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村振兴建设是是脱贫攻坚的重要文件",
+            "label": "unsupported"
+          },
+          {
+            "claim": "许多年轻人积极投身到乡村建设中去",
+            "label": "unsupported"
+          },
+          {
+            "claim": "结合可持续发展政策及当地特色传统，组织妇女培训活动",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从保健、医疗、种植等方面对他们进行指导",
+            "label": "unsupported"
+          },
+          {
+            "claim": "组织她们学习技术",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8057,
+        "output_tokens": 9460
+      },
+      "latency_ms": 5364.9
+    },
+    {
+      "id": "gold-pilot-056",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议认为云游戏并非缺乏独特应用场景",
+            "label": "unsupported"
+          },
+          {
+            "claim": "云游戏被坚定看作通往元宇宙的入口",
+            "label": "supported"
+          },
+          {
+            "claim": "小米希望借游戏（如电视端）拉通内部资源",
+            "label": "supported"
+          },
+          {
+            "claim": "云游戏仍需一个普及教育过程，让用户接受这种新兴体验形式",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议认为云游戏和相应技术能够推动行业发展",
+            "label": "supported"
+          },
+          {
+            "claim": "坚定相信云游戏是Metaverse的入口",
+            "label": "supported"
+          },
+          {
+            "claim": "强调需要通过普及教育过程让用户接受这种新兴体验形式",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议认为云游戏并非缺乏独特应用场景",
+            "label": "unsupported"
+          },
+          {
+            "claim": "云游戏被坚定看作通往元宇宙的入口",
+            "label": "supported"
+          },
+          {
+            "claim": "小米希望借游戏（如电视端）拉通内部资源",
+            "label": "supported"
+          },
+          {
+            "claim": "云游戏仍需一个普及教育过程，让用户接受这种新兴体验形式",
+            "label": "supported"
+          },
+          {
+            "claim": "对于艺术家的选择有三个标准，其一是人品，能否沉下心真正做到尊重传承，听取他人意见是十分重要的",
+            "label": "unsupported"
+          },
+          {
+            "claim": "其二是具有创新的能力，要做到有自己的思考在里面",
+            "label": "unsupported"
+          },
+          {
+            "claim": "其三是艺术家作品本身，作品中所要表现的我们要如何让人们清晰了解",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8371,
+        "output_tokens": 10682
+      },
+      "latency_ms": 6008.6
+    },
+    {
+      "id": "gold-pilot-058",
+      "labels": {
+        "probe": "答案A",
+        "current": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "会议认为互联网追求快速解决眼前需求，与教育着眼长远存在错配风险",
+            "label": "supported"
+          },
+          {
+            "claim": "教育更应借助互联网的技术属性和自动化，把教学过程产品化以解决传统手段难以解决的问题",
+            "label": "supported"
+          },
+          {
+            "claim": "名师培养特点主要是设计系统性强，研训一体，指导性强，任务驱动，实践性强",
+            "label": "unsupported"
+          },
+          {
+            "claim": "学本教育的名师培养帮助名师课堂发生了根本性变化，充分激活了学生的兴趣、意识和活力，教学质量得到提升",
+            "label": "unsupported"
+          },
+          {
+            "claim": "名师的科研水平也得到实质性提高",
+            "label": "unsupported"
+          },
+          {
+            "claim": "名师的送教送培活动带动了区域教育的均衡发展",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议认为互联网追求快速解决眼前需求，与教育着眼长远存在错配风险",
+            "label": "supported"
+          },
+          {
+            "claim": "教育更应借助互联网的技术属性和自动化，把教学过程产品化以解决传统手段难以解决的问题",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议探讨了青年创业者对创业意义、个人财富和社会价值的思考",
+            "label": "supported"
+          },
+          {
+            "claim": "会议分析了互联网技术与教育在解决不同时间维度问题上的差异与结合",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8088,
+        "output_tokens": 9466
+      },
+      "latency_ms": 6255.7
+    },
+    {
+      "id": "gold-pilot-059",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "本次会议以“民办教育的后浪”为主题",
+            "label": "supported"
+          },
+          {
+            "claim": "会议探讨了在2020年这一特殊收官之年及新法颁布背景下民办教育的发展",
+            "label": "supported"
+          },
+          {
+            "claim": "会议指出受新冠肺炎疫情影响，民办幼儿园和中小学面临资金、生源及师资等困境",
+            "label": "supported"
+          },
+          {
+            "claim": "其影响在未来相当长时间内难以消除",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议以2020年这一特殊之年为背景，借\"后浪\"话题探讨民办教育的未来",
+            "label": "supported"
+          },
+          {
+            "claim": "在民办教育促进法等政策调整和普惠性学前教育推广的影响下，叠加新冠疫情导致的停学停工，民办幼儿园和中小学面临资金、生源、师资等长期难以消除的困境",
+            "label": "supported"
+          },
+          {
+            "claim": "在线教育不仅打破了教室的局限，更是对现有教育制度的一种创新",
+            "label": "unsupported"
+          },
+          {
+            "claim": "终端设备配套建设不足、网络条件、教师信息技术应用能力不足，学校的教育、管理、课程和课堂这些对于在线教育来说都是挑战",
+            "label": "unsupported"
+          },
+          {
+            "claim": "由于线上课程时间短、密度高、容易造成学生两极分化，这就要求我们要丰富课程内容，改进教学方式，实施分层教学，收住学生的心，培养好学生的习惯",
+            "label": "unsupported"
+          },
+          {
+            "claim": "虽然在线教育短时间内不会取代线下教育成为教育的主流，但是当我们的教育真正的指向学生的最近发展，当这种在线教育成为常态的时候，就预示着在线教育拐点的到来",
+            "label": "unsupported"
+          },
+          {
+            "claim": "通过在线教育和传统教育的融合，还有把教育放在首位的教育加互联网、学校加强教师队伍建设，更新教育观念，加速信息化进程的改变和校长提升资源力、思想力、群体领导力、看见力、曝光度、互动度、行动度的改变，为后疫情时代在线教育指明了方向",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议以2020年这一特殊之年为背景，借\"后浪\"话题探讨民办教育的未来",
+            "label": "supported"
+          },
+          {
+            "claim": "在民办教育促进法等政策调整和普惠性学前教育推广的影响下，叠加新冠疫情导致的停学停工，民办幼儿园和中小学面临资金、生源、师资等长期难以消除的困境",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8839,
+        "output_tokens": 15725
+      },
+      "latency_ms": 10424.8
+    },
+    {
+      "id": "gold-pilot-061",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议以平等主义及性别研究为例介绍西方哲学",
+            "label": "supported"
+          },
+          {
+            "claim": "平等主义常被视为政治正确",
+            "label": "supported"
+          },
+          {
+            "claim": "平等主义实际上值得质疑",
+            "label": "supported"
+          },
+          {
+            "claim": "人们常对不平等持矛盾态度",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "发言人以平等主义及其下的性别研究为例介绍西方哲学",
+            "label": "supported"
+          },
+          {
+            "claim": "平等主义是政治正确的立场",
+            "label": "supported"
+          },
+          {
+            "claim": "平等主义实际上非常值得质疑",
+            "label": "supported"
+          },
+          {
+            "claim": "人们常自认为是平等主义者",
+            "label": "supported"
+          },
+          {
+            "claim": "人们却并不认为各种不平等是不正当的",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村自媒体的引导需要立足于政府部门的角度看待问题",
+            "label": "unsupported"
+          },
+          {
+            "claim": "主体不一致角度不一致",
+            "label": "unsupported"
+          },
+          {
+            "claim": "专业人士应以融媒体中心工作人员角度，主动引导健康发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "谈话中需要注意贴近群众农村和实际，以原汁原味的农村方言灵活生动的阐述人物视频，防止出现低级趣味",
+            "label": "unsupported"
+          },
+          {
+            "claim": "目的为对社会产生正面影响，以幽默的短视频，解读时事政治和社会热点，力求在欢声笑语中传播正能量",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导流程包含对其加强监管提醒和约谈，引导正确的发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "加大理论支撑和跟踪调研，总结乡村媒体特色和走红原因",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导思想聚焦方向，强化一体，推动乡村自媒体和主流媒体合作，开设专区",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导相关部门提供素材，积极配合宣传政策，总结成功经验",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "发言人以平等主义及其下的性别研究为例介绍西方哲学",
+            "label": "supported"
+          },
+          {
+            "claim": "平等主义是政治正确的立场",
+            "label": "supported"
+          },
+          {
+            "claim": "平等主义实际上非常值得质疑",
+            "label": "supported"
+          },
+          {
+            "claim": "人们常自认为是平等主义者",
+            "label": "supported"
+          },
+          {
+            "claim": "人们却并不认为各种不平等是不正当的",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8518,
+        "output_tokens": 15202
+      },
+      "latency_ms": 9481.7
+    },
+    {
+      "id": "gold-pilot-062",
+      "labels": {
+        "baseline": "答案A",
+        "current": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议认为在后双减时代，做好知识技能学习的关键在于思维方式",
+            "label": "supported"
+          },
+          {
+            "claim": "最核心的思维方式是辩证思维",
+            "label": "supported"
+          },
+          {
+            "claim": "理念与价值观决定行动及结果",
+            "label": "supported"
+          },
+          {
+            "claim": "单纯机械记忆和算题无法有效解决问题",
+            "label": "supported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议认为在后双减时代仍需重视知识技能学习",
+            "label": "supported"
+          },
+          {
+            "claim": "做好的关键在于思维方式",
+            "label": "supported"
+          },
+          {
+            "claim": "思维方式、理念和价值观决定行动与结果",
+            "label": "supported"
+          },
+          {
+            "claim": "最核心的思维方式是辩证思维",
+            "label": "supported"
+          },
+          {
+            "claim": "单纯死记硬背和刷题不一定能解决问题",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议认为在后双减时代仍需重视知识技能学习",
+            "label": "supported"
+          },
+          {
+            "claim": "做好的关键在于思维方式",
+            "label": "supported"
+          },
+          {
+            "claim": "思维方式、理念和价值观决定行动与结果",
+            "label": "supported"
+          },
+          {
+            "claim": "最核心的思维方式是辩证思维",
+            "label": "supported"
+          },
+          {
+            "claim": "单纯死记硬背和刷题不一定能解决问题",
+            "label": "supported"
+          },
+          {
+            "claim": "互联网是解决两秒之后的事，是因为互联网拉近了很多事情的距离和速度",
+            "label": "unsupported"
+          },
+          {
+            "claim": "互联网赛道的创新模式演变得很快，更关注的是行业的演变特性",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从教育的角度看，教育更多关注的是互联网的技术属性可以解决传统手段解决不了的问题",
+            "label": "unsupported"
+          },
+          {
+            "claim": "二者不存在矛盾",
+            "label": "unsupported"
+          },
+          {
+            "claim": "互联网具有自动化意义，可以通过软件产品把教学过程变成教育产品并通过互联网传递出去",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8282,
+        "output_tokens": 12353
+      },
+      "latency_ms": 6856.6
+    },
+    {
+      "id": "gold-pilot-064",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "提供的上下文仅包含嘉宾介绍及其研究成果",
+            "label": "supported"
+          },
+          {
+            "claim": "上下文未提及这场会议的整体结论",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "上下文未包含会议的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "上下文介绍了微软亚洲研究院的曹婷博士",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士是副院长",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士是微软亚洲研究院副院长",
+            "label": "supported"
+          },
+          {
+            "claim": "其团队研发的麻将AI在知名平台上段位稳定超过人类顶级选手",
+            "label": "supported"
+          },
+          {
+            "claim": "defi未来会向着资产合规通道发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "对于未来的市场很有信心",
+            "label": "unsupported"
+          },
+          {
+            "claim": "defi相对于compound和ave还是更想要在借贷模型和用户的体验等方面做出更多的提升和改进",
+            "label": "unsupported"
+          },
+          {
+            "claim": "defi火起来并不是一夜之间的事",
+            "label": "unsupported"
+          },
+          {
+            "claim": "defi面对的技术挑战和安全挑战还有很多",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从多方面对defi的发展做出了计划",
+            "label": "unsupported"
+          },
+          {
+            "claim": "无论是资金还是媒体以及审计还有安全等方面，都和许多公司进行了合作",
+            "label": "unsupported"
+          },
+          {
+            "claim": "defi会有很大的发展机会",
+            "label": "unsupported"
+          },
+          {
+            "claim": "defi是最有落地和想象空间的",
+            "label": "unsupported"
+          },
+          {
+            "claim": "defi目前门槛较高",
+            "label": "unsupported"
+          },
+          {
+            "claim": "希望之后能够推出门槛较低应用性比较高的项目",
+            "label": "unsupported"
+          },
+          {
+            "claim": "这个时候才是defi真正的爆发",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "上下文未包含会议的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "上下文介绍了微软亚洲研究院的曹婷博士",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士是副院长",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士是微软亚洲研究院副院长",
+            "label": "supported"
+          },
+          {
+            "claim": "其团队研发的麻将AI在知名平台上段位稳定超过人类顶级选手",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8398,
+        "output_tokens": 14630
+      },
+      "latency_ms": 8934.9
+    },
+    {
+      "id": "gold-pilot-065",
+      "labels": {
+        "probe": "答案A",
+        "current": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "会议围绕在线教育的冲击与挑战、拐点及后疫情时代教育的创与变展开",
+            "label": "supported"
+          },
+          {
+            "claim": "线上教育打破了教室局限",
+            "label": "supported"
+          },
+          {
+            "claim": "线上教育带来便利并推动教育创新",
+            "label": "supported"
+          },
+          {
+            "claim": "疫情暴露出学校终端设备、网络条件等配套建设的不足",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士现在是微软亚洲研究院异构计算组的高级研究主管",
+            "label": "unsupported"
+          },
+          {
+            "claim": "曹婷博士曾在一系列系统领域的顶会上发表过多篇论文和期刊",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士现在是微软亚洲研究院的副院长",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士是国际电子电器工程师学会的院士",
+            "label": "unsupported"
+          },
+          {
+            "claim": "他们曾经研发过史上最强的麻将AI",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议围绕在线教育的冲击与挑战、拐点及后疫情时代教育的创与变展开",
+            "label": "supported"
+          },
+          {
+            "claim": "线上教育打破了教室局限",
+            "label": "supported"
+          },
+          {
+            "claim": "线上教育带来便利并推动教育创新",
+            "label": "supported"
+          },
+          {
+            "claim": "疫情也暴露出学校终端设备、网络条件等配套建设的不足",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议围绕在线教育的冲击、拐点及后疫情时代的教育变革展开",
+            "label": "supported"
+          },
+          {
+            "claim": "肯定了线上教育打破教室局限并推动制度创新的积极作用",
+            "label": "supported"
+          },
+          {
+            "claim": "突发疫情暴露了学校终端设备、网络信号等配套建设不足的问题",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8371,
+        "output_tokens": 11717
+      },
+      "latency_ms": 7421.1
+    },
+    {
+      "id": "gold-pilot-066",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "上下文未给出明确的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "发言者回顾了公益发展历程",
+            "label": "supported"
+          },
+          {
+            "claim": "发现信息不对称",
+            "label": "supported"
+          },
+          {
+            "claim": "用QQ群联合资源方",
+            "label": "supported"
+          },
+          {
+            "claim": "玉树地震时组建卓明纯志愿团队",
+            "label": "supported"
+          },
+          {
+            "claim": "后来走向专业化",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了卓明团队从利用网络工具聚集志愿者到经历专业化发展的历程",
+            "label": "supported"
+          },
+          {
+            "claim": "信息不对称是早期面临的主要问题",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "上下文未给出明确的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "发言者回顾了公益发展历程",
+            "label": "supported"
+          },
+          {
+            "claim": "发现信息不对称",
+            "label": "supported"
+          },
+          {
+            "claim": "用QQ群联合资源方",
+            "label": "supported"
+          },
+          {
+            "claim": "玉树地震时组建卓明纯志愿团队",
+            "label": "supported"
+          },
+          {
+            "claim": "后来走向专业化",
+            "label": "supported"
+          },
+          {
+            "claim": "教育孩子首先需要的便是培养他的思维方式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "思维方式价值观决定了行动的方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从而认识到学习的根本目的",
+            "label": "unsupported"
+          },
+          {
+            "claim": "价值观则需要明确目标导向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "选择价值观身重要",
+            "label": "unsupported"
+          },
+          {
+            "claim": "对于孩子的教育永远不能浮于表面",
+            "label": "unsupported"
+          },
+          {
+            "claim": "只有有了榜样才能拉近距离解决疑惑",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从而让孩子主动学习高效学习",
+            "label": "unsupported"
+          },
+          {
+            "claim": "这就需要家长先接受教育",
+            "label": "unsupported"
+          },
+          {
+            "claim": "树立终生学习的观念",
+            "label": "unsupported"
+          },
+          {
+            "claim": "需要认识到人与人之间的差异性",
+            "label": "unsupported"
+          },
+          {
+            "claim": "政府需要监管教育的发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "作为家长更要如此",
+            "label": "unsupported"
+          },
+          {
+            "claim": "拥有长远的目光才能帮助孩子有所成长",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从而让孩子拥有更好的教育",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8565,
+        "output_tokens": 14862
+      },
+      "latency_ms": 8746.3
+    },
+    {
+      "id": "gold-pilot-068",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议认为加密艺术市场的爆发正推动艺术界经历类似改革开放般的重大变革",
+            "label": "supported"
+          },
+          {
+            "claim": "会议认为加密艺术可能带来范式性的改变",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾指出需将加密艺术置于其特定技术与语境中理解",
+            "label": "supported"
+          },
+          {
+            "claim": "NFT使艺术创作转化为可落地的真实商业行为",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议认为加密艺术的爆发搅活了整个艺术品市场",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术界正处于巨大变革之中",
+            "label": "supported"
+          },
+          {
+            "claim": "加密艺术需放在其技术与语境中理解",
+            "label": "supported"
+          },
+          {
+            "claim": "它为创作带来真实落地与交易的新可能",
+            "label": "supported"
+          },
+          {
+            "claim": "呈现范式性的改变",
+            "label": "supported"
+          },
+          {
+            "claim": "中考是孩子人生第一次大考",
+            "label": "unsupported"
+          },
+          {
+            "claim": "初中不应以考试为主要目标",
+            "label": "unsupported"
+          },
+          {
+            "claim": "初一、初二甚至初三前半学期应该培养读书能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "初中之前可以拿出较多的时间让孩子学习读书的方法",
+            "label": "unsupported"
+          },
+          {
+            "claim": "培养好的学习习惯来弥补学习能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "慢慢就会发现强项在哪里，用强项的方法弥补弱项的学习",
+            "label": "unsupported"
+          },
+          {
+            "claim": "一直到初三上半年是可以思考其强项的",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议认为加密艺术的爆发搅活了整个艺术品市场",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术界正处于巨大变革之中",
+            "label": "supported"
+          },
+          {
+            "claim": "加密艺术需放在其技术与语境中理解",
+            "label": "supported"
+          },
+          {
+            "claim": "它为创作带来真实落地与交易的新可能",
+            "label": "supported"
+          },
+          {
+            "claim": "呈现范式性的改变",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8579,
+        "output_tokens": 13069
+      },
+      "latency_ms": 7794.4
+    },
+    {
+      "id": "gold-pilot-069",
+      "labels": {
+        "probe": "答案A",
+        "current": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "会议认为农村妇女在育儿、饮食、照顾老人等方面培训需求很大",
+            "label": "supported"
+          },
+          {
+            "claim": "村里多年开展的培训项目和家长学校参与积极，效果显著",
+            "label": "supported"
+          },
+          {
+            "claim": "本次论坛几位运营商代表从时代出发，分别阐述了对大屏时代云游戏行业的看法",
+            "label": "unsupported"
+          },
+          {
+            "claim": "强调多屏时代要关注行业生态，用心根据客户的需求研发产品，追求云游戏生态平等",
+            "label": "unsupported"
+          },
+          {
+            "claim": "需要注重云技术的发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在未来，要抓紧提升大众主题在游戏里的地位，培养用户习惯，增加新的游戏诉求",
+            "label": "unsupported"
+          },
+          {
+            "claim": "细分客户群体，进一步推动云游戏发展，唤起新用户和商家",
+            "label": "unsupported"
+          },
+          {
+            "claim": "将生活诉求增加到游戏中，结合新网络，新基础设施，新业务习惯，新生态以及新渠道等推动行业发展",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议认为农村妇女在育儿、饮食、照顾老人等方面培训需求很大",
+            "label": "supported"
+          },
+          {
+            "claim": "村里多年开展的培训项目和家长学校参与积极，效果显著",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议结论是妇女在育儿、饮食及养老护理等方面的培训需求巨大，且参与积极性很高",
+            "label": "supported"
+          },
+          {
+            "claim": "村里的培训项目和家长学校对家庭教育和妇女赋能起到了显著作用",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8189,
+        "output_tokens": 10888
+      },
+      "latency_ms": 7491.2
+    },
+    {
+      "id": "gold-pilot-070",
+      "labels": {
+        "current": "答案A",
+        "probe": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议认为密评是推动商用密码应用的重要抓手",
+            "label": "supported"
+          },
+          {
+            "claim": "各行各业已深刻认识并积极推动密评",
+            "label": "supported"
+          },
+          {
+            "claim": "行业整体处于蓬勃向上、高速发展阶段",
+            "label": "supported"
+          },
+          {
+            "claim": "技术层面以量化评估和高风险判定指引作为测评关键指标",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议认为密评是推动商用密码应用的重要抓手",
+            "label": "supported"
+          },
+          {
+            "claim": "各行各业已深刻认识并积极推动密评",
+            "label": "supported"
+          },
+          {
+            "claim": "行业整体处于蓬勃向上、高速发展阶段",
+            "label": "supported"
+          },
+          {
+            "claim": "技术层面以量化评估和高风险判定指引作为测评关键指标",
+            "label": "supported"
+          },
+          {
+            "claim": "随着时间的推移，公益发展越来越专业化",
+            "label": "unsupported"
+          },
+          {
+            "claim": "公益组织也要多加入技术手段，提高效率",
+            "label": "unsupported"
+          },
+          {
+            "claim": "可以通过数据的分析去提高救援的效率",
+            "label": "unsupported"
+          },
+          {
+            "claim": "如今互联网发展迅速，普通人可以利用这些渠道去求助",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在做公益的时候也需要更多的人参与进来，要多宣传公益",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在救援工作时，使用文档也有很多局限性",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议认为密评已成为信息系统的关键环节",
+            "label": "supported"
+          },
+          {
+            "claim": "密评已成为行业基因",
+            "label": "supported"
+          },
+          {
+            "claim": "目前正处于蓬勃高速发展阶段",
+            "label": "supported"
+          },
+          {
+            "claim": "介绍了密评技术现状",
+            "label": "supported"
+          },
+          {
+            "claim": "强调量化评估和高风险判定指引是测评的关键指标",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8213,
+        "output_tokens": 11897
+      },
+      "latency_ms": 7290.7
+    },
+    {
+      "id": "gold-pilot-031",
+      "labels": {
+        "baseline": "答案A",
+        "current": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议讨论了DeFi从2019年至今锁仓量激增带来的巨大时代机会",
+            "label": "supported"
+          },
+          {
+            "claim": "从业者分享了对行业发展的内心感悟与实操经验",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾分享了Default项目自2018年起在DeFi协议矩阵方面的布局与实践",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾分享了Default项目在资产整合方面的布局与实践",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾分享了Default项目在合规通道方面的布局与实践",
+            "label": "supported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "主持人杨淼邀请嘉宾分享对DeFi的内心想法与从业感悟",
+            "label": "supported"
+          },
+          {
+            "claim": "回顾了DeFi从2019年鲜为人知到锁仓量从6.8亿美元增至165.7亿美元的巨大发展",
+            "label": "supported"
+          },
+          {
+            "claim": "认为这是时代机遇",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "主持人杨淼邀请嘉宾分享对DeFi的内心想法与从业感悟",
+            "label": "supported"
+          },
+          {
+            "claim": "回顾了DeFi从2019年鲜为人知到锁仓量从6.8亿美元增至165.7亿美元的巨大发展",
+            "label": "supported"
+          },
+          {
+            "claim": "认为这是时代机遇",
+            "label": "supported"
+          },
+          {
+            "claim": "作为学生要从合作和艺术创作的本身这两方面，了解科学和技术发明过程中的思维方式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从合作回到艺术创作本身，艺术和科技的结合会形成不同的结果",
+            "label": "unsupported"
+          },
+          {
+            "claim": "无人驾驶汽车就是新的协同系统和新的造型产生的产品美学",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在学习的过程中不能迷失方向，要找到自身的定位",
+            "label": "unsupported"
+          },
+          {
+            "claim": "寻找边界本身是一个秘籍",
+            "label": "unsupported"
+          },
+          {
+            "claim": "对话交流是最有效的方式",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9811,
+        "output_tokens": 13369
+      },
+      "latency_ms": 7600.4
+    },
+    {
+      "id": "gold-pilot-032",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议回顾了2020年DeFi作为关键词的发展历程",
+            "label": "supported"
+          },
+          {
+            "claim": "会议展望了未来线下资产合规通道打开后的发展方向",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议以回顾2020年DeFi发展为主线",
+            "label": "supported"
+          },
+          {
+            "claim": "认为DeFi是2020年的关键词",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾对借贷协议等产品前景持乐观态度",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾对未来线下资产合规通道打开持乐观态度",
+            "label": "supported"
+          },
+          {
+            "claim": "民办教育在疫情和政策的影响下，加速了民办学校的洗牌",
+            "label": "unsupported"
+          },
+          {
+            "claim": "整治了鱼龙混杂的社会乱象",
+            "label": "unsupported"
+          },
+          {
+            "claim": "民办学校也有和公办学校一样的抗压能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "疫情对民办学校的现金流造成了影响",
+            "label": "unsupported"
+          },
+          {
+            "claim": "形成了新的结构模式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "很多民办学校失去了信心，开始寻找其他的道路",
+            "label": "unsupported"
+          },
+          {
+            "claim": "比如开始的托教管理",
+            "label": "unsupported"
+          },
+          {
+            "claim": "扛过此次的民办学校会活的更好",
+            "label": "unsupported"
+          },
+          {
+            "claim": "一些校长觉得，他之所以会受到打压是因为动摇了国家使命",
+            "label": "unsupported"
+          },
+          {
+            "claim": "应当改变方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "更多的认为是被当作了替罪羊",
+            "label": "unsupported"
+          },
+          {
+            "claim": "他们觉得国家无法处理好",
+            "label": "unsupported"
+          },
+          {
+            "claim": "更大的可能是和学校进行合作",
+            "label": "unsupported"
+          },
+          {
+            "claim": "所有人都在用智慧来解决问题",
+            "label": "unsupported"
+          },
+          {
+            "claim": "教育将在相互帮助下发展的更好",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议以回顾2020年DeFi发展为主线",
+            "label": "supported"
+          },
+          {
+            "claim": "认为DeFi是2020年的关键词",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾对借贷协议等产品前景持乐观态度",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾对未来线下资产合规通道打开持乐观态度",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8463,
+        "output_tokens": 14704
+      },
+      "latency_ms": 9479.8
+    },
+    {
+      "id": "gold-pilot-033",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "江波认为客观规律或自然规律是最牛的创新模式",
+            "label": "supported"
+          },
+          {
+            "claim": "江波认为宇宙和生物世界的存在方式都是自然规律演化出来的",
+            "label": "supported"
+          },
+          {
+            "claim": "陈秋帆认为人类发明机器语言并在物理世界基础上构建虚拟信息世界是了不起的创造",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "江波认为最了不起的创造者是创造宇宙的客观规律或自然规律",
+            "label": "supported"
+          },
+          {
+            "claim": "生物世界的各种存在方式都是自然规律在漫长时间中寻找出来的",
+            "label": "supported"
+          },
+          {
+            "claim": "客观规律是最强的创新模式",
+            "label": "supported"
+          },
+          {
+            "claim": "陈楸帆认为这个回答有些取巧",
+            "label": "supported"
+          },
+          {
+            "claim": "陈楸帆转而推崇发明机器语言等计算机语言、构建虚拟信息世界的人类",
+            "label": "supported"
+          },
+          {
+            "claim": "中考是孩子人生第一次大考，但初中不应以考试为主要目标",
+            "label": "unsupported"
+          },
+          {
+            "claim": "初一、初二甚至初三前半学期，还是应该培养读书能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在初中之前可以拿出较多的时间，让孩子学习读书的方法，培养好的学习习惯来弥补学习能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "慢慢就会发现强项在哪里，用强项的方法弥补弱项的学习",
+            "label": "unsupported"
+          },
+          {
+            "claim": "一直到初三上半年是可以思考其强项的",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "江波认为最了不起的创造者是创造宇宙的客观规律或自然规律",
+            "label": "supported"
+          },
+          {
+            "claim": "生物世界的各种存在方式都是自然规律在漫长时间中寻找出来的",
+            "label": "supported"
+          },
+          {
+            "claim": "客观规律是最强的创新模式",
+            "label": "supported"
+          },
+          {
+            "claim": "陈楸帆认为这个回答有些取巧",
+            "label": "supported"
+          },
+          {
+            "claim": "陈楸帆转而推崇发明机器语言等计算机语言、构建虚拟信息世界的人类",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9951,
+        "output_tokens": 13916
+      },
+      "latency_ms": 8400.0
+    },
+    {
+      "id": "gold-pilot-034",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "上下文未给出明确的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "这是中国美术学院与未来事务管理局联合举办的科幻圆桌论坛",
+            "label": "supported"
+          },
+          {
+            "claim": "论坛以世界观建构与创作为题",
+            "label": "supported"
+          },
+          {
+            "claim": "江老师认为最了不起的创造者是创造我们这个世界的存在（可理解为上帝）",
+            "label": "supported"
+          },
+          {
+            "claim": "江老师以周围多样奇特的生物世界为例",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "这场会议是由中国美术学院和未来事务管理局联合举办的科幻论坛圆桌讨论",
+            "label": "supported"
+          },
+          {
+            "claim": "主题为世界观的建构与创作",
+            "label": "supported"
+          },
+          {
+            "claim": "嘉宾们围绕人类历史上杰出的创造者及其作品展开了探讨",
+            "label": "supported"
+          },
+          {
+            "claim": "这是会议的整体结论",
+            "label": "unsupported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "上下文未给出明确的整体结论",
+            "label": "supported"
+          },
+          {
+            "claim": "这是中国美术学院与未来事务管理局联合举办、以世界观建构与创作为题的科幻圆桌论坛",
+            "label": "supported"
+          },
+          {
+            "claim": "江老师认为最了不起的创造者是创造我们这个世界的存在（可理解为上帝）",
+            "label": "supported"
+          },
+          {
+            "claim": "江老师以周围多样奇特的生物世界为例",
+            "label": "supported"
+          },
+          {
+            "claim": "上海聚集了人工智能的技术创新和落地场景，汇聚了人才潜力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "首批研究员展开了办公室研究工作，组建了计算机系统组、创新工程组和学术合作等部门",
+            "label": "unsupported"
+          },
+          {
+            "claim": "将吸引更多的人才加入，扩大研究规模，以便人工智能更好地落赴上海",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8332,
+        "output_tokens": 11983
+      },
+      "latency_ms": 7006.9
+    },
+    {
+      "id": "gold-pilot-036",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "西岸AI Tower是徐汇区打造人工智能高地的标志性建筑",
+            "label": "supported"
+          },
+          {
+            "claim": "徐汇自2017年提出打造上海国家人工智能高地新地标和核心区的愿景",
+            "label": "supported"
+          },
+          {
+            "claim": "出台“AI@徐汇”T计划",
+            "label": "supported"
+          },
+          {
+            "claim": "构建“一核一极一带”空间布局",
+            "label": "unsupported"
+          },
+          {
+            "claim": "推出两个100万平方米的“AI双T”载体",
+            "label": "supported"
+          },
+          {
+            "claim": "AI Tower东塔入住率已达78%",
+            "label": "supported"
+          },
+          {
+            "claim": "集聚了微软、华为、阿里等标杆企业",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了西岸AI Tower作为徐汇区打造人工智能高地的指标建筑",
+            "label": "supported"
+          },
+          {
+            "claim": "介绍了其作为国际人工智能总部基地的入驻情况",
+            "label": "supported"
+          },
+          {
+            "claim": "介绍了其产业集聚效应",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "西岸AI Tower是徐汇区打造人工智能高地的标志性建筑",
+            "label": "supported"
+          },
+          {
+            "claim": "徐汇自2017年提出打造上海国家人工智能高地新地标和核心区的愿景",
+            "label": "supported"
+          },
+          {
+            "claim": "出台“AI@徐汇”T计划",
+            "label": "supported"
+          },
+          {
+            "claim": "构建“一核一极一带”空间布局",
+            "label": "unsupported"
+          },
+          {
+            "claim": "推出两个100万平方米的“AI双T”载体",
+            "label": "supported"
+          },
+          {
+            "claim": "AI Tower东塔入住率已达78%",
+            "label": "supported"
+          },
+          {
+            "claim": "集聚了微软、华为、阿里等标杆企业",
+            "label": "supported"
+          },
+          {
+            "claim": "本次论坛几位运营商代表从时代出发，分别阐述了对大屏时代云游戏行业的看法",
+            "label": "unsupported"
+          },
+          {
+            "claim": "强调多屏时代要关注行业生态，用心根据客户的需求研发产品",
+            "label": "unsupported"
+          },
+          {
+            "claim": "追求云游戏生态平等",
+            "label": "unsupported"
+          },
+          {
+            "claim": "需要注重云技术的发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "要抓紧提升大众主题在游戏里的地位，培养用户习惯，增加新的游戏诉求",
+            "label": "unsupported"
+          },
+          {
+            "claim": "细分客户群体，进一步推动云游戏发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "唤起新用户和商家，将生活诉求增加到游戏中",
+            "label": "unsupported"
+          },
+          {
+            "claim": "结合新网络，新基础设施，新业务习惯，新生态以及新渠道等推动行业发展",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9863,
+        "output_tokens": 16577
+      },
+      "latency_ms": 9823.3
+    },
+    {
+      "id": "gold-pilot-037",
+      "labels": {
+        "current": "答案A",
+        "probe": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议围绕人工智能如何助力未来城市展开",
+            "label": "supported"
+          },
+          {
+            "claim": "结论是上海凭借技术创新、落地场景、人才潜力和政府支持，成为微软亚洲研究院落户的理想之地",
+            "label": "supported"
+          },
+          {
+            "claim": "研究院已在上海组建团队开展研究",
+            "label": "supported"
+          },
+          {
+            "claim": "将继续扩大规模、吸引更多人才",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议围绕人工智能如何助力未来城市展开",
+            "label": "supported"
+          },
+          {
+            "claim": "结论是上海凭借技术创新、落地场景、人才潜力和政府支持，成为微软亚洲研究院落户的理想之地",
+            "label": "supported"
+          },
+          {
+            "claim": "研究院已在上海组建团队开展研究",
+            "label": "supported"
+          },
+          {
+            "claim": "将继续扩大规模、吸引更多人才",
+            "label": "supported"
+          },
+          {
+            "claim": "科幻因素衍生的各种产品已经涉及在各种各样的领域",
+            "label": "unsupported"
+          },
+          {
+            "claim": "科学跨界不是标签概念，与每个人的生活密切相关",
+            "label": "unsupported"
+          },
+          {
+            "claim": "以世界观构建科幻作品的创作，承载人物故事，符合人类情绪发展规律",
+            "label": "unsupported"
+          },
+          {
+            "claim": "利用共情的方式去创作，展望未来城市的状态",
+            "label": "unsupported"
+          },
+          {
+            "claim": "具有无限发展的可能以及正确处理科幻与科技的溢出关系都是需要关注的内容",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在当今时代的飞速发展，未来会以某种程度科学的发展，将科幻的形式为美好的未来提供新的视角和思维范式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "其背后必须有利益链条的商业逻辑",
+            "label": "unsupported"
+          },
+          {
+            "claim": "将想象的东西融合去创造不存在的",
+            "label": "unsupported"
+          },
+          {
+            "claim": "用科技的算力去发展存储空间的无限可能",
+            "label": "unsupported"
+          },
+          {
+            "claim": "未来科技的大趋势势不可挡",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议探讨了人工智能如何赋能未来城市",
+            "label": "supported"
+          },
+          {
+            "claim": "上海因技术创新、场景落地及政府支持成为微软亚洲研究院落户的理想之地",
+            "label": "supported"
+          },
+          {
+            "claim": "研究院已在上海组建多个部门开展研究",
+            "label": "supported"
+          },
+          {
+            "claim": "将继续扩大规模吸引人才",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8545,
+        "output_tokens": 15284
+      },
+      "latency_ms": 9125.2
+    },
+    {
+      "id": "gold-pilot-038",
+      "labels": {
+        "current": "答案A",
+        "probe": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议讨论了艺术教育在中国社会变革与文化建设中的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "中国艺术家兼顾创作研究与艺术教育",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术学府肩负培养人才与学术研究的双重使命",
+            "label": "supported"
+          },
+          {
+            "claim": "这是中国艺术教育走向现代形态的重要标识",
+            "label": "supported"
+          },
+          {
+            "claim": "讨论了当下处于世界艺术史两幕之间的边界时刻",
+            "label": "supported"
+          },
+          {
+            "claim": "需在21世纪更多平衡艺术与科技",
+            "label": "supported"
+          },
+          {
+            "claim": "推动艺术与互联网、人工智能等领域的跨界交互",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议讨论了艺术教育在中国社会变革与文化建设中的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "中国艺术家兼顾创作研究与艺术教育",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术学府肩负培养人才与学术研究的双重使命",
+            "label": "supported"
+          },
+          {
+            "claim": "这是中国艺术教育走向现代形态的重要标识",
+            "label": "supported"
+          },
+          {
+            "claim": "讨论了当下处于世界艺术史两幕之间的边界时刻",
+            "label": "supported"
+          },
+          {
+            "claim": "需在21世纪更多平衡艺术与科技",
+            "label": "supported"
+          },
+          {
+            "claim": "推动艺术与互联网、人工智能等领域的跨界交互",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村自媒体的引导需要立足于政府部门的角度看待问题",
+            "label": "unsupported"
+          },
+          {
+            "claim": "主体不一致角度不一致，专业人士应以融媒体中心工作人员角度，主动引导健康发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "谈话中需要注意贴近群众农村和实际，以原汁原味的农村方言灵活生动的阐述人物视频",
+            "label": "unsupported"
+          },
+          {
+            "claim": "防止出现低级趣味，目的为对社会产生正面影响",
+            "label": "unsupported"
+          },
+          {
+            "claim": "以幽默的短视频，解读时事政治和社会热点，力求在欢声笑语中传播正能量",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导流程包含对其加强监管提醒和约谈，引导正确的发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "加大理论支撑和跟踪调研，总结乡村媒体特色和走红原因",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导思想聚焦方向，强化一体，推动乡村自媒体和主流媒体合作，开设专区",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导相关部门提供素材，积极配合宣传政策，总结成功经验",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了艺术教育在中国社会变革与文化建设中的启蒙作用",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术教育是人才培养与创作研究高地的双重使命",
+            "label": "supported"
+          },
+          {
+            "claim": "探讨了在科技主导时代如何平衡艺术与科技关系",
+            "label": "supported"
+          },
+          {
+            "claim": "推动跨学科交互以应对边界问题",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 10008,
+        "output_tokens": 19103
+      },
+      "latency_ms": 11800.4
+    },
+    {
+      "id": "gold-pilot-040",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议强调国美之路的文化属性与学术特征",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术教育对中国社会变革和文化建设具有重要意义",
+            "label": "supported"
+          },
+          {
+            "claim": "是中国艺术教育从古典走向现代的重要标识",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "艺术教育在中国具有启蒙社会的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术教育在中国具有推动文化建设的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "是20世纪以来中国文化的新理想",
+            "label": "supported"
+          },
+          {
+            "claim": "国美之路的文化属性与学术特征实际上是一种产能",
+            "label": "supported"
+          },
+          {
+            "claim": "体现了从古典走向现代的重要标识",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议强调国美之路的文化属性与学术特征",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术教育对中国社会变革和文化建设具有重要意义",
+            "label": "supported"
+          },
+          {
+            "claim": "是中国艺术教育从古典走向现代的重要标识",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士现在是微软亚洲研究院异构计算组的高级研究主管",
+            "label": "unsupported"
+          },
+          {
+            "claim": "曹婷博士曾在一系列系统领域的顶会上发表过多篇论文和期刊",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士现在是微软亚洲研究院的副院长",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士是国际电子电器工程师学会的院士",
+            "label": "unsupported"
+          },
+          {
+            "claim": "他们曾经研发过史上最强的麻将AI",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8076,
+        "output_tokens": 10895
+      },
+      "latency_ms": 8166.7
+    },
+    {
+      "id": "gold-pilot-041",
+      "labels": {
+        "current": "答案A",
+        "probe": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "锂离子电池产业发展迅速",
+            "label": "supported"
+          },
+          {
+            "claim": "锂资源可能限制其未来10到15倍的增长",
+            "label": "supported"
+          },
+          {
+            "claim": "钠离子电池等低成本新型电池正在发展",
+            "label": "supported"
+          },
+          {
+            "claim": "发言人认为它们更可能是补充而难成主角",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了欧盟2019年Battery三年计划中的材料基因组",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了AI材料平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了回收平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了智能制造平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议强调高通量测试对电池制造的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "会议强调材料标准化对电池制造的重要性",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "锂离子电池产业发展迅速",
+            "label": "supported"
+          },
+          {
+            "claim": "锂资源可能限制其未来10到15倍的增长",
+            "label": "supported"
+          },
+          {
+            "claim": "钠离子电池等低成本新型电池正在发展",
+            "label": "supported"
+          },
+          {
+            "claim": "发言人认为它们更可能是补充而难成主角",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了欧盟2019年Battery三年计划中的材料基因组",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了AI材料平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了回收平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议介绍了智能制造平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议强调高通量测试对电池制造的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "会议强调材料标准化对电池制造的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "民办教育在疫情和政策的影响下，加速了民办学校的洗牌",
+            "label": "unsupported"
+          },
+          {
+            "claim": "整治了鱼龙混杂的社会乱象",
+            "label": "unsupported"
+          },
+          {
+            "claim": "民办学校也有和公办学校一样的抗压能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "疫情对民办学校的现金流造成了影响",
+            "label": "unsupported"
+          },
+          {
+            "claim": "形成了新的结构模式",
+            "label": "unsupported"
+          },
+          {
+            "claim": "很多民办学校失去了信心，开始寻找其他的道路，比如开始的托教管理",
+            "label": "unsupported"
+          },
+          {
+            "claim": "扛过此次的民办学校会活的更好",
+            "label": "unsupported"
+          },
+          {
+            "claim": "一些校长觉得他之所以会受到打压是因为动摇了国家使命，应当改变方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "更多的认为是被当作了替罪羊",
+            "label": "unsupported"
+          },
+          {
+            "claim": "他们觉得国家无法处理好，更大的可能是和学校进行合作",
+            "label": "unsupported"
+          },
+          {
+            "claim": "所有人都在用智慧来解决问题",
+            "label": "unsupported"
+          },
+          {
+            "claim": "教育将在相互帮助下发展的更好",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了欧盟电池材料基因组计划中的加速制备平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议讨论了AI平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议讨论了回收平台",
+            "label": "supported"
+          },
+          {
+            "claim": "会议强调了高通量标准与计量方法对电池材料体系标准化的重要性",
+            "label": "supported"
+          },
+          {
+            "claim": "会议强调了高通量标准与计量方法对智能制造的重要性",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9986,
+        "output_tokens": 21016
+      },
+      "latency_ms": 11540.6
+    },
+    {
+      "id": "gold-pilot-043",
+      "labels": {
+        "probe": "答案A",
+        "baseline": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "会议认为材料基因组对电池主题非常重要",
+            "label": "supported"
+          },
+          {
+            "claim": "需依托高通量和相关标准",
+            "label": "supported"
+          },
+          {
+            "claim": "推动电池材料体系齐全、标准化和一致化，这对电池制造具有重要作用",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村振兴建设是脱贫攻坚的重要文件",
+            "label": "unsupported"
+          },
+          {
+            "claim": "许多年轻人积极投身到乡村建设中去",
+            "label": "unsupported"
+          },
+          {
+            "claim": "结合可持续发展政策及当地特色传统，组织妇女培训活动",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从保健、医疗、种植等方面对她们进行指导",
+            "label": "unsupported"
+          },
+          {
+            "claim": "组织她们学习技术",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议认为材料基因组对当前主题至关重要",
+            "label": "supported"
+          },
+          {
+            "claim": "强调其高通量特性及标准化对电池制造的关键作用",
+            "label": "supported"
+          },
+          {
+            "claim": "会议计划从生产企业角度探讨电池材料供应现状、问题及未来新体制电池的发展机遇",
+            "label": "supported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议认为材料基因组对电池主题非常重要",
+            "label": "supported"
+          },
+          {
+            "claim": "需依托高通量和相关标准",
+            "label": "supported"
+          },
+          {
+            "claim": "推动电池材料体系齐全、标准化和一致化，这对电池制造具有重要作用",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8020,
+        "output_tokens": 9741
+      },
+      "latency_ms": 6238.6
+    },
+    {
+      "id": "gold-pilot-044",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议认为学业规划越早越好",
+            "label": "supported"
+          },
+          {
+            "claim": "学业规划应像年度计划一样确立主线和目标",
+            "label": "supported"
+          },
+          {
+            "claim": "临近考试则需根据学生情况采用巧妙方法",
+            "label": "supported"
+          },
+          {
+            "claim": "刘柏旭分享了从感兴趣的职业（量化交易）出发，倒推所需背景、本科专业及高中、初中准备的方法",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了学业规划应尽早确立主线目标",
+            "label": "supported"
+          },
+          {
+            "claim": "分享了从未来职业兴趣倒推各阶段学习准备的规划方法",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议认为学业规划越早越好",
+            "label": "supported"
+          },
+          {
+            "claim": "学业规划应像年度计划一样确立主线和目标",
+            "label": "supported"
+          },
+          {
+            "claim": "临近考试则需根据学生情况采用巧妙方法",
+            "label": "supported"
+          },
+          {
+            "claim": "刘柏旭分享了从感兴趣的职业（量化交易）出发，倒推所需背景、本科专业及高中、初中准备的方法",
+            "label": "supported"
+          },
+          {
+            "claim": "本次论坛几位运营商代表从时代出发，分别阐述了对大屏时代云游戏行业的看法",
+            "label": "unsupported"
+          },
+          {
+            "claim": "强调多屏时代要关注行业生态，用心根据客户的需求研发产品",
+            "label": "unsupported"
+          },
+          {
+            "claim": "追求云游戏生态平等",
+            "label": "unsupported"
+          },
+          {
+            "claim": "需要注重云技术的发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "要抓紧提升大众主题在游戏里的地位，培养用户习惯，增加新的游戏诉求",
+            "label": "unsupported"
+          },
+          {
+            "claim": "细分客户群体，进一步推动云游戏发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "唤起新用户和商家，将生活诉求增加到游戏中",
+            "label": "unsupported"
+          },
+          {
+            "claim": "结合新网络，新基础设施，新业务习惯，新生态以及新渠道等推动行业发展",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9820,
+        "output_tokens": 13432
+      },
+      "latency_ms": 8229.1
+    },
+    {
+      "id": "gold-pilot-035",
+      "labels": {
+        "probe": "答案A",
+        "baseline": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "上海是中国经济龙头，在长三角领军",
+            "label": "supported"
+          },
+          {
+            "claim": "上海在物流、医疗、金融、销售、教育等人工智能大有作为的产业上具有明显优势",
+            "label": "supported"
+          },
+          {
+            "claim": "上海聚集了技术创新、落地场景和人才潜力",
+            "label": "supported"
+          },
+          {
+            "claim": "上海市政府大力支持人工智能产业发展",
+            "label": "supported"
+          },
+          {
+            "claim": "这也是微软亚洲研究院选择落户上海的原因",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村振兴建设是脱贫攻坚的重要文件",
+            "label": "unsupported"
+          },
+          {
+            "claim": "许多年轻人积极投身到乡村建设中去",
+            "label": "unsupported"
+          },
+          {
+            "claim": "结合可持续发展政策及当地特色传统，组织妇女培训活动",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从保健、医疗、种植等方面对她们进行指导",
+            "label": "unsupported"
+          },
+          {
+            "claim": "组织她们学习技术",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "上海在长三角经济圈具有龙头地位",
+            "label": "supported"
+          },
+          {
+            "claim": "上海在物流、医疗、金融等人工智能大有作为的产业上优势明显",
+            "label": "supported"
+          },
+          {
+            "claim": "上海汇聚了技术创新、落地场景及人才潜力",
+            "label": "supported"
+          },
+          {
+            "claim": "上海得到市政府对人工智能产业发展的大力支持",
+            "label": "supported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "上海是中国经济龙头，在长三角领军",
+            "label": "supported"
+          },
+          {
+            "claim": "上海在物流、医疗、金融、销售、教育等人工智能大有作为的产业上具有明显优势",
+            "label": "supported"
+          },
+          {
+            "claim": "上海聚集了技术创新、落地场景和人才潜力",
+            "label": "supported"
+          },
+          {
+            "claim": "上海市政府大力支持人工智能产业发展",
+            "label": "supported"
+          },
+          {
+            "claim": "这也是微软亚洲研究院选择落户上海的原因",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8462,
+        "output_tokens": 12634
+      },
+      "latency_ms": 7367.6
+    },
+    {
+      "id": "gold-pilot-039",
+      "labels": {
+        "probe": "答案A",
+        "baseline": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "艺术生除了掌握科技、量子力学等其他领域的基础知识，更重要的是理解科学与技术发明中的思维方式",
+            "label": "supported"
+          },
+          {
+            "claim": "这种思维方式的了解用于跨领域合作",
+            "label": "supported"
+          },
+          {
+            "claim": "这种思维方式的了解用于自身艺术创作",
+            "label": "supported"
+          },
+          {
+            "claim": "结合新能源汽车、无人驾驶等新产业对产品美学的需求，这为艺术院校带来了新的时代",
+            "label": "supported"
+          },
+          {
+            "claim": "并非所有艺术生都要走向产品设计",
+            "label": "supported"
+          },
+          {
+            "claim": "名师培养特点主要是设计系统性强，研训一体，指导性强，任务驱动，实践性强",
+            "label": "unsupported"
+          },
+          {
+            "claim": "学本教育的名师培养帮助名师课堂发生了根本性变化",
+            "label": "unsupported"
+          },
+          {
+            "claim": "充分激活了学生的兴趣、意识和活力，教学质量得到提升",
+            "label": "unsupported"
+          },
+          {
+            "claim": "名师的科研水平也得到实质性提高",
+            "label": "unsupported"
+          },
+          {
+            "claim": "名师的送教送培活动带动了区域教育的均衡发展",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "艺术生了解科技与量子力学，更重要的是掌握科学发明过程中的思维方式",
+            "label": "supported"
+          },
+          {
+            "claim": "将这种思维方式应用于跨界合作及自身的艺术创作中",
+            "label": "supported"
+          },
+          {
+            "claim": "这种结合顺应了新产业结构调整的需求",
+            "label": "supported"
+          },
+          {
+            "claim": "为艺术院校迎来了产品美学与设计应用结合的新时代",
+            "label": "supported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "艺术生除了掌握科技、量子力学等其他领域的基础知识，更重要的是理解科学与技术发明中的思维方式",
+            "label": "supported"
+          },
+          {
+            "claim": "这种思维方式的了解用于跨领域合作",
+            "label": "supported"
+          },
+          {
+            "claim": "这种思维方式的了解用于自身艺术创作",
+            "label": "supported"
+          },
+          {
+            "claim": "结合新能源汽车、无人驾驶等新产业对产品美学的需求，这为艺术院校带来了新的时代",
+            "label": "supported"
+          },
+          {
+            "claim": "并非所有艺术生都要走向产品设计",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8909,
+        "output_tokens": 14218
+      },
+      "latency_ms": 8337.0
+    },
+    {
+      "id": "gold-pilot-042",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "会议讨论了两台设备测量结果以哪个为准的行业痛点",
+            "label": "supported"
+          },
+          {
+            "claim": "周总认为充电倍率、材料、工况等都会影响精度",
+            "label": "supported"
+          },
+          {
+            "claim": "周总认为每次测量都应进行不确定度评定，而非简单比较方法优劣",
+            "label": "supported"
+          },
+          {
+            "claim": "赵总建议通过公共平台让多家检测机构对同批产品进行比测",
+            "label": "supported"
+          },
+          {
+            "claim": "赵总建议结合在线监测与多尺度数据融合来提高测量准确性",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了电池测量需进行不确定度评定以表征精度",
+            "label": "supported"
+          },
+          {
+            "claim": "会议建议通过多机构比测提高评估准确性",
+            "label": "supported"
+          },
+          {
+            "claim": "会议建议通过多尺度数据融合提高评估准确性",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "会议讨论了两台设备测量结果以哪个为准的行业痛点",
+            "label": "supported"
+          },
+          {
+            "claim": "周总认为充电倍率、材料、工况等都会影响精度",
+            "label": "supported"
+          },
+          {
+            "claim": "周总认为每次测量都应进行不确定度评定，而非简单比较方法优劣",
+            "label": "supported"
+          },
+          {
+            "claim": "赵总建议通过公共平台让多家检测机构对同批产品进行比测",
+            "label": "supported"
+          },
+          {
+            "claim": "赵总建议结合在线监测与多尺度数据融合来提高测量准确性",
+            "label": "supported"
+          },
+          {
+            "claim": "AI技术发展需要一定的过程，不能因为人工智能具有破坏力就归结为有罪的技术",
+            "label": "unsupported"
+          },
+          {
+            "claim": "AI技术其实是一个生活的瓶颈",
+            "label": "unsupported"
+          },
+          {
+            "claim": "未来希望我国站在新的起跑线上，抓住机遇，多做科教类的科普",
+            "label": "unsupported"
+          },
+          {
+            "claim": "十几二十年后，人工智能会和今天的智能手机一样普遍",
+            "label": "unsupported"
+          },
+          {
+            "claim": "人工智能的发展需要经历重新爆发的过程",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9343,
+        "output_tokens": 13364
+      },
+      "latency_ms": 8153.8
+    },
+    {
+      "id": "gold-pilot-045",
+      "labels": {
+        "probe": "答案A",
+        "baseline": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "会议认为中考是很多孩子人生的第一次大考",
+            "label": "supported"
+          },
+          {
+            "claim": "初中尽量去好学校",
+            "label": "supported"
+          },
+          {
+            "claim": "中考并不决定一切",
+            "label": "supported"
+          },
+          {
+            "claim": "初中不应以考试为主要目标",
+            "label": "supported"
+          },
+          {
+            "claim": "初一到初三上学期应重点培养读书能力",
+            "label": "supported"
+          },
+          {
+            "claim": "能力强的孩子最后半年找好老师提分的可能性远大于高中阶段",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村自媒体的引导需要立足于政府部门的角度看待问题",
+            "label": "unsupported"
+          },
+          {
+            "claim": "主体不一致角度不一致",
+            "label": "unsupported"
+          },
+          {
+            "claim": "专业人士应以融媒体中心工作人员角度，主动引导健康发展方向",
+            "label": "unsupported"
+          },
+          {
+            "claim": "谈话中需要注意贴近群众农村和实际，以原汁原味的农村方言灵活生动的阐述人物视频",
+            "label": "unsupported"
+          },
+          {
+            "claim": "防止出现低级趣味",
+            "label": "unsupported"
+          },
+          {
+            "claim": "目的为对社会产生正面影响",
+            "label": "unsupported"
+          },
+          {
+            "claim": "以幽默的短视频，解读时事政治和社会热点，力求在欢声笑语中传播正能量",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导流程包含对其加强监管提醒和约谈",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导正确的发展方向，加大理论支撑和跟踪调研",
+            "label": "unsupported"
+          },
+          {
+            "claim": "总结乡村媒体特色和走红原因",
+            "label": "unsupported"
+          },
+          {
+            "claim": "引导思想聚焦方向，强化一体，推动乡村自媒体和主流媒体合作",
+            "label": "unsupported"
+          },
+          {
+            "claim": "开设专区，引导相关部门提供素材，积极配合宣传政策",
+            "label": "unsupported"
+          },
+          {
+            "claim": "总结成功经验",
+            "label": "unsupported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了中考作为人生第一次大考在学业规划中的意义",
+            "label": "supported"
+          },
+          {
+            "claim": "强调初中阶段不应仅以考试为目标",
+            "label": "supported"
+          },
+          {
+            "claim": "应注重培养读书能力和学习方法",
+            "label": "supported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议认为中考是很多孩子人生的第一次大考",
+            "label": "supported"
+          },
+          {
+            "claim": "初中尽量去好学校",
+            "label": "supported"
+          },
+          {
+            "claim": "中考并不决定一切",
+            "label": "supported"
+          },
+          {
+            "claim": "初中不应以考试为主要目标",
+            "label": "supported"
+          },
+          {
+            "claim": "初一到初三上学期应重点培养读书能力",
+            "label": "supported"
+          },
+          {
+            "claim": "能力强的孩子最后半年找好老师提分的可能性远大于高中阶段",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9401,
+        "output_tokens": 16892
+      },
+      "latency_ms": 11569.7
+    },
+    {
+      "id": "gold-pilot-048",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议认为AI未来将像智能手机一样普及平常",
+            "label": "supported"
+          },
+          {
+            "claim": "不应因其破坏力而被视为有罪技术",
+            "label": "supported"
+          },
+          {
+            "claim": "AI并不冰冷可怕",
+            "label": "supported"
+          },
+          {
+            "claim": "只要稳步推进就能实现温暖的应用景象",
+            "label": "supported"
+          },
+          {
+            "claim": "并抓住发展机遇",
+            "label": "unsupported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "与会者认为AI带来的好坏影响往往会相互抵消，不必恐慌",
+            "label": "supported"
+          },
+          {
+            "claim": "AI虽复杂，但未来10到20年可能像智能手机一样普及",
+            "label": "supported"
+          },
+          {
+            "claim": "不能因其破坏能力就判定它是有罪的技术",
+            "label": "supported"
+          },
+          {
+            "claim": "希望国家抓住机遇、加强科普",
+            "label": "supported"
+          },
+          {
+            "claim": "乡村振兴建设是是脱贫攻坚的重要文件",
+            "label": "unsupported"
+          },
+          {
+            "claim": "许多年轻人积极投身到乡村建设中去",
+            "label": "unsupported"
+          },
+          {
+            "claim": "结合可持续发展政策及当地特色传统，组织妇女培训活动",
+            "label": "unsupported"
+          },
+          {
+            "claim": "从保健、医疗、种植等方面对他们进行指导，组织她们学习技术",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "与会者认为AI带来的好坏影响往往会相互抵消，不必恐慌",
+            "label": "supported"
+          },
+          {
+            "claim": "AI虽复杂，但未来10到20年可能像智能手机一样普及",
+            "label": "supported"
+          },
+          {
+            "claim": "不能因其破坏能力就判定它是有罪的技术",
+            "label": "supported"
+          },
+          {
+            "claim": "希望国家抓住机遇、加强科普",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 8552,
+        "output_tokens": 11389
+      },
+      "latency_ms": 7555.5
+    },
+    {
+      "id": "gold-pilot-053",
+      "labels": {
+        "current": "答案A",
+        "baseline": "答案B",
+        "probe": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "current": [
+          {
+            "claim": "学本教学背景下的名师培养有三个特点：课程设计系统性强、研训一体指导性强、任务驱动实践性强",
+            "label": "supported"
+          },
+          {
+            "claim": "其影响是名师课堂发生根本变化",
+            "label": "supported"
+          },
+          {
+            "claim": "科研水平实质提高",
+            "label": "supported"
+          },
+          {
+            "claim": "通过送教送培带动区域教育均衡发展",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了学本教学背景下名师培养具有顶层设计系统性强、研训一体指导性强及任务驱动实践性强的特点",
+            "label": "unsupported"
+          },
+          {
+            "claim": "学本教学的影响体现在促使名师课堂发生根本性变化",
+            "label": "supported"
+          },
+          {
+            "claim": "科研水平实质性提高",
+            "label": "supported"
+          },
+          {
+            "claim": "通过送教送培活动带动了区域教育均衡发展",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "学本教学背景下的名师培养有三个特点：课程设计系统性强、研训一体指导性强、任务驱动实践性强",
+            "label": "supported"
+          },
+          {
+            "claim": "其影响是名师课堂发生根本变化",
+            "label": "supported"
+          },
+          {
+            "claim": "科研水平实质提高",
+            "label": "supported"
+          },
+          {
+            "claim": "通过送教送培带动区域教育均衡发展",
+            "label": "supported"
+          },
+          {
+            "claim": "AI技术发展需要一定的过程，不能因为人工智能具有破坏力就归结为有罪的技术",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在好坏层次上，AI技术其实是一个生活的瓶颈",
+            "label": "unsupported"
+          },
+          {
+            "claim": "未来希望我国站在新的起跑线上，抓住机遇，多做科教类的科普",
+            "label": "unsupported"
+          },
+          {
+            "claim": "十几二十年后，人工智能会和今天的智能手机一样普遍",
+            "label": "unsupported"
+          },
+          {
+            "claim": "人工智能的发展需要经历重新爆发的过程",
+            "label": "unsupported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 10176,
+        "output_tokens": 12623
+      },
+      "latency_ms": 6578.7
+    },
+    {
+      "id": "gold-pilot-057",
+      "labels": {
+        "probe": "答案A",
+        "current": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "会议讨论了互联网解决两秒后的问题、教育解决20年后的问题，二者易错配的观点",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为维度不同，前者指互联网行业演变快",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为教育更应利用互联网跨地域传递优质资源的技术属性",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为教育更应利用互联网自动化陪伴的技术属性",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为这些属性能实现教育普惠",
+            "label": "supported"
+          },
+          {
+            "claim": "本次论坛几位运营商代表从时代出发，分别阐述了对大屏时代云游戏行业的看法",
+            "label": "unsupported"
+          },
+          {
+            "claim": "强调多屏时代要关注行业生态，用心根据客户的需求研发产品",
+            "label": "unsupported"
+          },
+          {
+            "claim": "追求云游戏生态平等",
+            "label": "unsupported"
+          },
+          {
+            "claim": "需要注重云技术的发展",
+            "label": "unsupported"
+          },
+          {
+            "claim": "在未来要抓紧提升大众主题在游戏里的地位，培养用户习惯，增加新的游戏诉求",
+            "label": "unsupported"
+          },
+          {
+            "claim": "细分客户群体，进一步推动云游戏发展，唤起新用户和商家",
+            "label": "unsupported"
+          },
+          {
+            "claim": "将生活诉求增加到游戏中，结合新网络，新基础设施，新业务习惯，新生态以及新渠道等推动行业发展",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "会议讨论了互联网解决两秒后的问题、教育解决20年后的问题，二者易错配的观点",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为维度不同，前者指互联网行业演变快",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为教育更应利用互联网跨地域传递优质资源的技术属性",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为教育更应利用互联网自动化陪伴的技术属性",
+            "label": "supported"
+          },
+          {
+            "claim": "林峰认为这些属性能实现教育普惠",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论指出互联网倾向于解决即时需求",
+            "label": "supported"
+          },
+          {
+            "claim": "互联网商业模式演变快",
+            "label": "supported"
+          },
+          {
+            "claim": "教育关注长远问题",
+            "label": "supported"
+          },
+          {
+            "claim": "互联网可通过地域拉平属性解决教育资源不均问题",
+            "label": "supported"
+          },
+          {
+            "claim": "互联网可通过自动化属性解决陪伴缺失等传统难题",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9418,
+        "output_tokens": 15723
+      },
+      "latency_ms": 9100.4
+    },
+    {
+      "id": "gold-pilot-060",
+      "labels": {
+        "probe": "答案A",
+        "current": "答案B",
+        "baseline": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "probe": [
+          {
+            "claim": "人们一方面信奉平等主义，另一方面又接受权力、收入等方面的现实不平等并视之为正当",
+            "label": "supported"
+          },
+          {
+            "claim": "这说明认知、判断与行动之间可能存在矛盾",
+            "label": "supported"
+          },
+          {
+            "claim": "自认持有的观念与实际观念之间的落差，源于意识形态在不被察觉时起作用",
+            "label": "supported"
+          },
+          {
+            "claim": "因此需要通过“认识你自己”的哲学实践来反思",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士现在是微软亚洲研究院异构计算组的高级研究主管",
+            "label": "unsupported"
+          },
+          {
+            "claim": "曹婷博士曾在一系列系统领域的顶会上发表过多篇论文和期刊",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士现在是微软亚洲研究院的副院长",
+            "label": "unsupported"
+          },
+          {
+            "claim": "刘铁岩博士是国际电子电器工程师学会的院士",
+            "label": "unsupported"
+          },
+          {
+            "claim": "他们曾经研发过史上最强的麻将AI",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "人们一方面信奉平等主义，另一方面又接受权力、收入等方面的现实不平等并视之为正当",
+            "label": "supported"
+          },
+          {
+            "claim": "这说明认知、判断与行动之间可能存在矛盾",
+            "label": "supported"
+          },
+          {
+            "claim": "自认持有的观念与实际观念之间的落差，源于意识形态在不被察觉时起作用",
+            "label": "supported"
+          },
+          {
+            "claim": "因此需要通过“认识你自己”的哲学实践来反思",
+            "label": "supported"
+          }
+        ],
+        "baseline": [
+          {
+            "claim": "会议讨论了平等主义者在信奉平等的同时却接受现实中权力与收入等不平等现象的矛盾",
+            "label": "supported"
+          },
+          {
+            "claim": "这反映了人们显性观念与潜意识意识形态之间的落差",
+            "label": "supported"
+          },
+          {
+            "claim": "这种认知与行动的矛盾表明我们常未意识到自己真正持有的观念",
+            "label": "supported"
+          },
+          {
+            "claim": "因此需要通过哲学实践来认识自我",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 9540,
+        "output_tokens": 13420
+      },
+      "latency_ms": 7737.3
+    },
+    {
+      "id": "gold-pilot-063",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议介绍了曹婷博士在系统领域顶会发表多篇论文",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士获得最佳论文奖等成就",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是IEEE院士",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是ACM院士",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士担任顶级会议主席",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是开源项目贡献者",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士有学术与产业成就",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "曹婷博士是微软亚洲研究院异构计算组高级研究主管",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士曾在华为负责方舟编译器内存管理系统",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士在顶会发表多篇论文并获多项最佳论文和ACM奖项",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是微软亚洲研究院副院长",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是IEEE与ACM院士",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是多所高校兼职教授",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士获多项最佳论文奖",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士出版畅销书",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士开源LightGBM",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士助力翻译系统达人类水平并获WMT八项冠军",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士研发顶级麻将AI",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士曾任多元与包容委员会主席",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士培养众多女性人才",
+            "label": "supported"
+          },
+          {
+            "claim": "随时间推移公益发展越来越专业化",
+            "label": "unsupported"
+          },
+          {
+            "claim": "公益组织要多加入技术手段提高效率",
+            "label": "unsupported"
+          },
+          {
+            "claim": "可以通过数据分析提高救援效率",
+            "label": "unsupported"
+          },
+          {
+            "claim": "互联网发展迅速普通人可以利用渠道求助",
+            "label": "unsupported"
+          },
+          {
+            "claim": "做公益需要更多人参与并多宣传公益",
+            "label": "unsupported"
+          },
+          {
+            "claim": "救援工作时使用文档有很多局限性",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "曹婷博士是微软亚洲研究院异构计算组高级研究主管",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士曾在华为负责方舟编译器内存管理系统",
+            "label": "supported"
+          },
+          {
+            "claim": "曹婷博士在顶会发表多篇论文并获多项最佳论文和ACM奖项",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是微软亚洲研究院副院长",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是IEEE与ACM院士",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士是多所高校兼职教授",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士获多项最佳论文奖",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士出版畅销书",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士开源LightGBM",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士助力翻译系统达人类水平并获WMT八项冠军",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士研发顶级麻将AI",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士曾任多元与包容委员会主席",
+            "label": "supported"
+          },
+          {
+            "claim": "刘铁岩博士培养众多女性人才",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 10279,
+        "output_tokens": 22812
+      },
+      "latency_ms": 13229.3
+    },
+    {
+      "id": "gold-pilot-067",
+      "labels": {
+        "baseline": "答案A",
+        "probe": "答案B",
+        "current": "答案C"
+      },
+      "ok": true,
+      "status": 200,
+      "claims": {
+        "baseline": [
+          {
+            "claim": "会议讨论了成就更好艺术家需具备人品",
+            "label": "supported"
+          },
+          {
+            "claim": "会议讨论了成就更好艺术家需具备真正的艺术创新能力",
+            "label": "supported"
+          },
+          {
+            "claim": "会议讨论了成就更好艺术家需具备与公众互动的能力",
+            "label": "supported"
+          },
+          {
+            "claim": "强调不能仅使用新工具或跟风",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术家应有强烈的问题意识",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术家应有实验意愿",
+            "label": "supported"
+          },
+          {
+            "claim": "艺术家应有思辨能力",
+            "label": "supported"
+          },
+          {
+            "claim": "这些能力用以推动社会思考",
+            "label": "supported"
+          }
+        ],
+        "probe": [
+          {
+            "claim": "天方以人品作为孵化艺术家的标准之一",
+            "label": "supported"
+          },
+          {
+            "claim": "天方以艺术创新能力（重思考而非技巧）作为孵化艺术家的标准之一",
+            "label": "supported"
+          },
+          {
+            "claim": "天方以与大众互动传播思想的能力作为孵化艺术家的标准之一",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢认同天方的观点",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有问题意识",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有实验意愿",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有学习探索能力",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有思辨能力",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢提供从项目搭建到社区营造的长效合作",
+            "label": "supported"
+          },
+          {
+            "claim": "中考是孩子人生第一次大考",
+            "label": "unsupported"
+          },
+          {
+            "claim": "初中不应以考试为主要目标",
+            "label": "unsupported"
+          },
+          {
+            "claim": "初一初二甚至初三前半学期应该培养读书能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "初中之前可以拿出较多时间让孩子学习读书方法",
+            "label": "unsupported"
+          },
+          {
+            "claim": "培养好的学习习惯来弥补学习能力",
+            "label": "unsupported"
+          },
+          {
+            "claim": "慢慢会发现强项在哪里",
+            "label": "unsupported"
+          },
+          {
+            "claim": "用强项的方法弥补弱项的学习",
+            "label": "unsupported"
+          },
+          {
+            "claim": "一直到初三上半年是可以思考其强项的",
+            "label": "unsupported"
+          }
+        ],
+        "current": [
+          {
+            "claim": "天方以人品作为孵化艺术家的标准之一",
+            "label": "supported"
+          },
+          {
+            "claim": "天方以艺术创新能力（重思考而非技巧）作为孵化艺术家的标准之一",
+            "label": "supported"
+          },
+          {
+            "claim": "天方以与大众互动传播思想的能力作为孵化艺术家的标准之一",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢认同天方的观点",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有问题意识",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有实验意愿",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有学习探索能力",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢强调艺术家需有思辨能力",
+            "label": "supported"
+          },
+          {
+            "claim": "蜂巢提供从项目搭建到社区营造的长效合作",
+            "label": "supported"
+          }
+        ]
+      },
+      "usage": {
+        "input_tokens": 10421,
+        "output_tokens": 19888
+      },
+      "latency_ms": 10412.8
+    }
+  ]
+}
