@@ -106,6 +106,11 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--concurrency", type=int, default=4)
     args = parser.parse_args()
+    # Jira 工具只在 JIRA_ENABLED 时注册；漏设会让写操作样本全部"拒写"，指标看似安全实则无效。
+    # 本脚本不执行 execute 节点，不会真正调用 Jira。
+    from app.core.config import settings
+    if not settings.JIRA_ENABLED:
+        raise SystemExit("run_tool_eval 需要 JIRA_ENABLED=true（只注册工具元数据，不会调用外部 API）")
     rows = [json.loads(l) for l in args.dataset.read_text(encoding="utf-8").splitlines() if l.strip()]
     results = asyncio.run(evaluate(rows, args.concurrency))
     ok = [r for r in results if "error" not in r]
