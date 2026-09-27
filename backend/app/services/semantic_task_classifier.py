@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from app.agents.state import TaskType
@@ -44,10 +45,12 @@ _SEQUENCE_RE = re.compile(r"先.+(再|然后)|另外|顺便|and then|also|plus|�
 class SemanticTaskClassifier:
     # 阈值在 route_eval_v1 + heldout_v1（107 条开发集）上网格标定：margin=0.08 时
     # threshold 0.55~0.65 准确率同为 0.972，取中值；最终泛化以 test_v2 为准。
-    def __init__(self, encoder, *, threshold: float = 0.6, margin: float = 0.08):
+    def __init__(self, encoder, *, threshold: float = 0.6, margin: float = 0.08, head=None):
         self._encoder = encoder
         self.threshold = threshold
         self.margin = margin
+        # head = (coef[n_class, dim], intercept[n_class], classes[n_class])，由 load_intent_head() 提供
+        self._head = head
         self._labels: List[TaskType] = []
         texts: List[str] = []
         for label, examples in PROTOTYPES.items():
@@ -78,10 +81,23 @@ class SemanticTaskClassifier:
             results.append(top if ok else None)
         return results
 
+    def classify_whole(self, vector) -> Optional[str]:
+        """整句意图头（开发集训练的逻辑回归）；未加载时返回 None。返回 qa/todo/minutes/controversy/multi。"""
+        if self._head is None:
+            return None
+        import numpy as np
+
+        coef, intercept, classes = self._head
+        return str(classes[int(np.argmax(np.asarray(vector) @ coef.T + intercept))])
+
     def detect(self, question: str) -> List[TaskType]:
         """返回识别到的任务类型（有序去重）；QA 只在多请求句式中作为独立子任务计入。"""
         clauses = self.split_clauses(question)
-        labels = self._classify(self._encode([question] + clauses))
+        vectors = self._encode([question] + clauses)
+        head = self.classify_whole(vectors[0])
+        if head is not None:
+            return self._detect_with_head(head, vectors[1:])
+        labels = self._classify(vectors)
         whole, per_clause = labels[0], labels[1:]
         business = [l for l in per_clause if l and l != TaskType.QA]
         if whole and whole != TaskType.QA:
@@ -91,9 +107,30 @@ class SemanticTaskClassifier:
             found.append(TaskType.QA)
         return found
 
+    def _detect_with_head(self, head: str, clause_vectors) -> List[TaskType]:
+        """整句类型以意图头为准：qa 表示"不是业务任务"（压过关键词）；multi 时用子句原型补出具体类型。"""
+        if head == "qa":
+            return [TaskType.QA]
+        if head != "multi":
+            return [TaskType(head)]
+        found = [l for l in self._classify(clause_vectors) if l and l != TaskType.QA]
+        found = list(dict.fromkeys(found))
+        return found if len(found) >= 2 else [TaskType.MULTI]
+
 
 _instance: Optional[SemanticTaskClassifier] = None
 _load_failed = False
+INTENT_HEAD_PATH = Path(__file__).resolve().parent / "assets/intent_head_v1.npz"
+
+
+def load_intent_head(path: Path = INTENT_HEAD_PATH):
+    """加载开发集训练的整句意图头（scripts/train_intent_head.py 产出）；缺失时返回 None，回退原型规则。"""
+    if not path.exists():
+        return None
+    import numpy as np
+
+    data = np.load(path, allow_pickle=False)
+    return data["coef"], data["intercept"], data["classes"]
 
 
 def get_semantic_task_classifier() -> Optional[SemanticTaskClassifier]:
@@ -109,7 +146,7 @@ def get_semantic_task_classifier() -> Optional[SemanticTaskClassifier]:
         path = settings.LOCAL_EMBEDDING_MODEL_PATH
         if not os.path.exists(path):
             raise FileNotFoundError(path)
-        _instance = SemanticTaskClassifier(SentenceTransformer(path, local_files_only=True))
+        _instance = SemanticTaskClassifier(SentenceTransformer(path, local_files_only=True), head=load_intent_head())
     except Exception as exc:  # 依赖或模型缺失时保持关键词路由
         _load_failed = True
         app_logger.warning(f"[SemanticTask] 语义任务识别不可用，沿用关键词路由: {exc}")

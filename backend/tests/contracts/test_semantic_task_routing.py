@@ -52,3 +52,28 @@ async def test_question_phrase_does_not_turn_single_task_into_multi(router):
 async def test_single_ordinal_word_is_not_parallel_multi_task():
     decision = await IntentRouter().route("为什么最后决定不用那个外包团队了")
     assert decision.workflow_type == WorkflowType.SIMPLE_QA
+
+
+def _head_router(label_for_axis):
+    """意图头：4 维假向量上每个轴对应一个整句类别。"""
+    classes = np.array(label_for_axis)
+    coef = np.eye(4, dtype=np.float32)
+    return IntentRouter(semantic_task_classifier=SemanticTaskClassifier(
+        FakeEncoder(), head=(coef, np.zeros(4, dtype=np.float32), classes)))
+
+
+@pytest.mark.asyncio
+async def test_intent_head_qa_overrides_task_keyword():
+    # "纪要"关键词会命中 MINUTES；意图头判为 qa（问具体事实）时应走 QA
+    router = _head_router(["todo", "minutes", "controversy", "qa"])
+    _LEXICON["纪要里写的预算是多少"] = TaskType.QA
+    decision = await router.route("纪要里写的预算是多少")
+    assert decision.workflow_type == WorkflowType.SIMPLE_QA
+
+
+@pytest.mark.asyncio
+async def test_intent_head_multi_routes_to_complex():
+    router = _head_router(["multi", "minutes", "controversy", "qa"])
+    _LEXICON["tldr + action items"] = TaskType.TODO  # 映射到轴 0 → 头判 multi
+    decision = await router.route("tldr + action items")
+    assert (decision.workflow_type, decision.task_type) == (WorkflowType.COMPLEX, TaskType.MULTI)

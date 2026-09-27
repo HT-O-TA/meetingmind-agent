@@ -276,6 +276,14 @@ class IntentRouter:
                 known = {t for t, _ in detected_types}
                 # encode 是同步推理，放到线程池避免阻塞事件循环（CPU 部署尤甚）
                 semantic_types = await asyncio.to_thread(self._semantic_task_classifier.detect, question)
+                if getattr(self._semantic_task_classifier, "_head", None) is not None:
+                    # 意图头在开发集上学到了"字面含任务词的事实问句"，其整句判定优先于关键词
+                    if semantic_types == [TaskType.QA]:
+                        return None, 0.8, []
+                    if semantic_types == [TaskType.MULTI]:
+                        return TaskType.MULTI, 0.8, ["语义多任务"]
+                    detected_types = []
+                    known = set()
                 for task_type in semantic_types:
                     if task_type in known:
                         continue
