@@ -1,0 +1,69 @@
+{
+  "schema_version": "vllm-bench.v1",
+  "model": "qwen3-1.7b",
+  "server_args": "vllm==0.10.0 Qwen3-1.7B fp16 RTX4060-8GB gpu_mem=0.75 max_len=2048 kv_tokens=12800 thinking=off",
+  "max_tokens": 128,
+  "context_chars": 1600,
+  "results": [
+    {
+      "concurrency": 1,
+      "requests": 64,
+      "ok": 64,
+      "ttft_p50_ms": 93.0,
+      "ttft_p95_ms": 168.5,
+      "e2e_p50_ms": 777.0,
+      "e2e_p95_ms": 1125.3,
+      "output_tok_per_s": 45.6,
+      "req_per_s": 1.27,
+      "wall_s": 50.3
+    },
+    {
+      "concurrency": 4,
+      "requests": 64,
+      "ok": 64,
+      "ttft_p50_ms": 92.4,
+      "ttft_p95_ms": 180.3,
+      "e2e_p50_ms": 826.2,
+      "e2e_p95_ms": 1310.0,
+      "output_tok_per_s": 156.2,
+      "req_per_s": 4.36,
+      "wall_s": 14.7
+    },
+    {
+      "concurrency": 8,
+      "requests": 64,
+      "ok": 64,
+      "ttft_p50_ms": 105.0,
+      "ttft_p95_ms": 210.7,
+      "e2e_p50_ms": 922.1,
+      "e2e_p95_ms": 1701.8,
+      "output_tok_per_s": 247.9,
+      "req_per_s": 6.94,
+      "wall_s": 9.2
+    },
+    {
+      "concurrency": 16,
+      "requests": 64,
+      "ok": 64,
+      "ttft_p50_ms": 115.1,
+      "ttft_p95_ms": 314.8,
+      "e2e_p50_ms": 1295.4,
+      "e2e_p95_ms": 2354.1,
+      "output_tok_per_s": 346.8,
+      "req_per_s": 9.67,
+      "wall_s": 6.6
+    },
+    {
+      "concurrency": 32,
+      "requests": 64,
+      "ok": 64,
+      "ttft_p50_ms": 608.8,
+      "ttft_p95_ms": 905.6,
+      "e2e_p50_ms": 2246.2,
+      "e2e_p95_ms": 3481.3,
+      "output_tok_per_s": 398.8,
+      "req_per_s": 11.15,
+      "wall_s": 5.7
+    }
+  ]
+}
