@@ -1,0 +1,12 @@
+{
+  "frozen_at": "2026-09-27T12:44:37",
+  "purpose": "route test_v4 一次性评测（意图头 v1，只在 v1/heldout_v1/dev_v2 训练；dev 5 折 CV 0.837）",
+  "sha256": {
+    "app/services/intent_router.py": "89595232f930c47557205acab0324dae5a4a71032ea298d55a5794fe0ae26b3b",
+    "app/services/semantic_task_classifier.py": "7e2a97671cf7025f2e1d2c71380a1958017497e38cc4f046410d5bdd5f1ed849",
+    "app/services/assets/intent_head_v1.npz": "7aefcf515f8a5c663f1d10a5317b258474ecbda9779b4c3be84643dd27f04f1c",
+    "scripts/run_route_eval.py": "49798023225797d94dc6bb60da7e9faffbf6a37ac20e77e7178bd7d9c43820de",
+    "scripts/train_intent_head.py": "64d04cd35fb6ff46fded543e7094fd0e2c63e313d7c2bcd700da0c95523ac48b",
+    "evaluation/datasets/route_eval_test_v4.jsonl": "3d51dc5ffd5d90cedc3ed955242dbf4224ea3eaaad45660211983baa06a06f4a"
+  }
+}

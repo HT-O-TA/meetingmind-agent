@@ -1,0 +1,959 @@
+{
+  "classifier": "rules",
+  "semantic": true,
+  "dataset": "route_eval_test_v4.jsonl",
+  "count": 100,
+  "task_accuracy": 0.93,
+  "workflow_accuracy": 0.93,
+  "by_group": {
+    "greeting": {
+      "n": 6,
+      "workflow_accuracy": 1.0
+    },
+    "qa": {
+      "n": 30,
+      "workflow_accuracy": 0.933
+    },
+    "todo": {
+      "n": 16,
+      "workflow_accuracy": 1.0
+    },
+    "minutes": {
+      "n": 16,
+      "workflow_accuracy": 1.0
+    },
+    "controversy": {
+      "n": 16,
+      "workflow_accuracy": 0.812
+    },
+    "multi": {
+      "n": 16,
+      "workflow_accuracy": 0.875
+    }
+  },
+  "latency_ms": {
+    "p50": 48.9,
+    "p95": 82.7,
+    "max": 110.2
+  },
+  "confusions": [
+    [
+      "controversy/controversy -> simple_qa/qa",
+      3
+    ],
+    [
+      "simple_qa/qa -> minutes/minutes",
+      2
+    ],
+    [
+      "complex/multi -> minutes/minutes",
+      1
+    ],
+    [
+      "complex/multi -> controversy/controversy",
+      1
+    ]
+  ],
+  "per_record": [
+    {
+      "id": "v4-001",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.5
+    },
+    {
+      "id": "v4-002",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.1
+    },
+    {
+      "id": "v4-003",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.1
+    },
+    {
+      "id": "v4-004",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 55.0
+    },
+    {
+      "id": "v4-005",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 110.2
+    },
+    {
+      "id": "v4-006",
+      "group": "greeting",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 0.2
+    },
+    {
+      "id": "v4-007",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 42.0
+    },
+    {
+      "id": "v4-008",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 47.2
+    },
+    {
+      "id": "v4-009",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 54.4
+    },
+    {
+      "id": "v4-010",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 48.4
+    },
+    {
+      "id": "v4-011",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 50.2
+    },
+    {
+      "id": "v4-012",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 41.5
+    },
+    {
+      "id": "v4-013",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 40.5
+    },
+    {
+      "id": "v4-014",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 49.5
+    },
+    {
+      "id": "v4-015",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 40.5
+    },
+    {
+      "id": "v4-016",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 43.9
+    },
+    {
+      "id": "v4-017",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 61.4
+    },
+    {
+      "id": "v4-018",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 55.9
+    },
+    {
+      "id": "v4-019",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 43.6
+    },
+    {
+      "id": "v4-020",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 46.1
+    },
+    {
+      "id": "v4-021",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 49.4
+    },
+    {
+      "id": "v4-022",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 90.7
+    },
+    {
+      "id": "v4-023",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 40.6
+    },
+    {
+      "id": "v4-024",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 49.6
+    },
+    {
+      "id": "v4-025",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 44.0
+    },
+    {
+      "id": "v4-026",
+      "group": "qa",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "minutes/minutes",
+      "expected": "simple_qa/qa",
+      "latency_ms": 47.6
+    },
+    {
+      "id": "v4-027",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 39.1
+    },
+    {
+      "id": "v4-028",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 50.9
+    },
+    {
+      "id": "v4-029",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 45.8
+    },
+    {
+      "id": "v4-030",
+      "group": "qa",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "minutes/minutes",
+      "expected": "simple_qa/qa",
+      "latency_ms": 44.0
+    },
+    {
+      "id": "v4-031",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 62.9
+    },
+    {
+      "id": "v4-032",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 55.2
+    },
+    {
+      "id": "v4-033",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 47.4
+    },
+    {
+      "id": "v4-034",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 48.9
+    },
+    {
+      "id": "v4-035",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 55.4
+    },
+    {
+      "id": "v4-036",
+      "group": "qa",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "simple_qa/qa",
+      "expected": "simple_qa/qa",
+      "latency_ms": 57.7
+    },
+    {
+      "id": "v4-037",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 47.2
+    },
+    {
+      "id": "v4-038",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 54.0
+    },
+    {
+      "id": "v4-039",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 57.9
+    },
+    {
+      "id": "v4-040",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 52.6
+    },
+    {
+      "id": "v4-041",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 43.1
+    },
+    {
+      "id": "v4-042",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 43.1
+    },
+    {
+      "id": "v4-043",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 45.7
+    },
+    {
+      "id": "v4-044",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 56.5
+    },
+    {
+      "id": "v4-045",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 41.9
+    },
+    {
+      "id": "v4-046",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 98.5
+    },
+    {
+      "id": "v4-047",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 49.5
+    },
+    {
+      "id": "v4-048",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 45.7
+    },
+    {
+      "id": "v4-049",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 49.5
+    },
+    {
+      "id": "v4-050",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 43.5
+    },
+    {
+      "id": "v4-051",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 55.7
+    },
+    {
+      "id": "v4-052",
+      "group": "todo",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "todo/todo",
+      "expected": "todo/todo",
+      "latency_ms": 45.9
+    },
+    {
+      "id": "v4-053",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 49.6
+    },
+    {
+      "id": "v4-054",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 43.6
+    },
+    {
+      "id": "v4-055",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 46.7
+    },
+    {
+      "id": "v4-056",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 57.5
+    },
+    {
+      "id": "v4-057",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 54.1
+    },
+    {
+      "id": "v4-058",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 47.5
+    },
+    {
+      "id": "v4-059",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 26.9
+    },
+    {
+      "id": "v4-060",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 49.2
+    },
+    {
+      "id": "v4-061",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 84.6
+    },
+    {
+      "id": "v4-062",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 47.9
+    },
+    {
+      "id": "v4-063",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 42.0
+    },
+    {
+      "id": "v4-064",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 40.5
+    },
+    {
+      "id": "v4-065",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 43.8
+    },
+    {
+      "id": "v4-066",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 43.4
+    },
+    {
+      "id": "v4-067",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 45.4
+    },
+    {
+      "id": "v4-068",
+      "group": "minutes",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "minutes/minutes",
+      "expected": "minutes/minutes",
+      "latency_ms": 49.3
+    },
+    {
+      "id": "v4-069",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 43.0
+    },
+    {
+      "id": "v4-070",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 46.8
+    },
+    {
+      "id": "v4-071",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 49.0
+    },
+    {
+      "id": "v4-072",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 55.6
+    },
+    {
+      "id": "v4-073",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 49.1
+    },
+    {
+      "id": "v4-074",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 43.0
+    },
+    {
+      "id": "v4-075",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 47.2
+    },
+    {
+      "id": "v4-076",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 47.8
+    },
+    {
+      "id": "v4-077",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 57.5
+    },
+    {
+      "id": "v4-078",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 63.6
+    },
+    {
+      "id": "v4-079",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 40.4
+    },
+    {
+      "id": "v4-080",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 82.9
+    },
+    {
+      "id": "v4-081",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 47.4
+    },
+    {
+      "id": "v4-082",
+      "group": "controversy",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "simple_qa/qa",
+      "expected": "controversy/controversy",
+      "latency_ms": 42.2
+    },
+    {
+      "id": "v4-083",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 49.6
+    },
+    {
+      "id": "v4-084",
+      "group": "controversy",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "controversy/controversy",
+      "expected": "controversy/controversy",
+      "latency_ms": 47.6
+    },
+    {
+      "id": "v4-085",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 69.6
+    },
+    {
+      "id": "v4-086",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 50.6
+    },
+    {
+      "id": "v4-087",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "minutes/minutes",
+      "expected": "complex/multi",
+      "latency_ms": 52.5
+    },
+    {
+      "id": "v4-088",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 49.6
+    },
+    {
+      "id": "v4-089",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 75.4
+    },
+    {
+      "id": "v4-090",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 37.2
+    },
+    {
+      "id": "v4-091",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 60.6
+    },
+    {
+      "id": "v4-092",
+      "group": "multi",
+      "task_ok": false,
+      "workflow_ok": false,
+      "predicted": "controversy/controversy",
+      "expected": "complex/multi",
+      "latency_ms": 47.8
+    },
+    {
+      "id": "v4-093",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 50.3
+    },
+    {
+      "id": "v4-094",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 68.9
+    },
+    {
+      "id": "v4-095",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 41.2
+    },
+    {
+      "id": "v4-096",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 49.6
+    },
+    {
+      "id": "v4-097",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 68.5
+    },
+    {
+      "id": "v4-098",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 56.2
+    },
+    {
+      "id": "v4-099",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 49.6
+    },
+    {
+      "id": "v4-100",
+      "group": "multi",
+      "task_ok": true,
+      "workflow_ok": true,
+      "predicted": "complex/multi",
+      "expected": "complex/multi",
+      "latency_ms": 82.7
+    }
+  ]
+}

@@ -20,7 +20,7 @@ flowchart LR
 
 | 维度 | 数据集 | 基线 | 当前 | 报告 |
 |---|---|---|---|---|
-| 意图路由准确率 | 盲写一次性测试集 100 条（`route_eval_test_v3`） | 0.43（纯规则） | **0.68**（规则 + bge-m3 原型），p95 28ms | `route_eval_test_v3_rules_semantic.json` |
+| 意图路由准确率 | 盲写一次性测试集 100 条（`route_eval_test_v4`） | 0.46（纯规则） | **0.93**（规则 + bge-m3 意图头），p95 83ms；剔除近重复后 0.93（N=84） | `route_eval_test_v4_rules_semantic_head.json` |
 | 写操作人工确认召回 | 工具调用集，写操作 16 条（留出集 40 条） | 0.30（开发集，修复前） | **1.00**，不安全写 0/40 | `tool_eval_heldout_v1_opus55.json` |
 | 工具选择 / 参数准确率 | 同上，40 条 | — | 1.00 / 0.84 | 同上 |
 | 约束 / 待办抽取 F1（非空 gold） | 冻结 100 条 / 28 场会议 | 0.158 / 0.139（qwen3.7-max） | **0.737 / 0.498**（Opus 5.5 + prompt v2，二者同时变更） | `meetingmind_real_v1_opus55_v2_100_scored.json`（含空 gold 的混合口径：0.467→0.833） |
@@ -43,7 +43,7 @@ python scripts/check_gates.py              # 汇总 reports/，检查 19 项门�
 
 # 路由评测（需要本地 bge-m3）
 python scripts/run_route_eval.py --semantic \
-  --dataset evaluation/datasets/route_eval_test_v3.jsonl
+  --dataset evaluation/datasets/route_eval_test_v4.jsonl
 
 # 以下需要 Anthropic 兼容 API：LLM_PROVIDER=anthropic LLM_API_BASE=... LLM_API_KEY=...
 python scripts/run_tool_eval.py --dataset evaluation/datasets/tool_eval_heldout_v1.jsonl

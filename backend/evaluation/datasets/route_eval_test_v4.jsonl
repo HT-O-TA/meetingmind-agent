@@ -1,0 +1,100 @@
+{"id": "v4-001", "question": "你好", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "最短问候"}
+{"id": "v4-002", "question": "hi there，在吗", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "中英混杂问候"}
+{"id": "v4-003", "question": "早上好呀，今天能帮我干点啥？", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "问候+询问能力"}
+{"id": "v4-004", "question": "谢谢啦，辛苦了", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "致谢"}
+{"id": "v4-005", "question": "你是谁？", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "询问身份"}
+{"id": "v4-006", "question": "hello", "task_type": "qa", "workflow_type": "simple_qa", "group": "greeting", "note": "纯英文问候"}
+{"id": "v4-007", "question": "上周三的产品评审会是几点开始的？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：时间"}
+{"id": "v4-008", "question": "会上提到的预算上限是多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：数字"}
+{"id": "v4-009", "question": "张经理最后说的上线日期是哪天？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：日期"}
+{"id": "v4-010", "question": "Q3 的 KPI target 是多少来着", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "中英混杂事实"}
+{"id": "v4-011", "question": "谁负责对接客户那边的法务？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：人物，易与待办混淆"}
+{"id": "v4-012", "question": "这次会议一共有几个人参加", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：人数"}
+{"id": "v4-013", "question": "刚才那个会里说的竞品叫什么名字", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "口语事实"}
+{"id": "v4-014", "question": "服务器迁移用的是阿里云还是AWS？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "二选一事实"}
+{"id": "v4-015", "question": "开会的时候有没有提到招聘名额", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "是否类事实"}
+{"id": "v4-016", "question": "李娜是哪个部门的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：人物归属"}
+{"id": "v4-017", "question": "他们说的 deadline 到底是 15 号还是 20 号啊，我记不清了", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "口语，含 deadline 但问事实"}
+{"id": "v4-018", "question": "用户增长那部分数据，环比涨了多少？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：数据"}
+{"id": "v4-019", "question": "那个 demo 是谁演示的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：人物"}
+{"id": "v4-020", "question": "下次会议定在哪个会议室", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：地点"}
+{"id": "v4-021", "question": "会上说的新版本号是多少，v2.3 吗", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "确认类事实"}
+{"id": "v4-022", "question": "我想确认一下，市场部这次申请的推广费用具体是多少钱，会上有人给出过数字吗？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "长句事实"}
+{"id": "v4-023", "question": "啥时候开的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "极短口语事实"}
+{"id": "v4-024", "question": "讨论里提到的那个 bug 编号是多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "事实：编号"}
+{"id": "v4-025", "question": "待办里那个写周报的事，最初是谁提出来的？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含待办，问事实"}
+{"id": "v4-026", "question": "纪要里写的会议时长是多长？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含纪要，问事实"}
+{"id": "v4-027", "question": "帮我查下总结部分提到的营收数字是多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含总结，问事实"}
+{"id": "v4-028", "question": "分歧那块，王总说的成本数字是多少？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含分歧，问事实"}
+{"id": "v4-029", "question": "这个待办的截止日期是哪天", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含待办，问单个日期"}
+{"id": "v4-030", "question": "会议纪要是谁记录的", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含纪要，问人物"}
+{"id": "v4-031", "question": "刚才总结里说的“三个重点”，第一个是啥", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含总结，问具体一项"}
+{"id": "v4-032", "question": "双方有分歧的那个方案，报价是多少钱？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含分歧，问报价"}
+{"id": "v4-033", "question": "action item 里提到的那个供应商叫什么", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含 action item，问名称"}
+{"id": "v4-034", "question": "上次纪要里提到的测试环境 IP 地址是多少", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "陷阱：含纪要，问具体值"}
+{"id": "v4-035", "question": "客户是哪家公司", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "极短事实"}
+{"id": "v4-036", "question": "会上有提到春节放假安排吗，放几天？", "task_type": "qa", "workflow_type": "simple_qa", "group": "qa", "note": "是否+数字事实"}
+{"id": "v4-037", "question": "帮我列一下这次会的待办事项", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "直接待办"}
+{"id": "v4-038", "question": "我有哪些要做的活儿？", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "口语间接"}
+{"id": "v4-039", "question": "把 action items 整理出来，带上负责人和截止时间", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "中英混杂"}
+{"id": "v4-040", "question": "会后大家各自要跟进什么", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "间接表达"}
+{"id": "v4-041", "question": "todo list 给我", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "极短英文"}
+{"id": "v4-042", "question": "这周我得交付啥", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "口语间接"}
+{"id": "v4-043", "question": "提取一下会议里分配的任务", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "任务提取"}
+{"id": "v4-044", "question": "谁要负责什么，列个表", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "负责人列表"}
+{"id": "v4-045", "question": "有没有留给我的作业", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "间接比喻"}
+{"id": "v4-046", "question": "帮我从会议记录里找出所有需要后续跟进的事项，按优先级排一下，最好注明是谁负责、什么时候之前完成", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "长句"}
+{"id": "v4-047", "question": "下一步行动计划有哪些", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "行动计划"}
+{"id": "v4-048", "question": "把分给小王的任务挑出来", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "按人筛选"}
+{"id": "v4-049", "question": "会上答应客户要做的事情都有哪些？", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "承诺事项"}
+{"id": "v4-050", "question": "follow-up 事项汇总下", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "中英混杂"}
+{"id": "v4-051", "question": "别忘了的事情都有啥，提醒我一下", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "间接提醒"}
+{"id": "v4-052", "question": "哪些事还没人认领？列出来", "task_type": "todo", "workflow_type": "todo", "group": "todo", "note": "未认领任务"}
+{"id": "v4-053", "question": "帮我写一份会议纪要", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "直接纪要"}
+{"id": "v4-054", "question": "总结一下今天的会", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "总结"}
+{"id": "v4-055", "question": "give me a summary of the meeting", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "纯英文"}
+{"id": "v4-056", "question": "我没参加，这个会大概讲了啥", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "间接表达"}
+{"id": "v4-057", "question": "出个 meeting notes，发群里用", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "中英混杂"}
+{"id": "v4-058", "question": "三句话概括一下", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "极短概括"}
+{"id": "v4-059", "question": "把会议内容整理成正式纪要，包括议题、讨论要点和结论", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "结构化纪要"}
+{"id": "v4-060", "question": "tl;dr", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "极短英文缩写"}
+{"id": "v4-061", "question": "给老板汇报用，帮我把这场两小时的会浓缩成一页，重点突出决策和结论，不要流水账", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "长句"}
+{"id": "v4-062", "question": "会议要点有哪些", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "要点"}
+{"id": "v4-063", "question": "回顾下这次周会", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "回顾"}
+{"id": "v4-064", "question": "按议题分段整理一下讨论内容", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "按议题整理"}
+{"id": "v4-065", "question": "这会开了个啥结论出来", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "口语"}
+{"id": "v4-066", "question": "帮忙生成会议记录", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "会议记录"}
+{"id": "v4-067", "question": "写个 recap", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "中英混杂极短"}
+{"id": "v4-068", "question": "整场会的来龙去脉帮我捋一下", "task_type": "minutes", "workflow_type": "minutes", "group": "minutes", "note": "间接表达"}
+{"id": "v4-069", "question": "会上有哪些争议点", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "直接争议"}
+{"id": "v4-070", "question": "大家在哪些问题上没谈拢？", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "口语间接"}
+{"id": "v4-071", "question": "产品和技术吵了啥", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "口语"}
+{"id": "v4-072", "question": "列出各方意见不一致的地方，以及各自的理由", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "分歧+理由"}
+{"id": "v4-073", "question": "有没有人反对这个方案", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "反对意见"}
+{"id": "v4-074", "question": "what were the disagreements", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "纯英文"}
+{"id": "v4-075", "question": "谁和谁意见相左", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "人物立场对立"}
+{"id": "v4-076", "question": "这个会里有哪些悬而未决的分歧", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "未决分歧"}
+{"id": "v4-077", "question": "关于定价策略，大家各持什么立场", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "立场对比"}
+{"id": "v4-078", "question": "感觉会上火药味挺重的，具体是在争什么？", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "间接表达"}
+{"id": "v4-079", "question": "pros and cons 各方怎么说的", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "中英混杂"}
+{"id": "v4-080", "question": "帮我梳理一下会议中的不同观点和冲突，标明谁支持、谁反对，最后有没有达成共识", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "长句"}
+{"id": "v4-081", "question": "有分歧吗", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "极短"}
+{"id": "v4-082", "question": "市场部和销售部的观点差异在哪", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "部门观点差异"}
+{"id": "v4-083", "question": "哪些议题存在明显的意见对立", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "意见对立"}
+{"id": "v4-084", "question": "唱反调的都说了些啥", "task_type": "controversy", "workflow_type": "controversy", "group": "controversy", "note": "口语间接"}
+{"id": "v4-085", "question": "先总结一下会议，再把待办列出来", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "纪要+待办"}
+{"id": "v4-086", "question": "给我纪要、待办和争议点，三样都要", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "三合一"}
+{"id": "v4-087", "question": "总结下这个会，顺便看看有没有什么分歧", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "纪要+争议"}
+{"id": "v4-088", "question": "列出 action items，并说明哪些事项还有争议", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "待办+争议"}
+{"id": "v4-089", "question": "帮我出一份完整的会后报告：包括会议摘要、每个人的任务分工、以及尚未达成一致的问题", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "长句三合一"}
+{"id": "v4-090", "question": "summary + todo", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "极短中英"}
+{"id": "v4-091", "question": "我要给团队发邮件，需要会议要点和每人待办", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "间接：纪要+待办"}
+{"id": "v4-092", "question": "有哪些分歧？分歧之外定下来要做的事有哪些？", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "争议+待办"}
+{"id": "v4-093", "question": "整理一下纪要，然后针对争议点给个分析", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "纪要+争议分析"}
+{"id": "v4-094", "question": "把会开完的结论、要干的活、还在吵的事都理一遍", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "口语三合一"}
+{"id": "v4-095", "question": "回顾会议内容并提取下一步行动", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "纪要+行动"}
+{"id": "v4-096", "question": "先告诉我大家在争什么，再告诉我最后决定谁去做什么", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "争议+待办"}
+{"id": "v4-097", "question": "做个会议全景分析：概要、分歧、任务", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "全景分析"}
+{"id": "v4-098", "question": "recap 一下，再把 follow-ups 列清楚", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "中英混杂"}
+{"id": "v4-099", "question": "既要纪要也要待办清单", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "双需求"}
+{"id": "v4-100", "question": "帮我分析这场会：讲了啥、吵了啥、接下来谁干啥", "task_type": "multi", "workflow_type": "complex", "group": "multi", "note": "口语三合一"}

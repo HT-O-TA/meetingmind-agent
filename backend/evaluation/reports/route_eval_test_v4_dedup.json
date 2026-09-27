@@ -1,0 +1,10 @@
+{
+  "near_dup_threshold": 0.9,
+  "kept": 84,
+  "accuracy_excl_near_dup": {
+    "route_eval_test_v4_rules": 0.429,
+    "route_eval_test_v4_rules_semantic_head": 0.929
+  },
+  "exact_dup": 4,
+  "note": "v4 与开发集按 bge-m3 最近邻相似度 >=0.9 视为近重复并剔除"
+}

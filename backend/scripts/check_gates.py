@@ -51,7 +51,7 @@ def collect(cloud_report: str = "meetingmind_real_v1_cloud_100_scored.json",
             "system.error_rate": s["failure_rate"],
             "system.p95_latency_ms": s["latency_ms"]["p95"],
         })
-    route = _load("route_eval_test_v3_rules_semantic.json")
+    route = _load("route_eval_test_v4_rules_semantic_head.json")
     if route:
         actual.update({"route.task_accuracy": route["task_accuracy"], "route.p95_latency_ms": route["latency_ms"]["p95"]})
     return actual

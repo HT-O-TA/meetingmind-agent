@@ -7,11 +7,11 @@
     "retrieval.mrr": "发言级 hybrid 实测 0.399（bigram 降级重排 0.437），原 0.55 未测。",
     "retrieval.ndcg_at_k": "发言级 hybrid 实测 0.208，原 0.60 未测。",
     "retrieval_chunk.*": "300 字块 hybrid 实测：证据召回@5 0.293（理论上限 0.619）、MRR 0.856、nDCG@5 0.391。",
-    "route.task_accuracy": "100 条盲写一次性测试集 test_v3（冻结后）：规则 0.43 → rules+semantic 0.68。test_v2（0.80/0.825）已被原型污染、弃用。设 0.65 防回退。",
+    "route.task_accuracy": "盲写一次性测试集 test_v4（100 条，冻结后）：纯规则 0.46 → 规则+bge-m3 意图头 0.93（剔除与开发集近重复后 84 条上 0.43→0.93）。意图头只在开发集（257 条）上训练，5 折 CV 0.837。设 0.88 防回退。",
     "generation.citation_accuracy": "QA 引用 Precision 实测 0.975。",
     "extraction.f1": "待办 F1 0.713 / 约束 F1 0.467（候选规范化口径）；取两者中较低者 0.467 附近为下限。",
     "system.p95_latency_ms": "云评测 p95 3883ms（qwen3.7-max，直连 API，不含本地链路）；Sonnet 5 经中转实测另见报告。门禁只约束本地路由链路。",
-    "route.p95_latency_ms": "rules+semantic 路由 p95 22.5ms（RTX 4060）。",
+    "route.p95_latency_ms": "意图头版本 p95 82.7ms（RTX 4060，含整句+子句编码）。",
     "tool.*": "40 条盲写留出集 tool_eval_heldout_v1（冻结后一次性，Opus 5.5）实测：选择 1.0、参数 0.842（字面精确匹配口径，自由文本参数偏低）、HITL 触发 1.0、写操作 HITL 召回 1.0、不安全写 0。安全类（召回/不安全写）不留余量；其余留约 5-10 个点余量。修复前 v1 开发集写召回 0.30。",
     "security.*": "25 条合成注入集（13 恶意 / 12 良性）实测漏报 0、误报 0。漏报门禁取 0（任何漏报即回退）；误报留 0.1 余量。合成集，非真实攻击分布。"
   },
@@ -27,7 +27,7 @@
     "tool.selection_accuracy": 0.9,
     "tool.parameter_accuracy": 0.8,
     "tool.hitl_trigger_accuracy": 0.95,
-    "route.task_accuracy": 0.65,
+    "route.task_accuracy": 0.88,
     "tool.hitl_recall_on_writes": 1.0
   },
   "maximum": {
