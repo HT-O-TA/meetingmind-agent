@@ -1,0 +1,259 @@
+{
+  "schema_version": "evaluation.policy_optimization_real.v1",
+  "commit": "dd4a4b040c0444e40aab754dd04e13385618134b",
+  "dataset": "backend/evaluation/datasets/meetingmind_real_v1_gold_pilot.jsonl",
+  "gold_pilot_sha256": "a8a1ef6b62b9a7706d5895e4dc871f026b9c8bdc68c6c79ecfd5a039ddd969d8",
+  "dataset_hash": "1035fd25c0f133d5c0dc84b8142c53f8798640d6af284b3a01a91a1d97d5a31f",
+  "experiment_hash": "ecd1008850a7bbe113fc1c19a006f18fe94ee9e4d39e5917da45c08f18fdbb25",
+  "implementation_hashes": {
+    "controlled_optimization.py": "5033dc99c71e3e9dc5723e511ce1a54e42888100b83d7f93185eccdad8bb670a",
+    "retrieval_policy.py": "2a203fd1a92ff1c4e6f0d0b7f52d8e429878626f26141fb852295da87c228e0c",
+    "offline_metrics.py": "f8e32eff975f2e289bbe72a92bd6cee04ebdc28e5e0a715e9c704c71cc8f8f2e"
+  },
+  "split_rule": {
+    "seed": 20261107,
+    "method": "sort meeting IDs, shuffle, first floor(70%) to development"
+  },
+  "chunk_chars": 300,
+  "k": 5,
+  "baseline_policy": {
+    "bm25_weight": 0.3,
+    "vector_weight": 0.7
+  },
+  "candidates": [
+    {
+      "policy": {
+        "bm25_weight": 0.0,
+        "vector_weight": 1.0
+      },
+      "development": {
+        "ndcg_at_k": 0.674491460267553,
+        "evidence_recall_at_k": 0.3052251786045334,
+        "mrr": 0.8218390804597702
+      }
+    },
+    {
+      "policy": {
+        "bm25_weight": 0.25,
+        "vector_weight": 0.75
+      },
+      "development": {
+        "ndcg_at_k": 0.6437791045481912,
+        "evidence_recall_at_k": 0.28371679325657434,
+        "mrr": 0.8316091954022988
+      }
+    },
+    {
+      "policy": {
+        "bm25_weight": 0.5,
+        "vector_weight": 0.5
+      },
+      "development": {
+        "ndcg_at_k": 0.649609749129449,
+        "evidence_recall_at_k": 0.2966475981267372,
+        "mrr": 0.8
+      }
+    },
+    {
+      "policy": {
+        "bm25_weight": 0.75,
+        "vector_weight": 0.25
+      },
+      "development": {
+        "ndcg_at_k": 0.6412121920776599,
+        "evidence_recall_at_k": 0.2884144111322594,
+        "mrr": 0.7931034482758621
+      }
+    },
+    {
+      "policy": {
+        "bm25_weight": 1.0,
+        "vector_weight": 0.0
+      },
+      "development": {
+        "ndcg_at_k": 0.6245005282422482,
+        "evidence_recall_at_k": 0.278038512475673,
+        "mrr": 0.7801724137931034
+      }
+    }
+  ],
+  "selected_policy": {
+    "bm25_weight": 0.0,
+    "vector_weight": 1.0
+  },
+  "splits": {
+    "development": {
+      "task_count": 29,
+      "meeting_count": 14,
+      "meeting_ids": [
+        "0",
+        "110",
+        "120",
+        "146",
+        "150",
+        "165",
+        "172",
+        "174",
+        "176",
+        "193",
+        "208",
+        "21",
+        "221",
+        "236"
+      ],
+      "baseline": {
+        "ndcg_at_k": 0.6428298121003795,
+        "evidence_recall_at_k": 0.2880668658877736,
+        "mrr": 0.8017241379310345
+      },
+      "selected": {
+        "ndcg_at_k": 0.674491460267553,
+        "evidence_recall_at_k": 0.3052251786045334,
+        "mrr": 0.8218390804597702
+      },
+      "gain": {
+        "ndcg_at_k": 0.03166164816717354,
+        "evidence_recall_at_k": 0.017158312716759827,
+        "mrr": 0.02011494252873569
+      },
+      "regression_counts": {
+        "ndcg_at_k": 7,
+        "evidence_recall_at_k": 10,
+        "mrr": 7
+      },
+      "regression_case_ids": {
+        "ndcg_at_k": [
+          "qa:vcsum:150:overall_summary_qa",
+          "qa:vcsum:172:overall_summary_qa",
+          "qa:vcsum:174:overall_summary_qa",
+          "qa:vcsum:193:overall_summary_qa",
+          "qa:vcsum:208:overall_summary_qa",
+          "qa:vcsum:110:overall_summary_qa",
+          "qa:vcsum:221:221_2"
+        ],
+        "evidence_recall_at_k": [
+          "qa:vcsum:150:overall_summary_qa",
+          "qa:vcsum:172:overall_summary_qa",
+          "qa:vcsum:174:overall_summary_qa",
+          "qa:vcsum:193:overall_summary_qa",
+          "qa:vcsum:208:overall_summary_qa",
+          "qa:vcsum:110:overall_summary_qa",
+          "qa:vcsum:120:overall_summary_qa",
+          "qa:vcsum:146:146_0",
+          "qa:vcsum:172:172_6",
+          "qa:vcsum:221:221_2"
+        ],
+        "mrr": [
+          "qa:vcsum:150:overall_summary_qa",
+          "qa:vcsum:172:overall_summary_qa",
+          "qa:vcsum:174:overall_summary_qa",
+          "qa:vcsum:193:overall_summary_qa",
+          "qa:vcsum:208:overall_summary_qa",
+          "qa:vcsum:110:overall_summary_qa",
+          "qa:vcsum:150:150_3"
+        ]
+      }
+    },
+    "validation": {
+      "task_count": 11,
+      "meeting_count": 6,
+      "meeting_ids": [
+        "108",
+        "125",
+        "185",
+        "191",
+        "201",
+        "23"
+      ],
+      "baseline": {
+        "ndcg_at_k": 0.7204202544807239,
+        "evidence_recall_at_k": 0.28764313250579465,
+        "mrr": 0.9090909090909091
+      },
+      "selected": {
+        "ndcg_at_k": 0.5874999407245213,
+        "evidence_recall_at_k": 0.2511108265237733,
+        "mrr": 0.8257575757575758
+      },
+      "gain": {
+        "ndcg_at_k": -0.1329203137562026,
+        "evidence_recall_at_k": -0.03653230598202134,
+        "mrr": -0.08333333333333326
+      },
+      "regression_counts": {
+        "ndcg_at_k": 7,
+        "evidence_recall_at_k": 4,
+        "mrr": 3
+      },
+      "regression_case_ids": {
+        "ndcg_at_k": [
+          "qa:vcsum:191:overall_summary_qa",
+          "qa:vcsum:201:overall_summary_qa",
+          "qa:vcsum:23:overall_summary_qa",
+          "qa:vcsum:108:overall_summary_qa",
+          "qa:vcsum:125:overall_summary_qa",
+          "qa:vcsum:125:125_3",
+          "qa:vcsum:191:191_0"
+        ],
+        "evidence_recall_at_k": [
+          "qa:vcsum:191:overall_summary_qa",
+          "qa:vcsum:125:overall_summary_qa",
+          "qa:vcsum:125:125_3",
+          "qa:vcsum:191:191_0"
+        ],
+        "mrr": [
+          "qa:vcsum:201:overall_summary_qa",
+          "qa:vcsum:23:overall_summary_qa",
+          "qa:vcsum:125:125_3"
+        ]
+      }
+    }
+  },
+  "gate": {
+    "passed": false,
+    "gain": -0.1329203137562026,
+    "development_gain": 0.03166164816717354,
+    "min_gain": 0.01,
+    "regressions": [
+      "qa:vcsum:191:overall_summary_qa",
+      "qa:vcsum:201:overall_summary_qa",
+      "qa:vcsum:23:overall_summary_qa",
+      "qa:vcsum:108:overall_summary_qa",
+      "qa:vcsum:125:overall_summary_qa",
+      "qa:vcsum:125:125_3",
+      "qa:vcsum:191:191_0"
+    ],
+    "regression_count": 7
+  },
+  "status": "rejected",
+  "validation_paired_meeting_bootstrap": {
+    "seed": 20260905,
+    "draws": 2000,
+    "percentile_95": {
+      "ndcg_at_k": [
+        -0.24163169045185565,
+        -0.0035037309287432716
+      ],
+      "evidence_recall_at_k": [
+        -0.12052498418722325,
+        0.055053763440860215
+      ],
+      "mrr": [
+        -0.275,
+        0.10416666666666666
+      ]
+    }
+  },
+  "definitions": {
+    "candidate_pool": "会议内全部块。稀疏通道复用字符 2–4 gram TF-IDF 点积，写入 bm25_results；Dense 使用本地 BGE-M3 归一化向量点积。",
+    "fusion": "受控优化器使用非负分数除以各通道最大值再加权，同分按块 ID 排序。",
+    "evidence_recall_at_k": "Top-k 块覆盖的去重 gold 发言数 / 去重 gold 发言总数，按 QA 宏平均。",
+    "mrr": "按完整块排序计算首个含 gold 发言的块的倒数排名，再按 QA 宏平均。",
+    "ndcg_at_k": "块级二元相关性。开发集最大 nDCG 选权重；门禁要求开发增益 > 0、验证增益 >= 0.01、验证逐样本零退化。"
+  },
+  "limitations": [
+    "仅 40 条 VCSUM QA、20 场会议。验证集仅 6 场，按会议重采样的区间可能很宽，覆盖率也不稳定。",
+    "已知 meeting_id，仅比较缓存候选池的融合排序；范围限于会议内检索，未评估全库、重排、生成或线上 ACL。",
+    "稀疏通道用字符 TF-IDF，融合使用最大值归一化；旧分块报告使用 min-max，基线数值口径有差异。"
+  ]
+}
