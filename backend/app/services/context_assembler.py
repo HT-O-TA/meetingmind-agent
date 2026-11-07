@@ -111,6 +111,7 @@ class ContextAssembler:
             anchor=anchor if isinstance(anchor, Mapping) else None,
             max_chars=limit,
             consumer=consumer,
+            question=str(state.get("question") or ""),
         )
 
     def assemble_texts(
@@ -283,6 +284,7 @@ class ContextAssembler:
         anchor: Optional[Mapping[str, Any]],
         max_chars: int,
         consumer: str,
+        question: str = "",
     ) -> ContextAssemblyResult:
         included: list[dict[str, Any]] = []
         dropped: list[dict[str, Any]] = []
@@ -293,11 +295,19 @@ class ContextAssembler:
         body_blocks: list[str] = []
         seen: set[str] = set()
         document_counts: Counter[str] = Counter()
+        query_terms = self._memory_terms(question)
+
+        def relevance(candidate: ContextCandidate) -> int:
+            if not query_terms or candidate.source != "session_context":
+                return 0
+            prefix = candidate.content.lstrip()[: self.max_item_chars]
+            return len(query_terms & self._memory_terms(prefix))
 
         ordered = sorted(
             enumerate(candidates),
             key=lambda item: (
                 -self._authority_for_candidate(item[1])[1],
+                -relevance(item[1]),
                 -item[1].priority,
                 item[0],
             ),
@@ -330,10 +340,12 @@ class ContextAssembler:
                 dropped.append({**item_base, "reason": "item_count_limit"})
                 continue
 
-            authority, authority_rank = self._authority_for_candidate(candidate)
-            header = (
-                f"[来源:{candidate.source}; 权限:{authority}; ref:{candidate.content_ref}]\n"
-            )
+            if candidate.source == "session_context":
+                # Standard memory turns already carry a source heading.
+                header = "" if content.startswith("【会话轮次】\n") else "[session_context]\n"
+            else:
+                authority, _ = self._authority_for_candidate(candidate)
+                header = f"[来源:{candidate.source}; 权限:{authority}; ref:{candidate.content_ref}]\n"
             delimiter_chars = 2 if body_blocks else 0
             content_capacity = min(
                 self.max_item_chars,
@@ -458,6 +470,14 @@ class ContextAssembler:
         cjk = sum(1 for char in value if "\u4e00" <= char <= "\u9fff")
         other = max(0, len(value) - cjk)
         return max(1, int(round(cjk * 1.5 + other / 4.0)))
+
+    @staticmethod
+    def _memory_terms(text: str) -> set[str]:
+        # Han bigrams preserve word order without a segmentation dependency.
+        terms = set(re.findall(r"[a-z0-9]+", text.casefold()))
+        for run in re.findall(r"[\u4e00-\u9fff]+", text):
+            terms.update(run[index:index + 2] for index in range(len(run) - 1))
+        return terms
 
     @staticmethod
     def _canonical(content: str) -> str:

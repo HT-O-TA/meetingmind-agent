@@ -123,6 +123,40 @@ def test_context_assembler_uses_prefix_truncation_instead_of_preserving_stale_ta
     assert result.manifest["truncated_count"] == 1
 
 
+@pytest.mark.parametrize("question", ["", "When is the API migration?"])
+def test_session_memory_prefers_newest_turn_when_relevance_ties(question):
+    result = ContextAssembler(max_items=1).assemble_state({
+        "question": question,
+        "raw_context": ["API migration: Friday", "API migration: Thursday"],
+    })
+
+    assert "Friday" in result.text
+    assert "Thursday" not in result.text
+    assert result.manifest["dropped"][0]["reason"] == "item_count_limit"
+
+
+def test_session_memory_matches_case_insensitive_words_without_partial_matches():
+    result = ContextAssembler(max_items=1).assemble_state({
+        "question": "API?",
+        "raw_context": ["Capitol office updates", "api owner is Alice"],
+    })
+
+    assert "api owner is Alice" in result.text
+
+
+def test_labeled_memory_turn_fits_without_redundant_source_header():
+    turn = "【会话轮次】\n问: 何时搬迁？\n答: 周五搬迁。"
+    assembler = ContextAssembler()
+    result = assembler.assemble_state(
+        {"raw_context": [turn]},
+        max_chars=len(assembler.UNTRUSTED_START) + len(turn) + len(assembler.UNTRUSTED_END) + 2,
+    )
+
+    assert result.text.splitlines()[1:-1] == turn.splitlines()
+    assert result.manifest["included"][0]["content_ref"] == "session_context:0"
+    assert result.manifest["truncated_count"] == 0
+
+
 def test_context_assembler_separates_tool_error_from_business_evidence():
     assembler = ContextAssembler(max_item_chars=180, max_items=4)
     state = create_initial_state("总结")

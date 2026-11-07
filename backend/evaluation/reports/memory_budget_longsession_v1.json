@@ -1,0 +1,1071 @@
+{
+  "schema_version": "memory-budget-control.v1",
+  "code_commit": "dd4a4b040c0444e40aab754dd04e13385618134b",
+  "code_commit_scope": "被测仓库 HEAD；本次离线脚本、标注和报告为未提交交付物。",
+  "dataset": {
+    "path": "backend/evaluation/datasets/memory_budget_longsession_v1.jsonl",
+    "sha256": "85e74b5508542d5107764d5e34033914bf6f1ba1173ee46bfd95f6ade0821835",
+    "annotation_sha256_locked_before_script": "85e74b5508542d5107764d5e34033914bf6f1ba1173ee46bfd95f6ade0821835",
+    "source_path": "backend/evaluation/datasets/meetingmind_real_v1_sources.jsonl",
+    "source_sha256": "9abff206b6fc43f3020d2a5360b779afe74f83bffcf8cde94cc41cb7ec5f96aa",
+    "construction": "基于真实会议转录片段改写构造；每个历史问答附原始引用 ID，关键事实在测量脚本编写前标注。"
+  },
+  "method": [
+    "会话按 user_id:session_id:conversation_id 隔离；短期记忆默认留最近10轮，线上按任务命名空间取最近3轮并按从新到旧传入组装器。",
+    "本实验绕过线上记忆写入清洗、存储与读取窗口，把全部历史按记忆轮次格式渲染；每段只测最后一个问题，不计最后一轮回答。",
+    "A 按时间顺序原样拼接所有历史轮次，无裁剪或组装标签；B 把相同轮次由新到旧传入 assemble_state 的 raw_context，保留组装标签。",
+    "组装器先给任务锚点和包装预留字符，再按来源权限、条目优先级、输入顺序排序；正常工具证据先于检索，检索先于会话历史，同批历史较新轮次优先。",
+    "空项、重复项、超文档配额、超项数或剩余字符不够最小内容的条目记为 dropped，逐项给出 reason；保留但缩短的条目记 included.truncated。",
+    "B 使用代码默认总字符、单项字符和项数预算；输入仅有会话历史，不含任务锚点、检索和工具证据，不执行 TokenBudgetLedger 的模型调用门禁。",
+    "A/B 均附同一个最终问题，用 ModelTokenCounter.count_text 计数；默认 Qwen 模型按 ceil(1.5×中日韩统一表意文字基本区字符数 + 其余字符数/4) 近似，不含消息协议开销。",
+    "事实保留按预标注文本是否逐字出现在历史上下文判定；损失按事实对应轮次的清单记录归因，不调用模型。"
+  ],
+  "count_model": "qwen3.7-flash",
+  "count_method": "configured_model_heuristic_v1",
+  "budget": {
+    "source": "Settings 类代码默认值（无运行环境覆盖）",
+    "max_context_chars": 5000,
+    "max_item_chars": 1600,
+    "max_items": 8,
+    "max_chunks_per_document": 3,
+    "anchor_max_chars": 700
+  },
+  "summary": {
+    "sessions": 12,
+    "source_meetings": 8,
+    "turn_distribution_including_final_question": {
+      "10": 5,
+      "11": 3,
+      "12": 2,
+      "13": 2
+    },
+    "input_tokens": {
+      "a_median": 645.0,
+      "b_median": 726.0,
+      "median_reduction_rate": -0.12558139534883717,
+      "median_paired_reduction_rate": -0.13163892995088455,
+      "a_mean": 653.0833333333334,
+      "b_mean": 728.0833333333334,
+      "mean_reduction_rate": -0.11483986219216535,
+      "reduction_denominators": "中位数和均值降幅以 A 的同类统计量为分母；逐会话降幅以该会话的 A 为分母。",
+      "b_higher_than_a_session_count": 10,
+      "assembly_label_overhead": {
+        "method": "仅对 B 无截断的会话，比较 B 与同序保留轮次去掉组装标签和包装后的计数；两者都含最终问题。",
+        "sessions": 12,
+        "median_tokens": 202.0
+      }
+    },
+    "key_facts": {
+      "total": 41,
+      "a_retained": 41,
+      "a_retention_rate": 1.0,
+      "b_retained": 34,
+      "b_lost": 7,
+      "b_retention_rate": 0.8292682926829268,
+      "loss_reasons": {
+        "item_count_limit": 7
+      }
+    },
+    "b_dropped_items": 25,
+    "b_truncated_items": 0
+  },
+  "sessions": [
+    {
+      "session_id": "memory-01",
+      "meeting_id": "R8001_M8004",
+      "topic": "手机目标人群",
+      "turn_count_including_final_question": 10,
+      "history_turn_count": 9,
+      "baseline_a": {
+        "input_tokens": 533,
+        "history_context_chars": 425,
+        "kept_items": 9,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 675,
+        "retained_turns_without_assembly_labels_input_tokens": 473,
+        "history_context_chars": 862,
+        "kept_items": 8,
+        "dropped_count": 1,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.2664165103189493,
+      "key_facts": [
+        {
+          "text": "产品定位主打年轻化，年龄跨度可以适度放宽。",
+          "turn": 2,
+          "citation_ids": [
+            "ali:R8001_M8004:0009",
+            "ali:R8001_M8004:0010",
+            "ali:R8001_M8004:0011",
+            "ali:R8001_M8004:0012"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "讨论了18至35岁，也有人提出把上限放到45岁。",
+          "turn": 5,
+          "citation_ids": [
+            "ali:R8001_M8004:0022",
+            "ali:R8001_M8004:0023",
+            "ali:R8001_M8004:0024"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "面向18至50岁客群的配色留待后续确认。",
+          "turn": 9,
+          "citation_ids": [
+            "ali:R8001_M8004:0027"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-02",
+      "meeting_id": "R8001_M8004",
+      "topic": "手机上市促销",
+      "turn_count_including_final_question": 11,
+      "history_turn_count": 10,
+      "baseline_a": {
+        "input_tokens": 626,
+        "history_context_chars": 488,
+        "kept_items": 10,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 717,
+        "retained_turns_without_assembly_labels_input_tokens": 515,
+        "history_context_chars": 881,
+        "kept_items": 8,
+        "dropped_count": 2,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 2,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.14536741214057503,
+      "key_facts": [
+        {
+          "text": "分期等待太久可能劝退客户，多少期合适仍在讨论。",
+          "turn": 3,
+          "citation_ids": [
+            "ali:R8001_M8004:0053",
+            "ali:R8001_M8004:0054"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "电商侧考虑找明星代言，也可以和运营商沟通。",
+          "turn": 5,
+          "citation_ids": [
+            "ali:R8001_M8004:0061"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "直播暂优先考察较大的平台和有影响力的主播。",
+          "turn": 9,
+          "citation_ids": [
+            "ali:R8001_M8004:0073",
+            "ali:R8001_M8004:0074",
+            "ali:R8001_M8004:0075",
+            "ali:R8001_M8004:0076",
+            "ali:R8001_M8004:0077"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-03",
+      "meeting_id": "R8003_M8001",
+      "topic": "教师节心意安排",
+      "turn_count_including_final_question": 12,
+      "history_turn_count": 11,
+      "baseline_a": {
+        "input_tokens": 720,
+        "history_context_chars": 560,
+        "kept_items": 11,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 731,
+        "retained_turns_without_assembly_labels_input_tokens": 529,
+        "history_context_chars": 888,
+        "kept_items": 8,
+        "dropped_count": 3,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 3,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 2,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 1,
+        "key_fact_retention_rate": 0.3333333333333333
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.015277777777777724,
+      "key_facts": [
+        {
+          "text": "一二年级孩子可以自己画画送给老师。",
+          "turn": 1,
+          "citation_ids": [
+            "ali:R8003_M8001:0000",
+            "ali:R8003_M8001:0001",
+            "ali:R8003_M8001:0002"
+          ],
+          "present_in_a": true,
+          "present_in_b": false,
+          "loss_reason": "item_count_limit"
+        },
+        {
+          "text": "家长应先征求孩子的意见，可以给建议，具体选择让孩子参与决定。",
+          "turn": 3,
+          "citation_ids": [
+            "ali:R8003_M8001:0004",
+            "ali:R8003_M8001:0007"
+          ],
+          "present_in_a": true,
+          "present_in_b": false,
+          "loss_reason": "item_count_limit"
+        },
+        {
+          "text": "邮寄前应提前与老师沟通，有人建议留名后寄到家。",
+          "turn": 8,
+          "citation_ids": [
+            "ali:R8003_M8001:0028",
+            "ali:R8003_M8001:0029",
+            "ali:R8003_M8001:0030",
+            "ali:R8003_M8001:0031"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-04",
+      "meeting_id": "R8007_M8010",
+      "topic": "办公室搬迁",
+      "turn_count_including_final_question": 13,
+      "history_turn_count": 12,
+      "baseline_a": {
+        "input_tokens": 687,
+        "history_context_chars": 555,
+        "kept_items": 12,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 655,
+        "retained_turns_without_assembly_labels_input_tokens": 453,
+        "history_context_chars": 842,
+        "kept_items": 8,
+        "dropped_count": 4,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 4,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 3,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 2,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 2,
+        "key_fact_retention_rate": 0.6666666666666666
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": 0.04657933042212514,
+      "key_facts": [
+        {
+          "text": "有人接受租金略高，前提是公交和地铁通勤方便，并提到城东。",
+          "turn": 2,
+          "citation_ids": [
+            "ali:R8007_M8010:0012",
+            "ali:R8007_M8010:0019",
+            "ali:R8007_M8010:0033"
+          ],
+          "present_in_a": true,
+          "present_in_b": false,
+          "loss_reason": "item_count_limit"
+        },
+        {
+          "text": "会上估计搬迁需要两到三天。",
+          "turn": 8,
+          "citation_ids": [
+            "ali:R8007_M8010:0125",
+            "ali:R8007_M8010:0134"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "档案由专人管理。",
+          "turn": 11,
+          "citation_ids": [
+            "ali:R8007_M8010:0149"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-05",
+      "meeting_id": "R8007_M8011",
+      "topic": "短视频使用场景",
+      "turn_count_including_final_question": 10,
+      "history_turn_count": 9,
+      "baseline_a": {
+        "input_tokens": 616,
+        "history_context_chars": 476,
+        "kept_items": 9,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 758,
+        "retained_turns_without_assembly_labels_input_tokens": 556,
+        "history_context_chars": 914,
+        "kept_items": 8,
+        "dropped_count": 1,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.23051948051948057,
+      "key_facts": [
+        {
+          "text": "会上列举情感、搞笑、科普、社交和技能内容。",
+          "turn": 2,
+          "citation_ids": [
+            "ali:R8007_M8011:0001",
+            "ali:R8007_M8011:0002"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "云购物只是附加用途，短视频的主要用途仍是分享短内容。",
+          "turn": 5,
+          "citation_ids": [
+            "ali:R8007_M8011:0013"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "平台会做千人千面的个性化推荐。",
+          "turn": 8,
+          "citation_ids": [
+            "ali:R8007_M8011:0020"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-06",
+      "meeting_id": "R8007_M8011",
+      "topic": "短视频的科普与影视解说",
+      "turn_count_including_final_question": 10,
+      "history_turn_count": 9,
+      "baseline_a": {
+        "input_tokens": 642,
+        "history_context_chars": 490,
+        "kept_items": 9,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 771,
+        "retained_turns_without_assembly_labels_input_tokens": 569,
+        "history_context_chars": 918,
+        "kept_items": 8,
+        "dropped_count": 1,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.2009345794392523,
+      "key_facts": [
+        {
+          "text": "会上提醒中老年观众可能相信伪科普，同时也有博主分享正规科普。",
+          "turn": 4,
+          "citation_ids": [
+            "ali:R8007_M8011:0027",
+            "ali:R8007_M8011:0028"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "没时间看一个多小时的整部电影时，解说能快速呈现精彩部分。",
+          "turn": 6,
+          "citation_ids": [
+            "ali:R8007_M8011:0039"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "有人挑高能场面，有人沿情感主线或支线讲解。",
+          "turn": 8,
+          "citation_ids": [
+            "ali:R8007_M8011:0044"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-07",
+      "meeting_id": "R8008_M8013",
+      "topic": "餐饮经营与招聘渠道",
+      "turn_count_including_final_question": 11,
+      "history_turn_count": 10,
+      "baseline_a": {
+        "input_tokens": 648,
+        "history_context_chars": 512,
+        "kept_items": 10,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 4,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 721,
+        "retained_turns_without_assembly_labels_input_tokens": 519,
+        "history_context_chars": 889,
+        "kept_items": 8,
+        "dropped_count": 2,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 2,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 4,
+        "key_fact_retention_rate": 1.0
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.11265432098765427,
+      "key_facts": [
+        {
+          "text": "会上把连锁化和集团化视为主流，提到用现代管理替代单店作坊模式。",
+          "turn": 3,
+          "citation_ids": [
+            "ali:R8008_M8013:0005",
+            "ali:R8008_M8013:0006",
+            "ali:R8008_M8013:0011"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "会上认为餐饮文化形成竞争差异，品牌是核心竞争力。",
+          "turn": 5,
+          "citation_ids": [
+            "ali:R8008_M8013:0012"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "线上可在赶集网、58同城、BOSS直聘和猎聘发布岗位与要求。",
+          "turn": 8,
+          "citation_ids": [
+            "ali:R8008_M8013:0038",
+            "ali:R8008_M8013:0039",
+            "ali:R8008_M8013:0040"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "传单印岗位要求和二维码，方便应聘者扫码投简历。",
+          "turn": 10,
+          "citation_ids": [
+            "ali:R8008_M8013:0046"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-08",
+      "meeting_id": "R8008_M8013",
+      "topic": "餐饮招聘执行日程",
+      "turn_count_including_final_question": 13,
+      "history_turn_count": 12,
+      "baseline_a": {
+        "input_tokens": 744,
+        "history_context_chars": 600,
+        "kept_items": 12,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 4,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 711,
+        "retained_turns_without_assembly_labels_input_tokens": 509,
+        "history_context_chars": 889,
+        "kept_items": 8,
+        "dropped_count": 4,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 4,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 3,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 2,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 0.75
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": 0.04435483870967738,
+      "key_facts": [
+        {
+          "text": "运营副总和营销部经理各计划招两人。",
+          "turn": 1,
+          "citation_ids": [
+            "ali:R8008_M8013:0049"
+          ],
+          "present_in_a": true,
+          "present_in_b": false,
+          "loss_reason": "item_count_limit"
+        },
+        {
+          "text": "面试地点定在商会大厦20层2043。",
+          "turn": 5,
+          "citation_ids": [
+            "ali:R8008_M8013:0063",
+            "ali:R8008_M8013:0066",
+            "ali:R8008_M8013:0067",
+            "ali:R8008_M8013:0068"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "报名时间为4月20日至4月30日。",
+          "turn": 6,
+          "citation_ids": [
+            "ali:R8008_M8013:0064"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "通过筛选的人在5月1日至5月4日陆续收到面试通知。",
+          "turn": 9,
+          "citation_ids": [
+            "ali:R8008_M8013:0066",
+            "ali:R8008_M8013:0067",
+            "ali:R8008_M8013:0068"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-09",
+      "meeting_id": "R8009_M8018",
+      "topic": "超市开业前员工手续",
+      "turn_count_including_final_question": 12,
+      "history_turn_count": 11,
+      "baseline_a": {
+        "input_tokens": 809,
+        "history_context_chars": 614,
+        "kept_items": 11,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 4,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 819,
+        "retained_turns_without_assembly_labels_input_tokens": 617,
+        "history_context_chars": 941,
+        "kept_items": 8,
+        "dropped_count": 3,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 3,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 2,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 0.75
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.012360939431396822,
+      "key_facts": [
+        {
+          "text": "超市计划下个月开业，这次涉及四家新店。",
+          "turn": 1,
+          "citation_ids": [
+            "ali:R8009_M8018:0001",
+            "ali:R8009_M8018:0016"
+          ],
+          "present_in_a": true,
+          "present_in_b": false,
+          "loss_reason": "item_count_limit"
+        },
+        {
+          "text": "有人提出公积金在三个月转正后再买，但是否必须购买仍待核实。",
+          "turn": 6,
+          "citation_ids": [
+            "ali:R8009_M8018:0024",
+            "ali:R8009_M8018:0025",
+            "ali:R8009_M8018:0031",
+            "ali:R8009_M8018:0032"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "会上提到企业和员工两部分承担，当前缴费金额仍待确认。",
+          "turn": 7,
+          "citation_ids": [
+            "ali:R8009_M8018:0038",
+            "ali:R8009_M8018:0042"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "会后要提前了解报销材料是否交给公司，也提到生育相关情形。",
+          "turn": 10,
+          "citation_ids": [
+            "ali:R8009_M8018:0060",
+            "ali:R8009_M8018:0061",
+            "ali:R8009_M8018:0062"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-10",
+      "meeting_id": "R8009_M8019",
+      "topic": "留学生交流晚会",
+      "turn_count_including_final_question": 11,
+      "history_turn_count": 10,
+      "baseline_a": {
+        "input_tokens": 670,
+        "history_context_chars": 523,
+        "kept_items": 10,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 4,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 749,
+        "retained_turns_without_assembly_labels_input_tokens": 547,
+        "history_context_chars": 905,
+        "kept_items": 8,
+        "dropped_count": 2,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 2,
+            "reason": "item_count_limit"
+          },
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 0.75
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.11791044776119408,
+      "key_facts": [
+        {
+          "text": "主题建议为“世界一家亲”，会上认为与留学生交流贴近。",
+          "turn": 1,
+          "citation_ids": [
+            "ali:R8009_M8019:0009",
+            "ali:R8009_M8019:0010",
+            "ali:R8009_M8019:0011",
+            "ali:R8009_M8019:0012"
+          ],
+          "present_in_a": true,
+          "present_in_b": false,
+          "loss_reason": "item_count_limit"
+        },
+        {
+          "text": "发言者提议从中秋节切入，配合活动让留学生更了解中国。",
+          "turn": 4,
+          "citation_ids": [
+            "ali:R8009_M8019:0032",
+            "ali:R8009_M8019:0033",
+            "ali:R8009_M8019:0034",
+            "ali:R8009_M8019:0035",
+            "ali:R8009_M8019:0036"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "拟请小宋老师协助翻译，会上有人表示会先和他沟通。",
+          "turn": 7,
+          "citation_ids": [
+            "ali:R8009_M8019:0060",
+            "ali:R8009_M8019:0061",
+            "ali:R8009_M8019:0062",
+            "ali:R8009_M8019:0063",
+            "ali:R8009_M8019:0073"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "交流会地点定在学校，便于其他学生及时参与。",
+          "turn": 9,
+          "citation_ids": [
+            "ali:R8009_M8019:0100",
+            "ali:R8009_M8019:0101",
+            "ali:R8009_M8019:0102",
+            "ali:R8009_M8019:0103"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-11",
+      "meeting_id": "R8009_M8020",
+      "topic": "相亲活动场地与宣传",
+      "turn_count_including_final_question": 10,
+      "history_turn_count": 9,
+      "baseline_a": {
+        "input_tokens": 547,
+        "history_context_chars": 426,
+        "kept_items": 9,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 689,
+        "retained_turns_without_assembly_labels_input_tokens": 487,
+        "history_context_chars": 863,
+        "kept_items": 8,
+        "dropped_count": 1,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 1.0
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.25959780621572204,
+      "key_facts": [
+        {
+          "text": "活动地点谈的是双流区江家艺苑。",
+          "turn": 4,
+          "citation_ids": [
+            "ali:R8009_M8020:0033",
+            "ali:R8009_M8020:0056",
+            "ali:R8009_M8020:0057",
+            "ali:R8009_M8020:0058"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "海报要表现两个人之间的爱意，照片需要有感染力。",
+          "turn": 6,
+          "citation_ids": [
+            "ali:R8009_M8020:0041",
+            "ali:R8009_M8020:0042",
+            "ali:R8009_M8020:0043",
+            "ali:R8009_M8020:0044",
+            "ali:R8009_M8020:0045",
+            "ali:R8009_M8020:0046",
+            "ali:R8009_M8020:0047",
+            "ali:R8009_M8020:0048",
+            "ali:R8009_M8020:0059"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "主持人要控场强、与观众互动有亲和力，同时要幽默。",
+          "turn": 8,
+          "citation_ids": [
+            "ali:R8009_M8020:0063",
+            "ali:R8009_M8020:0064",
+            "ali:R8009_M8020:0065",
+            "ali:R8009_M8020:0066"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    },
+    {
+      "session_id": "memory-12",
+      "meeting_id": "R8009_M8020",
+      "topic": "相亲活动排期与报名",
+      "turn_count_including_final_question": 10,
+      "history_turn_count": 9,
+      "baseline_a": {
+        "input_tokens": 595,
+        "history_context_chars": 461,
+        "kept_items": 9,
+        "dropped_count": 0,
+        "truncated_count": 0,
+        "retained_key_facts": 4,
+        "key_fact_retention_rate": 1.0
+      },
+      "assembled_b": {
+        "input_tokens": 741,
+        "retained_turns_without_assembly_labels_input_tokens": 539,
+        "history_context_chars": 901,
+        "kept_items": 8,
+        "dropped_count": 1,
+        "truncated_count": 0,
+        "dropped_items": [
+          {
+            "turn": 1,
+            "reason": "item_count_limit"
+          }
+        ],
+        "truncated_items": [],
+        "retained_key_facts": 3,
+        "key_fact_retention_rate": 0.75
+      },
+      "count_method": "configured_model_heuristic_v1",
+      "input_token_reduction_rate": -0.24537815126050422,
+      "key_facts": [
+        {
+          "text": "玫瑰花男女都可以领，讨论中没有限定只给男士。",
+          "turn": 1,
+          "citation_ids": [
+            "ali:R8009_M8020:0075",
+            "ali:R8009_M8020:0076",
+            "ali:R8009_M8020:0077",
+            "ali:R8009_M8020:0078",
+            "ali:R8009_M8020:0079",
+            "ali:R8009_M8020:0080"
+          ],
+          "present_in_a": true,
+          "present_in_b": false,
+          "loss_reason": "item_count_limit"
+        },
+        {
+          "text": "建议周三到周日举办，周一和周二休息。",
+          "turn": 5,
+          "citation_ids": [
+            "ali:R8009_M8020:0097",
+            "ali:R8009_M8020:0098",
+            "ali:R8009_M8020:0099",
+            "ali:R8009_M8020:0100"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "建议报名费每人150元，男女同价。",
+          "turn": 8,
+          "citation_ids": [
+            "ali:R8009_M8020:0118",
+            "ali:R8009_M8020:0119",
+            "ali:R8009_M8020:0120"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        },
+        {
+          "text": "恋爱心理学老师先按性格和价值观匹配，当晚可安排两到三个相亲对象。",
+          "turn": 9,
+          "citation_ids": [
+            "ali:R8009_M8020:0121",
+            "ali:R8009_M8020:0122",
+            "ali:R8009_M8020:0123",
+            "ali:R8009_M8020:0124",
+            "ali:R8009_M8020:0125",
+            "ali:R8009_M8020:0126",
+            "ali:R8009_M8020:0127",
+            "ali:R8009_M8020:0128",
+            "ali:R8009_M8020:0129",
+            "ali:R8009_M8020:0130"
+          ],
+          "present_in_a": true,
+          "present_in_b": true,
+          "loss_reason": null
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "12段对话由8场 AliMeeting-Eval 真实转录片段改写构造，部分来源会议重复；不是线上对话日志。",
+    "全量历史直送组装器是压力对照；线上通常只送最近3轮，还可能带任务约束和证据，因此不能把降幅外推为线上成本节省。",
+    "逐字保留仅测上下文是否含标注文本；不能衡量语义等价、模型回答正确率或从检索中补回事实的能力。",
+    "Token 使用配置模型的启发式估计，不是 Qwen tokenizer 或供应商 usage，且未计系统提示、消息协议开销或生成。",
+    "事实保留率低于90%：丢失7条（item_count_limit 7 条）；组装器按来源和新近度取舍，不会因早期轮次包含最终问题所需的事实而提高优先级。"
+  ]
+}
