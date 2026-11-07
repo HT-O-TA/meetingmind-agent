@@ -28,6 +28,9 @@ jobs:
         run: pip install -r backend/requirements-core.txt
       - name: Run the formal lightweight baseline
         run: backend/scripts/run_core_tests.sh -q
+      - name: Controlled optimization contracts (no models or network)
+        working-directory: backend
+        run: python -m unittest discover -s tests/unit -p test_controlled_optimization.py -v
       - name: Enforce frozen synthetic Prompt Injection regression
         working-directory: backend
         env:

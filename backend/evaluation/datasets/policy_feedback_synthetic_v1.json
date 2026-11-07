@@ -1,0 +1,5 @@
+[
+  {"case_id":"demo-dev","source_group_id":"meeting-demo-a","split":"development","sample_kind":"synthetic","review_status":"approved","reviewed_by":"fixture-author-not-human-validation","source_run_id":"synthetic-run-a","question":"合成问题：谁负责验收？","relevant_ids":["a-correct"],"allowed_ids":["a-correct","a-distractor"],"bm25_results":[{"chunk_id":"a-distractor","score":1}],"dense_results":[{"chunk_id":"a-correct","score":1}]},
+  {"case_id":"demo-val","source_group_id":"meeting-demo-b","split":"validation","sample_kind":"synthetic","review_status":"approved","reviewed_by":"fixture-author-not-human-validation","source_run_id":"synthetic-run-b","question":"合成问题：什么时候验收？","relevant_ids":["b-correct"],"allowed_ids":["b-correct","b-distractor"],"bm25_results":[{"chunk_id":"b-distractor","score":1}],"dense_results":[{"chunk_id":"b-correct","score":1}]},
+  {"case_id":"demo-false-report","source_group_id":"meeting-demo-c","split":"development","sample_kind":"synthetic","review_status":"rejected","source_run_id":"synthetic-run-c","question":"误报反馈，不进入数据集"}
+]

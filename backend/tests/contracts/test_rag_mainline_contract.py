@@ -46,8 +46,11 @@ def _load_service(filename: str, module_name: str, stubs: dict[str, types.Module
 
 
 def _base_app_packages():
+    evaluation = _package("app.evaluation")
+    evaluation.__path__ = [str(BACKEND_ROOT / "app" / "evaluation")]
     return {
         "app": _package("app"),
+        "app.evaluation": evaluation,
         "app.core": _package("app.core"),
         "app.db": _package("app.db"),
         "app.models": _package("app.models"),

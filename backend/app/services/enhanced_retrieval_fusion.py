@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
+import os
+
+from app.evaluation.retrieval_policy import RetrievalPolicy, load_policy, weighted_fusion
 
 from app.core.config import settings
 from app.core.logger import app_logger
@@ -18,6 +21,12 @@ class EnhancedMultiRetrievalFusion:
         self.rerank_top_n = settings.RERANK_TOP_N
         self.bm25_weight = settings.BM25_WEIGHT
         self.vector_weight = settings.VECTOR_WEIGHT
+        # Explicit operator configuration only; never accept a policy path from a request.
+        policy_path = os.environ.get("MEETINGMIND_RETRIEVAL_POLICY_FILE")
+        if policy_path:
+            policy = load_policy(policy_path)  # Invalid configuration fails closed at startup.
+            self.bm25_weight = policy.bm25_weight
+            self.vector_weight = policy.vector_weight
 
         from app.services.bm25_retriever import get_bm25_retriever
         from app.services.reranker import get_reranker
@@ -35,52 +44,8 @@ class EnhancedMultiRetrievalFusion:
         bm25_results: List[Dict[str, Any]],
         dense_results: List[Dict[str, Any]],
     ) -> List[Dict[str, Any]]:
-        bm25_max = max(
-            (float(item.get("score", item.get("similarity", 0.0)) or 0.0) for item in bm25_results),
-            default=0.0,
-        )
-        dense_max = max(
-            (float(item.get("score", item.get("similarity", 0.0)) or 0.0) for item in dense_results),
-            default=0.0,
-        )
-        fused: Dict[Any, Dict[str, Any]] = {}
-
-        for item in bm25_results:
-            chunk_id = item.get("chunk_id", item.get("doc_id", item.get("document_id", 0)))
-            text = item.get("chunk_text", item.get("content", ""))
-            fused[chunk_id] = {
-                "doc_id": chunk_id,
-                "chunk_id": chunk_id,
-                "document_id": item.get("document_id"),
-                "score": self._normalized_score(item, bm25_max) * self.bm25_weight,
-                "content": text,
-                "chunk_text": text,
-                "sources": ["bm25"],
-            }
-
-        for item in dense_results:
-            chunk_id = item.get("chunk_id", item.get("doc_id", item.get("document_id", 0)))
-            text = item.get("chunk_text", item.get("content", ""))
-            contribution = self._normalized_score(item, dense_max) * self.vector_weight
-            if chunk_id in fused:
-                fused[chunk_id]["score"] += contribution
-                fused[chunk_id]["sources"].append("dense")
-                if text:
-                    fused[chunk_id]["content"] = text
-                    fused[chunk_id]["chunk_text"] = text
-                fused[chunk_id]["document_id"] = item.get("document_id") or fused[chunk_id]["document_id"]
-            else:
-                fused[chunk_id] = {
-                    "doc_id": chunk_id,
-                    "chunk_id": chunk_id,
-                    "document_id": item.get("document_id"),
-                    "score": contribution,
-                    "content": text,
-                    "chunk_text": text,
-                    "sources": ["dense"],
-                }
-
-        return sorted(fused.values(), key=lambda item: item["score"], reverse=True)
+        return weighted_fusion(bm25_results, dense_results,
+                               RetrievalPolicy(self.bm25_weight, self.vector_weight))
 
     async def retrieve(
         self,
