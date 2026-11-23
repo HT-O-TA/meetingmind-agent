@@ -2,6 +2,29 @@
 
 面向会议资料的 RAG 与 Agent 应用。将会议文档或音频转成可检索的知识，支持带引用的问答、纪要与待办整理，以及需要人工确认的工具操作。
 
+## 演示与验证
+
+```mermaid
+flowchart LR
+  A[会议文档或音频] --> B[检索与访问控制]
+  B --> C[带引用问答与结构化整理]
+  C --> D[写操作人工确认]
+  D --> E[工具执行与审计]
+```
+
+- [五分钟本地演示](docs/固定五分钟演示.md)覆盖权限拒绝、工具确认和队列恢复。按[运行指南](docs/API与运行.md)启动服务后，从仓库根目录执行：
+
+```bash
+python scripts/demo_five_minute.py --base-url http://127.0.0.1:8000
+```
+
+- [后端核心回归入口](backend/scripts/run_core_tests.sh)记录在后文「演示与测试」，README 记录 243 项通过。
+
+| 核心结果 | 证据 |
+|---|---|
+| 100 条盲写路由测试，准确率 46% → 93%，路由 p95 83 ms | [规则基线](backend/evaluation/reports/route_eval_test_v4_rules.json) · [语义与分类头](backend/evaluation/reports/route_eval_test_v4_rules_semantic_head.json) |
+| 同一批 40 条 QA，双 Judge 分别判 34/40、37/40 条回答的全部论断有依据 | [Opus 5.5](backend/evaluation/reports/faithfulness_qa40_judge_opus55.json) · [Sonnet 5](backend/evaluation/reports/faithfulness_qa40_judge_sonnet5.json) |
+
 ## 主要能力
 
 - **会议知识问答**：说话人感知分块、关键词与向量混合召回、重排、引用及访问控制。
