@@ -25,7 +25,7 @@ python scripts/demo_five_minute.py --base-url http://127.0.0.1:8000
 | 核心结果 | 证据 |
 |---|---|
 | 100 条盲写路由测试，准确率 46% → 93%，路由 p95 83 ms | [规则基线](backend/evaluation/reports/route_eval_test_v4_rules.json) · [语义与分类头](backend/evaluation/reports/route_eval_test_v4_rules_semantic_head.json) |
-| 同一批 40 条 QA，双 Judge 分别判 34/40、37/40 条回答的全部论断有依据 | [Opus 5.5](backend/evaluation/reports/faithfulness_qa40_judge_opus55.json) · [Sonnet 5](backend/evaluation/reports/faithfulness_qa40_judge_sonnet5.json) |
+| 同一批 40 条 QA，两位历史 Judge 按原提示词分别判 34/40、37/40 条回答的全部论断有依据 | [Opus 5.5](backend/evaluation/reports/faithfulness_qa40_judge_opus55.json) · [Sonnet 5](backend/evaluation/reports/faithfulness_qa40_judge_sonnet5.json) |
 
 ## 主要能力
 
@@ -137,7 +137,9 @@ npm run build
 | 全库检索（不给 meeting_id，34 场会议 1626 块同池） | 40 条 QA 中 20 条针对具体议题的问题 | 会议内检索证据召回 0.461 | 找对会议 19/20（加重排 20/20），证据召回 0.333（加重排 0.379）；另 20 条"这场会议讲了什么"在全库下无法定位会议，单列 | `meetingmind_real_v1_corpus_retrieval.json` |
 | 回归测试 | pytest 核心套件 | 120 | 243 passed | `scripts/run_core_tests.sh` |
 
-**本地部署压测**（`scripts/bench_vllm_serving.py`，报告 `vllm_bench_qwen3_1p7b.json`）：vLLM 0.10 + Qwen3-1.7B fp16，单张 RTX 4060 8GB，负载为 40 条真实会议 QA（约 1.6k 字上下文，输出 ≤128 token），每档 64 请求，全部成功。
+同一组 40 条历史 Opus QA 中，30 条可见片段缺少部分参考 ID，其中 17 条被单名审核者判为有无依据断言。参考 ID 齐全的 10 条中也有 3 条未通过。会议内 Top-5 的 29.32% 来自独立的分块排序实验。逐题对齐可定位证据缺口，根因仍需控制上下文后验证。
+
+**本地模型服务直连压测**（`scripts/bench_vllm_serving.py`，报告 `vllm_bench_qwen3_1p7b.json`）：vLLM 0.10 + Qwen3-1.7B fp16，单张 RTX 4060 8GB，负载为 40 条真实会议 QA（约 1.6k 字上下文，输出 ≤128 token），每档 64 请求，全部成功。
 
 | 并发 | TTFT p50 / p95 (ms) | 端到端 p95 (ms) | 输出吞吐 (tok/s) |
 |---|---|---|---|
@@ -174,6 +176,17 @@ KV cache 只有 12,800 token（约 6 路 2k 请求），并发 16→32 时吞吐
 
 - Top-5 到 Top-20 的证据召回上升伴随约四倍的片段字符量。同一个 Top-5 预算下，实际召回和理论上限之间仍有约 32 个百分点差距，因此排序还有改进空间。重排只在前 20 名内部调整顺序，两路 Top-20 证据集合相同。
 - 两位模型评审在同一组 40 条 QA 上比较整条答案是否所有断言都有证据。基线一致率为 75.0%（Cohen κ 0.367），当前为 82.5%（κ 0.136）。注入无关句的对照在两边都被判为未获完整支持。这个对照只有一种结果，κ 无定义。
+
+### 数据库与 OpenAPI
+
+- PostgreSQL 通过 SQLAlchemy 模型管理用户、会议、文档、向量分块、待办、长期记忆和工具审计等表。空库启动时创建缺失表。已有库的结构变更按对应迁移脚本显式执行，例如工具审计表、用户权限字段和记忆时间戳。有旧数据时先确认目标版本与备份，再执行对应升级。 [表模型](backend/app/models) · [迁移脚本](backend/app/db/migrations)
+- API 从 FastAPI 路由和请求、响应 Schema 自动生成 OpenAPI。后端启动后可打开 `/docs`（Swagger UI）、`/redoc` 和 `/openapi.json`。 [API 说明](docs/api.md)
+
+### 工具变更记录 · Jira 创建工单
+
+现有工具最初随企业工具接入进入仓库。后续安全改造补齐高风险写入的参数校验、权限检查、人工确认、幂等和持久审计，影响工具注册与执行、确认恢复、审计表及已有库迁移。没有确认时策略返回 confirmation_required，经批准后才能进入执行。重复幂等键回放已留存结果。
+
+本次复查对门禁与恢复跑了 13 项契约测试，全部通过。另在本机 PostgreSQL 跑了持久审计与幂等回归，1 项通过。历史 main CI #54 通过，覆盖契约测试和 PostgreSQL 审计集成。确认演示是本机策略验证，真实 Jira 写入须在隔离租户单独验证。 [工具首次接入](https://github.com/HT-O-TA/meetingmind-agent/commit/bf28cd7) · [安全改造](https://github.com/HT-O-TA/meetingmind-agent/commit/f2b14cd) · [CI #54](https://github.com/HT-O-TA/meetingmind-agent/actions/runs/45592341536)
 
 ## 当前边界
 
