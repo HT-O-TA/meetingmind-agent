@@ -13,6 +13,7 @@ from __future__ import annotations
 import copy
 import base64
 import hashlib
+import io
 import json
 import os
 import pickle
@@ -225,6 +226,13 @@ def _deserialize_checkpoint(payload: bytes, type_tag: str = "msgpack") -> Any:
     return JsonPlusSerializer().loads_typed((type_tag, payload))
 
 
+class _CheckpointUnpickler(pickle.Unpickler):
+    """Read the existing primitive-only file index without loading Python globals."""
+
+    def find_class(self, module: str, name: str) -> Any:
+        raise pickle.UnpicklingError("checkpoint index cannot load Python globals")
+
+
 class PersistentCheckpointSaver(InMemorySaver):
     """A small file-backed LangGraph saver with an explicit state boundary.
 
@@ -256,7 +264,7 @@ class PersistentCheckpointSaver(InMemorySaver):
                 except Exception:
                     # Read legacy development files written before encryption.
                     pass
-                payload = pickle.loads(raw)
+                payload = _CheckpointUnpickler(io.BytesIO(raw)).load()
             if payload.get("format_version") != self.FORMAT_VERSION:
                 return
             stored = payload.get("storage")

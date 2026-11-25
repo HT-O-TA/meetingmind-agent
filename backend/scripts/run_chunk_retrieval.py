@@ -71,7 +71,11 @@ def main():
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--sizes", type=int, nargs="+", default=[1, 150, 300])
     parser.add_argument("--k", type=int, default=5)
+    parser.add_argument("--k-curve", type=int, nargs="+", default=[])
     args = parser.parse_args()
+    if args.k <= 0 or any(k <= 0 for k in args.k_curve):
+        parser.error("k must be positive")
+    cutoffs = sorted({args.k, *args.k_curve})
     tasks = [r for r in read_jsonl(args.tasks) if r.get("unit_type") == "qa"]
     corpus, aliases, _ = build_corpus()
 
@@ -82,6 +86,7 @@ def main():
     reranker = FlagReranker(str(ROOT / "model/bge-reranker-v2-m3"), use_fp16=True, device="cuda")
     started = time.perf_counter()
     per_record = defaultdict(list)
+    curve_rows = defaultdict(lambda: defaultdict(list))
     query_latency = defaultdict(list)
     cache = {}
     for size in args.sizes:
@@ -109,7 +114,16 @@ def main():
             query_latency[f"{size}:hybrid_reranker"].append((time.perf_counter() - t0) * 1000)
             kind = "summary" if "overall_summary" in task["source_unit_id"] else "topic"
             for name, order in (("hybrid", hybrid), ("hybrid_reranker", reranked)):
-                per_record[f"{size}:{name}"].append({"task_id": task["id"], "kind": kind,
+                method = f"{size}:{name}"
+                if args.k_curve:
+                    for k in cutoffs:
+                        prefix_metrics = score(order, chunks, relevant, k)
+                        curve_rows[method][k].append({
+                            "evidence_recall": prefix_metrics["evidence_recall_at_k"],
+                            "evidence_ceiling": prefix_metrics["evidence_recall_ceiling_at_k"],
+                            "context_chars": sum(len(texts[i]) for i in order[:k]),
+                        })
+                per_record[method].append({"task_id": task["id"], "kind": kind,
                     "chunk_count": len(chunks), **score(order, chunks, relevant, args.k)})
         print(f"size={size} done", flush=True)
 
@@ -146,6 +160,12 @@ def main():
             "整体总结类问题的 gold 覆盖整场会议（中位 27 条发言），Top-k 检索的证据召回有结构性上限，见 ceiling 字段。",
         ],
     }
+    if args.k_curve:
+        payload["k_curve"] = {
+            method: {str(k): {key: round(mean(row[key] for row in rows), 4) for key in rows[0]}
+                     for k, rows in by_k.items()}
+            for method, by_k in curve_rows.items()
+        }
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(metrics, ensure_ascii=False, indent=1))
 

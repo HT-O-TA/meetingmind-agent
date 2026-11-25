@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 from pathlib import Path
 
 import pytest
@@ -83,6 +84,17 @@ def test_persistent_saver_round_trips_and_enforces_thread_owner(tmp_path: Path):
         restored.get_tuple(
             {"configurable": {"thread_id": "7:sess:conv", "user_id": 8}}
         )
+
+
+def test_persistent_saver_refuses_legacy_index_with_python_globals(tmp_path: Path):
+    path = tmp_path / "checkpoints.pkl"
+    raw = pickle.dumps({"format_version": 1, "updated_at": {"thread": Path}})
+    path.write_bytes(raw)
+
+    saver = PersistentCheckpointSaver(path)
+
+    assert not saver._updated_at
+    assert path.read_bytes() == raw
 
 
 def test_session_context_exposes_durable_thread_and_run_semantics():

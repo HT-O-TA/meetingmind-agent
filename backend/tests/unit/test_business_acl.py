@@ -57,3 +57,33 @@ def test_todo_access_query_excludes_department_from_write_rule():
     assert "meetings.organizer_id" in read_sql
     assert "meetings.department" in read_sql
     assert "meetings.department" not in write_sql
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "role,read_access,write_access",
+    [
+        ("admin", (True, True, True, True), (True, True, True, True)),
+        ("user", (True, True, True, False), (True, False, False, False)),
+        ("readonly", (True, True, True, False), (False, False, False, False)),
+    ],
+)
+@pytest.mark.parametrize("scope", range(4), ids=["owner", "department", "public", "private"])
+@pytest.mark.parametrize("write", [False, True], ids=["read", "write"])
+async def test_document_acl_matrix(role, read_access, write_access, scope, write):
+    caller = user(1, department="engineering", role=role)
+    document = SimpleNamespace(
+        id=42,
+        uploader_id=1 if scope == 0 else 2,
+        department="engineering" if scope == 1 else "finance",
+        is_public=scope == 2,
+    )
+    service = DocumentService(MagicMock())
+    service.get_by_id = AsyncMock(return_value=document)
+
+    if (write_access if write else read_access)[scope]:
+        assert await service.get_for_user(document.id, caller, write=write) is document
+    else:
+        with pytest.raises(AppException) as error:
+            await service.get_for_user(document.id, caller, write=write)
+        assert error.value.code == 403

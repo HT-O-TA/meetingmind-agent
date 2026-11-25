@@ -1,0 +1,1029 @@
+{
+  "schema_version": "evaluation.chunk_retrieval.v1",
+  "dataset": "backend/evaluation/datasets/meetingmind_real_v1_evaluation.jsonl",
+  "task_count": 40,
+  "k": 5,
+  "chunk_sizes_chars": [
+    300
+  ],
+  "retrieval_scope": "within_meeting_oracle",
+  "elapsed_seconds": 35.82,
+  "metrics": {
+    "300:hybrid": {
+      "all": {
+        "evidence_recall_at_k": 0.2932,
+        "evidence_recall_ceiling_at_k": 0.6194,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.605,
+        "mrr": 0.8562,
+        "ndcg_at_k": 0.3912
+      },
+      "topic": {
+        "evidence_recall_at_k": 0.4612,
+        "evidence_recall_ceiling_at_k": 0.8803,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.53,
+        "mrr": 0.9,
+        "ndcg_at_k": 0.5028
+      },
+      "summary": {
+        "evidence_recall_at_k": 0.1253,
+        "evidence_recall_ceiling_at_k": 0.3584,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.68,
+        "mrr": 0.8125,
+        "ndcg_at_k": 0.2796
+      },
+      "chunk_count_median": 34,
+      "query_latency_ms": {
+        "p50": 26.9,
+        "p95": 50.1
+      }
+    },
+    "300:hybrid_reranker": {
+      "all": {
+        "evidence_recall_at_k": 0.2678,
+        "evidence_recall_ceiling_at_k": 0.6194,
+        "chunk_hit_at_k": 0.975,
+        "chunk_precision_at_k": 0.615,
+        "mrr": 0.899,
+        "ndcg_at_k": 0.4134
+      },
+      "topic": {
+        "evidence_recall_at_k": 0.4015,
+        "evidence_recall_ceiling_at_k": 0.8803,
+        "chunk_hit_at_k": 0.95,
+        "chunk_precision_at_k": 0.48,
+        "mrr": 0.8604,
+        "ndcg_at_k": 0.4742
+      },
+      "summary": {
+        "evidence_recall_at_k": 0.134,
+        "evidence_recall_ceiling_at_k": 0.3584,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.75,
+        "mrr": 0.9375,
+        "ndcg_at_k": 0.3527
+      },
+      "chunk_count_median": 34,
+      "query_latency_ms": {
+        "p50": 267.8,
+        "p95": 306.3
+      }
+    }
+  },
+  "per_record": {
+    "300:hybrid": [
+      {
+        "task_id": "gold-pilot-046",
+        "kind": "summary",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.10909090909090909,
+        "evidence_recall_ceiling_at_k": 0.43636363636363634,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.23495406699533725
+      },
+      {
+        "task_id": "gold-pilot-047",
+        "kind": "topic",
+        "chunk_count": 20,
+        "evidence_recall_at_k": 0.6,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7482488737165798
+      },
+      {
+        "task_id": "gold-pilot-049",
+        "kind": "summary",
+        "chunk_count": 20,
+        "evidence_recall_at_k": 0.2631578947368421,
+        "evidence_recall_ceiling_at_k": 0.5,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.6619963222199442
+      },
+      {
+        "task_id": "gold-pilot-050",
+        "kind": "topic",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.3076923076923077,
+        "evidence_recall_ceiling_at_k": 0.46153846153846156,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.5361723181819751
+      },
+      {
+        "task_id": "gold-pilot-051",
+        "kind": "summary",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.28125,
+        "evidence_recall_ceiling_at_k": 0.59375,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.44796324408969945
+      },
+      {
+        "task_id": "gold-pilot-052",
+        "kind": "topic",
+        "chunk_count": 86,
+        "evidence_recall_at_k": 0.21428571428571427,
+        "evidence_recall_ceiling_at_k": 0.6428571428571429,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.21178863030069484
+      },
+      {
+        "task_id": "gold-pilot-054",
+        "kind": "summary",
+        "chunk_count": 86,
+        "evidence_recall_at_k": 0.031914893617021274,
+        "evidence_recall_ceiling_at_k": 0.1595744680851064,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.1297985231817701
+      },
+      {
+        "task_id": "gold-pilot-055",
+        "kind": "topic",
+        "chunk_count": 34,
+        "evidence_recall_at_k": 0.25,
+        "evidence_recall_ceiling_at_k": 0.7857142857142857,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.3434861302929463
+      },
+      {
+        "task_id": "gold-pilot-056",
+        "kind": "summary",
+        "chunk_count": 34,
+        "evidence_recall_at_k": 0.13333333333333333,
+        "evidence_recall_ceiling_at_k": 0.4222222222222222,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.18923484850266173
+      },
+      {
+        "task_id": "gold-pilot-058",
+        "kind": "summary",
+        "chunk_count": 42,
+        "evidence_recall_at_k": 0.09803921568627451,
+        "evidence_recall_ceiling_at_k": 0.3137254901960784,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.29161721811877644
+      },
+      {
+        "task_id": "gold-pilot-059",
+        "kind": "summary",
+        "chunk_count": 46,
+        "evidence_recall_at_k": 0.05714285714285714,
+        "evidence_recall_ceiling_at_k": 0.3,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.1608387801170619
+      },
+      {
+        "task_id": "gold-pilot-061",
+        "kind": "summary",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.2222222222222222,
+        "evidence_recall_ceiling_at_k": 0.35555555555555557,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.5978914482290688
+      },
+      {
+        "task_id": "gold-pilot-062",
+        "kind": "summary",
+        "chunk_count": 57,
+        "evidence_recall_at_k": 0.053763440860215055,
+        "evidence_recall_ceiling_at_k": 0.21505376344086022,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.17241132749707644
+      },
+      {
+        "task_id": "gold-pilot-064",
+        "kind": "summary",
+        "chunk_count": 75,
+        "evidence_recall_at_k": 0.08602150537634409,
+        "evidence_recall_ceiling_at_k": 0.20430107526881722,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.2790100102268683
+      },
+      {
+        "task_id": "gold-pilot-065",
+        "kind": "summary",
+        "chunk_count": 165,
+        "evidence_recall_at_k": 0.022900763358778626,
+        "evidence_recall_ceiling_at_k": 0.13740458015267176,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.13513922159300784
+      },
+      {
+        "task_id": "gold-pilot-066",
+        "kind": "summary",
+        "chunk_count": 68,
+        "evidence_recall_at_k": 0.09259259259259259,
+        "evidence_recall_ceiling_at_k": 0.3148148148148148,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.2081556846631169
+      },
+      {
+        "task_id": "gold-pilot-068",
+        "kind": "summary",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.09375,
+        "evidence_recall_ceiling_at_k": 0.46875,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.09196411103112227
+      },
+      {
+        "task_id": "gold-pilot-069",
+        "kind": "summary",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.12962962962962962,
+        "evidence_recall_ceiling_at_k": 0.3888888888888889,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.2754470455460493
+      },
+      {
+        "task_id": "gold-pilot-070",
+        "kind": "summary",
+        "chunk_count": 16,
+        "evidence_recall_at_k": 0.22580645161290322,
+        "evidence_recall_ceiling_at_k": 0.6129032258064516,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.19110269672122263
+      },
+      {
+        "task_id": "gold-pilot-031",
+        "kind": "topic",
+        "chunk_count": 35,
+        "evidence_recall_at_k": 0.25,
+        "evidence_recall_ceiling_at_k": 0.75,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.38224059769821206
+      },
+      {
+        "task_id": "gold-pilot-032",
+        "kind": "summary",
+        "chunk_count": 35,
+        "evidence_recall_at_k": 0.038461538461538464,
+        "evidence_recall_ceiling_at_k": 0.5,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 0.25,
+        "ndcg_at_k": 0.03905354502637122
+      },
+      {
+        "task_id": "gold-pilot-033",
+        "kind": "topic",
+        "chunk_count": 132,
+        "evidence_recall_at_k": 0.6,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.6317352426624244
+      },
+      {
+        "task_id": "gold-pilot-034",
+        "kind": "summary",
+        "chunk_count": 132,
+        "evidence_recall_at_k": 0.04918032786885246,
+        "evidence_recall_ceiling_at_k": 0.13114754098360656,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.240062015283639
+      },
+      {
+        "task_id": "gold-pilot-036",
+        "kind": "topic",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.2222222222222222,
+        "evidence_recall_ceiling_at_k": 0.7777777777777778,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.22353633018007057
+      },
+      {
+        "task_id": "gold-pilot-037",
+        "kind": "summary",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.16393442622950818,
+        "evidence_recall_ceiling_at_k": 0.36065573770491804,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.4372431313960398
+      },
+      {
+        "task_id": "gold-pilot-038",
+        "kind": "topic",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.5454545454545454,
+        "evidence_recall_ceiling_at_k": 0.8181818181818182,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.4759807049859318
+      },
+      {
+        "task_id": "gold-pilot-040",
+        "kind": "summary",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.2222222222222222,
+        "evidence_recall_ceiling_at_k": 0.4444444444444444,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.4127007236624155
+      },
+      {
+        "task_id": "gold-pilot-041",
+        "kind": "topic",
+        "chunk_count": 39,
+        "evidence_recall_at_k": 0.7857142857142857,
+        "evidence_recall_ceiling_at_k": 0.9285714285714286,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.690903343136346
+      },
+      {
+        "task_id": "gold-pilot-043",
+        "kind": "summary",
+        "chunk_count": 39,
+        "evidence_recall_at_k": 0.1323529411764706,
+        "evidence_recall_ceiling_at_k": 0.3088235294117647,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.3947431090235171
+      },
+      {
+        "task_id": "gold-pilot-044",
+        "kind": "topic",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.34782608695652173,
+        "evidence_recall_ceiling_at_k": 0.6086956521739131,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.4935779370071052
+      },
+      {
+        "task_id": "gold-pilot-035",
+        "kind": "topic",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.6666666666666666,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7809978695977224
+      },
+      {
+        "task_id": "gold-pilot-039",
+        "kind": "topic",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.6666666666666666,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.737999334354806
+      },
+      {
+        "task_id": "gold-pilot-042",
+        "kind": "topic",
+        "chunk_count": 39,
+        "evidence_recall_at_k": 0.16666666666666666,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.3593677208460624
+      },
+      {
+        "task_id": "gold-pilot-045",
+        "kind": "topic",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.3333333333333333,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.2691493517973929
+      },
+      {
+        "task_id": "gold-pilot-048",
+        "kind": "topic",
+        "chunk_count": 20,
+        "evidence_recall_at_k": 0.75,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7462665679561465
+      },
+      {
+        "task_id": "gold-pilot-053",
+        "kind": "topic",
+        "chunk_count": 86,
+        "evidence_recall_at_k": 0.5,
+        "evidence_recall_ceiling_at_k": 0.8333333333333334,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.41043065864544315
+      },
+      {
+        "task_id": "gold-pilot-057",
+        "kind": "topic",
+        "chunk_count": 42,
+        "evidence_recall_at_k": 0.75,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.5722558062666911
+      },
+      {
+        "task_id": "gold-pilot-060",
+        "kind": "topic",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.6,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7447213789796174
+      },
+      {
+        "task_id": "gold-pilot-063",
+        "kind": "topic",
+        "chunk_count": 75,
+        "evidence_recall_at_k": 0.16666666666666666,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.2726246078302492
+      },
+      {
+        "task_id": "gold-pilot-067",
+        "kind": "topic",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.5,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.423753633097404
+      }
+    ],
+    "300:hybrid_reranker": [
+      {
+        "task_id": "gold-pilot-046",
+        "kind": "summary",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.09090909090909091,
+        "evidence_recall_ceiling_at_k": 0.43636363636363634,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.22165859226604437
+      },
+      {
+        "task_id": "gold-pilot-047",
+        "kind": "topic",
+        "chunk_count": 20,
+        "evidence_recall_at_k": 0.6,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7556919537299265
+      },
+      {
+        "task_id": "gold-pilot-049",
+        "kind": "summary",
+        "chunk_count": 20,
+        "evidence_recall_at_k": 0.18421052631578946,
+        "evidence_recall_ceiling_at_k": 0.5,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.3971810025916867
+      },
+      {
+        "task_id": "gold-pilot-050",
+        "kind": "topic",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.23076923076923078,
+        "evidence_recall_ceiling_at_k": 0.46153846153846156,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.436100461745919
+      },
+      {
+        "task_id": "gold-pilot-051",
+        "kind": "summary",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.1875,
+        "evidence_recall_ceiling_at_k": 0.59375,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.35900284182236464
+      },
+      {
+        "task_id": "gold-pilot-052",
+        "kind": "topic",
+        "chunk_count": 86,
+        "evidence_recall_at_k": 0.5714285714285714,
+        "evidence_recall_ceiling_at_k": 0.6428571428571429,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7600344150875047
+      },
+      {
+        "task_id": "gold-pilot-054",
+        "kind": "summary",
+        "chunk_count": 86,
+        "evidence_recall_at_k": 0.05319148936170213,
+        "evidence_recall_ceiling_at_k": 0.1595744680851064,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.49805269519887546
+      },
+      {
+        "task_id": "gold-pilot-055",
+        "kind": "topic",
+        "chunk_count": 34,
+        "evidence_recall_at_k": 0.35714285714285715,
+        "evidence_recall_ceiling_at_k": 0.7857142857142857,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.4372120497723105
+      },
+      {
+        "task_id": "gold-pilot-056",
+        "kind": "summary",
+        "chunk_count": 34,
+        "evidence_recall_at_k": 0.1111111111111111,
+        "evidence_recall_ceiling_at_k": 0.4222222222222222,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.22663718102073382
+      },
+      {
+        "task_id": "gold-pilot-058",
+        "kind": "summary",
+        "chunk_count": 42,
+        "evidence_recall_at_k": 0.09803921568627451,
+        "evidence_recall_ceiling_at_k": 0.3137254901960784,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.33730375921047023
+      },
+      {
+        "task_id": "gold-pilot-059",
+        "kind": "summary",
+        "chunk_count": 46,
+        "evidence_recall_at_k": 0.12857142857142856,
+        "evidence_recall_ceiling_at_k": 0.3,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.670326684670401
+      },
+      {
+        "task_id": "gold-pilot-061",
+        "kind": "summary",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.2,
+        "evidence_recall_ceiling_at_k": 0.35555555555555557,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.48195155200478107
+      },
+      {
+        "task_id": "gold-pilot-062",
+        "kind": "summary",
+        "chunk_count": 57,
+        "evidence_recall_at_k": 0.08602150537634409,
+        "evidence_recall_ceiling_at_k": 0.21505376344086022,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.35182321796601423
+      },
+      {
+        "task_id": "gold-pilot-064",
+        "kind": "summary",
+        "chunk_count": 75,
+        "evidence_recall_at_k": 0.0967741935483871,
+        "evidence_recall_ceiling_at_k": 0.20430107526881722,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.3312182251114448
+      },
+      {
+        "task_id": "gold-pilot-065",
+        "kind": "summary",
+        "chunk_count": 165,
+        "evidence_recall_at_k": 0.03816793893129771,
+        "evidence_recall_ceiling_at_k": 0.13740458015267176,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.273794136294136
+      },
+      {
+        "task_id": "gold-pilot-066",
+        "kind": "summary",
+        "chunk_count": 68,
+        "evidence_recall_at_k": 0.09259259259259259,
+        "evidence_recall_ceiling_at_k": 0.3148148148148148,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.19941282749383746
+      },
+      {
+        "task_id": "gold-pilot-068",
+        "kind": "summary",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.15625,
+        "evidence_recall_ceiling_at_k": 0.46875,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.25,
+        "ndcg_at_k": 0.12891556765598666
+      },
+      {
+        "task_id": "gold-pilot-069",
+        "kind": "summary",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.14814814814814814,
+        "evidence_recall_ceiling_at_k": 0.3888888888888889,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.2941643242957258
+      },
+      {
+        "task_id": "gold-pilot-070",
+        "kind": "summary",
+        "chunk_count": 16,
+        "evidence_recall_at_k": 0.25806451612903225,
+        "evidence_recall_ceiling_at_k": 0.6129032258064516,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.32328934726864533
+      },
+      {
+        "task_id": "gold-pilot-031",
+        "kind": "topic",
+        "chunk_count": 35,
+        "evidence_recall_at_k": 0.25,
+        "evidence_recall_ceiling_at_k": 0.75,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.383028176505809
+      },
+      {
+        "task_id": "gold-pilot-032",
+        "kind": "summary",
+        "chunk_count": 35,
+        "evidence_recall_at_k": 0.038461538461538464,
+        "evidence_recall_ceiling_at_k": 0.5,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.09067952340167994
+      },
+      {
+        "task_id": "gold-pilot-033",
+        "kind": "topic",
+        "chunk_count": 132,
+        "evidence_recall_at_k": 0.4,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.389792482082553
+      },
+      {
+        "task_id": "gold-pilot-034",
+        "kind": "summary",
+        "chunk_count": 132,
+        "evidence_recall_at_k": 0.040983606557377046,
+        "evidence_recall_ceiling_at_k": 0.13114754098360656,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.1897470946300665
+      },
+      {
+        "task_id": "gold-pilot-036",
+        "kind": "topic",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.2222222222222222,
+        "evidence_recall_ceiling_at_k": 0.7777777777777778,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.22353633018007057
+      },
+      {
+        "task_id": "gold-pilot-037",
+        "kind": "summary",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.21311475409836064,
+        "evidence_recall_ceiling_at_k": 0.36065573770491804,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.8,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7522185822403868
+      },
+      {
+        "task_id": "gold-pilot-038",
+        "kind": "topic",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.36363636363636365,
+        "evidence_recall_ceiling_at_k": 0.8181818181818182,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.40358459695808846
+      },
+      {
+        "task_id": "gold-pilot-040",
+        "kind": "summary",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.3111111111111111,
+        "evidence_recall_ceiling_at_k": 0.4444444444444444,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.5345008165141625
+      },
+      {
+        "task_id": "gold-pilot-041",
+        "kind": "topic",
+        "chunk_count": 39,
+        "evidence_recall_at_k": 0.7142857142857143,
+        "evidence_recall_ceiling_at_k": 0.9285714285714286,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.6655271629202228
+      },
+      {
+        "task_id": "gold-pilot-043",
+        "kind": "summary",
+        "chunk_count": 39,
+        "evidence_recall_at_k": 0.14705882352941177,
+        "evidence_recall_ceiling_at_k": 0.3088235294117647,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.3915172930892845
+      },
+      {
+        "task_id": "gold-pilot-044",
+        "kind": "topic",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.30434782608695654,
+        "evidence_recall_ceiling_at_k": 0.6086956521739131,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.4576100741420197
+      },
+      {
+        "task_id": "gold-pilot-035",
+        "kind": "topic",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.6666666666666666,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7809978695977224
+      },
+      {
+        "task_id": "gold-pilot-039",
+        "kind": "topic",
+        "chunk_count": 19,
+        "evidence_recall_at_k": 0.3333333333333333,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.5528206413253177
+      },
+      {
+        "task_id": "gold-pilot-042",
+        "kind": "topic",
+        "chunk_count": 39,
+        "evidence_recall_at_k": 0.3333333333333333,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 0.3333333333333333,
+        "ndcg_at_k": 0.3187062720618095
+      },
+      {
+        "task_id": "gold-pilot-045",
+        "kind": "topic",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.16666666666666666,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.1468087373440325
+      },
+      {
+        "task_id": "gold-pilot-048",
+        "kind": "topic",
+        "chunk_count": 20,
+        "evidence_recall_at_k": 0.75,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.7675502582577807
+      },
+      {
+        "task_id": "gold-pilot-053",
+        "kind": "topic",
+        "chunk_count": 86,
+        "evidence_recall_at_k": 0.5,
+        "evidence_recall_ceiling_at_k": 0.8333333333333334,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.6251330773412666
+      },
+      {
+        "task_id": "gold-pilot-057",
+        "kind": "topic",
+        "chunk_count": 42,
+        "evidence_recall_at_k": 0.5,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.6357673055956302
+      },
+      {
+        "task_id": "gold-pilot-060",
+        "kind": "topic",
+        "chunk_count": 24,
+        "evidence_recall_at_k": 0.6,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.6,
+        "mrr": 1.0,
+        "ndcg_at_k": 0.6456262792238734
+      },
+      {
+        "task_id": "gold-pilot-063",
+        "kind": "topic",
+        "chunk_count": 75,
+        "evidence_recall_at_k": 0.0,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 0.0,
+        "chunk_precision_at_k": 0.0,
+        "mrr": 0.125,
+        "ndcg_at_k": 0.0
+      },
+      {
+        "task_id": "gold-pilot-067",
+        "kind": "topic",
+        "chunk_count": 32,
+        "evidence_recall_at_k": 0.16666666666666666,
+        "evidence_recall_ceiling_at_k": 1.0,
+        "chunk_hit_at_k": 1.0,
+        "chunk_precision_at_k": 0.2,
+        "mrr": 0.25,
+        "ndcg_at_k": 0.09804735844603353
+      }
+    ]
+  },
+  "definitions": {
+    "size=1": "每条发言单独成块，等价于 run_retrieval_baselines.py 的发言级检索",
+    "evidence_recall_at_k": "Top-k 块覆盖的 gold 发言数 / gold 发言总数",
+    "evidence_recall_ceiling_at_k": "同一分块下任意选 k 块能达到的最大证据召回（按块内 gold 数贪心取前 k）",
+    "chunk_hit_at_k": "Top-k 中至少一块含 gold 发言",
+    "mrr/ndcg_at_k": "块级；nDCG 的块增益=块内 gold 发言占比"
+  },
+  "limitations": [
+    "会议内检索（已知 meeting_id），不是全库检索。",
+    "分块为按字符预算的连续合并，模拟生产 SemanticChunker 的 50-300 字预算，未复用其说话人切分。",
+    "整体总结类问题的 gold 覆盖整场会议（中位 27 条发言），Top-k 检索的证据召回有结构性上限，见 ceiling 字段。"
+  ],
+  "k_curve": {
+    "300:hybrid": {
+      "1": {
+        "evidence_recall": 0.093,
+        "evidence_ceiling": 0.2062,
+        "context_chars": 259.025
+      },
+      "3": {
+        "evidence_recall": 0.1849,
+        "evidence_ceiling": 0.4634,
+        "context_chars": 785.725
+      },
+      "5": {
+        "evidence_recall": 0.2932,
+        "evidence_ceiling": 0.6194,
+        "context_chars": 1320.525
+      },
+      "10": {
+        "evidence_recall": 0.4599,
+        "evidence_ceiling": 0.7838,
+        "context_chars": 2650.45
+      },
+      "20": {
+        "evidence_recall": 0.7188,
+        "evidence_ceiling": 0.9113,
+        "context_chars": 5238.775
+      }
+    },
+    "300:hybrid_reranker": {
+      "1": {
+        "evidence_recall": 0.1012,
+        "evidence_ceiling": 0.2062,
+        "context_chars": 275.525
+      },
+      "3": {
+        "evidence_recall": 0.201,
+        "evidence_ceiling": 0.4634,
+        "context_chars": 810.125
+      },
+      "5": {
+        "evidence_recall": 0.2678,
+        "evidence_ceiling": 0.6194,
+        "context_chars": 1341.175
+      },
+      "10": {
+        "evidence_recall": 0.4742,
+        "evidence_ceiling": 0.7838,
+        "context_chars": 2684.525
+      },
+      "20": {
+        "evidence_recall": 0.7188,
+        "evidence_ceiling": 0.9113,
+        "context_chars": 5238.775
+      }
+    }
+  }
+}

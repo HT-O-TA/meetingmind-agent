@@ -1,0 +1,31 @@
+{
+  "schema_version": "evaluation.paired_judge_agreement.v1",
+  "paired_qa": 40,
+  "criterion": "Nonempty claims, all labeled supported by the respective judge",
+  "variants": {
+    "baseline": {
+      "both_supported": 25,
+      "opus_only": 1,
+      "sonnet_only": 9,
+      "neither_supported": 5,
+      "agreement": 0.75,
+      "cohen_kappa": 0.3671
+    },
+    "current": {
+      "both_supported": 32,
+      "opus_only": 2,
+      "sonnet_only": 5,
+      "neither_supported": 1,
+      "agreement": 0.825,
+      "cohen_kappa": 0.1358
+    },
+    "probe": {
+      "both_supported": 0,
+      "opus_only": 0,
+      "sonnet_only": 0,
+      "neither_supported": 40,
+      "agreement": 1.0,
+      "cohen_kappa": null
+    }
+  }
+}
