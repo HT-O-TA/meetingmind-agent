@@ -1,0 +1,125 @@
+{
+  "qa_reference_coverage_vs_human": {
+    "missing_reference_ids": {
+      "unsupported": 17,
+      "supported": 13
+    },
+    "all_reference_ids_visible": {
+      "supported": 7,
+      "unsupported": 3
+    }
+  },
+  "score_distributions": {
+    "qa": {
+      "metric": "citation_precision",
+      "by_config": {
+        "qwen": {
+          "n": 40,
+          "mean": 0.975,
+          "zero": 1,
+          "partial": 0,
+          "full": 39
+        },
+        "opus": {
+          "n": 40,
+          "mean": 1.0,
+          "zero": 0,
+          "partial": 0,
+          "full": 40
+        },
+        "sonnet": {
+          "n": 40,
+          "mean": 0.9125,
+          "zero": 3,
+          "partial": 1,
+          "full": 36
+        }
+      },
+      "three_config_exploratory_gap": {
+        "ranked_by": "within-type rest score excluding target item",
+        "configs": 3,
+        "top_and_bottom_per_item": 1,
+        "n": 39,
+        "mean": 0.0641,
+        "range": [
+          0.0,
+          1.0
+        ]
+      }
+    },
+    "todo": {
+      "metric": "f1",
+      "by_config": {
+        "qwen": {
+          "n": 30,
+          "mean": 0.713,
+          "zero": 5,
+          "partial": 5,
+          "full": 20
+        },
+        "opus": {
+          "n": 30,
+          "mean": 0.7993,
+          "zero": 3,
+          "partial": 8,
+          "full": 19
+        },
+        "sonnet": {
+          "n": 30,
+          "mean": 0.6667,
+          "zero": 10,
+          "partial": 0,
+          "full": 20
+        }
+      },
+      "three_config_exploratory_gap": {
+        "ranked_by": "within-type rest score excluding target item",
+        "configs": 3,
+        "top_and_bottom_per_item": 1,
+        "n": 30,
+        "mean": 0.1326,
+        "range": [
+          -1.0,
+          0.6667
+        ]
+      }
+    },
+    "constraint": {
+      "metric": "f1",
+      "by_config": {
+        "qwen": {
+          "n": 30,
+          "mean": 0.4667,
+          "zero": 14,
+          "partial": 4,
+          "full": 12
+        },
+        "opus": {
+          "n": 30,
+          "mean": 0.8333,
+          "zero": 4,
+          "partial": 2,
+          "full": 24
+        },
+        "sonnet": {
+          "n": 30,
+          "mean": 0.4,
+          "zero": 17,
+          "partial": 2,
+          "full": 11
+        }
+      },
+      "three_config_exploratory_gap": {
+        "ranked_by": "within-type rest score excluding target item",
+        "configs": 3,
+        "top_and_bottom_per_item": 1,
+        "n": 30,
+        "mean": 0.4333,
+        "range": [
+          0.0,
+          1.0
+        ]
+      }
+    }
+  }
+}

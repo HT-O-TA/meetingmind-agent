@@ -6,6 +6,8 @@
 
 ## 演示与验证
 
+**一分钟终端录屏**。依次运行 HTTP 上传和带引用回答、本地 Jira 确认门禁、PostgreSQL 审计与幂等回归。写入验证使用本机测试夹具。 [观看录屏](docs/evidence/meetingmind-one-minute.mp4)
+
 ```mermaid
 flowchart LR
   A[会议文档或音频] --> B[检索与访问控制]
@@ -137,7 +139,7 @@ npm run build
 | 全库检索（不给 meeting_id，34 场会议 1626 块同池） | 40 条 QA 中 20 条针对具体议题的问题 | 会议内检索证据召回 0.461 | 找对会议 19/20（加重排 20/20），证据召回 0.333（加重排 0.379）；另 20 条"这场会议讲了什么"在全库下无法定位会议，单列 | `meetingmind_real_v1_corpus_retrieval.json` |
 | 回归测试 | pytest 核心套件 | 120 | 243 passed | `scripts/run_core_tests.sh` |
 
-同一组 40 条历史 Opus QA 中，30 条可见片段缺少部分参考 ID，其中 17 条被单名审核者判为有无依据断言。参考 ID 齐全的 10 条中也有 3 条未通过。会议内 Top-5 的 29.32% 来自独立的分块排序实验。逐题对齐可定位证据缺口，根因仍需控制上下文后验证。
+同一组 40 条历史 Opus QA 中，30 条可见片段缺少部分参考 ID，其中 17 条被单名审核者判为有无依据断言。参考 ID 齐全的 10 条中也有 3 条未通过。会议内 Top-5 的 29.32% 来自独立的分块排序实验。逐题对齐可定位证据缺口，根因仍需控制上下文后验证。 [逐题对照及连续分数汇总](backend/evaluation/reports/qa-evidence-and-score-diagnostics.json)
 
 **本地模型服务直连压测**（`scripts/bench_vllm_serving.py`，报告 `vllm_bench_qwen3_1p7b.json`）：vLLM 0.10 + Qwen3-1.7B fp16，单张 RTX 4060 8GB，负载为 40 条真实会议 QA（约 1.6k 字上下文，输出 ≤128 token），每档 64 请求，全部成功。
 
@@ -184,7 +186,7 @@ KV cache 只有 12,800 token（约 6 路 2k 请求），并发 16→32 时吞吐
 
 ### 工具变更记录 · Jira 创建工单
 
-现有工具最初随企业工具接入进入仓库。后续安全改造补齐高风险写入的参数校验、权限检查、人工确认、幂等和持久审计，影响工具注册与执行、确认恢复、审计表及已有库迁移。没有确认时策略返回 confirmation_required，经批准后才能进入执行。重复幂等键回放已留存结果。
+现有工具最初随企业工具接入进入仓库。后续安全改造补齐外部写入的参数校验、权限检查、人工确认、幂等和持久审计，影响工具注册与执行、确认恢复、审计表及已有库迁移。没有确认时策略返回 confirmation_required，经批准后才能进入执行。重复幂等键回放已留存结果。
 
 本次复查对门禁与恢复跑了 13 项契约测试，全部通过。另在本机 PostgreSQL 跑了持久审计与幂等回归，1 项通过。历史 main CI #54 通过，覆盖契约测试和 PostgreSQL 审计集成。确认演示是本机策略验证，真实 Jira 写入须在隔离租户单独验证。 [工具首次接入](https://github.com/HT-O-TA/meetingmind-agent/commit/bf28cd7) · [安全改造](https://github.com/HT-O-TA/meetingmind-agent/commit/f2b14cd) · [CI #54](https://github.com/HT-O-TA/meetingmind-agent/actions/runs/45592341536)
 
