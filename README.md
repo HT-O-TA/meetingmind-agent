@@ -1,5 +1,7 @@
 # MeetingMind
 
+[![CI](https://github.com/HT-O-TA/meetingmind-agent/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HT-O-TA/meetingmind-agent/actions/workflows/ci.yml?query=branch%3Amain)
+
 面向会议资料的 RAG 与 Agent 应用。将会议文档或音频转成可检索的知识，支持带引用的问答、纪要与待办整理，以及需要人工确认的工具操作。
 
 ## 演示与验证
