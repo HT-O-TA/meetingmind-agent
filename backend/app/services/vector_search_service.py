@@ -37,6 +37,9 @@ class VectorCacheManager:
         if access_context:
             filters['acl'] = access_context.cache_scope()
         
+        if 'retrieval_mode' in kwargs:
+            filters['retrieval_mode'] = kwargs['retrieval_mode']
+            filters['similarity_threshold'] = kwargs['similarity_threshold']
         top_k = kwargs.get('top_k', 10)
         return await _get_cached_result(query, top_k=top_k, filters=filters or None)
     
@@ -54,6 +57,9 @@ class VectorCacheManager:
         if access_context:
             filters['acl'] = access_context.cache_scope()
         
+        if 'retrieval_mode' in kwargs:
+            filters['retrieval_mode'] = kwargs['retrieval_mode']
+            filters['similarity_threshold'] = kwargs['similarity_threshold']
         top_k = kwargs.get('top_k', 10)
         await _set_cached_result(query, results, top_k=top_k, filters=filters or None)
 
@@ -151,11 +157,13 @@ class VectorSearchService:
             检索结果列表（完整的 chunk 信息）
         """
         # 1. 尝试精确缓存（仅高频简单查询）
-        cached_result = await VectorCacheManager.get_cached_result(
-            query_text, top_k=top_k, meeting_id=meeting_id, 
-            document_ids=document_ids, department=department,
-            access_context=access_context,
+        cache_scope = dict(
+            top_k=top_k, meeting_id=meeting_id, document_ids=document_ids,
+            department=department, access_context=access_context,
+            retrieval_mode=("milvus" if self.use_milvus else "pgvector" if self.use_pgvector else "lightweight"),
+            similarity_threshold=similarity_threshold,
         )
+        cached_result = await VectorCacheManager.get_cached_result(query_text, **cache_scope)
         if cached_result is not None:
             # 缓存只保存 ID/分数；每次命中仍回 PostgreSQL 做存活和 ACL 校验。
             cached_ids = [item.get("chunk_id") for item in cached_result if item.get("chunk_id")]
@@ -235,12 +243,8 @@ class VectorSearchService:
                 final_results = final_results[:top_k]
                 
                 # 缓存（仅适合缓存的简单查询）
-                await VectorCacheManager.set_cached_result(
-                    query_text, final_results,
-                    top_k=top_k, meeting_id=meeting_id,
-                    document_ids=document_ids, department=department,
-                    access_context=access_context,
-                )
+                if final_results:
+                    await VectorCacheManager.set_cached_result(query_text, final_results, **cache_scope)
                 
                 app_logger.info(
                     f"[VectorSearch] Milvus 检索完成: "
@@ -253,11 +257,15 @@ class VectorSearchService:
                 app_logger.warning(f"[VectorSearch] Milvus 检索失败，回退到 PG: {milvus_e}")
         
         # 3. 回退：PG 向量检索或轻量模式
-        return await self._search_fallback(
-            query_text, top_k, document_ids, meeting_id, 
+        results = await self._search_fallback(
+            query_text, top_k, document_ids, meeting_id,
             department, similarity_threshold, access_context
         )
-    
+        if results and not self.use_milvus:
+            await VectorCacheManager.set_cached_result(query_text, results, **cache_scope)
+        return results
+
+
     async def _milvus_retrieve_ids(
         self,
         query_text: str,

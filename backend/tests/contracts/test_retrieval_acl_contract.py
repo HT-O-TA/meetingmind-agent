@@ -1,5 +1,6 @@
 """检索 ACL、软删除与缓存隔离的离线契约测试。"""
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
 from sqlalchemy import select
@@ -84,3 +85,27 @@ async def test_retrieval_cache_is_isolated_by_acl_scope():
     assert await manager.get_cached_result(query, top_k=5, filters=team_b) is None
     cached = await manager.get_cached_result(query, top_k=5, filters=team_a)
     assert cached == [{"chunk_id": 10, "document_id": 1, "score": 0.9}]
+
+
+@pytest.mark.asyncio
+async def test_postgres_cache_reuses_ids_with_live_acl_and_scoped_threshold(monkeypatch):
+    manager = MultiLevelCacheManager()
+    monkeypatch.setattr(MultiLevelCacheManager, "_instance", manager)
+    service = VectorSearchService(db=None)
+    service.use_milvus = False
+    fallback = AsyncMock(return_value=[{"chunk_id": 10, "document_id": 1, "score": 0.9}])
+    live = AsyncMock(return_value=[{"id": 10, "chunk_text": "current text"}])
+    monkeypatch.setattr(service, "_search_fallback", fallback)
+    monkeypatch.setattr(service, "_fetch_chunks_from_pg", live)
+    owner = AccessContext(user_id=1)
+    other = AccessContext(user_id=2)
+
+    await service.search_by_text("cache fixture", access_context=owner)
+    cached = await service.search_by_text("cache fixture", access_context=owner)
+    assert cached[0]["content"] == "current text"
+    assert fallback.await_count == 1
+    assert live.await_args.kwargs["access_context"] is owner
+
+    await service.search_by_text("cache fixture", access_context=other)
+    await service.search_by_text("cache fixture", access_context=owner, similarity_threshold=0.95)
+    assert fallback.await_count == 3
