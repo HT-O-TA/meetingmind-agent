@@ -311,14 +311,18 @@ class TestRetrievalDataContract(unittest.IsolatedAsyncioTestCase):
                 "app.core.logger", app_logger=MagicMock()
             ),
             "app.core.security": _module(
-                "app.core.security", AccessContext=object
+                "app.core.security",
+                AccessContext=object,
+                require_retrieval_access_context=lambda context: context,
             ),
         })
         bm25_module = _load_service(
             "bm25_retriever.py", "bm25_contract_target", stubs
         )
 
-        results = await bm25_module.BM25Retriever().search("会议", top_k=1)
+        results = await bm25_module.BM25Retriever().search(
+            "会议", top_k=1, access_context=SimpleNamespace(is_admin=True)
+        )
 
         self.assertEqual(results[0]["content"], long_text)
         self.assertEqual(results[0]["chunk_text"], long_text)
@@ -326,11 +330,12 @@ class TestRetrievalDataContract(unittest.IsolatedAsyncioTestCase):
 
 
 class TestVectorCacheContract(unittest.IsolatedAsyncioTestCase):
-    async def test_successful_milvus_lookup_uses_the_cache_write_contract(self):
+    async def test_cached_milvus_candidate_is_rechecked_after_access_is_revoked(self):
         cache_writes = []
+        cached = None
 
         async def cache_get(*args, **kwargs):
-            return None
+            return cached
 
         async def cache_set(*args, **kwargs):
             cache_writes.append((args, kwargs))
@@ -368,7 +373,9 @@ class TestVectorCacheContract(unittest.IsolatedAsyncioTestCase):
                 "app.core.logger", app_logger=MagicMock()
             ),
             "app.core.security": _module(
-                "app.core.security", AccessContext=object
+                "app.core.security",
+                AccessContext=object,
+                require_retrieval_access_context=lambda context: context,
             ),
             "app.core.cache": _module(
                 "app.core.cache", cache_get=cache_get, cache_set=cache_set
@@ -400,12 +407,28 @@ class TestVectorCacheContract(unittest.IsolatedAsyncioTestCase):
         }])
         service._search_fallback = AsyncMock(return_value=[{"fallback": True}])
 
-        results = await service.search_by_text("项目进度", top_k=1)
+        results = await service.search_by_text(
+            "项目进度",
+            top_k=1,
+            access_context=SimpleNamespace(
+                is_admin=True,
+                cache_scope=lambda: {"is_admin": True},
+            ),
+        )
 
         self.assertEqual(results[0]["chunk_text"], "完整正文")
         self.assertEqual(len(cache_writes), 1)
         self.assertEqual(cache_writes[0][0][0], "项目进度")
         service._search_fallback.assert_not_awaited()
+        cached = [{"chunk_id": 11, "document_id": 2, "score": 0.88}]
+        service._fetch_chunks_from_pg.return_value = []
+        context = SimpleNamespace(is_admin=False, cache_scope=lambda: {"user_id": 42})
+        self.assertEqual(
+            await service.search_by_text("项目进度", top_k=1, access_context=context),
+            [],
+        )
+        self.assertEqual(service._fetch_chunks_from_pg.call_args.args[0], [11])
+        self.assertIs(service._fetch_chunks_from_pg.call_args.kwargs["access_context"], context)
 
 
 if __name__ == "__main__":

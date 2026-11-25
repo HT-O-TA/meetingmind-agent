@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from app.core.rabbitmq import RabbitMQManager
+from app.core.middleware import bind_task_request_id, current_request_id
 from app.services.task_queue import TaskQueueService, TaskStatus, TaskType
 
 
@@ -81,7 +82,9 @@ async def test_create_task_idempotency_publishes_once(fake_redis):
 async def test_publish_failure_is_visible_in_task_state(fake_redis):
     publisher = FakePublisher(ConnectionError("broker down"))
     service = TaskQueueService(redis_client=fake_redis, publisher=publisher)
-    task = await service.create_task(TaskType.DOCUMENT_PROCESS, {"document_id": 1}, user_id=7)
+    origin = "a" * 32
+    with bind_task_request_id(origin):
+        task = await service.create_task(TaskType.DOCUMENT_PROCESS, {"document_id": 1}, user_id=7)
 
     assert task.status == TaskStatus.PUBLISH_FAILED.value
     assert task.error_category == "publish_failed"
@@ -89,10 +92,13 @@ async def test_publish_failure_is_visible_in_task_state(fake_redis):
     assert stored.status == TaskStatus.PUBLISH_FAILED.value
 
     publisher.error = None
-    republished = await service.republish_task(task.task_id, user_id=7)
+    with bind_task_request_id("b" * 32):
+        republished = await service.republish_task(task.task_id, user_id=7)
     assert republished.task_id == task.task_id
     assert republished.status == TaskStatus.PENDING.value
     assert len(publisher.calls) == 2
+    assert republished.request_id == origin
+    assert [call["message_body"]["request_id"] for call in publisher.calls] == [origin, origin]
 
 
 @pytest.mark.asyncio
@@ -183,20 +189,24 @@ async def test_consumer_failure_republishes_then_acks_original():
     manager.task_max_retries = 2
     manager._publish_retry = AsyncMock()
     failure_callback = AsyncMock()
-    message = FakeIncomingMessage({"task_id": "t1"}, {"x-retry-count": 0})
+    body = {"task_id": "t1", "request_id": "a" * 32}
+    message = FakeIncomingMessage(body, {"x-retry-count": 0})
 
-    async def fail(body):
+    async def fail(delivery):
+        assert current_request_id() == delivery["request_id"]
         raise RuntimeError("boom")
 
     await manager._process_delivery("test.queue", message, fail, failure_callback)
 
     manager._publish_retry.assert_awaited_once()
     retry_headers = manager._publish_retry.await_args.args[2]
+    assert manager._publish_retry.await_args.args[1] == body
     assert retry_headers["x-retry-count"] == 1
     assert message.acked == 1
     failure_callback.assert_awaited_once_with(
-        {"task_id": "t1"}, 1, "RuntimeError: boom", False
+        body, 1, "RuntimeError: boom", False
     )
+    assert current_request_id() is None
 
 
 @pytest.mark.asyncio
@@ -315,3 +325,37 @@ async def test_dead_letter_redrive_is_owner_scoped_and_rejects_live_tasks(fake_r
     await service.record_delivery_failure({"task_id": task.task_id}, 3, "E: x", dead_lettered=True)
     with pytest.raises(LookupError):
         await service.republish_task(task.task_id, user_id=8)  # 他人任务不可见
+
+
+@pytest.mark.asyncio
+async def test_active_claim_defers_delivery_without_consuming_failure_budget():
+    from app.core.rabbitmq import TaskClaimDeferred
+
+    manager = RabbitMQManager()
+    manager._publish_retry = AsyncMock()
+    manager._publish_dead = AsyncMock()
+    notify = AsyncMock()
+    body = {"task_id": "still-owned", "payload": {}}
+    headers = {"x-retry-count": manager.task_max_retries}
+    message = FakeIncomingMessage(body, headers)
+    callback = AsyncMock(side_effect=TaskClaimDeferred("lease is held"))
+
+    await manager._process_delivery("document_process", message, callback, notify)
+
+    manager._publish_retry.assert_awaited_once_with("document_process", body, headers)
+    manager._publish_dead.assert_not_awaited()
+    notify.assert_not_awaited()
+    assert message.acked == 1
+
+
+@pytest.mark.asyncio
+async def test_only_claim_owner_can_renew_or_release(fake_redis):
+    service = TaskQueueService(redis_client=fake_redis, publisher=FakePublisher())
+    task = await service.create_task(TaskType.DOCUMENT_PROCESS, {"document_id": 1})
+    assert await service.claim_task(task.task_id, "owner") == "claimed:owner"
+    assert not await service.renew_claim(task.task_id, "stale")
+    await service.release_claim(task.task_id, "stale")
+    assert await service.renew_claim(task.task_id, "owner")
+    assert await service.claim_task(task.task_id, "peer") == "busy"
+    await service.release_claim(task.task_id, "owner")
+    assert await service.claim_task(task.task_id, "peer") == "claimed:peer"

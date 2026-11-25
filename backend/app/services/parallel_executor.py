@@ -23,6 +23,7 @@ class ExecutionResult:
     all_failed: bool = False
     partial_failure: bool = False
     failure_rate: float = 0.0
+    stopped_by_failure_threshold: bool = False
 
 
 class ParallelExecutor:
@@ -88,6 +89,22 @@ class ParallelExecutor:
                 await self._execute_wave_parallel(
                     execute_fn, state, ready_tasks, all_tasks, result, wave_idx
                 )
+
+            attempted = result.completed + result.failed
+            wave_failure_rate = result.failed / attempted if attempted else 0.0
+            if result.failed > 0 and wave_failure_rate >= self._failure_threshold:
+                result.stopped_by_failure_threshold = True
+                for task in tasks.values():
+                    if task.get("status") == "pending":
+                        task["status"] = "skipped"
+                        task["error"] = "execution_stopped_failure_threshold"
+                        result.skipped += 1
+                app_logger.warning(
+                    "[ParallelExecutor] 累计失败率 %.1f%% 达到阈值 %.1f%%，停止后续波次",
+                    wave_failure_rate * 100,
+                    self._failure_threshold * 100,
+                )
+                break
 
         # Phase 4: 完整性检查
         result.all_failed = result.completed == 0 and result.total > 0
@@ -246,5 +263,6 @@ def get_parallel_executor() -> ParallelExecutor:
         _executor_instance = ParallelExecutor(
             max_workers=getattr(settings, "MAX_PARALLEL_WORKERS", 3),
             task_timeout=getattr(settings, "TASK_TIMEOUT_SECONDS", 60),
+            failure_threshold=getattr(settings, "PARALLEL_FAILURE_THRESHOLD", 0.3),
         )
     return _executor_instance

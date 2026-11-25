@@ -7,6 +7,7 @@ from httpx import Timeout
 from app.core.config import settings
 from app.core.logger import app_logger
 from app.services.context_assembler import ContextAssembler
+from app.services.llm_circuit import LLMCircuitBreaker
 from app.services.token_budget_ledger import (
     TokenBudgetExceeded,
     TokenBudgetLedger,
@@ -15,6 +16,7 @@ from app.services.token_budget_ledger import (
 )
 
 # LLM 限流重试配置
+_provider_circuits: dict[tuple[str, str], LLMCircuitBreaker] = {}
 _LLM_MAX_RETRIES = 3
 _LLM_RETRY_BASE_WAIT = 5  # 初始等待秒数，指数退避：5s, 10s, 20s
 
@@ -65,6 +67,13 @@ class LLMService:
                 raise ValueError("LLM_API_KEY must be set for model generation")
             self.client = self._create_client(settings.LLM_API_KEY, settings.LLM_API_BASE)
         return self.client
+
+    @staticmethod
+    def _provider_circuit(base_url: str) -> LLMCircuitBreaker:
+        key = (settings.LLM_PROVIDER, base_url.rstrip("/"))
+        if key not in _provider_circuits:
+            _provider_circuits[key] = LLMCircuitBreaker()
+        return _provider_circuits[key]
 
     @staticmethod
     def _usage_tokens(response: Any) -> tuple[Optional[int], Optional[int]]:
@@ -177,7 +186,8 @@ class LLMService:
                 self._fail_budget(ledger, decision_id, error)
                 raise
             try:
-                response = await temp_client.chat.completions.create(
+                response = await self._provider_circuit(api_base or settings.LLM_API_BASE).call(
+                    temp_client.chat.completions.create,
                     model=selected_model,
                     messages=messages,
                     temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
@@ -198,7 +208,8 @@ class LLMService:
         last_error = None
         for attempt in range(_LLM_MAX_RETRIES):
             try:
-                response = await self._get_client().chat.completions.create(
+                response = await self._provider_circuit(settings.LLM_API_BASE).call(
+                    self._get_client().chat.completions.create,
                     model=selected_model,
                     messages=messages,
                     temperature=temperature if temperature is not None else settings.LLM_TEMPERATURE,
@@ -307,7 +318,9 @@ class LLMService:
 参考信息：
 {context_text}
 
-请基于以上参考信息回答用户的问题。"""
+请基于以上参考信息回答用户的问题。引用时使用独立的数字方括号，
+例如 ref:retrieval:0 对应 [1]，ref:retrieval:1 对应 [2]。
+只能引用上方实际出现的 ref，不要为缺失的证据编造编号。"""
 
         messages = [
             {"role": "system", "content": system_prompt},

@@ -1,0 +1,58 @@
+name: meetingmind-replica-verify
+x-app: &app
+  image: meetingmind-agent-backend:latest
+  pull_policy: never
+  working_dir: /app
+  environment:
+    APP_ENV: test
+    PYTHONPATH: /app
+    METRICS_ENABLED: "true"
+    DATABASE_URL: postgresql+asyncpg://postgres:fixture-db@postgres:5432/meetingmind
+    REDIS_URL: redis://redis:6379/0
+    RABBITMQ_URL: amqp://fixture:fixture-broker@rabbitmq:5672/
+    MILVUS_URI: ""
+    EMBEDDING_MODEL_NAME: meetingmind-smoke-fallback
+    HF_HUB_OFFLINE: "1"
+    TRANSFORMERS_OFFLINE: "1"
+    ROUTE_SEMANTIC_TASK_ENABLED: "false"
+    ENABLE_RERANK: "false"
+    RATE_LIMIT_RAG_COUNT: "2"
+    RATE_LIMIT_AGENT_STREAM_COUNT: "100"
+    AGENT_HTTP_MAX_IN_FLIGHT: "8"
+  volumes:
+    - ./backend/app:/app/app:ro
+    - uploads:/app/uploads
+    - ./scripts:/verify:ro
+  command: [python, /verify/replica_api_fixture.py]
+  healthcheck:
+    disable: true
+services:
+  postgres:
+    image: postgres:16-alpine
+    pull_policy: never
+    environment:
+      POSTGRES_PASSWORD: fixture-db
+      POSTGRES_DB: meetingmind
+  redis:
+    image: redis:7-alpine
+    pull_policy: never
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    pull_policy: never
+    environment:
+      RABBITMQ_DEFAULT_USER: fixture
+      RABBITMQ_DEFAULT_PASS: fixture-broker
+  api-a:
+    <<: *app
+    ports: ["127.0.0.1:18110:8000"]
+  api-b:
+    <<: *app
+    ports: ["127.0.0.1:18111:8000"]
+  worker-a:
+    <<: *app
+    command: [python, -m, app.workers.run]
+  worker-b:
+    <<: *app
+    command: [python, -m, app.workers.run]
+volumes:
+  uploads:

@@ -55,11 +55,37 @@ class Settings(BaseSettings):
 
     # ==================== 日志配置 ====================
     LOG_LEVEL: str = "INFO"  # 日志级别：DEBUG / INFO / WARNING / ERROR / CRITICAL
+    HEALTH_CHECK_TIMEOUT_SECONDS: float = 2.0
+    METRICS_ENABLED: bool = False
+    AGENT_HTTP_MAX_IN_FLIGHT: int = 8
 
     # ==================== Redis缓存配置（混合方案） ====================
     REDIS_URL: str = "redis://localhost:6379/0"  # Redis连接字符串
     CACHE_TTL: int = 300  # 缓存默认过期时间（秒，5分钟）
     CACHE_ENABLED: bool = True  # 是否启用Redis缓存
+
+    # 关键入口限流；生产默认开启，测试通过 fixture 显式关闭。
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_LOGIN_COUNT: int = 5
+    RATE_LIMIT_LOGIN_WINDOW_SECONDS: int = 300
+    RATE_LIMIT_REGISTER_COUNT: int = 3
+    RATE_LIMIT_REGISTER_WINDOW_SECONDS: int = 3600
+    RATE_LIMIT_RAG_COUNT: int = 20
+    RATE_LIMIT_RAG_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_AGENT_COUNT: int = 10
+    RATE_LIMIT_AGENT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_AGENT_STREAM_COUNT: int = 5
+    RATE_LIMIT_AGENT_STREAM_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_AGENT_BATCH_COUNT: int = 2
+    RATE_LIMIT_AGENT_BATCH_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_TASK_COUNT: int = 10
+    RATE_LIMIT_TASK_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_DOCUMENT_BATCH_COUNT: int = 2
+    RATE_LIMIT_DOCUMENT_BATCH_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_TASK_RETRY_COUNT: int = 5
+    RATE_LIMIT_TASK_RETRY_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_TASK_WAIT_COUNT: int = 5
+    RATE_LIMIT_TASK_WAIT_WINDOW_SECONDS: int = 60
 
     # Agent 运行检查点：只保存可恢复的任务状态，不是长期知识记忆
     AGENT_CHECKPOINT_ENABLED: bool = True
@@ -96,7 +122,7 @@ class Settings(BaseSettings):
     QUEUE_MAX_LENGTH: int = 10000  # 满队列拒绝新发布并由 publisher confirm 暴露错误
     QUEUE_DLX_NAME: str = "meetingmind.dlx"
     QUEUE_TASK_RETENTION_SECONDS: int = 86400  # Redis 中终态/查询状态保留 24 小时
-    QUEUE_CLAIM_TTL_SECONDS: int = 3660  # 略长于单任务超时，防止并发重复消费
+    QUEUE_CLAIM_TTL_SECONDS: int = Field(default=30, ge=3)
 
     # ==================== 向量化配置 ====================
     EMBEDDING_MODEL: str = "BAAI/bge-m3"  # HuggingFace模型标识（用于远程下载）
@@ -175,6 +201,7 @@ class Settings(BaseSettings):
     # ==================== 并行执行配置 ====================
     MAX_PARALLEL_WORKERS: int = 3  # 最大并行工作线程数
     TASK_TIMEOUT_SECONDS: int = 60  # 单任务超时时间（秒）
+    PARALLEL_FAILURE_THRESHOLD: float = 0.3  # 波次累计失败率达到该值后停止后续任务
 
     # ==================== 规划 Token 预算保护配置 ====================
     PLAN_MAX_TASKS: int = 8  # 规划最大任务数（动态调整）
@@ -206,6 +233,10 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_production_secrets(self):
+        if self.AGENT_HTTP_MAX_IN_FLIGHT < 1:
+            raise ValueError("AGENT_HTTP_MAX_IN_FLIGHT must be positive")
+        if not 0 < self.HEALTH_CHECK_TIMEOUT_SECONDS <= 30:
+            raise ValueError("HEALTH_CHECK_TIMEOUT_SECONDS 必须位于 (0, 30] 秒")
         if self.AGENT_CHECKPOINT_BACKEND.lower() not in {"file", "postgres"}:
             raise ValueError("AGENT_CHECKPOINT_BACKEND 只能是 file 或 postgres")
         if min(
@@ -239,6 +270,8 @@ class Settings(BaseSettings):
         ):
             raise ValueError("LLM_MODEL_CONTEXT_WINDOWS 必须映射模型名到正整数")
         if self.APP_ENV.lower() == "production":
+            if not 0 < self.ACCESS_TOKEN_EXPIRE_MINUTES <= 60:
+                raise ValueError("Production access token lifetime must be 1–60 minutes")
             insecure = {
                 "meetingmind-secret-key-change-in-production",
                 "meetingmind-dev-only-secret-change-before-production",

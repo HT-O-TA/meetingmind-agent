@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "shared_rate_limit": [
+    200,
+    200,
+    429
+  ],
+  "deliveries": {
+    "worker-a": [
+      "e15374c8-94f7-4c10-bccc-8d3f5952f603"
+    ],
+    "worker-b": [
+      "afa3156d-332a-4066-86ff-1b300de6eccf",
+      "fe3dd1aa-aa4b-4f77-9e42-e20ef54c8cc5",
+      "003a6af6-af54-435d-946b-8f50f6d8be64",
+      "d559036a-fc1f-414b-957e-26069c3d1ee0",
+      "0f22b5fc-20e0-4b97-a906-2b4b2e886d93"
+    ]
+  },
+  "sse_active": [
+    8.0,
+    8.0
+  ],
+  "sse_over_limit": [
+    503,
+    503
+  ],
+  "tasks_completed": 6
+}

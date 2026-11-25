@@ -9,6 +9,7 @@ from app.evaluation.retrieval_policy import RetrievalPolicy, load_policy, weight
 
 from app.core.config import settings
 from app.core.logger import app_logger
+from app.core.security import AccessContext
 
 
 class EnhancedMultiRetrievalFusion:
@@ -29,10 +30,13 @@ class EnhancedMultiRetrievalFusion:
             self.vector_weight = policy.vector_weight
 
         from app.services.bm25_retriever import get_bm25_retriever
+        self.bm25_retriever = get_bm25_retriever()
+
+    @property
+    def reranker(self):
         from app.services.reranker import get_reranker
 
-        self.bm25_retriever = get_bm25_retriever()
-        self.reranker = get_reranker()
+        return get_reranker()
 
     @staticmethod
     def _normalized_score(result: Dict[str, Any], maximum: float) -> float:
@@ -53,9 +57,14 @@ class EnhancedMultiRetrievalFusion:
         bm25_results: Optional[List[Dict[str, Any]]] = None,
         dense_results: Optional[List[Dict[str, Any]]] = None,
         top_k: int = 10,
+        access_context: Optional[AccessContext] = None,
     ) -> List[Dict[str, Any]]:
         if bm25_results is None:
-            bm25_results = await self.bm25_retriever.search(query, top_k=top_k * 2)
+            bm25_results = await self.bm25_retriever.search(
+                query,
+                top_k=top_k * 2,
+                access_context=access_context,
+            )
         candidates = self._weighted_fusion(bm25_results, dense_results or [])
         results = await self.rerank_candidates(query, candidates, top_k)
         app_logger.debug(

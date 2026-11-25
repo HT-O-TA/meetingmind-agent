@@ -3,7 +3,7 @@ from typing import List, Dict, Optional, Any
 from sqlalchemy import text
 from app.db.database import AsyncSessionLocal
 from app.core.logger import app_logger
-from app.core.security import AccessContext
+from app.core.security import AccessContext, require_retrieval_access_context
 
 
 class BM25Retriever:
@@ -48,6 +48,8 @@ class BM25Retriever:
         Returns:
             检索结果列表，包含 doc_id, score, content, document_id, chunk_id
         """
+        access_context = require_retrieval_access_context(access_context)
+
         if not query or not query.strip():
             return []
         
@@ -155,6 +157,7 @@ class BM25Retriever:
         query: str,
         document_ids: List[int],
         top_k: int = 10,
+        access_context: Optional[AccessContext] = None,
     ) -> List[Dict[str, Any]]:
         """
         在指定文档范围内执行 BM25 检索
@@ -171,6 +174,7 @@ class BM25Retriever:
             query=query,
             document_ids=document_ids,
             top_k=top_k,
+            access_context=access_context,
         )
     
     async def get_document_count(self) -> int:

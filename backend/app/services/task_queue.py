@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from app.core.cache_init import get_redis
 from app.core.config import settings
+from app.core.middleware import current_request_id
 from app.core.rabbitmq import rabbitmq_manager
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ class TaskInfo:
     error_category: Optional[str] = None
     published_at: Optional[str] = None
     payload: Optional[Dict[str, Any]] = None
+    request_id: Optional[str] = None
 
 
 TERMINAL_STATUSES = {
@@ -138,6 +140,7 @@ class TaskQueueService:
             idempotency_key=idempotency_key,
             max_attempts=settings.QUEUE_MAX_RETRIES + 1,
             payload=payload,
+            request_id=current_request_id(),
         )
         redis = await self._get_redis()
         await self._save_task(task)
@@ -171,6 +174,7 @@ class TaskQueueService:
             "metadata": metadata or {},
             "user_id": user_id,
             "created_at": now,
+            "request_id": task.request_id,
         }
         # 必须在 publish 前保存发布意图。Broker confirm 返回后消费者可能已经
         # 完成任务；此时再写入当前这个旧的 pending 对象会把 completed 覆盖掉。
@@ -197,10 +201,10 @@ class TaskQueueService:
             task.published_at = None
             task.updated_at = datetime.now().isoformat()
             await self._save_task(task)
-            logger.error("Task publish failed task_id=%s: %s", task_id, exc)
+            logger.error("Task publish failed task_id=%s request_id=%s: %s", task_id, task.request_id, exc)
             return task
 
-        logger.info("Task published task_id=%s type=%s", task_id, task_type.value)
+        logger.info("Task published task_id=%s request_id=%s type=%s", task_id, task.request_id, task_type.value)
         return await self.get_task_status(task_id) or task
 
     async def republish_task(
@@ -232,6 +236,7 @@ class TaskQueueService:
             "metadata": task.metadata or {},
             "user_id": task.user_id,
             "created_at": task.created_at,
+            "request_id": task.request_id,
         }
         task.status = TaskStatus.PENDING.value
         task.error = None
@@ -259,7 +264,9 @@ class TaskQueueService:
             task.published_at = None
             task.updated_at = datetime.now().isoformat()
             await self._save_task(task)
+            logger.error("Task republish failed task_id=%s request_id=%s", task.task_id, task.request_id)
             return task
+        logger.info("Task republished task_id=%s request_id=%s", task.task_id, task.request_id)
         return await self.get_task_status(task.task_id) or task
 
     async def get_task_status(
@@ -388,14 +395,21 @@ class TaskQueueService:
         await self._save_task(latest)
         return f"claimed:{worker_id}"
 
+    async def renew_claim(self, task_id: str, worker_id: str) -> bool:
+        redis = await self._get_redis()
+        return bool(await redis.eval(
+            "if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end "
+            "return redis.call('EXPIRE', KEYS[1], ARGV[2])",
+            1, self._get_claim_key(task_id), worker_id, settings.QUEUE_CLAIM_TTL_SECONDS,
+        ))
+
     async def release_claim(self, task_id: str, worker_id: str) -> None:
         redis = await self._get_redis()
-        key = self._get_claim_key(task_id)
-        current = await redis.get(key)
-        if isinstance(current, bytes):
-            current = current.decode("utf-8")
-        if current == worker_id:
-            await redis.delete(key)
+        await redis.eval(
+            "if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end "
+            "return redis.call('DEL', KEYS[1])",
+            1, self._get_claim_key(task_id), worker_id,
+        )
 
     async def record_delivery_failure(
         self,

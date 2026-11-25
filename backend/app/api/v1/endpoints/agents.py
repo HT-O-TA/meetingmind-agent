@@ -1,6 +1,7 @@
 """Agent 查询、流式事件与高风险工具确认端点。"""
 import asyncio
 import time
+from anyio import move_on_after
 from typing import Annotated, Optional, List, Dict, Any
 from fastapi import APIRouter, Depends
 from fastapi.responses import StreamingResponse
@@ -13,6 +14,8 @@ from app.core.dependencies import get_llm_service, get_vector_search_service
 from app.core.logger import app_logger
 from app.core.deps import get_current_user
 from app.core.security import AccessContext, user_role_value
+from app.core.config import settings
+from app.core.rate_limiter import user_rate_limit
 from app.models.user import User
 from app.agents.memory import SessionMemoryStore
 import json
@@ -93,9 +96,14 @@ class AgentBatchRequest(BaseModel):
 @router.post("/query")
 async def agent_query(
     request: AgentQueryRequest,
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(user_rate_limit(
+        "agent",
+        settings.RATE_LIMIT_AGENT_COUNT,
+        settings.RATE_LIMIT_AGENT_WINDOW_SECONDS,
+    )),
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-    current_user: User = Depends(get_current_user),
 ):
     start_time = time.time()
     
@@ -173,9 +181,14 @@ async def agent_query(
 @router.post("/query-stream")
 async def agent_query_stream(
     request: AgentQueryRequest,
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(user_rate_limit(
+        "agent_stream",
+        settings.RATE_LIMIT_AGENT_STREAM_COUNT,
+        settings.RATE_LIMIT_AGENT_STREAM_WINDOW_SECONDS,
+    )),
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-    current_user: User = Depends(get_current_user),
 ):
     """Agent 流式查询；仅返回可公开进度、确认请求和最终结果。"""
     
@@ -265,20 +278,19 @@ async def agent_query_stream(
             message = json.dumps({"type": "final", "data": final_result}, ensure_ascii=False)
             yield f"data: {message}\n\n"
             yield "data: [DONE]\n\n"
-        except asyncio.CancelledError:
-            if task and not task.done():
-                task.cancel()
-            raise
         except Exception as e:
             app_logger.exception(f"[API] Agent流式查询失败: {e}")
-            if task and not task.done():
-                task.cancel()
             error = json.dumps(
                 {"type": "error", "data": {"message": "Agent stream failed"}},
                 ensure_ascii=False,
             )
             yield f"data: {error}\n\n"
             yield "data: [DONE]\n\n"
+        finally:
+            if task and not task.done():
+                task.cancel()
+                with move_on_after(2, shield=True):
+                    await asyncio.gather(task, return_exceptions=True)
     
     return StreamingResponse(
         generate(),
@@ -293,9 +305,14 @@ async def agent_query_stream(
 @router.post("/batch")
 async def agent_batch_query(
     request: AgentBatchRequest,
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(user_rate_limit(
+        "agent_batch",
+        settings.RATE_LIMIT_AGENT_BATCH_COUNT,
+        settings.RATE_LIMIT_AGENT_BATCH_WINDOW_SECONDS,
+    )),
     llm_service: LLMService = Depends(get_llm_service),
     vector_search_service: VectorSearchService = Depends(get_vector_search_service),
-    current_user: User = Depends(get_current_user),
 ):
     agent_service = await get_agent_service(
         llm_service=llm_service,

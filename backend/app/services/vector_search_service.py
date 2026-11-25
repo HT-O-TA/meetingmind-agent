@@ -15,7 +15,7 @@ from app.models.vector import VectorChunk
 from app.models.document import Document
 from app.core.config import settings
 from app.core.logger import app_logger
-from app.core.security import AccessContext
+from app.core.security import AccessContext, require_retrieval_access_context
 from app.core.cache import cache_get, cache_set
 from app.services.vector_cache_manager import get_cached_result as _get_cached_result, set_cached_result as _set_cached_result
 
@@ -106,6 +106,9 @@ class VectorSearchService:
     
     async def check_milvus_support(self) -> bool:
         """检查 Milvus 是否可用"""
+        if not settings.MILVUS_URI.strip():
+            self.use_milvus = False
+            return False
         try:
             from app.services.vector_store_milvus import get_milvus_vector_store
             
@@ -156,6 +159,8 @@ class VectorSearchService:
         Returns:
             检索结果列表（完整的 chunk 信息）
         """
+        access_context = require_retrieval_access_context(access_context)
+
         # 1. 尝试精确缓存（仅高频简单查询）
         cache_scope = dict(
             top_k=top_k, meeting_id=meeting_id, document_ids=document_ids,
@@ -345,8 +350,18 @@ class VectorSearchService:
         if not chunk_ids:
             return []
         
-        # 构建查询：用 chunk_ids 做精确过滤
-        query = select(VectorChunk).where(VectorChunk.id.in_(chunk_ids))
+        # 回查只读取返回所需字段，避免加载旧库中类型可能不同的向量列。
+        query = select(
+            VectorChunk.id,
+            VectorChunk.document_id,
+            VectorChunk.meeting_id,
+            VectorChunk.chunk_text,
+            VectorChunk.chunk_index,
+            VectorChunk.speaker_name,
+            VectorChunk.time_offset,
+            VectorChunk.department,
+            VectorChunk.metadata_json,
+        ).where(VectorChunk.id.in_(chunk_ids))
         query = self._apply_live_document_filters(query, access_context)
         
         # 添加额外过滤条件
@@ -362,7 +377,7 @@ class VectorSearchService:
             query = query.where(and_(*conditions))
         
         result = await self.db.execute(query)
-        chunks = result.scalars().all()
+        chunks = result.all()
         
         # 转换为字典
         chunk_list = []
@@ -509,6 +524,8 @@ class VectorSearchService:
         Returns:
             检索结果列表
         """
+        access_context = require_retrieval_access_context(access_context)
+
         if self.use_pgvector:
             return await self._search_pgvector(
                 query_vector=query_vector,
@@ -716,6 +733,8 @@ class VectorSearchService:
         access_context: Optional["AccessContext"] = None,
     ) -> List[dict]:
         """获取文档的所有向量块（按 chunk_index 顺序，不做相似度过滤）"""
+        access_context = require_retrieval_access_context(access_context)
+
         try:
             query = select(
                     VectorChunk.id,
@@ -779,6 +798,8 @@ class VectorSearchService:
         Returns:
             检索结果列表
         """
+        access_context = require_retrieval_access_context(access_context)
+
         from app.services.enhanced_retrieval_fusion import get_enhanced_retrieval_fusion
         
         current_strategy = "A"

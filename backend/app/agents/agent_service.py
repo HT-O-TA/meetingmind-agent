@@ -505,11 +505,21 @@ class AgentService:
         # Permissions are reconstructed from the current authenticated user;
         # the scope persisted in a checkpoint is diagnostic only.
         if access_scope is not None:
+            if access_scope.get("can_write") is False:
+                app_logger.warning(
+                    "HITL resume denied confirmation_id={} user_id={} reason=write_permission_revoked",
+                    request_id, user_id,
+                )
+                return {"success": False, "mode": "checkpoint_write_denied", "message": "当前用户已无写权限"}
             state_for_scope = dict(snapshot)
             state_for_scope["access_scope"] = access_scope
             try:
                 current_envelope = InputPreprocessor().build_envelope(state_for_scope)
             except InputContractError:
+                app_logger.warning(
+                    "HITL resume denied confirmation_id={} user_id={} reason=resource_scope_denied",
+                    request_id, user_id,
+                )
                 return {"success": False, "mode": "checkpoint_scope_denied", "message": "当前用户已无权访问确认点资源"}
             snapshot["access_scope"] = access_scope
         else:

@@ -81,12 +81,14 @@ def main() -> int:
     parser.add_argument("--base-url", default="http://127.0.0.1:8000")
     parser.add_argument("--timeout", type=float, default=60.0)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--profile", choices=["local-lightweight", "provided-endpoint"], default="provided-endpoint")
     args = parser.parse_args()
 
     suffix = uuid.uuid4().hex[:10]
     owner_name = f"flow_owner_{suffix}"
     outsider_name = f"flow_out_{suffix}"
-    report: dict = {"schema_version": "meetingmind.http-flow.v1", "run_id": suffix}
+    report: dict = {"schema_version": "meetingmind.http-flow.v1", "run_id": suffix,
+                    "profile": args.profile, "transport": args.base_url.split(":", 1)[0]}
 
     with httpx.Client(base_url=args.base_url, timeout=30.0) as client:
         require(client.get("/health"), 200)
@@ -162,17 +164,20 @@ def main() -> int:
             200,
         )["data"]
 
-        parent = require(
-            client.post(
+        task_response = client.post(
                 "/api/v1/tasks/documents",
                 headers={
                     **owner_headers,
                     "Idempotency-Key": f"http-flow-{document_id}",
                 },
                 json={"document_id": document_id, "metadata": {"source": "http-demo"}},
-            ),
-            202,
-        )
+            )
+        parent = require(task_response, 202)
+        root_request_id = task_response.headers.get("X-Request-ID")
+        if args.profile == "local-lightweight" and (
+            not root_request_id or parent.get("origin_request_id") != root_request_id
+        ):
+            raise AssertionError("Document task did not preserve its originating request ID")
         parent = wait_for_task(client, owner_token, parent["task_id"], args.timeout)
         if parent["status"] != "completed":
             raise AssertionError(f"document task failed: {parent}")
@@ -182,6 +187,8 @@ def main() -> int:
         child = wait_for_task(client, owner_token, child_id, args.timeout)
         if child["status"] != "completed":
             raise AssertionError(f"vector task failed: {child}")
+        if args.profile == "local-lightweight" and child.get("origin_request_id") != root_request_id:
+            raise AssertionError("Vector child task did not inherit the originating request ID")
 
         private_document_status = client.get(
             f"/api/v1/documents/{document_id}", headers=outsider_headers
@@ -213,6 +220,7 @@ def main() -> int:
                     "answer_excerpt": rag["answer"][:120],
                 },
                 "queue": {
+                    "origin_request_id": parent.get("origin_request_id"),
                     "document_task": parent["status"],
                     "vector_task": child["status"],
                     "embedded_chunks": child["result"]["embedded_chunks"],

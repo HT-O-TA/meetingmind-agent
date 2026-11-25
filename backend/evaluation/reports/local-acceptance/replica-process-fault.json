@@ -1,0 +1,15 @@
+{
+  "worker": {
+    "task_id": "919bbd26-3c25-4032-89c8-c68d0a01176b",
+    "unacked_before_kill": 1,
+    "later_deliveries": 3,
+    "terminal": "dead_letter",
+    "attempt_count": 3
+  },
+  "sse": {
+    "old_stream": "disconnected",
+    "fresh_in_flight": 0,
+    "new_stream_completed": true,
+    "peer_ready": true
+  }
+}

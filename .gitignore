@@ -175,4 +175,3 @@ backend/local/
 .context-guard/
 .mcp.json
 CLAUDE.md
-tools/errand-mcp/

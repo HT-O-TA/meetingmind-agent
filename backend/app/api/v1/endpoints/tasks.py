@@ -24,6 +24,7 @@ from app.models.meeting import Meeting
 from app.db.database import get_db
 from app.core.logger import app_logger
 from app.core.security import require_write_user
+from app.core.rate_limiter import user_rate_limit
 from app.services.input_admission import FileAdmissionError, input_admission_policy
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.cache import cache_delete
@@ -52,6 +53,7 @@ class TaskResponse(BaseModel):
     max_attempts: int = 1
     error_category: Optional[str] = None
     published_at: Optional[str] = None
+    origin_request_id: Optional[str] = None
 
 
 class TaskListResponse(BaseModel):
@@ -75,6 +77,7 @@ def task_info_to_response(task_info: TaskInfo) -> TaskResponse:
         max_attempts=task_info.max_attempts,
         error_category=task_info.error_category,
         published_at=task_info.published_at,
+        origin_request_id=task_info.request_id,
     )
 
 
@@ -84,6 +87,11 @@ async def create_document_task(
     current_user: User = Depends(get_current_user),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
     db: AsyncSession = Depends(get_db),
+    _rate_limit: None = Depends(user_rate_limit(
+        "task_create",
+        settings.RATE_LIMIT_TASK_COUNT,
+        settings.RATE_LIMIT_TASK_WINDOW_SECONDS,
+    )),
 ):
     """
     创建文档异步处理任务
@@ -132,6 +140,11 @@ async def create_audio_task(
     current_user: User = Depends(get_current_user),
     idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key"),
     db: AsyncSession = Depends(get_db),
+    _rate_limit: None = Depends(user_rate_limit(
+        "task_create",
+        settings.RATE_LIMIT_TASK_COUNT,
+        settings.RATE_LIMIT_TASK_WINDOW_SECONDS,
+    )),
 ):
     """上传受管 WAV，异步产出带说话人/时间戳的会议证据。"""
     require_write_user(current_user)
@@ -318,6 +331,11 @@ async def delete_task(
 async def retry_publish_task(
     task_id: str,
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(user_rate_limit(
+        "task_retry_publish",
+        settings.RATE_LIMIT_TASK_RETRY_COUNT,
+        settings.RATE_LIMIT_TASK_RETRY_WINDOW_SECONDS,
+    )),
 ):
     require_write_user(current_user)
     try:
@@ -333,7 +351,12 @@ async def retry_publish_task(
 async def wait_task_complete(
     task_id: str,
     timeout: int = Query(300, ge=1, le=3600, description="超时时间（秒）"),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(user_rate_limit(
+        "task_wait",
+        settings.RATE_LIMIT_TASK_WAIT_COUNT,
+        settings.RATE_LIMIT_TASK_WAIT_WINDOW_SECONDS,
+    )),
 ):
     """
     等待任务完成（长轮询）

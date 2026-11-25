@@ -1,0 +1,25 @@
+{
+  "schema_version": "qa.sample_human_model_review.v1",
+  "n": 10,
+  "meeting_count": 10,
+  "model": "gpt-6.1-sol",
+  "review_type": "independent_session_human_model",
+  "input_sha256": "50e4f59b2402e15a29a060af3ba0b9ab065e1e83ac3937c109e1921aa499db32",
+  "human_supported": 3,
+  "model_supported": 5,
+  "alignment": {
+    "tp": 5,
+    "fp": 0,
+    "fn": 2,
+    "tn": 3,
+    "agreement": 0.8,
+    "precision": 1.0,
+    "recall": 0.7142857142857143,
+    "f1": 0.8333333333333334,
+    "disagreements": [
+      "gold-pilot-044",
+      "gold-pilot-060"
+    ]
+  },
+  "limitations": "One human baseline, an independent model session using the same model family as full review, 10 of 40 items."
+}

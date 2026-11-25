@@ -12,6 +12,7 @@ from app.core.deps import get_current_user
 from app.core.security import AccessContext
 from app.models.user import User
 from app.schemas.rag import RAGAPIResponse
+from app.core.rate_limiter import user_rate_limit
 
 router = APIRouter(tags=["RAG 问答"])
 
@@ -28,8 +29,13 @@ async def get_rag_service(db: AsyncSession = Depends(get_db)) -> RAGService:
 @router.post("/ask", summary="RAG 智能问答", response_model=RAGAPIResponse)
 async def rag_ask(
     request: RAGAskRequest,
-    rag_service: RAGService = Depends(get_rag_service),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(user_rate_limit(
+        "rag",
+        settings.RATE_LIMIT_RAG_COUNT,
+        settings.RATE_LIMIT_RAG_WINDOW_SECONDS,
+    )),
+    rag_service: RAGService = Depends(get_rag_service),
 ):
     """
     RAG 智能问答接口

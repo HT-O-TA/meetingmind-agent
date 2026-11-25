@@ -1,4 +1,5 @@
 """RAG 服务：方案 A（PostgreSQL BM25 + Milvus Dense + Reranker）。"""
+import re
 import time
 from typing import Any, List, Optional, Dict
 from app.services.vector_search_service import VectorSearchService
@@ -23,6 +24,10 @@ class RAGService:
         if getattr(self.vector_service, "use_pgvector", False):
             return "pgvector"
         return "lightweight"
+
+    @staticmethod
+    def _answer_references(answer: str) -> list[str]:
+        return list(dict.fromkeys(re.findall(r"\[[0-9]+\]", answer)))
 
     @staticmethod
     def _build_citations(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -111,7 +116,8 @@ class RAGService:
         retrieval_latency_ms = (time.perf_counter() - started_at) * 1000
 
         # 4. 提取文本片段
-        chunks = [r["chunk_text"] for r in merged_results if r.get("chunk_text")]
+        merged_results = [r for r in merged_results if r.get("chunk_text") or r.get("content")]
+        chunks = [r.get("chunk_text") or r["content"] for r in merged_results]
         citations = self._build_citations(merged_results)
 
         # 5. 如果没有检索到结果
@@ -145,12 +151,24 @@ class RAGService:
 
         # 6. LLM 生成回答
         generation_started_at = time.perf_counter()
+        references = [item["citation_id"] for item in citations[:3]]
+        invalid_references = False
         if use_llm:
             try:
                 answer = await self.llm_service.generate_answer(
                     question=question,
                     context=chunks,
                 )
+                manifest = getattr(self.llm_service, "last_context_manifest", None)
+                included = {
+                    item["content_ref"] for item in manifest.get("included", [])
+                } if isinstance(manifest, dict) else set()
+                allowed_references = {
+                    item["citation_id"] for index, item in enumerate(citations)
+                    if f"retrieval:{index}" in included
+                }
+                references = self._answer_references(answer)
+                invalid_references = any(reference not in allowed_references for reference in references)
             except Exception as e:
                 app_logger.error(f"LLM 生成失败: {e}")
                 degradation_reasons.append("llm_generation_failed")
@@ -162,12 +180,21 @@ class RAGService:
             answer = "以下是检索到的相关内容：\n\n" + "\n\n".join(
                 [f"[{i+1}] {c}" for i, c in enumerate(chunks[:3])]
             )
+        if invalid_references:
+            degradation_reasons.append("invalid_answer_citations")
+            degradation_actions.append("returned_ranked_retrieval_excerpts")
+            answer = "回答中的引用无法核对。以下是检索到的相关片段：\n\n" + "\n\n".join(
+                f"{item['citation_id']} {chunk}" for item, chunk in zip(citations[:3], chunks[:3])
+            )
+            references = [item["citation_id"] for item in citations[:3]]
+        citations_by_id = {item["citation_id"]: item for item in citations}
         generation_latency_ms = (time.perf_counter() - generation_started_at) * 1000
 
         result = {
             "answer": answer,
             "chunks": merged_results,
             "citations": citations,
+            "answer_citations": [citations_by_id[reference] for reference in references],
             "count": len(merged_results),
             "mode": self._retrieval_mode(),
             "query_type": "standard",

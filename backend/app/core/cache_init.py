@@ -199,10 +199,11 @@ async def cache_get(key: str) -> Optional[Any]:
             if key.startswith("api_cache:"):
                 _cache_stats["api_cache_misses"] += 1
             return None
+        decoded = json.loads(value)
         _cache_stats["total_hits"] += 1
         if key.startswith("api_cache:"):
             _cache_stats["api_cache_hits"] += 1
-        return json.loads(value)  # JSON 反序列化
+        return decoded
     except Exception as e:
         _cache_stats["total_misses"] += 1
         if key.startswith("api_cache:"):
@@ -507,9 +508,9 @@ async def release_lock(key: str) -> bool:
     return await cache_delete(key)
 
 
-async def rate_limit(key: str, limit: int, window: int) -> tuple[bool, int]:
+async def rate_limit(key: str, limit: int, window: int) -> tuple[bool, int, int, int]:
     """
-    限流检查（滑动窗口计数器算法）
+    限流检查（Redis Lua 原子固定窗口计数）
     
     参数：
         key: 限流键（如 "ip:192.168.1.1" 或 "user:123"）
@@ -517,22 +518,32 @@ async def rate_limit(key: str, limit: int, window: int) -> tuple[bool, int]:
         window: 时间窗口大小（秒）
     
     返回：
-        (是否允许, 当前计数)
+        (是否允许, 当前计数, 配置上限, 剩余窗口秒数)
     
     示例：
         # 限制每分钟最多 60 次请求
-        allowed, count = await rate_limit("ip:192.168.1.1", limit=60, window=60)
+        allowed, count, limit, retry_after = await rate_limit(
+            "ip:192.168.1.1", limit=60, window=60
+        )
         if not allowed:
             return {"error": "请求过于频繁"}
     """
     if not _redis:
-        return True, 0
+        raise RuntimeError("Redis is unavailable for rate limiting")
     try:
-        count = await _redis.incr(key)  # 原子递增
-        if count == 1:
-            # 首次请求，设置过期时间
-            await _redis.expire(key, window)
-        return count <= limit, count
+        script = """
+        local count = redis.call('INCR', KEYS[1])
+        local ttl = redis.call('TTL', KEYS[1])
+        if count == 1 or ttl < 0 then
+            redis.call('EXPIRE', KEYS[1], ARGV[1])
+            ttl = tonumber(ARGV[1])
+        end
+        return {count, ttl}
+        """
+        result = await _redis.eval(script, 1, key, window)
+        count = int(result[0])
+        retry_after = max(0, int(result[1]))
+        return count <= limit, count, limit, retry_after
     except Exception as e:
         app_logger.warning(f"rate_limit error key={key}: {e}")
-        return True, 0
+        raise RuntimeError("Redis rate limiting failed") from e

@@ -1,0 +1,369 @@
+{
+  "dataset_sha256": "8b82b681b130084b3eacdb9a18371319c419dfd695f2345132bce2d6928a9e35",
+  "human_scope": "Reference review only; answer-level blind labels required",
+  "pass_rules": {
+    "qa": "All emitted citations are gold IDs and recall is positive",
+    "todo_or_constraint": "Correct decision and exact extraction F1 of 1"
+  },
+  "coverage": {
+    "qa": {
+      "count": 40,
+      "meetings": 20,
+      "source_counts": {
+        "VCSUM": 40
+      },
+      "pass_counts": {
+        "qwen": 39,
+        "opus": 40,
+        "sonnet": 36
+      },
+      "paired": {
+        "qwen_vs_opus": {
+          "both_pass": 39,
+          "right_only": 1
+        },
+        "qwen_vs_sonnet": {
+          "both_pass": 36,
+          "left_only": 3,
+          "neither": 1
+        },
+        "opus_vs_sonnet": {
+          "both_pass": 36,
+          "left_only": 4
+        }
+      }
+    },
+    "todo": {
+      "count": 30,
+      "meetings": 18,
+      "source_counts": {
+        "AliMeeting-Eval": 20,
+        "VCSUM": 10
+      },
+      "pass_counts": {
+        "qwen": 20,
+        "opus": 19,
+        "sonnet": 20
+      },
+      "paired": {
+        "qwen_vs_opus": {
+          "left_only": 1,
+          "both_pass": 19,
+          "neither": 10
+        },
+        "qwen_vs_sonnet": {
+          "both_pass": 20,
+          "neither": 10
+        },
+        "opus_vs_sonnet": {
+          "right_only": 1,
+          "both_pass": 19,
+          "neither": 10
+        }
+      }
+    },
+    "constraint": {
+      "count": 30,
+      "meetings": 17,
+      "source_counts": {
+        "VCSUM": 15,
+        "AliMeeting-Eval": 15
+      },
+      "pass_counts": {
+        "qwen": 12,
+        "opus": 24,
+        "sonnet": 11
+      },
+      "paired": {
+        "qwen_vs_opus": {
+          "both_pass": 12,
+          "neither": 6,
+          "right_only": 12
+        },
+        "qwen_vs_sonnet": {
+          "both_pass": 11,
+          "neither": 18,
+          "left_only": 1
+        },
+        "opus_vs_sonnet": {
+          "both_pass": 11,
+          "neither": 6,
+          "left_only": 13
+        }
+      }
+    }
+  },
+  "qa": {
+    "total": 40,
+    "review_flags": {
+      "failed": 8,
+      "by_primary_reason": {
+        "judge_disagreement": 7,
+        "both_judges_flagged": 1
+      },
+      "per_id": {
+        "gold-pilot-052": "judge_disagreement",
+        "gold-pilot-056": "both_judges_flagged",
+        "gold-pilot-059": "judge_disagreement",
+        "gold-pilot-064": "judge_disagreement",
+        "gold-pilot-068": "judge_disagreement",
+        "gold-pilot-036": "judge_disagreement",
+        "gold-pilot-045": "judge_disagreement",
+        "gold-pilot-053": "judge_disagreement"
+      }
+    },
+    "visible_gold_shortfall": {
+      "gold-pilot-046": {
+        "gold": 55,
+        "visible_gold": 6
+      },
+      "gold-pilot-047": {
+        "gold": 20,
+        "visible_gold": 6
+      },
+      "gold-pilot-049": {
+        "gold": 38,
+        "visible_gold": 6
+      },
+      "gold-pilot-050": {
+        "gold": 13,
+        "visible_gold": 6
+      },
+      "gold-pilot-051": {
+        "gold": 32,
+        "visible_gold": 6
+      },
+      "gold-pilot-052": {
+        "gold": 14,
+        "visible_gold": 6
+      },
+      "gold-pilot-054": {
+        "gold": 94,
+        "visible_gold": 6
+      },
+      "gold-pilot-055": {
+        "gold": 28,
+        "visible_gold": 6
+      },
+      "gold-pilot-056": {
+        "gold": 45,
+        "visible_gold": 6
+      },
+      "gold-pilot-058": {
+        "gold": 51,
+        "visible_gold": 6
+      },
+      "gold-pilot-059": {
+        "gold": 70,
+        "visible_gold": 6
+      },
+      "gold-pilot-061": {
+        "gold": 45,
+        "visible_gold": 6
+      },
+      "gold-pilot-062": {
+        "gold": 93,
+        "visible_gold": 6
+      },
+      "gold-pilot-064": {
+        "gold": 93,
+        "visible_gold": 6
+      },
+      "gold-pilot-065": {
+        "gold": 131,
+        "visible_gold": 6
+      },
+      "gold-pilot-066": {
+        "gold": 54,
+        "visible_gold": 6
+      },
+      "gold-pilot-068": {
+        "gold": 32,
+        "visible_gold": 6
+      },
+      "gold-pilot-069": {
+        "gold": 54,
+        "visible_gold": 6
+      },
+      "gold-pilot-070": {
+        "gold": 31,
+        "visible_gold": 6
+      },
+      "gold-pilot-031": {
+        "gold": 12,
+        "visible_gold": 6
+      },
+      "gold-pilot-032": {
+        "gold": 26,
+        "visible_gold": 6
+      },
+      "gold-pilot-033": {
+        "gold": 10,
+        "visible_gold": 6
+      },
+      "gold-pilot-034": {
+        "gold": 122,
+        "visible_gold": 6
+      },
+      "gold-pilot-036": {
+        "gold": 9,
+        "visible_gold": 6
+      },
+      "gold-pilot-037": {
+        "gold": 61,
+        "visible_gold": 6
+      },
+      "gold-pilot-038": {
+        "gold": 11,
+        "visible_gold": 6
+      },
+      "gold-pilot-040": {
+        "gold": 45,
+        "visible_gold": 6
+      },
+      "gold-pilot-041": {
+        "gold": 14,
+        "visible_gold": 6
+      },
+      "gold-pilot-043": {
+        "gold": 68,
+        "visible_gold": 6
+      },
+      "gold-pilot-044": {
+        "gold": 23,
+        "visible_gold": 6
+      }
+    },
+    "no_visible_gold": 0
+  },
+  "stability": {
+    "paired_quality_runs_matching_current_qa_configuration": 1,
+    "excluded": "Other recorded QA outputs use different models or prompts; tool replays are a different task"
+  },
+  "tools": {
+    "opus55": {
+      "total": 40,
+      "failed": 10,
+      "by_primary_reason": {
+        "tool_parameters": 10
+      },
+      "per_id": {
+        "toolh-005": "tool_parameters",
+        "toolh-012": "tool_parameters",
+        "toolh-013": "tool_parameters",
+        "toolh-023": "tool_parameters",
+        "toolh-024": "tool_parameters",
+        "toolh-026": "tool_parameters",
+        "toolh-027": "tool_parameters",
+        "toolh-028": "tool_parameters",
+        "toolh-033": "tool_parameters",
+        "toolh-039": "tool_parameters"
+      }
+    },
+    "opus55_rerun2": {
+      "total": 40,
+      "failed": 9,
+      "by_primary_reason": {
+        "tool_parameters": 9
+      },
+      "per_id": {
+        "toolh-012": "tool_parameters",
+        "toolh-013": "tool_parameters",
+        "toolh-023": "tool_parameters",
+        "toolh-024": "tool_parameters",
+        "toolh-026": "tool_parameters",
+        "toolh-027": "tool_parameters",
+        "toolh-028": "tool_parameters",
+        "toolh-033": "tool_parameters",
+        "toolh-039": "tool_parameters"
+      }
+    },
+    "sonnet5": {
+      "total": 40,
+      "failed": 13,
+      "by_primary_reason": {
+        "missing_tool": 3,
+        "tool_parameters": 3,
+        "tool_selection": 7
+      },
+      "per_id": {
+        "toolh-003": "missing_tool",
+        "toolh-005": "missing_tool",
+        "toolh-006": "tool_parameters",
+        "toolh-007": "missing_tool",
+        "toolh-009": "tool_selection",
+        "toolh-010": "tool_selection",
+        "toolh-012": "tool_selection",
+        "toolh-013": "tool_selection",
+        "toolh-014": "tool_selection",
+        "toolh-015": "tool_selection",
+        "toolh-016": "tool_selection",
+        "toolh-026": "tool_parameters",
+        "toolh-039": "tool_parameters"
+      }
+    }
+  },
+  "judge_against_human": {
+    "opus55": {
+      "tp": 4,
+      "fp": 2,
+      "fn": 16,
+      "tn": 18,
+      "agreement": 0.55,
+      "precision": 0.6666666666666666,
+      "recall": 0.2,
+      "f1": 0.3076923076923077,
+      "disagreements": [
+        "gold-pilot-046",
+        "gold-pilot-054",
+        "gold-pilot-058",
+        "gold-pilot-059",
+        "gold-pilot-062",
+        "gold-pilot-065",
+        "gold-pilot-069",
+        "gold-pilot-070",
+        "gold-pilot-033",
+        "gold-pilot-036",
+        "gold-pilot-037",
+        "gold-pilot-040",
+        "gold-pilot-041",
+        "gold-pilot-043",
+        "gold-pilot-044",
+        "gold-pilot-039",
+        "gold-pilot-053",
+        "gold-pilot-060"
+      ]
+    },
+    "sonnet5": {
+      "tp": 2,
+      "fp": 1,
+      "fn": 18,
+      "tn": 19,
+      "agreement": 0.525,
+      "precision": 0.6666666666666666,
+      "recall": 0.1,
+      "f1": 0.17391304347826086,
+      "disagreements": [
+        "gold-pilot-046",
+        "gold-pilot-052",
+        "gold-pilot-054",
+        "gold-pilot-058",
+        "gold-pilot-062",
+        "gold-pilot-064",
+        "gold-pilot-065",
+        "gold-pilot-068",
+        "gold-pilot-069",
+        "gold-pilot-070",
+        "gold-pilot-033",
+        "gold-pilot-037",
+        "gold-pilot-040",
+        "gold-pilot-041",
+        "gold-pilot-043",
+        "gold-pilot-044",
+        "gold-pilot-039",
+        "gold-pilot-045",
+        "gold-pilot-060"
+      ]
+    }
+  }
+}

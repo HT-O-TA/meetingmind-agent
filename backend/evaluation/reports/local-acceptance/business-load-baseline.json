@@ -1,0 +1,347 @@
+{
+  "mode": "local-lightweight",
+  "agent_backend": "synthetic 250 ms service",
+  "host": {
+    "os": "Windows",
+    "logical_cpus": 16,
+    "python": "3.11.16"
+  },
+  "queue_peak": "client-observed accepted jobs not yet terminal; not broker depth",
+  "settings": {
+    "RATE_LIMIT_RAG_COUNT": "500",
+    "RATE_LIMIT_AGENT_COUNT": "500",
+    "RATE_LIMIT_AGENT_STREAM_COUNT": "500",
+    "RATE_LIMIT_TASK_COUNT": "500",
+    "AGENT_HTTP_MAX_IN_FLIGHT": "8"
+  },
+  "results": {
+    "rag": [
+      {
+        "concurrency": 1,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 20.3,
+        "elapsed_ms": {
+          "p50": 16.83,
+          "p95": 417.32
+        },
+        "citation_return_rate": 1.0,
+        "error_types": []
+      },
+      {
+        "concurrency": 4,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 6.73,
+        "elapsed_ms": {
+          "p50": 25.03,
+          "p95": 2371.88
+        },
+        "citation_return_rate": 1.0,
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 22.28,
+        "elapsed_ms": {
+          "p50": 140.77,
+          "p95": 631.28
+        },
+        "citation_return_rate": 1.0,
+        "error_types": []
+      },
+      {
+        "concurrency": 16,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 5.43,
+        "elapsed_ms": {
+          "p50": 867.8,
+          "p95": 2935.77
+        },
+        "citation_return_rate": 1.0,
+        "error_types": []
+      }
+    ],
+    "agent": [
+      {
+        "concurrency": 1,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 3.5,
+        "elapsed_ms": {
+          "p50": 277.4,
+          "p95": 329.59
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 4,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 13.75,
+        "elapsed_ms": {
+          "p50": 292.23,
+          "p95": 294.78
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 25.05,
+        "elapsed_ms": {
+          "p50": 311.02,
+          "p95": 326.93
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 16,
+        "requests": 16,
+        "ok": 8,
+        "rate_limited": 0,
+        "capacity_rejected": 8,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 25.84,
+        "elapsed_ms": {
+          "p50": 302.93,
+          "p95": 305.9
+        },
+        "error_types": []
+      }
+    ],
+    "sse": [
+      {
+        "concurrency": 1,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 3.09,
+        "elapsed_ms": {
+          "p50": 327.38,
+          "p95": 339.49
+        },
+        "first_event_ms": {
+          "p50": 327.03,
+          "p95": 338.86
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 4,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 11.34,
+        "elapsed_ms": {
+          "p50": 344.14,
+          "p95": 372.37
+        },
+        "first_event_ms": {
+          "p50": 342.32,
+          "p95": 371.51
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 19.93,
+        "elapsed_ms": {
+          "p50": 372.98,
+          "p95": 430.28
+        },
+        "first_event_ms": {
+          "p50": 369.88,
+          "p95": 429.37
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 16,
+        "requests": 16,
+        "ok": 8,
+        "rate_limited": 0,
+        "capacity_rejected": 8,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 20.78,
+        "elapsed_ms": {
+          "p50": 380.53,
+          "p95": 383.61
+        },
+        "first_event_ms": {
+          "p50": 379.8,
+          "p95": 382.13
+        },
+        "error_types": []
+      }
+    ],
+    "upload_queue": [
+      {
+        "concurrency": 1,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 2.1,
+        "elapsed_ms": {
+          "p50": 342.71,
+          "p95": 2434.0
+        },
+        "upload_ms": {
+          "p50": 45.53,
+          "p95": 69.84
+        },
+        "enqueue_ms": {
+          "p50": 19.93,
+          "p95": 46.63
+        },
+        "task_ms": {
+          "p50": 274.7,
+          "p95": 2341.4
+        },
+        "observed_outstanding_peak": 1,
+        "drain_after_last_admission_ms": 271.85,
+        "error_types": []
+      },
+      {
+        "concurrency": 4,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 9.59,
+        "elapsed_ms": {
+          "p50": 407.33,
+          "p95": 431.75
+        },
+        "upload_ms": {
+          "p50": 62.8,
+          "p95": 72.86
+        },
+        "enqueue_ms": {
+          "p50": 43.25,
+          "p95": 59.04
+        },
+        "task_ms": {
+          "p50": 306.44,
+          "p95": 322.23
+        },
+        "observed_outstanding_peak": 4,
+        "drain_after_last_admission_ms": 313.38,
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 6.33,
+        "elapsed_ms": {
+          "p50": 494.63,
+          "p95": 2516.15
+        },
+        "upload_ms": {
+          "p50": 97.84,
+          "p95": 147.56
+        },
+        "enqueue_ms": {
+          "p50": 63.56,
+          "p95": 2107.02
+        },
+        "task_ms": {
+          "p50": 335.37,
+          "p95": 576.57
+        },
+        "observed_outstanding_peak": 7,
+        "drain_after_last_admission_ms": 274.02,
+        "error_types": []
+      },
+      {
+        "concurrency": 16,
+        "requests": 16,
+        "ok": 16,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 5.65,
+        "elapsed_ms": {
+          "p50": 907.31,
+          "p95": 2821.73
+        },
+        "upload_ms": {
+          "p50": 238.37,
+          "p95": 634.6
+        },
+        "enqueue_ms": {
+          "p50": 282.74,
+          "p95": 2296.13
+        },
+        "task_ms": {
+          "p50": 343.89,
+          "p95": 570.96
+        },
+        "observed_outstanding_peak": 12,
+        "drain_after_last_admission_ms": 282.69,
+        "error_types": []
+      }
+    ],
+    "capacity_recovery": {
+      "agent": "ok",
+      "sse": "ok"
+    }
+  }
+}

@@ -11,6 +11,7 @@
           <el-select v-model="filters.status" placeholder="解析状态" clearable style="width:100%" @change="load">
             <el-option label="已上传" value="uploaded" />
             <el-option label="已解析" value="parsed" />
+            <el-option label="索引失败" value="index_failed" />
             <el-option label="解析失败" value="failed" />
           </el-select>
         </el-col>
@@ -185,8 +186,8 @@ const previewDocumentData = ref(null)
 const previewContent = ref('')
 const previewLoading = ref(false)
 
-const statusType = (s) => ({ uploaded: 'info', parsed: 'success', failed: 'danger' }[s] || '')
-const statusLabel = (s) => ({ uploaded: '已上传', parsed: '已解析', failed: '解析失败' }[s] || s)
+const statusType = (s) => ({ uploaded: 'info', parsed: 'success', failed: 'danger', index_failed: 'warning' }[s] || '')
+const statusLabel = (s) => ({ uploaded: '已上传', parsed: '已解析', failed: '解析失败', index_failed: '索引失败' }[s] || s)
 const formatDate = (d) => d ? new Date(d).toLocaleString('zh-CN') : '-'
 const formatSize = (b) => {
   if (!b) return '-'

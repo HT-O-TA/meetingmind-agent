@@ -6,8 +6,10 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.dialects import postgresql
 
+from app.core.exceptions import AppException
 from app.core.security import AccessContext
 from app.models.vector import VectorChunk
+from app.services.bm25_retriever import BM25Retriever
 from app.services.vector_cache_manager import MultiLevelCacheManager
 from app.services.vector_search_service import VectorSearchService
 
@@ -85,6 +87,64 @@ async def test_retrieval_cache_is_isolated_by_acl_scope():
     assert await manager.get_cached_result(query, top_k=5, filters=team_b) is None
     cached = await manager.get_cached_result(query, top_k=5, filters=team_a)
     assert cached == [{"chunk_id": 10, "document_id": 1, "score": 0.9}]
+
+
+@pytest.mark.asyncio
+async def test_dense_retrieval_rejects_missing_access_context():
+    service = VectorSearchService(db=object())
+    service._search_fallback = AsyncMock(return_value=[])
+
+    with pytest.raises(AppException) as exc_info:
+        await service.search_by_text("项目进度")
+
+    assert exc_info.value.code == 403
+
+
+@pytest.mark.asyncio
+async def test_vector_retrieval_rejects_missing_access_context():
+    service = VectorSearchService(db=object())
+    service._search_lightweight = AsyncMock(return_value=[])
+
+    with pytest.raises(AppException) as exc_info:
+        await service.search_by_vector([0.1, 0.2])
+
+    assert exc_info.value.code == 403
+
+
+@pytest.mark.asyncio
+async def test_multi_retrieval_rejects_missing_access_context(monkeypatch):
+    service = VectorSearchService(db=object())
+    service.search_by_text = AsyncMock(return_value=[])
+    bm25 = SimpleNamespace(search=AsyncMock(return_value=[]))
+    monkeypatch.setattr(
+        "app.services.bm25_retriever.get_bm25_retriever",
+        lambda: bm25,
+    )
+
+    with pytest.raises(AppException) as exc_info:
+        await service.search_with_multi_retrieval("项目进度", enable_rerank=False)
+
+    assert exc_info.value.code == 403
+
+
+@pytest.mark.asyncio
+async def test_document_chunk_read_rejects_missing_access_context():
+    service = VectorSearchService(db=object())
+
+    with pytest.raises(AppException) as exc_info:
+        await service.get_document_chunks(1)
+
+    assert exc_info.value.code == 403
+
+
+@pytest.mark.asyncio
+async def test_bm25_retrieval_rejects_missing_access_context():
+    retriever = BM25Retriever()
+
+    with pytest.raises(AppException) as exc_info:
+        await retriever.search("")
+
+    assert exc_info.value.code == 403
 
 
 @pytest.mark.asyncio

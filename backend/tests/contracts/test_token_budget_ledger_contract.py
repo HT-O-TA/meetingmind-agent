@@ -256,7 +256,10 @@ def test_unknown_qwen_model_uses_explicit_conservative_counter():
     assert count.method == "conservative_utf8_upper_bound_v1"
 
 
-def test_configured_qwen_model_uses_lower_cost_aware_heuristic():
+def test_configured_qwen_model_uses_lower_cost_aware_heuristic(monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "LLM_MODEL", "qwen3.7-flash")
     count = ModelTokenCounter().count_text("中文会议内容和 English notes", "qwen3.7-flash")
 
     assert count.method == "configured_model_heuristic_v1"

@@ -1,9 +1,10 @@
 """文档处理Worker - 消费消息队列中的任务"""
+import asyncio
 import logging
 import hashlib
 from typing import Dict, Any
 
-from app.core.rabbitmq import rabbitmq_manager
+from app.core.rabbitmq import TaskClaimDeferred, rabbitmq_manager
 from app.core.config import settings
 from app.services.task_queue import (
     task_queue_service,
@@ -63,6 +64,11 @@ class DocumentWorker:
                         await doc_service.update_content(document_id, parsed.content)
                 # 只取块 ID；不要加载 embedding_array/pgvector 自定义类型。
                 chunk_ids = await doc_service.get_vector_chunk_ids(document_id)
+                if doc.content and not chunk_ids:
+                    doc = await doc_service.update_content(document_id, doc.content)
+                    chunk_ids = await doc_service.get_vector_chunk_ids(document_id)
+                    if not chunk_ids:
+                        raise RuntimeError("Document content could not be indexed")
 
             await task_queue_service.update_task_status(
                 task_id,
@@ -222,11 +228,30 @@ async def _run_claimed_task(message_body: Dict[str, Any], processor) -> Any:
     if claim == "missing":
         raise ValueError(f"Task status missing: {task_id}")
     if claim == "busy":
-        raise RuntimeError(f"Task already claimed: {task_id}")
+        raise TaskClaimDeferred(f"Task already claimed: {task_id}")
     worker_id = claim.split(":", 1)[1]
+    async def renew_until_cancelled():
+        interval = min(10, settings.QUEUE_CLAIM_TTL_SECONDS / 3)
+        while True:
+            await asyncio.sleep(interval)
+            try:
+                owned = await task_queue_service.renew_claim(task_id, worker_id)
+            except Exception as exc:
+                raise TaskClaimDeferred(f"Cannot renew claim: {task_id}") from exc
+            if not owned:
+                raise TaskClaimDeferred(f"Lost claim: {task_id}")
+
+    processing = asyncio.create_task(processor(task_id, message_body.get("payload", {})))
+    renewal = asyncio.create_task(renew_until_cancelled())
     try:
-        return await processor(task_id, message_body.get("payload", {}))
+        done, _ = await asyncio.wait((processing, renewal), return_when=asyncio.FIRST_COMPLETED)
+        if renewal in done:
+            await renewal
+        return await processing
     finally:
+        for task in (processing, renewal):
+            task.cancel()
+        await asyncio.gather(processing, renewal, return_exceptions=True)
         await task_queue_service.release_claim(task_id, worker_id)
 
 

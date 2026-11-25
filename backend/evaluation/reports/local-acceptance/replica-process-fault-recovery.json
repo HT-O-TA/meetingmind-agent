@@ -1,0 +1,18 @@
+{
+  "worker": {
+    "task_id": "5f928b78-63e6-4775-92c5-ff1285682556",
+    "unacked_before_kill": 1,
+    "later_deliveries": 7,
+    "terminal": "completed",
+    "attempt_count": 2,
+    "original_vector_task_id": "9e29f5f3-b709-4cfa-bffe-652ce1774952",
+    "same_vector_task_completed": true,
+    "seconds_after_kill": 32.41
+  },
+  "sse": {
+    "old_stream": "disconnected",
+    "fresh_in_flight": 0,
+    "new_stream_completed": true,
+    "peer_ready": true
+  }
+}

@@ -4,6 +4,13 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock
 from app.services.llm_service import LLMService
 from app.services.vector_search_service import VectorSearchService
+from app.core.config import settings
+
+
+@pytest.fixture(autouse=True)
+def disable_rate_limits_for_offline_tests(monkeypatch):
+    """普通离线测试不依赖 Redis；限流契约测试会显式重新开启。"""
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
 
 
 class InMemoryRedis:
@@ -23,6 +30,16 @@ class InMemoryRedis:
 
     async def delete(self, key):
         return int(self.data.pop(key, None) is not None)
+
+    async def eval(self, script, key_count, key, owner, *args):
+        assert key_count == 1
+        if await self.get(key) != owner:
+            return 0
+        if "EXPIRE" in script:
+            return 1
+        if "DEL" in script:
+            return await self.delete(key)
+        raise AssertionError("Unsupported Redis script")
 
     async def scan_iter(self, match="*", count=None):
         for key in list(self.data):

@@ -229,12 +229,14 @@ class EmbeddingService:
                 else settings.EMBEDDING_MODEL_NAME
             )
             if hasattr(db, "execute"):
+                from app.models.vector import embedding_column_type, embedding_column_value
+                column_type = await embedding_column_type(db)
                 await db.execute(
                     update(VectorChunk)
                     .where(VectorChunk.id == int(chunk_id))
                     .values(
                         embedding=json.dumps(embedding),
-                        embedding_array=embedding,
+                        embedding_array=embedding_column_value(embedding, column_type),
                         embedding_model=embedding_model,
                     )
                 )

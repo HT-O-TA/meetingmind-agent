@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.logger import app_logger
+from app.core.middleware import current_request_id
 
 
 class AppException(Exception):
@@ -23,37 +24,63 @@ class AppException(Exception):
         super().__init__(message)
 
 
+def _request_id(request: Request) -> str | None:
+    return getattr(request.state, "request_id", None) or current_request_id()
+
+
+def request_id_headers(request: Request, existing=None) -> dict[str, str]:
+    headers = dict(existing or {})
+    request_id = _request_id(request)
+    if request_id:
+        headers["X-Request-ID"] = request_id
+    return headers
+
+
 async def app_exception_handler(request: Request, exc: AppException):
-    app_logger.warning(f"AppException: {exc.message} | path={request.url.path}")
+    app_logger.warning(
+        f"AppException: {exc.message} | path={request.url.path} request_id={_request_id(request)}"
+    )
     return JSONResponse(
         status_code=exc.code,
         content={"code": exc.code, "message": exc.message, "data": None},
+        headers=request_id_headers(request),
     )
 
 
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-    app_logger.warning(f"HTTPException {exc.status_code}: {exc.detail} | path={request.url.path}")
+    app_logger.warning(
+        f"HTTPException {exc.status_code}: {exc.detail} | "
+        f"path={request.url.path} request_id={_request_id(request)}"
+    )
     return JSONResponse(
         status_code=exc.status_code,
         content={"code": exc.status_code, "message": str(exc.detail), "data": None},
+        headers=request_id_headers(request, exc.headers),
     )
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
     message = "; ".join([f"{e['loc'][-1]}: {e['msg']}" for e in errors])
-    app_logger.warning(f"ValidationError: {message} | path={request.url.path}")
+    app_logger.warning(
+        f"ValidationError: {message} | path={request.url.path} request_id={_request_id(request)}"
+    )
     return JSONResponse(
         status_code=422,
         content={"code": 422, "message": f"参数校验失败: {message}", "data": None},
+        headers=request_id_headers(request),
     )
 
 
 async def global_exception_handler(request: Request, exc: Exception):
     import traceback
     error_details = traceback.format_exc()
-    app_logger.error(f"UnhandledException: {str(exc)} | path={request.url.path}\n{error_details}")
+    app_logger.error(
+        f"UnhandledException: {str(exc)} | path={request.url.path} "
+        f"request_id={_request_id(request)}\n{error_details}"
+    )
     return JSONResponse(
         status_code=500,
         content={"code": 500, "message": "服务器内部错误", "data": None},
+        headers=request_id_headers(request),
     )

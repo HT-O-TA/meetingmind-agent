@@ -221,3 +221,12 @@ class AccessContext:
             "allow_public": self.allow_public,
             "can_write": self.can_write,
         }
+
+
+def require_retrieval_access_context(
+    access_context: Optional[AccessContext],
+) -> AccessContext:
+    """拒绝缺少身份边界的检索请求。"""
+    if access_context is None:
+        raise AppException("缺少访问上下文，已拒绝检索", 403)
+    return access_context

@@ -11,6 +11,7 @@ from app.models.user import User
 from app.core.config import settings
 from app.core.exceptions import AppException
 from app.core.security import is_admin_user, require_write_user
+from app.core.rate_limiter import user_rate_limit
 from app.services.meeting_service import MeetingService
 from app.services.input_admission import FileAdmissionError, input_admission_policy
 
@@ -136,6 +137,11 @@ async def batch_upload_documents(
     department: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(user_rate_limit(
+        "document_batch_upload",
+        settings.RATE_LIMIT_DOCUMENT_BATCH_COUNT,
+        settings.RATE_LIMIT_DOCUMENT_BATCH_WINDOW_SECONDS,
+    )),
 ):
     """批量上传多个文档"""
     import time

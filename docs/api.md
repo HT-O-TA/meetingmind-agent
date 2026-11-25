@@ -1,6 +1,6 @@
 # MeetingMind API 边界
 
-业务接口前缀为 `/api/v1`，健康检查为 `/health`。除注册和登录外，主业务接口应携带：
+业务接口前缀为 `/api/v1`。进程存活检查为`/live`，依赖就绪检查为`/ready`，`/health`仅作为`/ready`的兼容别名。除注册和登录外，主业务接口应携带：
 
 ```http
 Authorization: Bearer <token>
@@ -19,6 +19,31 @@ Authorization: Bearer <token>
 | `/agents/confirmations` | pending、history、查询、respond、resume | 高风险工具 HITL |
 | `/feedback` | 反馈、Bad Case、分析、改进、验证、模式 | AI 反馈闭环 |
 | `/tasks` | 文档/音频任务、查询、取消、清理、重发、等待 | RabbitMQ 任务生命周期 |
+
+## 认证与限流边界
+
+- 除注册、登录和健康检查外，业务接口需要 Bearer JWT；后端会回查 PostgreSQL 用户状态，不只相信令牌中的历史信息。
+- 当前 JWT 只有到期失效，没有退出当前设备、退出全部设备或刷新令牌能力。生产导向的有状态会话升级已经完成设计，但实施计划暂停，不能把它描述为现有能力。
+- 注册按客户端 IP 限流；登录同时按客户端 IP 和用户名摘要限流。
+- RAG、Agent普通/流式/批量查询、文档和音频任务创建、文档批量上传、失败任务人工重发以及任务长轮询按用户分别限流。管理员也不会绕过资源限流。
+- 超出限制返回 `429`，并携带 `Retry-After`、`X-RateLimit-Limit`、`X-RateLimit-Remaining` 和 `X-RateLimit-Reset`。
+- Redis 无法完成限流检查时，上述高风险或高成本入口返回 `503`；普通读取接口不受该限流门禁影响。
+
+限流代码和离线契约测试已经存在，但截至 2026-11-24，当前本地 Redis 连接没有通过真实冒烟，因此不能声称限流已在真实部署环境验收。
+
+Agent内部并行任务会在执行波次结束后检查累计失败率，默认达到30%时停止后续波次，并明确标记未执行任务。该机制限制单次运行中的失败扩散，但不等同于跨请求的状态型熔断器。
+
+## 健康检查与请求关联
+
+| 方法 | 路径 | 状态语义 |
+|---|---|---|
+| GET | `/live` | 只确认FastAPI进程可以响应，不访问PostgreSQL、Redis或RabbitMQ |
+| GET | `/ready` | PostgreSQL或Redis失败返回503；RabbitMQ失败返回200并标记`degraded` |
+| GET | `/health` | 兼容旧客户端，状态码和依赖检查与`/ready`一致 |
+
+三项依赖并行检查，单项默认硬超时2秒。公开响应只返回依赖名称、`ok/error/degraded`状态和`latency_ms`，不返回异常原文、连接字符串或密钥。
+
+后端为每次HTTP请求生成唯一的32位十六进制`X-Request-ID`，正常和异常响应会返回该响应头，浏览器也可通过CORS读取。客户端传入的合法ID只作为`correlation_id`。任务响应的`origin_request_id`保留最初创建任务时的服务端ID，重试和派生任务可沿用该ID。
 
 ## 输入文件契约
 
@@ -59,9 +84,12 @@ Authorization: Bearer <token>
 响应的 `data` 使用 `rag.v1` 契约，重点字段包括：
 
 - `answer`、`chunks`、`citations`；
+- `citations` 列出检索证据，`answer_citations` 列出答案实际展示的引用。生成输出引用了未纳入本轮上下文的编号时，返回检索摘录，并在降级原因中标记 `invalid_answer_citations`。
 - `retrieval_strategy`、`retrieval_sources`；
 - `retrieval_latency_ms`、`generation_latency_ms`、`total_latency_ms`；
 - `degradation` 与 `provenance`。
+
+文档上传或重新解析后，如果正文已保存但索引未建成，文档状态为 `index_failed`。授权用户仍可读取文档，也可以通过文档任务入口重新处理。
 
 ## Agent 请求示例
 

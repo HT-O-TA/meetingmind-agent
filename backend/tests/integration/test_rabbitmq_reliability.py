@@ -1,5 +1,6 @@
 """真实 RabbitMQ 3.13 验证 confirm、延迟重试、manual ack 和 DLQ。"""
 import asyncio
+import json
 from uuid import uuid4
 
 import pytest
@@ -17,6 +18,8 @@ async def test_poison_message_retries_then_enters_dead_letter_queue():
     queue_name = f"meetingmind.integration.{uuid4().hex}"
     attempts = []
     failures = []
+    dead_notified = asyncio.Event()
+    origin = uuid4().hex
 
     async def poison(body):
         attempts.append(body["task_id"])
@@ -24,6 +27,8 @@ async def test_poison_message_retries_then_enters_dead_letter_queue():
 
     async def record_failure(body, retry_count, error, dead_lettered):
         failures.append((retry_count, dead_lettered, error))
+        if dead_lettered:
+            dead_notified.set()
 
     handle = None
     try:
@@ -35,20 +40,24 @@ async def test_poison_message_retries_then_enters_dead_letter_queue():
         )
         await manager.publish_message(
             queue_name,
-            {"task_id": f"task-{uuid4().hex}", "payload": {"kind": "poison"}},
+            {"task_id": f"task-{uuid4().hex}", "request_id": origin, "payload": {"kind": "poison"}},
         )
 
         dead_message = None
         async with manager.get_channel_context() as channel:
             topology = await manager.declare_topology(queue_name, channel=channel)
-            for _ in range(60):
+            deadline = asyncio.get_running_loop().time() + 15
+            while asyncio.get_running_loop().time() < deadline:
                 dead_message = await topology.dead.get(fail=False)
                 if dead_message:
                     break
                 await asyncio.sleep(0.1)
             assert dead_message is not None
+            assert json.loads(dead_message.body)["request_id"] == origin
             await dead_message.ack()
 
+        # Broker visibility and application notification are separate events.
+        await asyncio.wait_for(dead_notified.wait(), timeout=5)
         assert len(attempts) == 2
         assert failures[0][0:2] == (1, False)
         assert failures[-1][0:2] == (1, True)

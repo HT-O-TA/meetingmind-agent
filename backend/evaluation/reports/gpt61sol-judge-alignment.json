@@ -1,0 +1,193 @@
+{
+  "model": "gpt-6.1-sol",
+  "mode": "isolated_codex_model_workers",
+  "rubric": "visible-evidence-asr-v2",
+  "rubric_change_attribution": "Different model and rubric from historical graders",
+  "input_sha256": {
+    "a": "f6a81d0a06cebd35bb474a9062df15fcb916a7d1e6d52a190cfa5003c88414c2",
+    "b": "07eaa947277c5e3f5f30afbe89aa89c3f082b53179fcc3211c6ea31d42b186e9",
+    "c": "0d1e896e674144a5efc7ae9b1c6b675445edb00e1a21d61f40cbce759416ef27"
+  },
+  "supported": 19,
+  "per_id": [
+    {
+      "id": "gold-pilot-031",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-032",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-033",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-034",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-035",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-036",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-037",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-038",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-039",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-040",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-041",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-042",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-043",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-044",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-045",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-046",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-047",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-048",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-049",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-050",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-051",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-052",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-053",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-054",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-055",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-056",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-057",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-058",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-059",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-060",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-061",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-062",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-063",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-064",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-065",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-066",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-067",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-068",
+      "all_claims_supported": false
+    },
+    {
+      "id": "gold-pilot-069",
+      "all_claims_supported": true
+    },
+    {
+      "id": "gold-pilot-070",
+      "all_claims_supported": false
+    }
+  ],
+  "alignment": {
+    "tp": 17,
+    "fp": 4,
+    "fn": 3,
+    "tn": 16,
+    "agreement": 0.825,
+    "precision": 0.8095238095238095,
+    "recall": 0.85,
+    "f1": 0.8292682926829268,
+    "disagreements": [
+      "gold-pilot-059",
+      "gold-pilot-065",
+      "gold-pilot-069",
+      "gold-pilot-032",
+      "gold-pilot-048",
+      "gold-pilot-060",
+      "gold-pilot-063"
+    ]
+  }
+}

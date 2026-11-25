@@ -46,6 +46,7 @@ class RAGResult(BaseModel):
     answer: str
     chunks: List[Dict[str, Any]] = Field(default_factory=list)
     citations: List[Citation] = Field(default_factory=list)
+    answer_citations: List[Citation] = Field(default_factory=list)
     count: int = 0
     mode: str
     query_type: str = "standard"

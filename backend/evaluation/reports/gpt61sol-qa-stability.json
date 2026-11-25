@@ -1,0 +1,384 @@
+{
+  "schema_version": "qa_agent_citation_stability.v1",
+  "model": "gpt-6.1-sol",
+  "execution": "two independent Codex agent sessions",
+  "limitations": "Generation controls unavailable; no per-record API isolation or semantic faithfulness scoring.",
+  "input_sha256": {
+    "gpt61sol-generation-input-1.jsonl": "df3d0487ea2b8ae61ff9e5b0ae446c9991626d27d087b1b1116ff46d233b97a2",
+    "gpt61sol-generation-input-2.jsonl": "506f6d3de762e692869196d780e42c5977e2072b9adecb4488953f8b902f03ee",
+    "gpt61sol-generation-input-3.jsonl": "caa93eab7d643186586fa3703fcb234e858eb4385117f72585883e57479ae288",
+    "gpt61sol-generation-input-4.jsonl": "6944650161c86bb5eb1a9e0c2d51fc79c9f5d7d477e3595cc0ca661e0379e3f6"
+  },
+  "n": 40,
+  "pass_round_1": 38,
+  "pass_round_2": 40,
+  "same_pass_status": 38,
+  "flips": [
+    "gold-pilot-034",
+    "gold-pilot-064"
+  ],
+  "same_citation_set": 25,
+  "same_answer_after_whitespace_normalization": 0,
+  "per_id": [
+    {
+      "id": "gold-pilot-031",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-032",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-033",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-034",
+      "pass_round_1": false,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-035",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-036",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-037",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-038",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-039",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-040",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-041",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-042",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-043",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-044",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-045",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-046",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-047",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-048",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-049",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-050",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-051",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-052",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-053",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-054",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-055",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-056",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-057",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-058",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-059",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-060",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-061",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-062",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-063",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-064",
+      "pass_round_1": false,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-065",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-066",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-067",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-068",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": false,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-069",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    },
+    {
+      "id": "gold-pilot-070",
+      "pass_round_1": true,
+      "pass_round_2": true,
+      "outside_context_round_1": [],
+      "outside_context_round_2": [],
+      "same_citation_set": true,
+      "same_answer_after_whitespace_normalization": false
+    }
+  ]
+}

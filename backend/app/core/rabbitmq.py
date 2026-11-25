@@ -14,11 +14,16 @@ from aio_pika import DeliveryMode, ExchangeType, IncomingMessage, Message
 from aio_pika.abc import AbstractChannel, AbstractRobustConnection
 
 from app.core.config import settings
+from app.core.middleware import bind_task_request_id
 
 logger = logging.getLogger(__name__)
 
 MessageCallback = Callable[[Dict[str, Any]], Awaitable[Any]]
 FailureCallback = Callable[[Dict[str, Any], int, str, bool], Awaitable[None]]
+
+
+class TaskClaimDeferred(RuntimeError):
+    """Wait for another worker's claim without spending the processing retry budget."""
 
 
 @dataclass
@@ -325,7 +330,19 @@ class RabbitMQManager:
 
         retry_count = int((message.headers or {}).get("x-retry-count", 0))
         try:
-            await asyncio.wait_for(callback(body), timeout=self.task_timeout_seconds)
+            with bind_task_request_id(body.get("request_id")) as request_id:
+                logger.info("Task received queue=%s task_id=%s request_id=%s attempt=%s",
+                            queue_name, body.get("task_id"), request_id, retry_count + 1)
+                await asyncio.wait_for(callback(body), timeout=self.task_timeout_seconds)
+        except TaskClaimDeferred:
+            try:
+                await self._publish_retry(queue_name, body, dict(message.headers or {}))
+            except Exception:
+                await message.nack(requeue=True)
+                raise
+            await message.ack()
+            logger.info("Task deferred while claim is active queue=%s task_id=%s", queue_name, body["task_id"])
+            return
         except Exception as exc:
             error = f"{exc.__class__.__name__}: {exc}"
             if retry_count < self.task_max_retries:
@@ -348,9 +365,10 @@ class RabbitMQManager:
                     failure_callback, body, next_retry, error, False
                 )
                 logger.warning(
-                    "Task scheduled for retry queue=%s task_id=%s retry=%s/%s",
+                    "Task scheduled for retry queue=%s task_id=%s request_id=%s retry=%s/%s",
                     queue_name,
                     body.get("task_id"),
+                    request_id,
                     next_retry,
                     self.task_max_retries,
                 )
@@ -373,9 +391,10 @@ class RabbitMQManager:
                 failure_callback, body, retry_count, error, True
             )
             logger.error(
-                "Task moved to confirmed dead queue=%s task_id=%s attempts=%s",
+                "Task moved to confirmed dead queue=%s task_id=%s request_id=%s attempts=%s",
                 queue_name,
                 body.get("task_id"),
+                request_id,
                 retry_count + 1,
             )
             return

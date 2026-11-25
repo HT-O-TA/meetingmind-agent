@@ -2,12 +2,11 @@
 import json
 import logging
 import os
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pymilvus import (
     MilvusClient,
     DataType,
 )
-from pymilvus.model.hybrid import BGEM3EmbeddingFunction
 from app.core.config import settings
 from app.core.logger import app_logger
 
@@ -16,28 +15,32 @@ logger = logging.getLogger(__name__)
 
 class MilvusVectorStore:
     def __init__(self):
+        model_path = settings.LOCAL_EMBEDDING_MODEL_PATH
+        if not os.path.isdir(model_path):
+            raise FileNotFoundError("Milvus requires a local BGE-M3 model")
         self.client = MilvusClient(
             uri=settings.MILVUS_URI,
             token=settings.MILVUS_TOKEN if hasattr(settings, 'MILVUS_TOKEN') else None,
+            timeout=3.0,
         )
-        model_path = settings.LOCAL_EMBEDDING_MODEL_PATH
-        if not os.path.isdir(model_path):
-            raise FileNotFoundError(
-                f"Milvus BGE-M3 本地模型不存在: {model_path}；已禁止从模型源下载。"
-            )
-        self.embedding_fn = BGEM3EmbeddingFunction(
-            model_name=model_path,
-            use_fp16=settings.USE_FP16 if hasattr(settings, 'USE_FP16') else False,
-            device="cuda" if hasattr(settings, 'USE_GPU') and settings.USE_GPU else "cpu",
-        )
-        self.dense_dim = self.embedding_fn.dim["dense"]
-        self.collection_name = settings.VECTOR_COLLECTION_NAME
+        try:
+            from pymilvus.model.hybrid import BGEM3EmbeddingFunction
 
-        self._init_collection()
+            self.embedding_fn = BGEM3EmbeddingFunction(
+                model_name=model_path,
+                use_fp16=settings.USE_FP16 if hasattr(settings, 'USE_FP16') else False,
+                device="cuda" if hasattr(settings, 'USE_GPU') and settings.USE_GPU else "cpu",
+            )
+            self.dense_dim = self.embedding_fn.dim["dense"]
+            self.collection_name = settings.VECTOR_COLLECTION_NAME
+            self._init_collection()
+        except Exception:
+            self.client.close()
+            raise
 
     def _init_collection(self):
         """初始化Milvus集合"""
-        if not self.client.has_collection(self.collection_name):
+        if not self.client.has_collection(self.collection_name, timeout=3.0):
             schema = self.client.create_schema(
                 auto_id=True,
                 enable_dynamic_field=True,
@@ -93,10 +96,11 @@ class MilvusVectorStore:
                 schema=schema,
                 index_params=index_params,
                 enable_dynamic_field=True,
+                timeout=3.0,
             )
             app_logger.info(f"✅ Milvus集合创建成功: {self.collection_name}")
         else:
-            self.client.load_collection(self.collection_name)
+            self.client.load_collection(self.collection_name, timeout=3.0)
             app_logger.info(f"✅ Milvus集合已加载: {self.collection_name}")
 
     async def add_documents(self, documents: List[Dict[str, Any]]) -> int:
@@ -169,6 +173,7 @@ class MilvusVectorStore:
             limit=top_k,
             filter=filter_expr,
             output_fields=["content", "document_id", "chunk_id", "metadata", "meeting_id", "department"],
+            timeout=3.0,
         )
 
         search_results = []
@@ -213,7 +218,7 @@ class MilvusVectorStore:
 
     async def get_document_count(self) -> int:
         """获取文档数量"""
-        return self.client.get_collection_stats(self.collection_name).get("row_count", 0)
+        return self.client.get_collection_stats(self.collection_name, timeout=3.0).get("row_count", 0)
 
     async def update_document(self, document_id: str, content: str, metadata: Dict[str, Any]) -> bool:
         """更新文档"""
@@ -245,8 +250,8 @@ def get_milvus_vector_store() -> Optional['MilvusVectorStore']:
     if _milvus_vector_store is None:
         try:
             _milvus_vector_store = MilvusVectorStore()
-            app_logger.info("✅ Milvus向量存储初始化成功")
+            app_logger.info("Milvus vector store initialized")
         except Exception as e:
-            app_logger.warning(f"❌ Milvus向量存储初始化失败: {e}")
+            app_logger.warning(f"Milvus vector store unavailable: {type(e).__name__}")
             _milvus_vector_store = None
     return _milvus_vector_store

@@ -209,15 +209,21 @@ class DocumentService:
 
         # 生成向量
         if content:
-            try:
-                app_logger.debug(f"开始生成向量: {filename}")
-                await self._create_vector_chunks(doc.id, content, meeting_id=meeting_id, department=department)
-                app_logger.debug(f"向量生成完成: {filename}")
-            except Exception as e:
-                app_logger.warning(f"向量生成失败（不影响文档上传）: {filename} -> {str(e)}")
+            await self._index_document(doc, content)
 
         app_logger.debug(f"文件上传完成: {filename} -> ID: {doc.id}")
         return doc
+
+    async def _index_document(self, doc: Document, content: str) -> None:
+        indexed = await self._create_vector_chunks(
+            doc.id, content, meeting_id=doc.meeting_id, department=doc.department,
+        )
+        await self.db.refresh(doc)
+        status = "parsed" if indexed else "index_failed"
+        if doc.status != status:
+            doc.status = status
+            await self.db.commit()
+            await self.db.refresh(doc)
 
     async def _create_vector_chunks(
         self,
@@ -226,7 +232,7 @@ class DocumentService:
         meeting_id: Optional[int] = None,
         department: Optional[str] = None,
         source_metadata: Optional[Dict[str, Any]] = None,
-    ) -> None:
+    ) -> bool:
         """
         为文档内容创建向量块
 
@@ -244,10 +250,14 @@ class DocumentService:
             )
 
             if not chunks:
-                return
+                return False
 
             # 向量化
             embeddings = self.embedding_service.encode_batch(chunks)
+            if len(embeddings) != len(chunks) or any(not embedding for embedding in embeddings):
+                raise ValueError("Incomplete document embeddings")
+            from app.models.vector import embedding_column_type, embedding_column_value
+            column_type = await embedding_column_type(self.db)
 
             vector_chunks = []
             for idx, (chunk_text, embedding) in enumerate(zip(chunks, embeddings)):
@@ -267,7 +277,7 @@ class DocumentService:
                     speaker_name=speaker_name,
                     time_offset=time_offset,
                     embedding=json.dumps(embedding),
-                    embedding_array=embedding,
+                    embedding_array=embedding_column_value(embedding, column_type),
                     embedding_model=(
                         "fallback-word-frequency-v1"
                         if self.embedding_service.use_fallback
@@ -281,10 +291,13 @@ class DocumentService:
             if vector_chunks:
                 self.db.add_all(vector_chunks)
                 await self.db.commit()
+            return bool(vector_chunks)
 
         except Exception as e:
+            await self.db.rollback()
             import logging
             logging.error(f"Failed to create vector chunks for document {document_id}: {e}")
+            return False
 
     async def _split_document_chunks(
         self,
@@ -490,7 +503,7 @@ class DocumentService:
         await self._delete_vector_chunks(doc.id)
         
         # 重新生成向量
-        await self._create_vector_chunks(doc.id, content, meeting_id=doc.meeting_id, department=doc.department)
+        await self._index_document(doc, content)
         
         return doc
 

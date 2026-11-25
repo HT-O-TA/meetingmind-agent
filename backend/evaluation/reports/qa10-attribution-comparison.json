@@ -1,0 +1,38 @@
+{
+  "schema_version": "qa.attribution_rubric_followup.v1",
+  "model": "gpt-6.1-sol",
+  "n": 10,
+  "input_sha256": "50e4f59b2402e15a29a060af3ba0b9ab065e1e83ac3937c109e1921aa499db32",
+  "metrics": {
+    "v2": {
+      "tp": 5,
+      "fp": 0,
+      "fn": 2,
+      "tn": 3,
+      "agreement": 0.8,
+      "precision": 1.0,
+      "recall": 0.7142857142857143,
+      "f1": 0.8333333333333334,
+      "disagreements": [
+        "gold-pilot-044",
+        "gold-pilot-060"
+      ]
+    },
+    "v3": {
+      "tp": 7,
+      "fp": 0,
+      "fn": 0,
+      "tn": 3,
+      "agreement": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "disagreements": []
+    }
+  },
+  "changed": [
+    "gold-pilot-044",
+    "gold-pilot-060"
+  ],
+  "limitations": "Same ten cases used for follow-up after seeing attribution disagreements. Independent sessions; no controlled sampling. One human reference."
+}

@@ -1,0 +1,190 @@
+{
+  "mode": "local-lightweight",
+  "agent_backend": "synthetic 250 ms service",
+  "users": 4,
+  "host": {
+    "os": "Windows",
+    "logical_cpus": 16,
+    "python": "3.11.16"
+  },
+  "queue_peak": "client-observed accepted jobs not yet terminal; not broker depth",
+  "settings": {
+    "RATE_LIMIT_RAG_COUNT": "500",
+    "RATE_LIMIT_AGENT_COUNT": "500",
+    "RATE_LIMIT_AGENT_STREAM_COUNT": "500",
+    "RATE_LIMIT_TASK_COUNT": "500",
+    "AGENT_HTTP_MAX_IN_FLIGHT": "8"
+  },
+  "results": {
+    "rag": [
+      {
+        "concurrency": 4,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 17.34,
+        "elapsed_ms": {
+          "p50": 47.92,
+          "p95": 758.54
+        },
+        "citation_return_rate": 1.0,
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 14.45,
+        "elapsed_ms": {
+          "p50": 104.92,
+          "p95": 2096.9
+        },
+        "citation_return_rate": 1.0,
+        "error_types": []
+      }
+    ],
+    "agent": [
+      {
+        "concurrency": 4,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 13.41,
+        "elapsed_ms": {
+          "p50": 297.9,
+          "p95": 313.08
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 17.82,
+        "elapsed_ms": {
+          "p50": 299.24,
+          "p95": 331.63
+        },
+        "error_types": []
+      }
+    ],
+    "sse": [
+      {
+        "concurrency": 4,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 10.89,
+        "elapsed_ms": {
+          "p50": 364.39,
+          "p95": 400.77
+        },
+        "first_event_ms": {
+          "p50": 362.73,
+          "p95": 399.11
+        },
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 15.02,
+        "elapsed_ms": {
+          "p50": 387.84,
+          "p95": 406.13
+        },
+        "first_event_ms": {
+          "p50": 385.08,
+          "p95": 400.53
+        },
+        "error_types": []
+      }
+    ],
+    "upload_queue": [
+      {
+        "concurrency": 4,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 6.2,
+        "elapsed_ms": {
+          "p50": 434.35,
+          "p95": 2926.81
+        },
+        "upload_ms": {
+          "p50": 74.91,
+          "p95": 110.1
+        },
+        "enqueue_ms": {
+          "p50": 48.56,
+          "p95": 79.69
+        },
+        "task_ms": {
+          "p50": 312.4,
+          "p95": 2737.0
+        },
+        "observed_outstanding_peak": 4,
+        "drain_after_last_admission_ms": 293.07,
+        "error_types": []
+      },
+      {
+        "concurrency": 8,
+        "requests": 48,
+        "ok": 48,
+        "rate_limited": 0,
+        "capacity_rejected": 0,
+        "unexpected_error": 0,
+        "unexpected_error_rate": 0.0,
+        "successful_per_second": 12.05,
+        "elapsed_ms": {
+          "p50": 578.16,
+          "p95": 1060.09
+        },
+        "upload_ms": {
+          "p50": 83.1,
+          "p95": 242.96
+        },
+        "enqueue_ms": {
+          "p50": 57.72,
+          "p95": 138.07
+        },
+        "task_ms": {
+          "p50": 357.9,
+          "p95": 692.34
+        },
+        "observed_outstanding_peak": 8,
+        "drain_after_last_admission_ms": 555.67,
+        "error_types": []
+      }
+    ],
+    "capacity_recovery": {
+      "agent": "ok",
+      "sse": "ok"
+    }
+  }
+}
