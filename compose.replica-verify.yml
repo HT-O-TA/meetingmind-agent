@@ -1,6 +1,6 @@
 name: meetingmind-replica-verify
 x-app: &app
-  image: meetingmind-agent-backend:latest
+  image: meetingmind-backend:replica-verify
   pull_policy: never
   working_dir: /app
   environment:
@@ -43,6 +43,7 @@ services:
       RABBITMQ_DEFAULT_USER: fixture
       RABBITMQ_DEFAULT_PASS: fixture-broker
   api-a:
+    build: ./backend
     <<: *app
     ports: ["127.0.0.1:18110:8000"]
   api-b:

@@ -56,7 +56,8 @@ test_docs/
 # # Metrics documents (contains detailed internal metrics)
 # docs/量化指标.md
 
-docs/
+docs/*
+!/docs/meetingmind项目解析.md
 
 # VSCode
 .vscode/

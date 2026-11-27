@@ -38,11 +38,6 @@ class EnhancedMultiRetrievalFusion:
 
         return get_reranker()
 
-    @staticmethod
-    def _normalized_score(result: Dict[str, Any], maximum: float) -> float:
-        raw = float(result.get("score", result.get("similarity", 0.0)) or 0.0)
-        return raw / maximum if maximum > 0 else 0.0
-
     def _weighted_fusion(
         self,
         bm25_results: List[Dict[str, Any]],

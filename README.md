@@ -6,7 +6,7 @@
 
 ## 演示与验证
 
-**一分钟终端录屏**。依次运行 HTTP 上传和带引用回答、本地 Jira 确认门禁、PostgreSQL 审计与幂等回归。写入验证使用本机测试夹具。 [观看录屏](docs/evidence/meetingmind-one-minute.mp4)
+一分钟终端录屏覆盖 HTTP 上传、带引用回答、本地 Jira 确认门禁和 PostgreSQL 审计回归。 [观看录屏](docs/evidence/meetingmind-one-minute.mp4)
 
 ```mermaid
 flowchart LR
@@ -183,5 +183,5 @@ KV cache 只有 12,800 token（约 6 路 2k 请求），并发 16→32 时吞吐
 
 已完成本地工程演示，尚未完成真实 Jira 项目写入、多节点容量或生产高可用验收；全库检索为离线复现同一融合策略，未走服务 API。节点 Trace 为有界进程内记录；ASR 仍需多人会议标注集评测。
 
-完整文档入口：[文档索引](docs/README.md) · [项目解析](docs/项目解析.md) · [本机验收报告](backend/evaluation/reports/local-acceptance)。
+查看 [文档索引](docs/README.md)、[MeetingMind 项目解析](docs/meetingmind项目解析.md) 或 [本机验收报告](backend/evaluation/reports/local-acceptance)。
 

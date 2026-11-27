@@ -1967,35 +1967,6 @@ class AgentNodes:
 
         return self._raw_results_to_search_results(search_results)
 
-    def _classify_workflow(self, question: str) -> Tuple[WorkflowType, TaskType, float, str]:
-        normalized = question.strip().lower()
-        if self._is_greeting(question):
-            return WorkflowType.SIMPLE_QA, TaskType.QA, 0.05, "问候语，直接响应"
-
-        todo_keywords = ["待办", "行动项", "任务", "负责人", "截止", "todo", "action item"]
-        minutes_keywords = ["纪要", "会议纪要", "总结会议", "会议总结", "摘要", "概述", "主要内容"]
-        controversy_keywords = ["争议", "分歧", "冲突", "不同意见", "反对", "风险点"]
-        complex_markers = ["并且", "同时", "以及", "和", "再", "然后", "分别", "综合", "分析"]
-
-        matched = []
-        if any(keyword in normalized for keyword in todo_keywords):
-            matched.append((WorkflowType.TODO, TaskType.TODO, "待办提取意图"))
-        if any(keyword in normalized for keyword in minutes_keywords):
-            matched.append((WorkflowType.MINUTES, TaskType.MINUTES, "纪要/摘要意图"))
-        if any(keyword in normalized for keyword in controversy_keywords):
-            matched.append((WorkflowType.CONTROVERSY, TaskType.CONTROVERSY, "争议分析意图"))
-
-        if len(matched) > 1:
-            return WorkflowType.COMPLEX, TaskType.MULTI, 0.8, "命中多个任务意图，需要组合规划"
-        if matched and any(marker in normalized for marker in complex_markers) and len(question) > 30:
-            return WorkflowType.COMPLEX, TaskType.MULTI, 0.7, "包含组合连接词且问题较复杂"
-        if matched:
-            workflow_type, task_type, reason = matched[0]
-            return workflow_type, task_type, 0.3, reason
-        if len(question) > 120 and any(marker in normalized for marker in complex_markers):
-            return WorkflowType.COMPLEX, TaskType.MULTI, 0.65, "长问题且包含多步骤表达"
-        return WorkflowType.SIMPLE_QA, TaskType.QA, 0.2, "默认简单问答"
-
     def _estimate_retrieval_confidence(self, state: AgentState) -> float:
         context = state.get("context") or []
         if not context:
